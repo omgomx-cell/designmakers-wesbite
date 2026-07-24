@@ -3,7 +3,7 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-const { readDatabase, writeDatabase, getNextId } = require("./database");
+const { connectDB, readDatabase, writeDatabase, getNextId } = require("./database");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1019,9 +1019,17 @@ app.use("/api", (req, res) => {
 // START SERVER
 // ================================
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Design Makers running on port ${PORT}`);
-  console.log(`Storefront:   /`);
-  console.log(`Admin panel:  /admin`);
-  console.log(`Products API: /api/products`);
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Design Makers running on port ${PORT}`);
+      console.log(`Storefront:   /`);
+      console.log(`Admin panel:  /admin`);
+      console.log(`Products API: /api/products`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to the database. Server not started.");
+    console.error(err.message);
+    process.exit(1);
+  });
