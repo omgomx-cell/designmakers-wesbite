@@ -1,0 +1,1673 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Design Makers - Admin</title>
+    <link rel="icon" type="image/png" href="Logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      * { box-sizing: border-box; }
+      :root {
+        --rosewood: #c33a68;
+        --rosewood-dark: #8a1c42;
+        --blush: #2a1c22;
+        --blush-line: #3d2b32;
+        --gold: #d9a752;
+        --cream: #120e0d;
+        --ink: #f3e8e2;
+        --muted: #b3a099;
+        --surface: #1c1512;
+        --field: #241b17;
+      }
+      body {
+        font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        margin: 0;
+        background: var(--cream);
+        color: var(--ink);
+      }
+      h1, h2, .brand { font-family: "Playfair Display", Georgia, serif; }
+
+      header {
+        background: var(--rosewood);
+        color: white;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 60;
+      }
+      header h1 { font-size: 18px; margin: 0; }
+      header button {
+        background: rgba(255,255,255,0.16);
+        border: none;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13.5px;
+      }
+
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--blush-line);
+        padding: 0 16px;
+        position: sticky;
+        top: 53px;
+        z-index: 55;
+        overflow-x: auto;
+      }
+      .tab-btn {
+        background: none;
+        border: none;
+        padding: 13px 16px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        border-bottom: 2.5px solid transparent;
+        white-space: nowrap;
+      }
+      .tab-btn.active { color: var(--rosewood); border-bottom-color: var(--rosewood); }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+
+      .wrap { max-width: 780px; margin: 0 auto; padding: 16px; }
+
+      /* Login */
+      #loginScreen { max-width: 380px; margin: 60px auto; padding: 24px; }
+      .card {
+        background: var(--surface);
+        border-radius: 14px;
+        padding: 20px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.35);
+        margin-bottom: 14px;
+        border: 1px solid var(--blush-line);
+      }
+      label { display: block; font-size: 12.5px; font-weight: 600; margin: 12px 0 4px; color: var(--muted); }
+      input[type=text], input[type=password], input[type=number], input[type=tel], textarea, select {
+        width: 100%;
+        padding: 11px 12px;
+        background: var(--field);
+        border: 1.5px solid var(--blush-line);
+        border-radius: 8px;
+        font-size: 14.5px;
+        font-family: inherit;
+        color: var(--ink);
+      }
+      input:focus, textarea:focus, select:focus { outline: none; border-color: var(--gold); }
+      textarea { resize: vertical; min-height: 60px; }
+      .cat-combo { position: relative; }
+      .cat-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: var(--field);
+        border: 1.5px solid var(--blush-line);
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        max-height: 180px;
+        overflow-y: auto;
+        z-index: 20;
+      }
+      .cat-dropdown.open { display: block; }
+      .cat-option {
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--ink);
+        cursor: pointer;
+        border-bottom: 1px solid var(--blush-line);
+      }
+      .cat-option:last-child { border-bottom: none; }
+      .cat-option:hover, .cat-option.active { background: var(--blush); }
+      .cat-option.add-new { color: var(--gold); font-weight: 600; }
+      .cat-option.empty { color: var(--muted); cursor: default; }
+      .cat-option.empty:hover { background: none; }
+      .btn {
+        display: inline-block;
+        background: var(--rosewood);
+        color: white;
+        border: none;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 14.5px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 14px;
+      }
+      .btn:hover { background: var(--rosewood-dark); }
+      .btn.secondary { background: var(--blush); color: var(--rosewood); }
+      .btn.danger { background: #fdeaea; color: #a3002a; }
+      .btn.small { width: auto; padding: 8px 14px; font-size: 12.5px; margin: 4px 4px 0 0; }
+      .error { color: #a3002a; font-size: 13.5px; margin-top: 10px; }
+      .msg { color: #1a7a3f; font-size: 13.5px; margin-top: 10px; }
+
+      /* Stat cards */
+      .stat-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+      .stat-card {
+        flex: 1;
+        min-width: 130px;
+        background: var(--surface);
+        border: 1px solid var(--blush-line);
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+      .stat-card .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+      .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--rosewood); font-family: "Playfair Display", serif; margin-top: 4px; }
+
+      /* Product list */
+      .product-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .product-card .info { flex: 1; }
+      .product-card h3 { margin: 0 0 4px; font-size: 15.5px; font-family: "Inter", sans-serif; font-weight: 700; }
+      .product-card .meta { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+      .badge {
+        display: inline-block;
+        background: var(--blush);
+        color: var(--rosewood);
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 2px 9px;
+        border-radius: 20px;
+        margin-right: 4px;
+      }
+      .badge.gold { background: #f6ecd9; color: var(--gold); }
+      .badge.status { text-transform: uppercase; letter-spacing: 0.3px; font-size: 10.5px; }
+      .badge.status-new { background: #e8f0fe; color: #1a56db; }
+      .badge.status-processing { background: #fef3d9; color: #92600a; }
+      .badge.status-shipped { background: #e6f4ea; color: #1a7a3f; }
+      .badge.status-delivered { background: #e6f4ea; color: #1a7a3f; }
+      .badge.status-cancelled { background: #fdeaea; color: #a3002a; }
+      .inactive { opacity: 0.5; }
+      .fab {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: var(--rosewood);
+        color: white;
+        border: none;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        font-size: 26px;
+        box-shadow: 0 4px 16px rgba(138,28,66,0.35);
+        cursor: pointer;
+      }
+
+      /* Orders */
+      .order-card { border-left: 3px solid var(--gold); }
+      .order-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+      .order-num { font-weight: 700; color: var(--rosewood); font-family: "Playfair Display", serif; font-size: 15px; }
+      .order-date { font-size: 11.5px; color: var(--muted); }
+      .order-items { font-size: 12.5px; color: var(--ink); margin: 6px 0; line-height: 1.6; }
+      .order-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+      .order-total { font-weight: 700; font-size: 15px; color: var(--ink); font-family: "Playfair Display", serif; }
+      .status-select {
+        width: auto;
+        padding: 7px 10px;
+        font-size: 12.5px;
+        border-radius: 7px;
+      }
+      /* Admin list (reused card layout) */
+      .customer-card { display: flex; justify-content: space-between; align-items: center; }
+      .customer-card .name { font-weight: 700; font-size: 14.5px; }
+      .customer-card .phone { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+      /* Modal */
+      #modalOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        z-index: 80;
+        overflow-y: auto;
+      }
+      #modalOverlay.open { display: block; }
+      .modal-card {
+        background: var(--surface);
+        max-width: 500px;
+        margin: 20px auto 60px;
+        border-radius: 14px;
+        padding: 20px;
+      }
+      .modal-card h2 { margin-top: 0; color: var(--rosewood); font-size: 19px; }
+      .discount-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .discount-row input { flex: 1; }
+      .discount-row button {
+        background: #fdeaea;
+        color: #a3002a;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 12px;
+        cursor: pointer;
+      }
+      .hidden { display: none; }
+      .row2 { display: flex; gap: 10px; }
+      .row2 > div { flex: 1; }
+      #loading, .empty-state { text-align: center; padding: 40px; color: var(--muted); font-size: 13.5px; }
+      .hint { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+
+      /* ===== Floating soap bubble ===== */
+      #floatBubble {
+        position: fixed;
+        top: 110px;
+        left: 40px;
+        z-index: 999;
+        width: 100px;
+        height: 86px;
+        cursor: pointer;
+        user-select: none;
+        filter: drop-shadow(0 10px 14px rgba(0,0,0,0.4));
+        transition: transform 0.15s ease, opacity 0.5s ease;
+        will-change: transform, left, top;
+      }
+      #floatBubble svg { width: 100%; height: 100%; display: block; }
+      #floatBubble:hover { transform: scale(1.06); }
+      #floatBubble:active { transform: scale(0.93); }
+      #floatBubbleText {
+        font-family: "Playfair Display", Georgia, serif;
+        font-weight: 700;
+      }
+      #floatBubble.popping {
+        transform: scaleX(1.22) scaleY(0.82);
+        transition: transform 0.09s ease-in;
+        pointer-events: none;
+      }
+      .fb-shard {
+        position: fixed;
+        z-index: 998;
+        pointer-events: none;
+        border-radius: 50% 50% 60% 40% / 60% 60% 40% 40%;
+        border: 0.5px solid rgba(255,255,255,0.5);
+      }
+      @media (max-width: 480px) {
+        #floatBubble { width: 80px; height: 70px; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- FLOATING SOAP BUBBLE — drifts over the whole page, pops when clicked -->
+    <div id="floatBubble" title="Pop me!">
+      <svg viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="65" cy="58" r="46" fill="url(#fbIrid)" opacity="0.55"></circle>
+        <circle cx="65" cy="58" r="46" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.5"></circle>
+        <path d="M28 40 A40 40 0 0 1 60 16" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"></path>
+        <ellipse cx="48" cy="36" rx="13" ry="8" fill="#fff" opacity="0.5"></ellipse>
+        <text id="floatBubbleText" x="65" y="64" text-anchor="middle" font-size="15" fill="#fff" stroke="#3a1020" stroke-width="0.6" style="paint-order: stroke;">Design Makers</text>
+        <defs>
+          <radialGradient id="fbIrid" cx="40%" cy="35%" r="75%">
+            <stop offset="0%" stop-color="#bfe8ff"></stop>
+            <stop offset="30%" stop-color="#d6c2f0"></stop>
+            <stop offset="55%" stop-color="#f7c9e0"></stop>
+            <stop offset="75%" stop-color="#c9f0d8"></stop>
+            <stop offset="100%" stop-color="#8a1c42"></stop>
+          </radialGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen">
+      <div class="card">
+        <h1 style="text-align:center; color:var(--rosewood); font-size:24px;">🎁 Design Makers</h1>
+        <p style="text-align:center; color:var(--muted); margin-top:-8px; font-size:13.5px;">Admin Login</p>
+        <label>Username</label>
+        <input type="text" id="loginUsername" autocomplete="username" />
+        <label>Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" />
+        <button class="btn" onclick="login()">Log In</button>
+        <div class="error" id="loginError"></div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="hidden">
+      <header>
+        <h1><img src="Logo.png" alt="Design Makers" style="height:32px;width:32px;object-fit:contain;vertical-align:middle;margin-right:8px;border-radius:6px;">Design Makers Admin</h1>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="hidden" id="backupBtn" onclick="downloadBackup()">Download Backup</button>
+          <button onclick="logout()">Log Out</button>
+        </div>
+      </header>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="tabBtnProducts" onclick="switchTab('products')">Products</button>
+        <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">Orders</button>
+        <button class="tab-btn" id="tabBtnHomepage" onclick="switchTab('homepage')">Homepage Sections</button>
+        <button class="tab-btn hidden" id="tabBtnAdmins" onclick="switchTab('admins')">Admins</button>
+      </div>
+
+      <div class="wrap">
+        <!-- PRODUCTS TAB -->
+        <div class="tab-panel active" id="tabProducts">
+          <div class="card" style="margin-bottom:16px;">
+            <label style="margin:0;">
+              <input type="checkbox" id="bannerEnabled" style="width:auto; margin-right:6px;" />
+              Show a sale banner pinned at the top of the website
+            </label>
+            <input type="text" id="bannerText" placeholder="e.g. Raksha Bandhan Sale — 20% off mugs, this week only!" style="margin-top:10px;" />
+            <button class="btn small" style="margin-top:10px;" onclick="saveSaleBanner()">Save Banner</button>
+            <div class="error" id="bannerError"></div>
+          </div>
+          <div id="productsLoading">Loading products...</div>
+          <div id="productList"></div>
+        </div>
+
+        <!-- ORDERS TAB -->
+        <div class="tab-panel" id="tabOrders">
+          <div class="stat-row" id="orderStats"></div>
+          <div id="ordersLoading">Loading orders...</div>
+          <div id="orderList"></div>
+        </div>
+
+        <!-- HOMEPAGE SECTIONS TAB -->
+        <div class="tab-panel" id="tabHomepage">
+          <div class="card" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div class="phone" style="margin:0;">
+              This is now automatic and based on real product views — "Our Most Popular Products" ranks by all-time views on your website, "Trending" by views in the last 7 days. Products with no views yet show up as newest-added until someone opens them. This preview is live — it's the same computation the storefront uses, so what you see here is already what shoppers see.
+            </div>
+            <button class="btn small" style="white-space:nowrap;" onclick="loadHomepagePreview()">↻ Refresh preview</button>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <h3 style="margin:0 0 10px;color:var(--rosewood);">⭐ Our Most Popular Products</h3>
+            <div class="phone" style="margin:0 0 10px;">Most-viewed products of all time.</div>
+            <div id="popularPreview" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <h3 style="margin:0 0 10px;color:var(--rosewood);">🔥 Trending</h3>
+            <div class="phone" style="margin:0 0 10px;">Most-viewed products in the last 7 days.</div>
+            <div id="trendingPreview" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+
+          <button class="btn" onclick="saveHomepageSections()">Save MOQ / Discount changes</button>
+          <div class="error" id="homepageSectionsError"></div>
+          <div id="homepageSectionsSaved" style="display:none;color:#1c7a34;font-size:13px;margin-top:8px;">✓ Saved.</div>
+        </div>
+
+        <!-- ADMINS TAB (boss only) -->
+        <div class="tab-panel" id="tabAdmins">
+          <div class="card" style="margin-bottom:16px;">
+            <label>New Admin Username</label>
+            <input type="text" id="newAdminUsername" placeholder="e.g. priya" />
+            <label>New Admin Password</label>
+            <input type="text" id="newAdminPassword" placeholder="min 6 characters" />
+            <label>Tag</label>
+            <select id="newAdminDesignation">
+              <option value="Product Listing Manager">Product Listing Manager</option>
+              <option value="Sales Manager">Sales Manager</option>
+            </select>
+            <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+              <input type="checkbox" id="newAdminCanDelete" style="width:auto;" />
+              Allow deleting products
+            </label>
+            <button class="btn small" style="margin-top:10px;" onclick="createAdmin()">+ Add Admin</button>
+            <div class="error" id="adminError"></div>
+          </div>
+          <div id="adminsLoading">Loading admins...</div>
+          <div id="adminList"></div>
+
+          <div class="card" style="margin-top:20px;">
+            <h3 style="margin:0 0 10px;font-size:15px;color:var(--rosewood);">Recent Logins</h3>
+            <div id="loginHistoryList" style="font-size:13px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="fab hidden" id="addProductFab" onclick="openModal()">+</button>
+    </div>
+
+    <!-- ADD/EDIT PRODUCT MODAL -->
+    <div id="modalOverlay">
+      <div class="modal-card">
+        <h2 id="modalTitle">Add Product</h2>
+        <input type="hidden" id="productId" />
+
+        <label>Product Name *</label>
+        <input type="text" id="fName" placeholder="e.g. Round Neck T-Shirt" />
+
+        <div class="row2">
+          <div class="cat-combo">
+            <label>Category</label>
+            <input type="text" id="fCategory" placeholder="e.g. T-Shirts" autocomplete="off"
+              oninput="onCategoryInput()" onfocus="onCategoryInput()" />
+            <div class="cat-dropdown" id="catDropdown"></div>
+          </div>
+          <div>
+            <label>Price (₹) *</label>
+            <input type="number" id="fPrice" min="0" step="0.01" oninput="updatePricePreview()" />
+          </div>
+        </div>
+
+        <label>Description</label>
+        <textarea id="fDescription" placeholder="Short description shown to customers"></textarea>
+
+        <label>Product Photos (up to 3)</label>
+        <input type="file" id="fImageFiles" accept="image/*" multiple />
+        <div class="hint">Pick up to 3 photos from your device — no need to upload anywhere else first.</div>
+        <div id="imagePreviewRow" style="display:flex; gap:8px; margin:8px 0; flex-wrap:wrap;"></div>
+
+        <div class="row2">
+          <div>
+            <label>Sizes (comma separated)</label>
+            <input type="text" id="fSizes" placeholder="S, M, L, XL" />
+          </div>
+          <div>
+            <label>MOQ (min order qty) *</label>
+            <input type="number" id="fMoq" min="1" value="1" oninput="updatePricePreview()" />
+          </div>
+        </div>
+
+        <label>Bulk Discounts</label>
+        <div id="discountRows"></div>
+        <button class="btn small secondary" onclick="addDiscountRow()">+ Add discount tier</button>
+
+        <div id="pricePreview" class="hidden" style="margin-top:12px; padding:10px 12px; background:var(--blush); border-radius:10px; font-size:13px; line-height:1.6;"></div>
+
+        <div style="margin-top:16px; padding:12px; background:var(--blush); border-radius:10px;">
+          <label style="margin:0;">
+            <input type="checkbox" id="fOnSale" style="width:auto; margin-right:6px;" onchange="toggleSaleField()" />
+            Put this product on sale
+          </label>
+          <div id="saleFieldWrap" class="hidden" style="margin-top:10px;">
+            <label>Sale discount (%)</label>
+            <input type="number" id="fSalePercent" min="1" max="90" placeholder="e.g. 20" />
+
+            <label style="margin-top:10px;">Sale message (optional — shown on the storefront while the sale is on)</label>
+            <input type="text" id="fSaleMessage" maxlength="80" placeholder="e.g. Diwali Blast — today only!" />
+
+            <label style="margin-top:10px;">Sale timer</label>
+            <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+              <button type="button" class="btn small secondary" onclick="setSaleDuration(24)">24 hours</button>
+              <button type="button" class="btn small secondary" onclick="setSaleDuration(48)">48 hours</button>
+              <button type="button" class="btn small secondary" onclick="setSaleDuration(0)">No timer</button>
+            </div>
+            <label style="font-weight:normal;">Or pick a custom end date &amp; time</label>
+            <input type="datetime-local" id="fSaleEndsAt" onchange="onSaleEndsAtChange()" />
+            <div id="saleEndsAtNote" style="font-size:0.8em;color:#8a1c42;margin-top:4px;"></div>
+          </div>
+        </div>
+
+        <label style="margin-top:16px;">
+          <input type="checkbox" id="fActive" checked style="width:auto; margin-right:6px;" />
+          Active (visible on storefront)
+        </label>
+
+        <div style="margin-top:12px; padding:12px; background:var(--blush); border-radius:10px;">
+          <label style="margin:0;">
+            Gift for
+            <select id="fGiftFor" style="margin-top:4px;">
+              <option value="">Anyone</option>
+              <option value="her">Her</option>
+              <option value="him">Him</option>
+              <option value="both">Him/Her (Both)</option>
+            </select>
+          </label>
+          <div class="hint" style="margin-top:6px;">Controls what shows when a shopper taps "Customise Now" on the Gift for Her / Gift for Him homepage popup. "Him/Her" shows the product in both.</div>
+        </div>
+
+        <label style="margin-top:16px;">
+          <input type="checkbox" id="fHotProduct" style="width:auto; margin-right:6px;" />
+          🔥 Show in "Hot Products" banner (homepage)
+        </label>
+
+        <div class="error" id="modalError"></div>
+
+        <div style="display:flex; gap:8px; margin-top:20px;">
+          <button class="btn" onclick="saveProduct()">Save Product</button>
+          <button class="btn secondary" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let token = localStorage.getItem("dm_admin_token") || null;
+      let role = localStorage.getItem("dm_admin_role") || null;
+      let myUsername = localStorage.getItem("dm_admin_username") || null;
+      let myCanDeleteProducts = false;
+      let products = [];
+      let orders = [];
+      let admins = [];
+      let editingId = null;
+      let currentTab = "products";
+      let currentImages = [];
+      let saleEndsAtMs = null; // base64 photo data for the product being edited
+
+      // ---------- AUTH ----------
+
+      async function login() {
+        const username = document.getElementById("loginUsername").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        const errorEl = document.getElementById("loginError");
+        errorEl.textContent = "";
+
+        if (!username || !password) {
+          errorEl.textContent = "Enter username and password.";
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await res.json();
+
+          if (!data.success) {
+            errorEl.textContent = data.message || "Login failed.";
+            return;
+          }
+
+          token = data.token;
+          role = data.role || "admin";
+          myUsername = String(data.username || username).trim();
+          localStorage.setItem("dm_admin_token", token);
+          localStorage.setItem("dm_admin_role", role);
+          localStorage.setItem("dm_admin_username", myUsername);
+          setBubbleText(myUsername);
+          showDashboard();
+        } catch (err) {
+          errorEl.textContent = "Network error. Check your connection and try again.";
+        }
+      }
+
+      function logout() {
+        token = null;
+        role = null;
+        myUsername = null;
+        localStorage.removeItem("dm_admin_token");
+        localStorage.removeItem("dm_admin_role");
+        localStorage.removeItem("dm_admin_username");
+        setBubbleText("Design Makers");
+        document.getElementById("dashboard").classList.add("hidden");
+        document.getElementById("loginScreen").classList.remove("hidden");
+      }
+
+      async function checkSession() {
+        if (!token) return;
+        try {
+          const res = await fetch("/api/admin/me", {
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (data.success) {
+            role = data.role || role;
+            myUsername = data.username ? String(data.username).trim() : myUsername;
+            localStorage.setItem("dm_admin_role", role);
+            if (myUsername) localStorage.setItem("dm_admin_username", myUsername);
+            setBubbleText(myUsername || "Design Makers");
+            showDashboard();
+          } else {
+            logout();
+          }
+        } catch (err) {
+          logout();
+        }
+      }
+
+      async function showDashboard() {
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        document.getElementById("tabBtnAdmins").classList.toggle("hidden", role !== "boss");
+        document.getElementById("backupBtn").classList.toggle("hidden", role !== "boss");
+
+        myCanDeleteProducts = role === "boss";
+        try {
+          const res = await fetch("/api/admin/me", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (data.success) myCanDeleteProducts = !!data.canDeleteProducts;
+        } catch (err) {
+          // Keep the safe default set above if this fails.
+        }
+
+        loadProducts();
+        loadSaleBanner();
+      }
+
+      // ---------- TABS ----------
+
+      function switchTab(tab) {
+        currentTab = tab;
+
+        ["products", "orders", "homepage", "admins"].forEach((t) => {
+          document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
+          document.getElementById("tabBtn" + capitalize(t)).classList.toggle("active", t === tab);
+        });
+
+        document.getElementById("addProductFab").classList.toggle("hidden", tab !== "products");
+
+        if (tab === "orders" && !orders.length) loadOrders();
+        if (tab === "homepage") {
+          document.getElementById("homepageSectionsSaved").style.display = "none";
+          loadHomepagePreview();
+        }
+        if (tab === "admins") loadAdmins();
+      }
+
+      // ---------- HOMEPAGE SECTIONS (Most Popular / Trending) — AUTOMATIC ----------
+      // Membership in each row is computed server-side from real order data.
+      // This tab is a live, read-only preview of that computation, plus
+      // still-editable MOQ / "BUY 10 @" discount % per product.
+      let homepagePreview = { popular: [], trending: [] };
+
+      async function loadHomepagePreview() {
+        const popularEl = document.getElementById("popularPreview");
+        const trendingEl = document.getElementById("trendingPreview");
+        popularEl.innerHTML = '<p class="empty-state" style="margin:0;">Loading…</p>';
+        trendingEl.innerHTML = '<p class="empty-state" style="margin:0;">Loading…</p>';
+
+        try {
+          const res = await fetch("/api/admin/homepage-preview", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (!data.success) {
+            popularEl.innerHTML = trendingEl.innerHTML = '<p class="empty-state" style="margin:0;">Could not load preview.</p>';
+            return;
+          }
+          homepagePreview = { popular: data.popular, trending: data.trending };
+          renderHomepagePreviewSection("popular");
+          renderHomepagePreviewSection("trending");
+        } catch (err) {
+          popularEl.innerHTML = trendingEl.innerHTML = '<p class="empty-state" style="margin:0;">Network error. Try again.</p>';
+        }
+      }
+
+      function renderHomepagePreviewSection(section) {
+        const listEl = document.getElementById(section + "Preview");
+        const items = homepagePreview[section] || [];
+
+        if (!items.length) {
+          listEl.innerHTML = '<p class="empty-state" style="margin:0;">No active products yet.</p>';
+          return;
+        }
+
+        listEl.innerHTML = items
+          .map((p) => {
+            const thumb = p.image
+              ? '<img src="' + escapeHtml(p.image) + '" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;" />'
+              : '<div style="width:40px;height:40px;border-radius:8px;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎁</div>';
+            const pill = p.isNewest
+              ? '<span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;background:#eee;color:#666;">🆕 Newest</span>'
+              : '<span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;background:#fff3d6;color:#8a5a10;">👁 ' + p.viewCount + ' view' + (p.viewCount === 1 ? '' : 's') + '</span>';
+            return (
+              '<div style="display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--border);">' +
+                thumb +
+                '<span style="flex:1;font-size:14px;">' + escapeHtml(p.name) + '<span style="color:var(--muted);font-size:12px;"> — ' + escapeHtml(p.category || "") + '</span></span>' +
+                pill +
+                '<span style="flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);" title="Minimum order quantity for this product">MOQ ' +
+                  '<input type="number" class="hp-moq" data-id="' + p.id + '" min="1" value="' + (p.moq || 1) + '" style="width:44px;padding:4px;text-align:center;" oninput="syncRowField(this, \'hp-moq\')" />' +
+                '</span>' +
+                '<span style="flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);" title="Discount used in this product\'s \u201cBUY 10 @\u2026\u201d badge">' +
+                  '<input type="number" class="hp-badge-percent" data-id="' + p.id + '" min="1" max="90" value="' + (p.buyBadgePercent || 10) + '" style="width:44px;padding:4px;text-align:center;" oninput="syncRowField(this, \'hp-badge-percent\')" />%' +
+                '</span>' +
+              '</div>'
+            );
+          })
+          .join("");
+      }
+
+      // Same product can appear in both the Popular and Trending previews —
+      // keep its MOQ / "BUY 10 @" discount % in sync wherever it's edited,
+      // so Save always sends one consistent value per product.
+      function syncRowField(inputEl, cls) {
+        const id = inputEl.dataset.id;
+        const value = inputEl.value;
+        document.querySelectorAll('.' + cls + '[data-id="' + id + '"]').forEach((el) => {
+          if (el !== inputEl) el.value = value;
+        });
+      }
+
+      async function saveHomepageSections() {
+        const errorEl = document.getElementById("homepageSectionsError");
+        const savedEl = document.getElementById("homepageSectionsSaved");
+        errorEl.textContent = "";
+        savedEl.style.display = "none";
+
+        // One value per product, deduped across the Popular/Trending previews
+        // (syncRowField keeps duplicates equal as the admin types, so any
+        // copy here is fine — we just need one value per id).
+        const buyBadgePercents = {};
+        document.querySelectorAll(".hp-badge-percent").forEach((el) => {
+          const percent = Number(el.value);
+          if (Number.isFinite(percent) && percent > 0) buyBadgePercents[el.dataset.id] = percent;
+        });
+
+        const moqs = {};
+        document.querySelectorAll(".hp-moq").forEach((el) => {
+          const moq = Number(el.value);
+          if (Number.isFinite(moq) && moq >= 1) moqs[el.dataset.id] = moq;
+        });
+
+        try {
+          const res = await fetch("/api/admin/products/homepage-sections", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ buyBadgePercents, moqs }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not save.";
+            return;
+          }
+          products = data.products;
+          savedEl.style.display = "block";
+          loadHomepagePreview();
+        } catch (err) {
+          errorEl.textContent = "Network error. Try again.";
+        }
+      }
+
+      function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+      async function downloadBackup() {
+        try {
+          const res = await fetch("/api/admin/backup", { headers: { Authorization: "Bearer " + token } });
+          if (!res.ok) { alert("Backup failed. Try again."); return; }
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "database-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          alert("Backup failed. Try again.");
+        }
+      }
+
+      // ---------- PRODUCTS ----------
+
+      // ---------- CATEGORY DROPDOWN ----------
+
+      function getKnownCategories() {
+        const seen = new Set();
+        const list = [];
+        products.forEach((p) => {
+          const c = (p.category || "").trim();
+          if (c && !seen.has(c.toLowerCase())) {
+            seen.add(c.toLowerCase());
+            list.push(c);
+          }
+        });
+        return list.sort((a, b) => a.localeCompare(b));
+      }
+
+      function onCategoryInput() {
+        const input = document.getElementById("fCategory");
+        const dropdown = document.getElementById("catDropdown");
+        const query = input.value.trim().toLowerCase();
+        const known = getKnownCategories();
+        const matches = known.filter((c) => c.toLowerCase().includes(query));
+
+        let html = "";
+        if (matches.length) {
+          html += matches
+            .map((c) => '<div class="cat-option" onclick="chooseCategory(\'' + c.replace(/'/g, "\\'") + '\')">' + escapeHtmlCat(c) + "</div>")
+            .join("");
+        } else if (!known.length) {
+          html += '<div class="cat-option empty">No categories yet — type one below</div>';
+        }
+
+        const exactMatch = known.some((c) => c.toLowerCase() === query);
+        if (query && !exactMatch) {
+          html += '<div class="cat-option add-new" onclick="chooseCategory(\'' + query.replace(/'/g, "\\'") + '\', true)">+ Add new category: "' + escapeHtmlCat(input.value.trim()) + '"</div>';
+        }
+
+        dropdown.innerHTML = html;
+        dropdown.classList.toggle("open", html.length > 0);
+      }
+
+      function chooseCategory(value, useOriginalCase) {
+        const input = document.getElementById("fCategory");
+        input.value = useOriginalCase ? input.value.trim() : value;
+        document.getElementById("catDropdown").classList.remove("open");
+      }
+
+      function escapeHtmlCat(s) {
+        return String(s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+      }
+
+      document.addEventListener("click", (e) => {
+        const combo = document.querySelector(".cat-combo");
+        if (combo && !combo.contains(e.target)) {
+          document.getElementById("catDropdown").classList.remove("open");
+        }
+      });
+
+      async function loadProducts() {
+        document.getElementById("productsLoading").classList.remove("hidden");
+        document.getElementById("addProductFab").classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/products", {
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+
+          if (!data.success) {
+            if (res.status === 401) logout();
+            return;
+          }
+
+          products = data.products;
+          renderProducts();
+        } finally {
+          document.getElementById("productsLoading").classList.add("hidden");
+        }
+      }
+
+      function renderProducts() {
+        const list = document.getElementById("productList");
+        if (!products.length) {
+          list.innerHTML = '<p class="empty-state">No products yet. Tap + to add one.</p>';
+          return;
+        }
+
+        list.innerHTML = products
+          .map((p) => {
+            const sizeText = (p.sizes || []).length ? p.sizes.join(", ") : "—";
+            const discountText = (p.discounts || []).length
+              ? p.discounts.map((d) => d.minQty + "+ qty: " + d.percent + "% off").join(" · ")
+              : "No bulk discounts";
+            const thumb = p.image
+              ? '<img src="' + escapeHtml(p.image) + '" style="width:56px;height:56px;border-radius:10px;object-fit:cover;margin-right:10px;flex-shrink:0;" />'
+              : '<div style="width:56px;height:56px;border-radius:10px;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:24px;margin-right:10px;flex-shrink:0;">🎁</div>';
+
+            return (
+              '<div class="card product-card ' + (p.active ? "" : "inactive") + '" style="align-items:flex-start;">' +
+                thumb +
+                '<div class="info">' +
+                  "<h3>" + escapeHtml(p.name) + "</h3>" +
+                  '<div class="meta">' +
+                    '<span class="badge">₹' + p.price + "</span>" +
+                    '<span class="badge">MOQ ' + (p.moq || 1) + "</span>" +
+                    (p.onSale ? '<span class="badge" style="background:#e8f7ea;color:#1c7a34;">🔥 ' + p.salePercent + "% off" + saleTimerLabel(p) + '</span>' : "") +
+                    (p.giftFor === "her" ? '<span class="badge" style="background:#f3dbe2;color:#8a1c42;">👧 Gift for Her</span>' : "") +
+                    (p.giftFor === "him" ? '<span class="badge" style="background:#f6e3bf;color:#8a5a10;">👦 Gift for Him</span>' : "") +
+                    (p.giftFor === "both" ? '<span class="badge" style="background:#e6d9f3;color:#5a2f8a;">👫 Gift for Both</span>' : "") +
+                    (p.hotProduct ? '<span class="badge" style="background:#fde3e3;color:#a11c1c;">🔥 Hot Product</span>' : "") +
+                    (p.popular ? '<span class="badge" style="background:#e0f0ff;color:#0a5aa8;">⭐ Most Popular</span>' : "") +
+                    (p.trending ? '<span class="badge" style="background:#fff3d6;color:#8a5a10;">📈 Trending</span>' : "") +
+                    (p.active ? "" : '<span class="badge" style="background:#fdeaea;color:#a3002a;">Inactive</span>') +
+                    "<br/>Sizes: " + escapeHtml(sizeText) + "<br/>" +
+                    escapeHtml(discountText) +
+                  "</div>" +
+                "</div>" +
+                '<div>' +
+                  '<button class="btn small secondary" onclick="editProduct(' + p.id + ')">Edit</button>' +
+                  (myCanDeleteProducts ? '<button class="btn small danger" onclick="deleteProduct(' + p.id + ')">Delete</button>' : "") +
+                "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      // Static (non-ticking) summary of a product's sale timer for the admin
+      // list — good enough for a glance, doesn't need a live per-second clock.
+      function saleTimerLabel(p) {
+        if (!p.saleEndsAt) return "";
+        const remain = Number(p.saleEndsAt) - Date.now();
+        if (remain <= 0) return " · Sale Ended";
+        const hrs = Math.floor(remain / 3600000);
+        const mins = Math.floor((remain % 3600000) / 60000);
+        return " · ends in " + hrs + "h " + mins + "m";
+      }
+
+      // ---------- PRODUCT MODAL ----------
+
+      function openModal() {
+        editingId = null;
+        currentImages = [];
+        document.getElementById("modalTitle").textContent = "Add Product";
+        document.getElementById("productId").value = "";
+        document.getElementById("fName").value = "";
+        document.getElementById("fCategory").value = "";
+        document.getElementById("fPrice").value = "";
+        document.getElementById("fDescription").value = "";
+        document.getElementById("fImageFiles").value = "";
+        document.getElementById("fSizes").value = "";
+        document.getElementById("fMoq").value = 1;
+        document.getElementById("fOnSale").checked = false;
+        document.getElementById("fSalePercent").value = "";
+        document.getElementById("fSaleMessage").value = "";
+        document.getElementById("fSaleEndsAt").value = "";
+        document.getElementById("saleEndsAtNote").textContent = "";
+        saleEndsAtMs = null;
+        document.getElementById("fActive").checked = true;
+        document.getElementById("fGiftFor").value = "";
+        document.getElementById("fHotProduct").checked = false;
+        document.getElementById("discountRows").innerHTML = "";
+        document.getElementById("modalError").textContent = "";
+        toggleSaleField();
+        renderImagePreview();
+        updatePricePreview();
+        document.getElementById("modalOverlay").classList.add("open");
+      }
+
+      // Live preview of MOQ + bulk-discount pricing so the admin can see the
+      // actual per-piece / total prices before hitting Save.
+      function updatePricePreview() {
+        const preview = document.getElementById("pricePreview");
+        const price = Number(document.getElementById("fPrice").value);
+        const moq = Number(document.getElementById("fMoq").value) || 1;
+
+        if (!price || price <= 0) {
+          preview.classList.add("hidden");
+          preview.innerHTML = "";
+          return;
+        }
+
+        const tiers = Array.from(document.querySelectorAll(".discount-row")).map((row) => ({
+          minQty: Number(row.querySelector(".d-minqty").value),
+          percent: Number(row.querySelector(".d-percent").value),
+        })).filter((d) => d.minQty > 0 && d.percent > 0)
+          .sort((a, b) => a.minQty - b.minQty);
+
+        let html = '<div><strong>Minimum order:</strong> ' + moq + ' pc' + (moq > 1 ? "s" : "") +
+          ' — \u20B9' + (price * moq).toLocaleString("en-IN") + ' at regular price (\u20B9' + price.toLocaleString("en-IN") + '/pc)</div>';
+
+        if (tiers.length) {
+          html += '<div style="margin-top:6px;"><strong>Bulk discount preview:</strong></div>';
+          tiers.forEach((t) => {
+            const perPiece = price * (1 - t.percent / 100);
+            const total = perPiece * t.minQty;
+            html += '<div>' + t.minQty + '+ pcs \u2192 ' + t.percent + '% off \u2192 \u20B9' +
+              (Math.round(perPiece * 100) / 100).toLocaleString("en-IN") + '/pc (\u20B9' +
+              Math.round(total).toLocaleString("en-IN") + ' for ' + t.minQty + ')</div>';
+          });
+        } else {
+          html += '<div style="margin-top:6px; color:var(--rosewood);">No bulk discount tiers set \u2014 add one above to preview its pricing.</div>';
+        }
+
+        preview.innerHTML = html;
+        preview.classList.remove("hidden");
+      }
+
+      function toggleSaleField() {
+        document.getElementById("saleFieldWrap").classList.toggle("hidden", !document.getElementById("fOnSale").checked);
+      }
+
+      // Formats a Date as the value a <input type="datetime-local"> expects,
+      // in the browser's local time (so what the admin sees matches what they picked).
+      function toLocalDatetimeInputValue(date) {
+        const pad = (n) => String(n).padStart(2, "0");
+        return (
+          date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) +
+          "T" + pad(date.getHours()) + ":" + pad(date.getMinutes())
+        );
+      }
+
+      // Quick-pick buttons: 24h / 48h set an end time that many hours from now.
+      // "No timer" (0) clears it — the sale then stays on until turned off by hand.
+      function setSaleDuration(hours) {
+        if (!hours) {
+          saleEndsAtMs = null;
+          document.getElementById("fSaleEndsAt").value = "";
+          document.getElementById("saleEndsAtNote").textContent = "No timer — sale stays on until you turn it off.";
+          return;
+        }
+        const end = new Date(Date.now() + hours * 60 * 60 * 1000);
+        saleEndsAtMs = end.getTime();
+        document.getElementById("fSaleEndsAt").value = toLocalDatetimeInputValue(end);
+        document.getElementById("saleEndsAtNote").textContent = "Sale ends " + end.toLocaleString();
+      }
+
+      // Manual pick from the datetime-local input.
+      function onSaleEndsAtChange() {
+        const val = document.getElementById("fSaleEndsAt").value;
+        if (!val) {
+          saleEndsAtMs = null;
+          document.getElementById("saleEndsAtNote").textContent = "";
+          return;
+        }
+        saleEndsAtMs = new Date(val).getTime();
+        document.getElementById("saleEndsAtNote").textContent = "Sale ends " + new Date(saleEndsAtMs).toLocaleString();
+      }
+
+      // Reads the picked files, turns them into base64 data URLs (kept in
+      // currentImages), and shows small thumbnails so the admin can see what
+      // they picked before saving. Keeps at most 3.
+      document.getElementById("fImageFiles").addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []).slice(0, 3);
+        const readAsDataUrl = (file) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        currentImages = await Promise.all(files.map(readAsDataUrl));
+        renderImagePreview();
+      });
+
+      function renderImagePreview() {
+        const row = document.getElementById("imagePreviewRow");
+        row.innerHTML = currentImages
+          .map((src) => '<img src="' + src + '" style="width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" />')
+          .join("");
+      }
+
+      function closeModal() {
+        document.getElementById("modalOverlay").classList.remove("open");
+      }
+
+      function editProduct(id) {
+        const p = products.find((x) => x.id === id);
+        if (!p) return;
+
+        editingId = id;
+        currentImages = Array.isArray(p.images) && p.images.length ? p.images : (p.image ? [p.image] : []);
+        document.getElementById("modalTitle").textContent = "Edit Product";
+        document.getElementById("productId").value = p.id;
+        document.getElementById("fName").value = p.name || "";
+        document.getElementById("fCategory").value = p.category || "";
+        document.getElementById("fPrice").value = p.price || 0;
+        document.getElementById("fDescription").value = p.description || "";
+        document.getElementById("fImageFiles").value = "";
+        document.getElementById("fSizes").value = (p.sizes || []).join(", ");
+        document.getElementById("fMoq").value = p.moq || 1;
+        document.getElementById("fOnSale").checked = Boolean(p.onSale);
+        document.getElementById("fSalePercent").value = p.salePercent || "";
+        document.getElementById("fSaleMessage").value = p.saleMessage || "";
+        if (p.saleEndsAt) {
+          saleEndsAtMs = Number(p.saleEndsAt);
+          document.getElementById("fSaleEndsAt").value = toLocalDatetimeInputValue(new Date(saleEndsAtMs));
+          const remain = saleEndsAtMs - Date.now();
+          document.getElementById("saleEndsAtNote").textContent =
+            remain > 0 ? "Sale ends " + new Date(saleEndsAtMs).toLocaleString() : "This timer has already ended.";
+        } else {
+          saleEndsAtMs = null;
+          document.getElementById("fSaleEndsAt").value = "";
+          document.getElementById("saleEndsAtNote").textContent = p.onSale ? "No timer — sale stays on until you turn it off." : "";
+        }
+        document.getElementById("fActive").checked = p.active !== false;
+        document.getElementById("fGiftFor").value = p.giftFor || "";
+        document.getElementById("fHotProduct").checked = Boolean(p.hotProduct);
+        document.getElementById("modalError").textContent = "";
+        toggleSaleField();
+        renderImagePreview();
+
+        const rows = document.getElementById("discountRows");
+        rows.innerHTML = "";
+        (p.discounts || []).forEach((d) => addDiscountRow(d.minQty, d.percent));
+        updatePricePreview();
+
+        document.getElementById("modalOverlay").classList.add("open");
+      }
+
+      function addDiscountRow(minQty, percent) {
+        const rows = document.getElementById("discountRows");
+        const row = document.createElement("div");
+        row.className = "discount-row";
+        row.innerHTML =
+          '<input type="number" min="1" placeholder="Min qty" class="d-minqty" value="' + (minQty || "") + '" oninput="updatePricePreview()" />' +
+          '<input type="number" min="1" max="100" placeholder="% off" class="d-percent" value="' + (percent || "") + '" oninput="updatePricePreview()" />' +
+          '<button type="button" onclick="this.parentElement.remove(); updatePricePreview();">✕</button>';
+        rows.appendChild(row);
+        updatePricePreview();
+      }
+
+      async function saveProduct() {
+        const errorEl = document.getElementById("modalError");
+        errorEl.textContent = "";
+
+        const name = document.getElementById("fName").value.trim();
+        const price = document.getElementById("fPrice").value;
+        const moq = document.getElementById("fMoq").value;
+
+        if (!name) { errorEl.textContent = "Product name is required."; return; }
+        if (price === "" || Number(price) < 0) { errorEl.textContent = "Enter a valid price."; return; }
+        if (!moq || Number(moq) < 1) { errorEl.textContent = "MOQ must be at least 1."; return; }
+
+        const discounts = Array.from(document.querySelectorAll(".discount-row")).map((row) => ({
+          minQty: Number(row.querySelector(".d-minqty").value),
+          percent: Number(row.querySelector(".d-percent").value),
+        })).filter((d) => d.minQty > 0 && d.percent > 0);
+
+        const onSale = document.getElementById("fOnSale").checked;
+        if (onSale && !Number(document.getElementById("fSalePercent").value)) {
+          errorEl.textContent = "Enter a sale percent greater than 0.";
+          return;
+        }
+
+        const payload = {
+          name,
+          category: document.getElementById("fCategory").value.trim(),
+          description: document.getElementById("fDescription").value.trim(),
+          images: currentImages,
+          price: Number(price),
+          sizes: document.getElementById("fSizes").value,
+          moq: Number(moq),
+          discounts,
+          onSale,
+          salePercent: Number(document.getElementById("fSalePercent").value) || 0,
+          saleMessage: document.getElementById("fSaleMessage").value.trim(),
+          saleEndsAt: onSale ? saleEndsAtMs : null,
+          active: document.getElementById("fActive").checked,
+          giftFor: document.getElementById("fGiftFor").value,
+          hotProduct: document.getElementById("fHotProduct").checked,
+        };
+
+        const isEdit = Boolean(editingId);
+        const url = isEdit ? "/api/admin/products/" + editingId : "/api/admin/products";
+        const method = isEdit ? "PUT" : "POST";
+
+        try {
+          const res = await fetch(url, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify(payload),
+          });
+          const data = await res.json();
+
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not save product.";
+            return;
+          }
+
+          closeModal();
+          loadProducts();
+        } catch (err) {
+          errorEl.textContent = "Network error. Try again.";
+        }
+      }
+
+      async function deleteProduct(id) {
+        if (!confirm("Delete this product? This cannot be undone.")) return;
+
+        try {
+          const res = await fetch("/api/admin/products/" + id, {
+            method: "DELETE",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (data.success) loadProducts();
+          else if (res.status === 403) alert(data.message || "Only the boss account can delete products.");
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      // ---------- ORDERS ----------
+
+      const STATUS_OPTIONS = ["New", "Processing", "Shipped", "Delivered", "Cancelled"];
+
+      async function loadOrders() {
+        document.getElementById("ordersLoading").classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/orders", {
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+
+          if (!data.success) {
+            if (res.status === 401) logout();
+            return;
+          }
+
+          orders = data.orders;
+          renderOrderStats();
+          renderOrders();
+        } finally {
+          document.getElementById("ordersLoading").classList.add("hidden");
+        }
+      }
+
+      function renderOrderStats() {
+        const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+        const newCount = orders.filter((o) => o.status === "New").length;
+
+        document.getElementById("orderStats").innerHTML =
+          statCard("Total Orders", orders.length) +
+          statCard("New / Unfulfilled", newCount) +
+          statCard("Revenue (COD)", "₹" + Math.round(totalRevenue));
+      }
+
+      function statCard(label, value) {
+        return (
+          '<div class="stat-card">' +
+            '<div class="stat-label">' + escapeHtml(String(label)) + "</div>" +
+            '<div class="stat-value">' + escapeHtml(String(value)) + "</div>" +
+          "</div>"
+        );
+      }
+
+      function renderOrders() {
+        const list = document.getElementById("orderList");
+        if (!orders.length) {
+          list.innerHTML = '<p class="empty-state">No orders yet — they will show up here as customers check out.</p>';
+          return;
+        }
+
+        list.innerHTML = orders
+          .map((o) => {
+            const itemsText = (o.items || [])
+              .map((it) => it.name + (it.size ? " (" + it.size + ")" : "") + " × " + it.qty)
+              .join(", ");
+
+            const statusClass = "status-" + String(o.status || "New").toLowerCase();
+            const statusOptions = STATUS_OPTIONS
+              .map((s) => '<option value="' + s + '" ' + (s === o.status ? "selected" : "") + ">" + s + "</option>")
+              .join("");
+
+            return (
+              '<div class="card order-card">' +
+                '<div class="order-head">' +
+                  '<span class="order-num">' + escapeHtml(o.orderNumber) + "</span>" +
+                  '<span class="order-date">' + formatDate(o.createdAt) + "</span>" +
+                "</div>" +
+                '<div class="meta">' +
+                  escapeHtml(o.customer ? o.customer.name : "—") + " · " + escapeHtml(o.customer ? o.customer.phone : "—") +
+                "</div>" +
+                '<div class="order-items">' + escapeHtml(itemsText) + "</div>" +
+                '<div class="order-foot">' +
+                  '<span class="badge gold">COD</span>' +
+                  '<span class="order-total">₹' + Math.round(o.total) + "</span>" +
+                  '<select class="status-select ' + statusClass + '" onchange="updateOrderStatus(' + o.id + ', this.value)">' +
+                    statusOptions +
+                  "</select>" +
+                "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      async function updateOrderStatus(id, status) {
+        try {
+          const res = await fetch("/api/admin/orders/" + id + "/status", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: "Bearer " + token,
+            },
+            body: JSON.stringify({ status }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            const o = orders.find((x) => x.id === id);
+            if (o) o.status = status;
+            renderOrderStats();
+          }
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      function formatDate(iso) {
+        try {
+          return new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+        } catch (err) {
+          return "";
+        }
+      }
+
+      // ---------- SALE BANNER ----------
+
+      async function loadSaleBanner() {
+        try {
+          const res = await fetch("/api/settings");
+          const data = await res.json();
+          if (data.success && data.settings.saleBanner) {
+            document.getElementById("bannerEnabled").checked = Boolean(data.settings.saleBanner.enabled);
+            document.getElementById("bannerText").value = data.settings.saleBanner.text || "";
+          }
+        } catch (err) {
+          // non-fatal — leave fields as-is
+        }
+      }
+
+      async function saveSaleBanner() {
+        const errorEl = document.getElementById("bannerError");
+        errorEl.textContent = "";
+        try {
+          const res = await fetch("/api/admin/settings/sale-banner", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({
+              enabled: document.getElementById("bannerEnabled").checked,
+              text: document.getElementById("bannerText").value.trim(),
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) errorEl.textContent = data.message || "Could not save banner.";
+        } catch (err) {
+          errorEl.textContent = "Network error. Try again.";
+        }
+      }
+
+      // ---------- ADMINS (boss only) ----------
+
+      async function loadAdmins() {
+        document.getElementById("adminsLoading").classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/admins", {
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            if (res.status === 401) logout();
+            return;
+          }
+          admins = data.admins;
+          renderAdmins();
+          loadLoginHistory();
+        } finally {
+          document.getElementById("adminsLoading").classList.add("hidden");
+        }
+      }
+
+      function formatLoginTime(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        return d.toLocaleString();
+      }
+
+      async function loadLoginHistory() {
+        try {
+          const res = await fetch("/api/admin/login-history", {
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (!data.success) return;
+          renderLoginHistory(data.history);
+        } catch (err) {
+          // Silent — this is a secondary panel, don't block the admins tab on it.
+        }
+      }
+
+      function renderLoginHistory(history) {
+        const el = document.getElementById("loginHistoryList");
+        if (!history.length) {
+          el.innerHTML = '<p class="empty-state">No login activity yet.</p>';
+          return;
+        }
+        el.innerHTML = history
+          .slice(0, 30)
+          .map((h) => (
+            '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--blush-line);">' +
+              '<span>' + (h.success ? "" : "&#10060; ") + escapeHtml(h.username) + (h.role === "boss" ? " (boss)" : "") + "</span>" +
+              '<span style="color:var(--muted);">' + escapeHtml(h.ip) + "</span>" +
+              '<span style="color:var(--muted);">' + escapeHtml(formatLoginTime(h.at)) + "</span>" +
+            "</div>"
+          ))
+          .join("");
+      }
+
+      function renderAdmins() {
+        const list = document.getElementById("adminList");
+        if (!admins.length) {
+          list.innerHTML = '<p class="empty-state">No sub-admins yet — add one above.</p>';
+          return;
+        }
+        list.innerHTML = admins
+          .map((a) => {
+            const lastLoginText = a.lastLogin
+              ? "Last login: " + escapeHtml(a.lastLogin.ip) + " · " + escapeHtml(formatLoginTime(a.lastLogin.at))
+              : "Never logged in";
+            return (
+              '<div class="card customer-card">' +
+                '<div>' +
+                  '<div class="name">' + escapeHtml(a.username) + (a.role === "boss" ? " (boss)" : "") +
+                    (a.designation ? ' <span class="badge">' + escapeHtml(a.designation) + "</span>" : "") + "</div>" +
+                  '<div class="phone">' + (a.locked ? "🔒 Locked (" + a.failedAttempts + " failed attempts)" : "Active") + "</div>" +
+                  '<div class="phone">' + lastLoginText + "</div>" +
+                  '<div class="phone">' + (a.canDeleteProducts ? "Can delete products" : "Cannot delete products") + "</div>" +
+                "</div>" +
+                '<div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">' +
+                  (a.role === "boss" ? "" :
+                    (a.locked ? '<button class="btn small" onclick="unlockAdmin(\'' + a.username + '\')">Unlock</button>' : "") +
+                    '<button class="btn small secondary" onclick="toggleDeletePermission(\'' + a.username + '\', ' + !a.canDeleteProducts + ')">' +
+                      (a.canDeleteProducts ? "Revoke delete access" : "Allow delete access") +
+                    "</button>" +
+                    '<button class="btn small secondary" onclick="editAdminCredentials(\'' + a.username + '\')">Edit login</button>' +
+                    '<button class="btn small danger" onclick="deleteAdmin(\'' + a.username + '\')">Remove</button>'
+                  ) +
+                "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      async function createAdmin() {
+        const errorEl = document.getElementById("adminError");
+        errorEl.textContent = "";
+        const username = document.getElementById("newAdminUsername").value.trim();
+        const password = document.getElementById("newAdminPassword").value;
+        const designation = document.getElementById("newAdminDesignation").value;
+        const canDeleteProducts = document.getElementById("newAdminCanDelete").checked;
+
+        if (!username || !password) { errorEl.textContent = "Enter a username and password."; return; }
+
+        try {
+          const res = await fetch("/api/admin/admins", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ username, password, designation, canDeleteProducts }),
+          });
+          const data = await res.json();
+          if (!data.success) { errorEl.textContent = data.message || "Could not create admin."; return; }
+
+          document.getElementById("newAdminUsername").value = "";
+          document.getElementById("newAdminPassword").value = "";
+          document.getElementById("newAdminCanDelete").checked = false;
+          loadAdmins();
+        } catch (err) {
+          errorEl.textContent = "Network error. Try again.";
+        }
+      }
+
+      async function toggleDeletePermission(username, nextValue) {
+        try {
+          const res = await fetch("/api/admin/admins/" + encodeURIComponent(username) + "/permissions", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ canDeleteProducts: nextValue }),
+          });
+          const data = await res.json();
+          if (!data.success) { alert(data.message || "Could not update permission."); return; }
+          loadAdmins();
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      async function unlockAdmin(username) {
+        try {
+          await fetch("/api/admin/admins/" + encodeURIComponent(username) + "/unlock", {
+            method: "PUT",
+            headers: { Authorization: "Bearer " + token },
+          });
+          loadAdmins();
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      async function editAdminCredentials(username) {
+        const newUsername = prompt("New username for \"" + username + "\" (leave as-is to keep):", username);
+        if (newUsername === null) return;
+        const newPassword = prompt("New password (leave blank to keep current, min 6 characters):", "");
+        if (newPassword === null) return;
+
+        const trimmedUsername = newUsername.trim();
+        if (!trimmedUsername) { alert("Username cannot be empty."); return; }
+        if (newPassword && newPassword.length < 6) { alert("Password should be at least 6 characters."); return; }
+
+        try {
+          const res = await fetch("/api/admin/admins/" + encodeURIComponent(username) + "/credentials", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ username: trimmedUsername, password: newPassword }),
+          });
+          const data = await res.json();
+          if (!data.success) { alert(data.message || "Could not update admin."); return; }
+          loadAdmins();
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      async function deleteAdmin(username) {
+        if (!confirm("Remove admin \"" + username + "\"?")) return;
+        try {
+          await fetch("/api/admin/admins/" + encodeURIComponent(username), {
+            method: "DELETE",
+            headers: { Authorization: "Bearer " + token },
+          });
+          loadAdmins();
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      // Enter key submits login
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("loginPassword").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") login();
+        });
+        checkSession();
+      });
+
+      // Updates the floating bubble's label (shows the logged-in admin's
+      // username once signed in, falls back to the brand name otherwise).
+      // Sets the bubble label and shrinks the font so long usernames don't
+      // overflow the circle.
+      function setBubbleText(text) {
+        const el = document.getElementById("floatBubbleText");
+        if (!el) return;
+        el.textContent = String(text || "").trim();
+        let size = 15;
+        el.setAttribute("font-size", size);
+        while (el.getComputedTextLength && el.getComputedTextLength() > 76 && size > 9) {
+          size -= 1;
+          el.setAttribute("font-size", size);
+        }
+      }
+
+      // ===== Floating logo bubble: drifts around the page, pops on click =====
+      (function () {
+        const bubble = document.getElementById("floatBubble");
+        if (!bubble) return;
+
+        // Show the logged-in admin's username on the bubble if a session is
+        // already saved (e.g. page refresh); otherwise the default label.
+        setBubbleText(myUsername || "Design Makers");
+
+        let x = 40, y = 110;
+        let vx = 1.1, vy = 0.9;
+        let popped = false;
+        let raf = null;
+
+        function step() {
+          if (popped) return;
+          const w = window.innerWidth, h = window.innerHeight;
+          const bw = bubble.offsetWidth || 160, bh = bubble.offsetHeight || 40;
+          x += vx;
+          y += vy;
+          if (x <= 0) { x = 0; vx = Math.abs(vx); }
+          if (x + bw >= w) { x = w - bw; vx = -Math.abs(vx); }
+          if (y <= 0) { y = 0; vy = Math.abs(vy); }
+          if (y + bh >= h) { y = h - bh; vy = -Math.abs(vy); }
+          bubble.style.left = x + "px";
+          bubble.style.top = y + "px";
+          raf = requestAnimationFrame(step);
+        }
+        raf = requestAnimationFrame(step);
+
+        function spawnShards(cx, cy) {
+          const count = 9;
+          for (let i = 0; i < count; i++) {
+            const s = document.createElement("div");
+            s.className = "fb-shard";
+            const size = 14 + Math.random() * 16;
+            s.style.width = size + "px";
+            s.style.height = (size * 0.55) + "px";
+            s.style.left = cx + "px";
+            s.style.top = cy + "px";
+            s.style.background =
+              "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.8), rgba(193,74,114,0.55) 60%, rgba(90,16,41,0.35))";
+            s.style.transform = "translate(-50%,-50%) rotate(" + Math.random() * 360 + "deg)";
+            s.style.transition = "transform 0.55s cubic-bezier(0.2,0.6,0.4,1), opacity 0.55s ease-in";
+            s.style.opacity = "1";
+            document.body.appendChild(s);
+
+            const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+            const dist = 45 + Math.random() * 55;
+            const dx = Math.cos(angle) * dist;
+            const dy = Math.sin(angle) * dist * 0.6 - 10;
+
+            requestAnimationFrame(() => {
+              s.style.transform =
+                "translate(calc(-50% + " + dx + "px), calc(-50% + " + (dy + 46) + "px)) rotate(" +
+                (Math.random() * 360 + 180) + "deg) scale(0.4)";
+              s.style.opacity = "0";
+            });
+            setTimeout(() => s.remove(), 650);
+          }
+        }
+
+        bubble.addEventListener("click", () => {
+          if (popped) return;
+          popped = true;
+          if (raf) cancelAnimationFrame(raf);
+
+          const rect = bubble.getBoundingClientRect();
+          bubble.classList.add("popping");
+
+          setTimeout(() => {
+            spawnShards(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            bubble.classList.remove("popping");
+            bubble.style.opacity = "0";
+          }, 90);
+
+          setTimeout(() => {
+            const w = window.innerWidth, h = window.innerHeight;
+            x = 30 + Math.random() * Math.max(40, w - 220);
+            y = 90 + Math.random() * Math.max(40, h - 260);
+            bubble.style.left = x + "px";
+            bubble.style.top = y + "px";
+            requestAnimationFrame(() => {
+              bubble.style.opacity = "1";
+              popped = false;
+              raf = requestAnimationFrame(step);
+            });
+          }, 20000);
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "design-makers",
+  "version": "1.0.0",
+  "description": "Design Makers Customized Gifts Website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
