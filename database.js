@@ -1,13 +1,13 @@
-const fs = require("fs");
-const path = require("path");
+const { MongoClient } = require("mongodb");
 
-const DATA_DIR = path.join(__dirname, "data");
-const DB_FILE = path.join(DATA_DIR, "database.json");
+const MONGODB_URI = process.env.MONGODB_URI;
+const DB_NAME = "designmakers";
+const COLLECTION_NAME = "app_data";
+const DOC_ID = "main";
 
-// Create data folder if it doesn't exist
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
+let mongoClient = null;
+let mongoCollection = null;
+let cachedData = null;
 
 // Default database structure
 const defaultDatabase = {
@@ -509,21 +509,37 @@ const defaultDatabase = {
   },
 };
 
-// Create database.json on first run
-function initializeDatabase() {
-  if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(defaultDatabase, null, 2), "utf8");
-    console.log("Design Makers database created successfully.");
+// Connect to MongoDB and load the database into memory.
+// Must be awaited once at server startup, before app.listen().
+async function connectDB() {
+  if (!MONGODB_URI) {
+    throw new Error(
+      "MONGODB_URI environment variable is not set. Add it in Render > Environment."
+    );
   }
+
+  mongoClient = new MongoClient(MONGODB_URI);
+  await mongoClient.connect();
+  const db = mongoClient.db(DB_NAME);
+  mongoCollection = db.collection(COLLECTION_NAME);
+
+  const existing = await mongoCollection.findOne({ _id: DOC_ID });
+
+  if (existing) {
+    delete existing._id;
+    cachedData = existing;
+    console.log("Design Makers database loaded from MongoDB.");
+  } else {
+    cachedData = JSON.parse(JSON.stringify(defaultDatabase));
+    await mongoCollection.insertOne({ _id: DOC_ID, ...cachedData });
+    console.log("Design Makers database created in MongoDB (first run).");
+  }
+
+  ensureShape(cachedData);
 }
 
-// Read database
-function readDatabase() {
-  initializeDatabase();
-  const data = fs.readFileSync(DB_FILE, "utf8");
-  const database = JSON.parse(data);
-
-  // Self-heal: older database.json files won't have these fields yet.
+// Self-heal: older databases won't have these fields yet.
+function ensureShape(database) {
   let needsUpgrade = false;
 
   if (!Array.isArray(database.customers)) {
@@ -538,7 +554,7 @@ function readDatabase() {
 
   if (!database.settings.rewards) {
     database.settings.rewards = {
-      enabled: false, // OFF for now — turn on later from Admin > Customers & Rewards
+      enabled: false,
       earnPerRupee: 0.01,
       redeemRate: 0.1,
       minRedeemPoints: 500,
@@ -549,9 +565,6 @@ function readDatabase() {
     };
     needsUpgrade = true;
   } else if (database.settings.rewards.maxRedeemPerOrder == null) {
-    // Existing installs saved before this field existed — default it to the
-    // same as minRedeemPoints so behaviour doesn't silently change; the admin
-    // can raise/lower it any time from Rewards Settings.
     database.settings.rewards.maxRedeemPerOrder = database.settings.rewards.minRedeemPoints || 0;
     needsUpgrade = true;
   }
@@ -576,43 +589,35 @@ function readDatabase() {
     needsUpgrade = true;
   }
 
-  if (needsUpgrade) {
-    writeDatabase(database);
-  }
-
-  return database;
+  return needsUpgrade;
 }
 
-// Save database
-const BACKUP_DIR = path.join(DATA_DIR, "backups");
-const MAX_BACKUP_DAYS = 30;
+// Read database (synchronous — served from the in-memory cache that
+// connectDB() populated at startup).
+function readDatabase() {
+  if (!cachedData) {
+    throw new Error("Database not initialized yet. Call connectDB() before handling requests.");
+  }
+  if (ensureShape(cachedData)) {
+    writeDatabase(cachedData);
+  }
+  return cachedData;
+}
 
+// Save database — updates the in-memory cache immediately (so the next
+// readDatabase() sees the change right away) and persists to MongoDB
+// in the background.
 function writeDatabase(data) {
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      if (!fs.existsSync(BACKUP_DIR)) {
-        fs.mkdirSync(BACKUP_DIR, { recursive: true });
-      }
-      // One snapshot per calendar day, taken from the data as it was
-      // BEFORE this write, so today's backup never overwrites today's changes.
-      const today = new Date().toISOString().slice(0, 10);
-      const backupFile = path.join(BACKUP_DIR, `database-${today}.json`);
-      if (!fs.existsSync(backupFile)) {
-        fs.copyFileSync(DB_FILE, backupFile);
-      }
+  cachedData = data;
 
-      const backups = fs.readdirSync(BACKUP_DIR)
-        .filter((f) => /^database-\d{4}-\d{2}-\d{2}\.json$/.test(f))
-        .sort();
-      while (backups.length > MAX_BACKUP_DAYS) {
-        fs.unlinkSync(path.join(BACKUP_DIR, backups.shift()));
-      }
-    }
-  } catch (err) {
-    console.error("Backup before write failed (continuing with save):", err.message);
+  if (mongoCollection) {
+    mongoCollection
+      .replaceOne({ _id: DOC_ID }, { _id: DOC_ID, ...data }, { upsert: true })
+      .catch((err) => {
+        console.error("Failed to persist database to MongoDB:", err.message);
+      });
   }
 
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), "utf8");
   return data;
 }
 
@@ -624,9 +629,8 @@ function getNextId(items) {
   return Math.max(...items.map((item) => item.id)) + 1;
 }
 
-initializeDatabase();
-
 module.exports = {
+  connectDB,
   readDatabase,
   writeDatabase,
   getNextId,
