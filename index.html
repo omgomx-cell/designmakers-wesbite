@@ -22,14 +22,14 @@
       }
       /* ===== Festival themes — admin-controlled, applied as a body class ===== */
       body.theme-rakshabandhan {
-        --rosewood: #d4af37;
-        --rosewood-dark: #aa8c2c;
-        --blush: #2a0808;
-        --blush-line: #5c1a1a;
-        --gold: #ff3b3b;
-        --cream: #1a0505;
-        --ink: #ffeace;
-        --muted: #d4af37;
+        --rosewood: #9e1b32;
+        --rosewood-dark: #6e0f21;
+        --blush: #fff2e2;
+        --blush-line: #f0cf9a;
+        --gold: #b9861f;
+        --cream: #fffaf2;
+        --ink: #3a1c12;
+        --muted: #8a6a52;
       }
       body.theme-aug15 {
         --rosewood: #FF9933;
@@ -40,6 +40,49 @@
         --cream: #ffffff;
         --ink: #1a1a1a;
         --muted: #4d4d4d;
+      }
+      .aug15-flag {
+        position: fixed;
+        top: -40px;
+        width: 24px;
+        height: 16px;
+        border-radius: 2px;
+        border: 1px solid rgba(0,0,0,0.15);
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 1;
+        animation: aug15Fall 9s linear infinite;
+        overflow: hidden;
+      }
+      .aug15-flag .stripe-top {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 34%;
+        background: #FF9933;
+      }
+      .aug15-flag .stripe-bottom {
+        position: absolute;
+        bottom: 0; left: 0; width: 100%; height: 34%;
+        background: #138808;
+      }
+      .aug15-flag::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        border: 1px solid #000080;
+        transform: translate(-50%, -50%);
+      }
+      body.theme-aug15 .aug15-flag { opacity: 0.9; }
+      @keyframes aug15Fall {
+        0%   { transform: translateY(-40px) rotate(-8deg); opacity: 0; }
+        10%  { opacity: 0.85; }
+        90%  { opacity: 0.6; }
+        100% { transform: translateY(100vh) rotate(8deg); opacity: 0; }
       }
       body {
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
@@ -1032,6 +1075,13 @@
     </style>
   </head>
   <body>
+    <div class="aug15-flag" style="left:6%; animation-delay:0s;"><span class="stripe-top"></span><span class="stripe-bottom"></span></div>
+    <div class="aug15-flag" style="left:22%; animation-delay:3s;"><span class="stripe-top"></span><span class="stripe-bottom"></span></div>
+    <div class="aug15-flag" style="left:40%; animation-delay:6s;"><span class="stripe-top"></span><span class="stripe-bottom"></span></div>
+    <div class="aug15-flag" style="left:58%; animation-delay:1.5s;"><span class="stripe-top"></span><span class="stripe-bottom"></span></div>
+    <div class="aug15-flag" style="left:75%; animation-delay:4.5s;"><span class="stripe-top"></span><span class="stripe-bottom"></span></div>
+    <div class="aug15-flag" style="left:90%; animation-delay:7.5s;"><span class="stripe-top"></span><span class="stripe-bottom"></span></div>
+
     <div class="sale-banner" id="saleBanner" style="display:none;"></div>
     <div class="announce">Custom-made just for you &nbsp;·&nbsp; Message us on WhatsApp for bulk orders</div>
 
@@ -1066,8 +1116,8 @@
 
     <div class="hero">
       <span class="hero-badge">Custom-made · Bulk pricing · Pan-India delivery</span>
-      <h1>Design Makers — Gifts That Feel Like Royalty</h1>
-      <p>Mugs, frames, apparel & corporate gifting — crafted around your story.</p>
+      <h1 id="heroTitle">Design Makers — Gifts That Feel Like Royalty</h1>
+      <p id="heroSubtitle">Mugs, frames, apparel & corporate gifting — crafted around your story.</p>
       <div class="hero-ctas">
         <button class="hero-btn primary" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})">Shop Now</button>
         <button class="hero-btn secondary" onclick="window.open('https://wa.me/7004847813','_blank')"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>Chat on WhatsApp</button>
@@ -1509,6 +1559,21 @@
           document.body.classList.remove("theme-rakshabandhan", "theme-aug15");
           if (theme === "rakshabandhan" || theme === "aug15") {
             document.body.classList.add("theme-" + theme);
+          }
+
+          const heroTitle = document.getElementById("heroTitle");
+          const heroSubtitle = document.getElementById("heroSubtitle");
+          if (heroTitle && heroSubtitle) {
+            if (theme === "rakshabandhan") {
+              heroTitle.textContent = "Gifts That Tie a Thousand Memories";
+              heroSubtitle.textContent = "This Rakshabandhan, gift something that stays longer than the thread — mugs, frames & keychains made around your story.";
+            } else if (theme === "aug15") {
+              heroTitle.textContent = "Azaadi Ka Andaaz, Apno Ke Naam";
+              heroSubtitle.textContent = "Independence Day special — personalised gifts crafted with a little tiranga in every detail.";
+            } else {
+              heroTitle.textContent = "Design Makers — Gifts That Feel Like Royalty";
+              heroSubtitle.textContent = "Mugs, frames, apparel & corporate gifting — crafted around your story.";
+            }
           }
         } catch (err) {
           // non-fatal — just don't show the banner / theme stays normal
