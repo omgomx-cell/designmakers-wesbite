@@ -302,6 +302,8 @@
       @media (max-width: 480px) {
         #floatBubble { width: 80px; height: 70px; }
       }
+      .theme-card.active { border-color: #8a1c42 !important; background: #fff0f5; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(138, 28, 66, 0.2); }
+      .theme-card:hover { border-color: #c99; }
     </style>
   </head>
   <body>
@@ -368,6 +370,31 @@
             <button class="btn small" style="margin-top:10px;" onclick="saveSaleBanner()">Save Banner</button>
             <div class="error" id="bannerError"></div>
           </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <label style="margin:0 0 10px; display:block; font-weight:600;">Website Theme Switcher</label>
+            <p style="font-size:13px; color:#8c7d78; margin-bottom:14px;">Change the entire website look for festivals. Click a theme, then apply.</p>
+            <div id="themeGrid" style="display:flex; gap:15px; flex-wrap:wrap;">
+              <div class="theme-card" data-theme="normal" style="flex:1; min-width:150px; padding:15px; border:2px solid #ddd; border-radius:8px; cursor:pointer; text-align:center; transition:0.3s;">
+                <div style="height:40px; background:linear-gradient(to right, #8a1c42, #f8ecef); border-radius:4px; margin-bottom:10px;"></div>
+                <div style="font-weight:600; font-size:14px;">Normal</div>
+                <div style="font-size:12px; color:#666;">Design Makers</div>
+              </div>
+              <div class="theme-card" data-theme="rakshabandhan" style="flex:1; min-width:150px; padding:15px; border:2px solid #ddd; border-radius:8px; cursor:pointer; text-align:center; transition:0.3s;">
+                <div style="height:40px; background:linear-gradient(to right, #d4af37, #1a0505, #ff3b3b); border-radius:4px; margin-bottom:10px;"></div>
+                <div style="font-weight:600; font-size:14px;">Rakshabandhan</div>
+                <div style="font-size:12px; color:#666;">Red &amp; Gold</div>
+              </div>
+              <div class="theme-card" data-theme="aug15" style="flex:1; min-width:150px; padding:15px; border:2px solid #ddd; border-radius:8px; cursor:pointer; text-align:center; transition:0.3s;">
+                <div style="height:40px; background:linear-gradient(to right, #FF9933, #ffffff, #138808); border-radius:4px; margin-bottom:10px; border:1px solid #eee;"></div>
+                <div style="font-weight:600; font-size:14px;">15th August</div>
+                <div style="font-size:12px; color:#666;">Tricolor</div>
+              </div>
+            </div>
+            <button class="btn small" id="applyThemeBtn" style="margin-top:14px; display:none;" onclick="applyTheme()">Apply Selected Theme</button>
+            <div class="error" id="themeError"></div>
+          </div>
+
           <div id="productsLoading">Loading products...</div>
           <div id="productList"></div>
         </div>
@@ -643,6 +670,7 @@
 
         loadProducts();
         loadSaleBanner();
+        loadTheme();
       }
 
       // ---------- TABS ----------
@@ -1365,6 +1393,64 @@
           if (!data.success) errorEl.textContent = data.message || "Could not save banner.";
         } catch (err) {
           errorEl.textContent = "Network error. Try again.";
+        }
+      }
+
+      // ---------- THEME SWITCHER ----------
+
+      let savedTheme = "normal"; // what's actually live on the site right now
+      let selectedTheme = "normal"; // what admin has clicked, not yet applied
+
+      async function loadTheme() {
+        try {
+          const res = await fetch("/api/settings");
+          const data = await res.json();
+          savedTheme = (data.success && data.settings.theme) || "normal";
+          selectedTheme = savedTheme;
+          updateThemeSelection();
+        } catch (err) {
+          // non-fatal — leave the default selection
+        }
+      }
+
+      function updateThemeSelection() {
+        document.querySelectorAll(".theme-card").forEach((card) => {
+          card.classList.toggle("active", card.dataset.theme === selectedTheme);
+        });
+        document.getElementById("applyThemeBtn").style.display = selectedTheme !== savedTheme ? "block" : "none";
+      }
+
+      document.querySelectorAll(".theme-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          selectedTheme = card.dataset.theme;
+          updateThemeSelection();
+        });
+      });
+
+      async function applyTheme() {
+        const errorEl = document.getElementById("themeError");
+        const btn = document.getElementById("applyThemeBtn");
+        errorEl.textContent = "";
+        btn.disabled = true;
+        btn.textContent = "Applying...";
+        try {
+          const res = await fetch("/api/admin/settings/theme", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ theme: selectedTheme }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            savedTheme = selectedTheme;
+            updateThemeSelection();
+          } else {
+            errorEl.textContent = data.message || "Could not save theme.";
+          }
+        } catch (err) {
+          errorEl.textContent = "Network error. Try again.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Apply Selected Theme";
         }
       }
 
