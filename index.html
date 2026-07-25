@@ -1490,14 +1490,23 @@
         return (h > 0 ? h + "h " : "") + pad(m) + "m " + pad(s) + "s";
       }
 
+      // Fixed thumbnail override for specific category tiles — takes priority
+      // over the auto-picked "first product photo" thumbnail below.
+      const CATEGORY_THUMB_OVERRIDE = {
+        "All": "all-category.jpg",
+      };
+
       function renderCategories() {
         const cats = ["All", ...new Set(allProducts.map((p) => p.category).filter(Boolean))];
 
         const buildCard = (c, i) => {
           const inCat = c === "All" ? allProducts : allProducts.filter((p) => p.category === c);
           const thumb = inCat.find((p) => p.image);
+          const overrideImg = CATEGORY_THUMB_OVERRIDE[c];
           const colorClass = "tc-" + (i % 6);
-          const bodyHtml = thumb
+          const bodyHtml = overrideImg
+            ? '<img src="' + escapeHtml(overrideImg) + '" alt="' + escapeHtml(c) + '" />'
+            : thumb
             ? '<img src="' + escapeHtml(thumb.image) + '" alt="' + escapeHtml(c) + '" />'
             : '<div class="tile-cat-noimg">' + getIcon(c) + "</div>";
           return (
