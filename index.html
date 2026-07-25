@@ -20,11 +20,33 @@
         --ink: #2a231f;
         --muted: #8c7d78;
       }
+      /* ===== Festival themes — admin-controlled, applied as a body class ===== */
+      body.theme-rakshabandhan {
+        --rosewood: #d4af37;
+        --rosewood-dark: #aa8c2c;
+        --blush: #2a0808;
+        --blush-line: #5c1a1a;
+        --gold: #ff3b3b;
+        --cream: #1a0505;
+        --ink: #ffeace;
+        --muted: #d4af37;
+      }
+      body.theme-aug15 {
+        --rosewood: #FF9933;
+        --rosewood-dark: #cc7a29;
+        --blush: #f0fdf4;
+        --blush-line: #cfeede;
+        --gold: #138808;
+        --cream: #ffffff;
+        --ink: #1a1a1a;
+        --muted: #4d4d4d;
+      }
       body {
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
         background: var(--cream);
         color: var(--ink);
         padding-bottom: 40px;
+        transition: background 0.4s ease, color 0.4s ease;
       }
       h1, h2, .logo, .modal-title { font-family: "Playfair Display", Georgia, serif; }
 
@@ -1482,8 +1504,14 @@
           } else {
             banner.style.display = "none";
           }
+
+          const theme = data.success && data.settings.theme;
+          document.body.classList.remove("theme-rakshabandhan", "theme-aug15");
+          if (theme === "rakshabandhan" || theme === "aug15") {
+            document.body.classList.add("theme-" + theme);
+          }
         } catch (err) {
-          // non-fatal — just don't show the banner
+          // non-fatal — just don't show the banner / theme stays normal
         }
       }
 
