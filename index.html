@@ -142,10 +142,30 @@
       }
       .tile-cat {
         cursor: pointer;
-        border-radius: 14px;
-        overflow: hidden;
+        border-radius: 16px;
         aspect-ratio: 1 / 1;
         position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 6px;
+        background:
+          linear-gradient(#fff, #fff) padding-box,
+          linear-gradient(135deg, #f7e3a8 0%, #b8863f 30%, #7a5525 50%, #d9b46a 70%, #f7e3a8 100%) border-box;
+        border: 2.5px solid transparent;
+        box-shadow: 0 2px 10px rgba(184,134,63,0.25);
+      }
+      .tile-cat.active {
+        background:
+          linear-gradient(#fff, #fff) padding-box,
+          linear-gradient(135deg, #8a1c42 0%, #c25577 50%, #8a1c42 100%) border-box;
+      }
+      .tile-cat-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 11px;
+        overflow: hidden;
         display: flex;
         align-items: flex-end;
         justify-content: center;
@@ -175,12 +195,13 @@
         padding: 7px 4px;
       }
       .tile-cat.active .tile-cat-label { background: var(--rosewood); color: #fff; }
-      .tc-0 { background: #fdeccb; }
-      .tc-1 { background: #f6ded6; }
-      .tc-2 { background: #e0eee2; }
-      .tc-3 { background: #dfeaf5; }
-      .tc-4 { background: #ece3f5; }
-      .tc-5 { background: #f5e6ea; }
+      .tc-0 { --tile-bg: #fdeccb; }
+      .tc-1 { --tile-bg: #f6ded6; }
+      .tc-2 { --tile-bg: #e0eee2; }
+      .tc-3 { --tile-bg: #dfeaf5; }
+      .tc-4 { --tile-bg: #ece3f5; }
+      .tc-5 { --tile-bg: #f5e6ea; }
+      .tile-cat-inner { background: var(--tile-bg); }
       @media (max-width: 900px) {
         .tile-cat-grid { grid-template-columns: repeat(4, 1fr); }
       }
@@ -203,7 +224,7 @@
       }
       .cat-carousel-track::-webkit-scrollbar { display: none; }
       .cat-carousel-track .tile-cat { width: 150px; flex: 0 0 auto; aspect-ratio: 1 / 1; scroll-snap-align: start; }
-      .cat-carousel-track .tile-cat.active { outline: 2px solid var(--rosewood); outline-offset: 2px; }
+      /* active state now shown via the rosewood gradient border on .tile-cat.active above */
       .cat-arrow {
         position: absolute;
         top: 50%;
@@ -1511,8 +1532,10 @@
             : '<div class="tile-cat-noimg">' + getIcon(c) + "</div>";
           return (
             '<div class="tile-cat ' + colorClass + (i === 0 ? " active" : "") + '" onclick="filterCategoryFromCard(\'' + c.replace(/'/g, "") + '\', this)">' +
-              bodyHtml +
-              '<div class="tile-cat-label">' + escapeHtml(c) + "</div>" +
+              '<div class="tile-cat-inner">' +
+                bodyHtml +
+                '<div class="tile-cat-label">' + escapeHtml(c) + "</div>" +
+              "</div>" +
             "</div>"
           );
         };
