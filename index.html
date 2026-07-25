@@ -1581,23 +1581,38 @@
 
       // Clicking a product inside the popup opens the normal product/customise
       // modal on top of it — closing that returns to the popup underneath.
-      
-      function filterCategoryFromCard(cat, el) {
-        document.querySelectorAll(".tile-cat").forEach((c) => c.classList.remove("active"));
-        el.classList.add("active");
-        if (el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-        const filtered = cat === "All" ? allProducts : allProducts.filter((p) => p.category === cat);
-        renderProducts(filtered);
 
-        const heading = document.getElementById("categoryHeading");
-        if (cat === "All") {
-          heading.style.display = "none";
+      // Clicking ANY category tile (including "All") now opens the same popup
+      // used for Gift for Her/Him, instead of scrolling to an inline grid.
+      // Reuses the existing #genderModalOverlay markup/CSS so no new popup
+      // had to be built — just fed different content.
+      function openCategoryModal(cat, el) {
+        document.querySelectorAll(".tile-cat").forEach((c) => c.classList.remove("active"));
+        if (el) el.classList.add("active");
+
+        const filtered = cat === "All" ? allProducts : allProducts.filter((p) => p.category === cat);
+
+        const overlay = document.getElementById("genderModalOverlay");
+        document.getElementById("genderModalTag").textContent = cat === "All" ? "All Products" : "Category";
+        document.getElementById("genderModalTitle").textContent = cat;
+        const grid = document.getElementById("genderModalGrid");
+
+        if (!filtered.length) {
+          document.getElementById("genderModalSub").textContent = "";
+          grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#b5849c;padding:20px 0;">No products in this category yet — check back soon.</p>';
         } else {
-          heading.innerHTML = escapeHtml(cat) + ' <span class="cat-count">— ' + filtered.length + (filtered.length === 1 ? " item" : " items") + '</span>';
-          heading.style.display = "block";
+          document.getElementById("genderModalSub").textContent = filtered.length + (filtered.length === 1 ? " product" : " products") + (cat === "All" ? " across all categories." : " in " + cat + ".");
+          grid.innerHTML = filtered.map(buildProductCard).join("");
         }
 
-        document.querySelector(".grid-wrap").scrollIntoView({ behavior: "smooth" });
+        overlay.classList.add("open");
+        document.body.style.overflow = "hidden";
+        startSaleTimers();
+      }
+
+      // Kept as an alias so nothing else that calls the old name breaks.
+      function filterCategoryFromCard(cat, el) {
+        openCategoryModal(cat, el);
       }
 
       function renderProducts(products) {
