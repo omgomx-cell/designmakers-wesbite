@@ -1007,6 +1007,24 @@ app.put("/api/admin/settings/sale-banner", requireAdmin, (req, res) => {
   }
 });
 
+// Festival theme applied across the whole storefront (normal / rakshabandhan / aug15).
+app.put("/api/admin/settings/theme", requireAdmin, (req, res) => {
+  try {
+    const VALID_THEMES = ["normal", "rakshabandhan", "aug15"];
+    const { theme } = req.body || {};
+    if (!VALID_THEMES.includes(theme)) {
+      return res.status(400).json({ success: false, message: "Invalid theme." });
+    }
+    const database = readDatabase();
+    database.settings.theme = theme;
+    writeDatabase(database);
+    res.json({ success: true, theme: database.settings.theme });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to update the theme." });
+  }
+});
+
 // ================================
 // 404 API HANDLER
 // ================================
