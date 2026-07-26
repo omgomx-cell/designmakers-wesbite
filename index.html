@@ -19,6 +19,7 @@
         --cream: #fffdfb;
         --ink: #2a231f;
         --muted: #8c7d78;
+        --glow: rgba(138,28,66,0.30);
       }
       /* ===== Festival themes — admin-controlled, applied as a body class ===== */
       body.theme-rakshabandhan {
@@ -30,6 +31,7 @@
         --cream: #fffaf2;
         --ink: #3a1c12;
         --muted: #8a6a52;
+        --glow: rgba(212,175,55,0.5);
       }
       body.theme-aug15 {
         --rosewood: #e6720f;
@@ -41,6 +43,7 @@
         --ink: #10163a;
         --muted: #52566e;
         --navy: #0b1f66;
+        --glow: rgba(255,153,51,0.45);
       }
       /* ===== Aug 15 "Flag Block" — tricolor ribbon, white header, navy accents ===== */
       body.theme-aug15::before {
@@ -55,7 +58,7 @@
         background: #ffffff;
         color: var(--navy);
         border-bottom: 3px solid #138808;
-        box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+        box-shadow: 0 1px 0 rgba(0,0,0,0.05), 0 0 20px var(--glow);
       }
       body.theme-aug15 .logo,
       body.theme-aug15 .logo span { color: var(--navy); }
@@ -85,6 +88,11 @@
         opacity: 0.16;
         z-index: 0;
         pointer-events: none;
+        filter: drop-shadow(0 0 18px var(--glow));
+        animation: chakraSpin 24s linear infinite;
+      }
+      @keyframes chakraSpin {
+        100% { transform: translate(-50%, -50%) rotate(360deg); }
       }
       body.theme-aug15 .hero > * { position: relative; z-index: 1; }
       body.theme-aug15 .hero-badge { background: var(--navy); color: #ffffff; }
@@ -95,6 +103,7 @@
       body.theme-aug15 .hero-btn.secondary { background: #ffffff; color: #138808; border: 1.5px solid #138808; }
       body.theme-aug15 .hero-trust-item { color: #4a3312; }
       .aug15-flag {
+        display: none;
         position: fixed;
         top: -40px;
         width: 24px;
@@ -106,7 +115,6 @@
         opacity: 0;
         pointer-events: none;
         z-index: 1;
-        animation: aug15Fall 9s linear infinite;
         overflow: hidden;
       }
       .aug15-flag .stripe-top {
@@ -130,7 +138,7 @@
         border: 1px solid #000080;
         transform: translate(-50%, -50%);
       }
-      body.theme-aug15 .aug15-flag { opacity: 0.9; }
+      body.theme-aug15 .aug15-flag { display: block; opacity: 0.9; animation: aug15Fall 16s linear infinite; pointer-events: auto; cursor: pointer; }
       @keyframes aug15Fall {
         0%   { transform: translateY(-40px) rotate(-8deg); opacity: 0; }
         10%  { opacity: 0.85; }
@@ -157,6 +165,11 @@
         background: radial-gradient(circle, rgba(185,134,31,0.35) 0%, rgba(185,134,31,0) 70%);
         z-index: 0;
         pointer-events: none;
+        animation: rakhiGlowPulse 4.5s ease-in-out infinite;
+      }
+      @keyframes rakhiGlowPulse {
+        0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+        50%      { opacity: 1;   transform: translateX(-50%) scale(1.08); }
       }
       body.theme-rakshabandhan .hero > * { position: relative; z-index: 1; }
       body.theme-rakshabandhan .hero > .rakhi-charm { position: absolute; z-index: 1; }
@@ -178,9 +191,9 @@
         opacity: 0;
         pointer-events: none;
         z-index: 1;
-        animation: diyaFloat 12s ease-in infinite;
+        animation: diyaFloat 18s ease-in infinite;
       }
-      body.theme-rakshabandhan .rakhi-diya { display: block; }
+      body.theme-rakshabandhan .rakhi-diya { display: block; pointer-events: auto; cursor: pointer; }
       @keyframes diyaFloat {
         0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
         8%   { opacity: 0.95; }
@@ -197,6 +210,46 @@
         transform-box: fill-box;
         transform-origin: 50% 100%;
         animation: diyaFlicker 1.5s ease-in-out infinite;
+      }
+
+      /* ===== Tap-to-burst festive interaction ===== */
+      .fest-burst { position: fixed; width: 0; height: 0; z-index: 9998; pointer-events: none; }
+      .fest-burst-particle {
+        position: absolute;
+        width: 7px; height: 7px;
+        left: 0; top: 0;
+        border-radius: 50%;
+        animation: festBurstFly 0.65s ease-out forwards;
+      }
+      @keyframes festBurstFly {
+        0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+        100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+      }
+      .fest-msg {
+        position: fixed;
+        transform: translate(-50%, -100%);
+        background: rgba(20, 20, 20, 0.88);
+        color: #fff;
+        padding: 9px 16px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.4;
+        text-align: center;
+        white-space: nowrap;
+        z-index: 9999;
+        pointer-events: none;
+        animation: festMsgPop 1.9s ease-out forwards;
+      }
+      @keyframes festMsgPop {
+        0%   { opacity: 0; transform: translate(-50%, -100%) translateY(8px) scale(0.85); }
+        15%  { opacity: 1; transform: translate(-50%, -100%) translateY(-6px) scale(1.05); }
+        25%  { transform: translate(-50%, -100%) translateY(-10px) scale(1); }
+        78%  { opacity: 1; }
+        100% { opacity: 0; transform: translate(-50%, -100%) translateY(-42px) scale(1); }
+      }
+      @media (max-width: 480px) {
+        .fest-msg { white-space: normal; max-width: 220px; }
       }
 
       body {
@@ -495,6 +548,16 @@
         letter-spacing: 0.2px;
       }
 
+      /* ===== Ambient glow (all themes) ===== */
+      @keyframes glowPulseSoft {
+        0%, 100% { box-shadow: 0 0 10px var(--glow); }
+        50%      { box-shadow: 0 0 22px var(--glow); }
+      }
+      @keyframes textGlowPulse {
+        0%, 100% { text-shadow: 0 0 10px var(--glow), 0 0 22px var(--glow); }
+        50%      { text-shadow: 0 0 18px var(--glow), 0 0 38px var(--glow); }
+      }
+
       header.site-header {
         background: var(--rosewood);
         color: white;
@@ -502,7 +565,8 @@
         position: sticky;
         top: 0;
         z-index: 40;
-        box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+        box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 0 20px var(--glow);
+        transition: box-shadow 0.6s ease;
       }
       .header-inner {
         max-width: 1200px;
@@ -623,7 +687,7 @@
         padding: 0 20px;
         text-align: center;
       }
-      .hero h1 { font-size: 34px; color: var(--rosewood); margin-bottom: 10px; font-weight: 700; }
+      .hero h1 { font-size: 34px; color: var(--rosewood); margin-bottom: 10px; font-weight: 700; animation: textGlowPulse 3.2s ease-in-out infinite; }
       .hero p { color: var(--muted); font-size: 15px; letter-spacing: 0.1px; }
 
       /* ===== Product grid ===== */
@@ -646,7 +710,7 @@
         flex-direction: column;
       }
       .product-card:hover {
-        box-shadow: 0 10px 26px rgba(138, 28, 66, 0.16);
+        box-shadow: 0 10px 26px rgba(138, 28, 66, 0.16), 0 0 22px var(--glow);
         border-color: var(--rosewood);
         transform: translateY(-2px);
       }
@@ -978,6 +1042,8 @@
         padding: 5px 14px;
         border-radius: 20px;
         margin-bottom: 14px;
+        box-shadow: 0 0 0 var(--glow);
+        animation: glowPulseSoft 3s ease-in-out infinite;
       }
       .hero-ctas { display: flex; gap: 12px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
       .hero-btn {
@@ -989,8 +1055,8 @@
         border: none;
         letter-spacing: 0.2px;
       }
-      .hero-btn.primary { background: var(--rosewood); color: white; }
-      .hero-btn.primary:hover { background: var(--rosewood-dark); }
+      .hero-btn.primary { background: var(--rosewood); color: white; box-shadow: 0 0 0 var(--glow); transition: box-shadow 0.25s ease, background 0.15s ease; }
+      .hero-btn.primary:hover { background: var(--rosewood-dark); box-shadow: 0 0 20px var(--glow); }
       .hero-btn.secondary { background: white; color: var(--rosewood); border: 1.5px solid var(--gold); }
       .hero-trust { margin-top: 22px; display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; }
       .hero-trust-item { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
@@ -2615,6 +2681,77 @@
       }
 
       loadProducts();
+
+      // ===== Tap-to-burst festive interaction (flags + diyas) =====
+      const aug15Quotes = [
+        "🇮🇳 Happy 80th Independence Day!",
+        "80 saal ki azaadi — Jai Hind!",
+        "Freedom in the heart, pride in the flag.",
+        "Saare Jahan Se Achha — Happy Independence Day!",
+        "80 years of azaadi — proud to be Indian!"
+      ];
+      const rakhiMessage = "Happy Rakshabandhan! 🪢";
+
+      function burstAt(el, colors) {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+
+        const burst = document.createElement("div");
+        burst.className = "fest-burst";
+        burst.style.left = cx + "px";
+        burst.style.top = cy + "px";
+        const count = 10;
+        for (let i = 0; i < count; i++) {
+          const p = document.createElement("span");
+          p.className = "fest-burst-particle";
+          const angle = (i / count) * Math.PI * 2;
+          const dist = 34 + Math.random() * 18;
+          p.style.setProperty("--dx", Math.cos(angle) * dist + "px");
+          p.style.setProperty("--dy", Math.sin(angle) * dist + "px");
+          p.style.background = colors[i % colors.length];
+          burst.appendChild(p);
+        }
+        document.body.appendChild(burst);
+        setTimeout(() => burst.remove(), 700);
+
+        return { cx, cy };
+      }
+
+      function showFestMessage(cx, cy, text) {
+        const msg = document.createElement("div");
+        msg.className = "fest-msg";
+        msg.textContent = text;
+        msg.style.left = cx + "px";
+        msg.style.top = cy + "px";
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 1900);
+      }
+
+      function popAndRespawn(el) {
+        el.style.animation = "none";
+        el.style.opacity = "0";
+        // force reflow so the animation restarts cleanly from the beginning
+        void el.offsetWidth;
+        setTimeout(() => { el.style.animation = ""; }, 60);
+      }
+
+      document.querySelectorAll(".aug15-flag").forEach((flag) => {
+        flag.addEventListener("click", () => {
+          const { cx, cy } = burstAt(flag, ["#FF9933", "#ffffff", "#138808", "#0b1f66"]);
+          const quote = aug15Quotes[Math.floor(Math.random() * aug15Quotes.length)];
+          showFestMessage(cx, cy, quote);
+          popAndRespawn(flag);
+        });
+      });
+
+      document.querySelectorAll(".rakhi-diya").forEach((diya) => {
+        diya.addEventListener("click", () => {
+          const { cx, cy } = burstAt(diya, ["#e6b84d", "#9e1b32", "#ff8a00", "#f3cf7a"]);
+          showFestMessage(cx, cy, rakhiMessage);
+          popAndRespawn(diya);
+        });
+      });
     </script>
   </body>
 </html>
