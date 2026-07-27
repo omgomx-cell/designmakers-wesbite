@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 const { connectDB, readDatabase, writeDatabase, getNextId } = require("./database");
 
@@ -33,6 +34,34 @@ const BOSS_ACCOUNT = {
 
 const MAX_LOGIN_ATTEMPTS = 3;
 
+// ================================
+// CONCURRENT SESSION LIMIT — max 2 active logins per username at once.
+// Kept in memory (resets on server restart) since sessions are short-lived
+// by nature; no need to persist this to MongoDB.
+// ================================
+const MAX_CONCURRENT_SESSIONS = 2;
+const activeSessions = {}; // username -> array of sessionIds, oldest first
+
+function registerSession(username, sessionId) {
+  if (!activeSessions[username]) activeSessions[username] = [];
+  activeSessions[username].push(sessionId);
+  // If this login pushes the account over the limit, the oldest session(s)
+  // are evicted — that device/tab will get "logged in elsewhere" on its
+  // next request instead of continuing to work silently.
+  if (activeSessions[username].length > MAX_CONCURRENT_SESSIONS) {
+    activeSessions[username] = activeSessions[username].slice(-MAX_CONCURRENT_SESSIONS);
+  }
+}
+
+function isSessionActive(username, sessionId) {
+  return !!(activeSessions[username] && activeSessions[username].includes(sessionId));
+}
+
+function revokeSession(username, sessionId) {
+  if (!activeSessions[username]) return;
+  activeSessions[username] = activeSessions[username].filter((id) => id !== sessionId);
+}
+
 if (!process.env.ADMIN1_PASSWORD) {
   console.warn(
     "⚠️  Using a default boss password. Set ADMIN1_USERNAME, ADMIN1_PASSWORD, " +
@@ -44,8 +73,38 @@ if (!process.env.ADMIN1_PASSWORD) {
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
+// ================================
+// NO STALE CACHING
+// ================================
+// Without this, browsers (and some hosting/CDN layers) can silently serve an
+// old cached copy of /api/* responses or the HTML pages themselves — so a
+// newly added product, an edited theme, etc. exist on the server right away
+// but don't show up for a visitor until they force-refresh. Every API call
+// and every HTML page is marked "always re-check with the server" so normal
+// navigation (even just re-opening the tab) always reflects the latest data.
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+  }
+  next();
+});
+
 // Serve website files
-app.use(express.static(__dirname));
+app.use(
+  express.static(__dirname, {
+    etag: false,
+    lastModified: false,
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith(".html")) {
+        // HTML pages (index.html, admin.html) must always be revalidated —
+        // this is what was causing "close and reopen still shows old data".
+        res.set("Cache-Control", "no-cache");
+      }
+    },
+  }),
+);
 
 // ================================
 // ADMIN AUTH MIDDLEWARE
@@ -61,7 +120,13 @@ function requireAdmin(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.admin = { username: payload.username, role: payload.role || "admin" };
+    if (!isSessionActive(payload.username, payload.sessionId)) {
+      return res.status(401).json({
+        success: false,
+        message: "You've been logged out — either this session ended or the account hit its 2-device login limit and got signed in elsewhere.",
+      });
+    }
+    req.admin = { username: payload.username, role: payload.role || "admin", sessionId: payload.sessionId };
     next();
   } catch (error) {
     return res.status(401).json({ success: false, message: "Session expired. Please log in again." });
@@ -115,7 +180,9 @@ app.post("/api/admin/login", (req, res) => {
     logAttempt(database, "boss", true);
     database.bossLastLogin = { ip, at: new Date().toISOString() };
     writeDatabase(database);
-    const token = jwt.sign({ username, role: "boss" }, JWT_SECRET, { expiresIn: "7d" });
+    const sessionId = crypto.randomUUID();
+    registerSession(username, sessionId);
+    const token = jwt.sign({ username, role: "boss", sessionId }, JWT_SECRET, { expiresIn: "7d" });
     return res.json({ success: true, token, username, role: "boss" });
   }
 
@@ -161,8 +228,15 @@ app.post("/api/admin/login", (req, res) => {
   logAttempt(database, "admin", true);
   writeDatabase(database);
 
-  const token = jwt.sign({ username, role: "admin" }, JWT_SECRET, { expiresIn: "7d" });
+  const sessionId = crypto.randomUUID();
+  registerSession(username, sessionId);
+  const token = jwt.sign({ username, role: "admin", sessionId }, JWT_SECRET, { expiresIn: "7d" });
   res.json({ success: true, token, username, role: "admin" });
+});
+
+app.post("/api/admin/logout", requireAdmin, (req, res) => {
+  revokeSession(req.admin.username, req.admin.sessionId);
+  res.json({ success: true });
 });
 
 app.get("/api/admin/me", requireAdmin, (req, res) => {
@@ -558,6 +632,172 @@ app.post("/api/admin/products", requireAdmin, (req, res) => {
 
   res.status(201).json({ success: true, product: newProduct });
 });
+
+// ================================
+// CATEGORY MANAGEMENT
+// ================================
+// Categories aren't a separate collection — they're normally just whatever
+// string an admin typed into a product's Category field. That means a brand
+// new category with zero products yet has nowhere to "exist". `database.categories`
+// is a small extra list (boss-only to add to) so a new category shows up in
+// the dropdown/suggestions immediately, even before any product uses it.
+
+app.get("/api/admin/categories", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const names = new Set();
+  database.products.forEach((p) => {
+    const c = (p.category || "").trim();
+    if (c) names.add(c);
+  });
+  (database.categories || []).forEach((c) => names.add(c));
+  res.json({ success: true, categories: Array.from(names).sort((a, b) => a.localeCompare(b)) });
+});
+
+// Only the boss can create a brand-new category from scratch.
+app.post("/api/admin/categories", requireAdmin, requireBoss, (req, res) => {
+  const name = String((req.body || {}).name || "").trim();
+  if (!name) {
+    return res.status(400).json({ success: false, message: "Category name is required." });
+  }
+  if (name.length > 40) {
+    return res.status(400).json({ success: false, message: "Category name is too long (max 40 characters)." });
+  }
+
+  const database = readDatabase();
+  if (!Array.isArray(database.categories)) database.categories = [];
+
+  const alreadyExists =
+    database.categories.some((c) => c.toLowerCase() === name.toLowerCase()) ||
+    database.products.some((p) => (p.category || "").trim().toLowerCase() === name.toLowerCase());
+
+  if (alreadyExists) {
+    return res.status(400).json({ success: false, message: "That category already exists." });
+  }
+
+  database.categories.push(name);
+  writeDatabase(database);
+
+  res.status(201).json({ success: true, message: "Category created.", categories: database.categories });
+});
+
+// Boss-only one-click bulk add: 10 sample placeholder products in every
+// category that currently exists (from products OR the categories list
+// above). Existing products are never touched — this only adds new ones.
+app.post("/api/admin/seed-category-products", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+
+  const categories = new Set();
+  database.products.forEach((p) => {
+    const c = (p.category || "").trim();
+    if (c) categories.add(c);
+  });
+  (database.categories || []).forEach((c) => categories.add(c));
+
+  if (!categories.size) {
+    return res.status(400).json({ success: false, message: "No categories exist yet — create a category first." });
+  }
+
+  let added = 0;
+  categories.forEach((cat) => {
+    for (let i = 1; i <= 10; i++) {
+      const id = getNextId(database.products);
+      database.products.push({
+        id,
+        name: `${cat} Sample Item ${i}`,
+        category: cat,
+        description: `Placeholder ${cat} product — edit the details or delete it.`,
+        price: 199,
+        image: "",
+        images: [],
+        active: false,
+        customizationEnabled: false,
+        sizes: [],
+        moq: 1,
+        discounts: [],
+        onSale: false,
+        salePercent: 0,
+        saleMessage: "",
+        saleEndsAt: null,
+        giftFor: "",
+        hotProduct: false,
+        buyBadgePercent: 10,
+        options: {},
+      });
+      added++;
+    }
+  });
+
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    message: `Added ${added} sample products across ${categories.size} categories.`,
+    products: database.products,
+  });
+});
+
+// Runs automatically on every server start (not just when the boss clicks
+// the button in the admin panel). This is the fix for "products/categories
+// disappearing after a code update" — the sample data now lives in the code
+// itself, so even if the database gets wiped or reset by a future deploy,
+// restarting the server regenerates it. It's idempotent: it checks each
+// category for existing "<Category> Sample Item N" entries and only tops up
+// whatever is missing, so it never duplicates on repeated restarts.
+function autoSeedCategoryProducts(database) {
+  if (!Array.isArray(database.products)) database.products = [];
+  if (!Array.isArray(database.categories)) database.categories = [];
+
+  const categories = new Set();
+  database.products.forEach((p) => {
+    const c = (p.category || "").trim();
+    if (c) categories.add(c);
+  });
+  database.categories.forEach((c) => categories.add(c));
+
+  if (!categories.size) return 0;
+
+  let added = 0;
+  categories.forEach((cat) => {
+    const existingSampleNames = new Set(
+      database.products
+        .filter((p) => (p.category || "").trim() === cat && /^.+ Sample Item \d+$/.test(p.name || ""))
+        .map((p) => p.name),
+    );
+
+    for (let i = 1; i <= 10; i++) {
+      const sampleName = `${cat} Sample Item ${i}`;
+      if (existingSampleNames.has(sampleName)) continue;
+
+      const id = getNextId(database.products);
+      database.products.push({
+        id,
+        name: sampleName,
+        category: cat,
+        description: `Placeholder ${cat} product — edit the details or delete it.`,
+        price: 199,
+        image: "",
+        images: [],
+        active: false,
+        customizationEnabled: false,
+        sizes: [],
+        moq: 1,
+        discounts: [],
+        onSale: false,
+        salePercent: 0,
+        saleMessage: "",
+        saleEndsAt: null,
+        giftFor: "",
+        hotProduct: false,
+        buyBadgePercent: 10,
+        options: {},
+      });
+      added++;
+    }
+  });
+
+  if (added > 0) writeDatabase(database);
+  return added;
+}
 
 // ================================
 // HOMEPAGE SECTIONS (Most Popular / Trending) — AUTOMATIC
@@ -1039,6 +1279,16 @@ app.use("/api", (req, res) => {
 
 connectDB()
   .then(() => {
+    try {
+      const database = readDatabase();
+      const seeded = autoSeedCategoryProducts(database);
+      if (seeded > 0) {
+        console.log(`Auto-seed: added ${seeded} placeholder sample product(s) so every category stays populated.`);
+      }
+    } catch (err) {
+      console.error("Auto-seed of category sample products failed (non-fatal):", err.message);
+    }
+
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Design Makers running on port ${PORT}`);
       console.log(`Storefront:   /`);
