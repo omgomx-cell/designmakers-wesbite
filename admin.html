@@ -601,6 +601,16 @@
         <!-- SELLERS TAB -->
         <div class="tab-panel" id="tabSellers">
           <div class="card" style="margin-bottom:16px;">
+            <h3 style="margin:0 0 8px;color:var(--rosewood);">Invite a seller</h3>
+            <div class="phone" style="margin:0 0 10px;">Share this link with anyone you want to let apply as a seller. It opens the application form directly and stays hidden from normal shoppers.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <input type="text" id="sellerInviteLink" readonly style="flex:1;min-width:220px;margin:0;" />
+              <button class="btn small" onclick="copySellerInviteLink()" style="white-space:nowrap;">Copy link</button>
+              <span id="sellerInviteCopied" style="color:#1c7a34;font-size:13px;display:none;">Copied!</span>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
             <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Applications</h3>
             <div class="phone" style="margin:0 0 10px;">Customers who applied to become sellers, awaiting your approval.</div>
             <div id="sellerAppsLoading">Loading applications...</div>
@@ -1290,7 +1300,24 @@
         loadSellerList();
       }
 
+      function copySellerInviteLink() {
+        const inviteEl = document.getElementById("sellerInviteLink");
+        const copied = document.getElementById("sellerInviteCopied");
+        if (!inviteEl) return;
+        inviteEl.select();
+        const done = () => { if (copied) { copied.style.display = "inline"; setTimeout(() => { copied.style.display = "none"; }, 2000); } };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(inviteEl.value).then(done).catch(() => { document.execCommand("copy"); done(); });
+        } else {
+          document.execCommand("copy");
+          done();
+        }
+      }
+
       async function loadSellerApplications() {
+        // Fill in the shareable seller-invite link (based on the live site URL).
+        const inviteEl = document.getElementById("sellerInviteLink");
+        if (inviteEl) inviteEl.value = window.location.origin + "/#sell";
         const loadingEl = document.getElementById("sellerAppsLoading");
         const listEl = document.getElementById("sellerAppsList");
         loadingEl.classList.remove("hidden");
