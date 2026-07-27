@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
@@ -1421,6 +1422,9 @@
           <button class="icon-btn" onclick="window.open('https://wa.me/7004847813','_blank')" title="WhatsApp">
             <svg viewBox="0 0 32 32" width="20" height="20" style="vertical-align:middle;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>
           </button>
+          <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
+            <span id="accountBtnIcon">👤</span>
+          </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
             🛍
             <span class="cart-count" id="cartCount">0</span>
@@ -1638,6 +1642,24 @@
           <div class="modal-error" id="modalError"></div>
 
           <button class="add-cart-btn" id="addCartBtn" onclick="addToCart()">Add to Cart</button>
+
+          <div class="modal-reviews" style="margin-top:24px;border-top:1px solid var(--blush-line);padding-top:16px;">
+            <div class="field-label">Reviews</div>
+            <div id="reviewsList" style="margin:8px 0 14px;"></div>
+            <div id="reviewFormBox" style="display:none;">
+              <select id="reviewRating" class="checkout-input" style="width:100%;margin-bottom:8px;">
+                <option value="5">★★★★★ (5)</option>
+                <option value="4">★★★★☆ (4)</option>
+                <option value="3">★★★☆☆ (3)</option>
+                <option value="2">★★☆☆☆ (2)</option>
+                <option value="1">★☆☆☆☆ (1)</option>
+              </select>
+              <textarea id="reviewText" class="checkout-input" placeholder="Share a quick remark about this product" style="width:100%;min-height:60px;margin-bottom:8px;"></textarea>
+              <div class="modal-error" id="reviewError"></div>
+              <button class="add-cart-btn" onclick="submitReview()">Post review</button>
+            </div>
+            <div id="reviewSignInNote" style="display:none;font-size:0.85em;color:#8c7d78;">Sign in and buy this product to leave a review.</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1679,10 +1701,422 @@
       </div>
     </div>
 
+    <!-- ACCOUNT MODAL (sign in / profile / seller status) -->
+    <div class="overlay" id="accountOverlay" onclick="closeAccountModal(event)">
+      <div class="modal" onclick="event.stopPropagation()" style="max-width:380px;">
+        <button class="modal-close" onclick="closeAccountModal()">✕</button>
+        <div class="modal-body" style="padding-top:36px;">
+          <div id="accountSignedOut" style="text-align:center;">
+            <h2 class="modal-title" style="margin-bottom:6px;">Sign in</h2>
+            <p class="modal-desc" style="margin-bottom:20px;">Sign in with Google to order, review products, or sell on Design Makers.</p>
+            <div id="googleSignInBtn" style="display:flex;justify-content:center;"></div>
+          </div>
+          <div id="accountSignedIn" style="display:none;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+              <img id="accountPic" src="" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:none;" />
+              <div>
+                <div id="accountName" style="font-weight:700;"></div>
+                <div id="accountEmail" style="font-size:0.85em;color:#8c7d78;"></div>
+              </div>
+            </div>
+
+            <div id="sellerStatusBox" style="margin-bottom:14px;"></div>
+
+            <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-bottom:10px;"></button>
+            <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="signOutCustomer()">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPLY TO SELL MODAL -->
+    <div class="overlay" id="sellerApplyOverlay" onclick="closeSellerApplyModal(event)">
+      <div class="modal" onclick="event.stopPropagation()" style="max-width:380px;">
+        <button class="modal-close" onclick="closeSellerApplyModal()">✕</button>
+        <div class="modal-body" style="padding-top:36px;">
+          <h2 class="modal-title" style="margin-bottom:6px;">Become a seller</h2>
+          <p class="modal-desc" style="margin-bottom:16px;">Give your shop a title. An admin will review your application before you can start listing products.</p>
+          <input type="text" id="shopTitleInput" class="checkout-input" placeholder="Your shop title" style="margin-bottom:12px;width:100%;" />
+          <div class="modal-error" id="sellerApplyError"></div>
+          <button class="add-cart-btn" onclick="submitSellerApplication()">Submit application</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SELLER DASHBOARD MODAL -->
+    <div class="overlay" id="sellerDashOverlay" onclick="closeSellerDashModal(event)">
+      <div class="modal" onclick="event.stopPropagation()" style="max-width:640px;max-height:85vh;overflow-y:auto;">
+        <button class="modal-close" onclick="closeSellerDashModal()">✕</button>
+        <div class="modal-body" style="padding-top:36px;">
+          <h2 class="modal-title" style="margin-bottom:16px;">Seller dashboard</h2>
+
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button class="add-cart-btn" style="width:auto;padding:8px 16px;" onclick="showSellerTab('products')">My Products</button>
+            <button class="add-cart-btn" style="width:auto;padding:8px 16px;background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="showSellerTab('orders')">My Orders</button>
+            <button class="add-cart-btn" style="width:auto;padding:8px 16px;background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="showSellerTab('addProduct')">+ Add Product</button>
+          </div>
+
+          <div id="sellerTabProducts"></div>
+          <div id="sellerTabOrders" style="display:none;"></div>
+          <div id="sellerTabAddProduct" style="display:none;">
+            <input type="text" id="spName" class="checkout-input" placeholder="Product name" style="width:100%;margin-bottom:8px;" />
+            <input type="text" id="spCategory" class="checkout-input" placeholder="Category" style="width:100%;margin-bottom:8px;" />
+            <textarea id="spDescription" class="checkout-input" placeholder="Description" style="width:100%;margin-bottom:8px;min-height:60px;"></textarea>
+            <input type="number" id="spPrice" class="checkout-input" placeholder="Price (₹)" style="width:100%;margin-bottom:8px;" />
+            <input type="file" id="spImageFile" accept="image/*" style="margin-bottom:8px;" />
+            <div class="modal-error" id="sellerAddProductError"></div>
+            <button class="add-cart-btn" onclick="submitSellerProduct()">Submit for approval</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       let allProducts = [];
       let cart = []; // { productId, name, price, size, qty, discounts, image }
       let currentProduct = null;
+
+      // ================================
+      // CUSTOMER / SELLER LOGIN (Google)
+      // ================================
+      // TODO: replace with the real Client ID from Google Cloud Console
+      // (console.cloud.google.com > APIs & Services > Credentials).
+      // Everything else on the site works fine while this is a placeholder —
+      // only the "Sign in" button won't do anything until it's set.
+      const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+      let currentCustomer = null; // { id, name, email, picture, role, shopTitle, sellerStatus } or null
+
+      function getCustomerToken() {
+        return localStorage.getItem("dm_customer_token") || null;
+      }
+
+      function authHeaders() {
+        const token = getCustomerToken();
+        return token ? { Authorization: "Bearer " + token } : {};
+      }
+
+      function initGoogleSignIn() {
+        if (!window.google || !google.accounts || !google.accounts.id) return;
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: onGoogleCredential,
+        });
+        const btnBox = document.getElementById("googleSignInBtn");
+        if (btnBox) {
+          google.accounts.id.renderButton(btnBox, { theme: "outline", size: "large", shape: "pill" });
+        }
+      }
+
+      async function onGoogleCredential(response) {
+        try {
+          const res = await fetch("/api/auth/google", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ credential: response.credential }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            alert(data.message || "Sign-in failed. Please try again.");
+            return;
+          }
+          localStorage.setItem("dm_customer_token", data.token);
+          currentCustomer = data.customer;
+          renderAccountState();
+          closeAccountModal();
+        } catch (error) {
+          alert("Sign-in failed. Please try again.");
+        }
+      }
+
+      async function loadCustomerSession() {
+        const token = getCustomerToken();
+        if (!token) return;
+        try {
+          const res = await fetch("/api/customer/me", { headers: authHeaders() });
+          const data = await res.json();
+          if (data.success) {
+            currentCustomer = data.customer;
+            renderAccountState();
+          } else {
+            localStorage.removeItem("dm_customer_token");
+          }
+        } catch (error) {
+          // Silently ignore — user just appears signed out.
+        }
+      }
+
+      function signOutCustomer() {
+        localStorage.removeItem("dm_customer_token");
+        currentCustomer = null;
+        renderAccountState();
+        closeAccountModal();
+      }
+
+      function renderAccountState() {
+        const btnIcon = document.getElementById("accountBtnIcon");
+        if (btnIcon) btnIcon.textContent = currentCustomer ? "🙂" : "👤";
+
+        const signedOutBox = document.getElementById("accountSignedOut");
+        const signedInBox = document.getElementById("accountSignedIn");
+        if (!signedOutBox || !signedInBox) return;
+
+        if (!currentCustomer) {
+          signedOutBox.style.display = "block";
+          signedInBox.style.display = "none";
+          return;
+        }
+
+        signedOutBox.style.display = "none";
+        signedInBox.style.display = "block";
+        document.getElementById("accountName").textContent = currentCustomer.name;
+        document.getElementById("accountEmail").textContent = currentCustomer.email;
+        const pic = document.getElementById("accountPic");
+        if (currentCustomer.picture) {
+          pic.src = currentCustomer.picture;
+          pic.style.display = "block";
+        }
+
+        const statusBox = document.getElementById("sellerStatusBox");
+        const actionBtn = document.getElementById("sellerActionBtn");
+        if (currentCustomer.sellerStatus === "approved") {
+          statusBox.innerHTML = "<span style='color:#1c7a34;font-weight:600;'>✓ Approved seller</span> — " + currentCustomer.shopTitle;
+          actionBtn.textContent = "Open Seller Dashboard";
+        } else if (currentCustomer.sellerStatus === "pending") {
+          statusBox.innerHTML = "<span style='color:#b8863f;font-weight:600;'>Seller application pending review</span>";
+          actionBtn.textContent = "Application Pending";
+          actionBtn.disabled = true;
+        } else if (currentCustomer.sellerStatus === "rejected") {
+          statusBox.innerHTML = "<span style='color:#a33;font-weight:600;'>Seller application was not approved</span>";
+          actionBtn.textContent = "Apply Again";
+          actionBtn.disabled = false;
+        } else {
+          statusBox.innerHTML = "";
+          actionBtn.textContent = "Become a Seller";
+          actionBtn.disabled = false;
+        }
+      }
+
+      function onSellerActionBtn() {
+        if (currentCustomer.sellerStatus === "approved") {
+          closeAccountModal();
+          openSellerDashModal();
+        } else {
+          openSellerApplyModal();
+        }
+      }
+
+      function openAccountModal() {
+        document.getElementById("accountOverlay").classList.add("open");
+        setTimeout(initGoogleSignIn, 50);
+      }
+      function closeAccountModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById("accountOverlay").classList.remove("open");
+      }
+
+      function openSellerApplyModal() {
+        document.getElementById("sellerApplyOverlay").classList.add("open");
+      }
+      function closeSellerApplyModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById("sellerApplyOverlay").classList.remove("open");
+      }
+
+      async function submitSellerApplication() {
+        const shopTitle = document.getElementById("shopTitleInput").value.trim();
+        const errorEl = document.getElementById("sellerApplyError");
+        errorEl.style.display = "none";
+        if (!shopTitle) {
+          errorEl.textContent = "Please enter a shop title.";
+          errorEl.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/customer/apply-seller", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ shopTitle }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not submit application.";
+            errorEl.style.display = "block";
+            return;
+          }
+          currentCustomer.sellerStatus = "pending";
+          currentCustomer.shopTitle = shopTitle;
+          renderAccountState();
+          closeSellerApplyModal();
+        } catch (error) {
+          errorEl.textContent = "Could not submit application. Please try again.";
+          errorEl.style.display = "block";
+        }
+      }
+
+      function openSellerDashModal() {
+        document.getElementById("sellerDashOverlay").classList.add("open");
+        showSellerTab("products");
+      }
+      function closeSellerDashModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById("sellerDashOverlay").classList.remove("open");
+      }
+
+      async function showSellerTab(tab) {
+        document.getElementById("sellerTabProducts").style.display = tab === "products" ? "block" : "none";
+        document.getElementById("sellerTabOrders").style.display = tab === "orders" ? "block" : "none";
+        document.getElementById("sellerTabAddProduct").style.display = tab === "addProduct" ? "block" : "none";
+
+        if (tab === "products") {
+          const res = await fetch("/api/seller/products", { headers: authHeaders() });
+          const data = await res.json();
+          const box = document.getElementById("sellerTabProducts");
+          if (!data.success || !data.products.length) {
+            box.innerHTML = "<p class='modal-desc'>No products yet — add one from the '+ Add Product' tab.</p>";
+            return;
+          }
+          box.innerHTML = data.products.map((p) => (
+            "<div style='display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--blush-line);'>" +
+              "<div><strong>" + p.name + "</strong><br><span style='font-size:0.85em;color:#8c7d78;'>₹" + p.price + "</span></div>" +
+              "<span style='font-size:0.8em;font-weight:600;color:" + (p.approved ? "#1c7a34" : "#b8863f") + ";'>" +
+                (p.approved ? "Live" : "Pending approval") +
+              "</span>" +
+            "</div>"
+          )).join("");
+        }
+
+        if (tab === "orders") {
+          const res = await fetch("/api/seller/orders", { headers: authHeaders() });
+          const data = await res.json();
+          const box = document.getElementById("sellerTabOrders");
+          if (!data.success || !data.orders.length) {
+            box.innerHTML = "<p class='modal-desc'>No orders yet for your products.</p>";
+            return;
+          }
+          box.innerHTML = data.orders.map((o) => (
+            "<div style='padding:10px 0;border-bottom:1px solid var(--blush-line);'>" +
+              "<strong>" + o.orderNumber + "</strong> — " + o.status + "<br>" +
+              o.items.map((i) => i.name + " × " + i.qty).join(", ") +
+            "</div>"
+          )).join("");
+        }
+      }
+
+      async function submitSellerProduct() {
+        const errorEl = document.getElementById("sellerAddProductError");
+        errorEl.style.display = "none";
+        const name = document.getElementById("spName").value.trim();
+        const category = document.getElementById("spCategory").value.trim();
+        const description = document.getElementById("spDescription").value.trim();
+        const price = Number(document.getElementById("spPrice").value);
+        const fileInput = document.getElementById("spImageFile");
+
+        if (!name || !Number.isFinite(price) || price <= 0) {
+          errorEl.textContent = "Please fill in a valid name and price.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        let image = "";
+        if (fileInput.files && fileInput.files[0]) {
+          image = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(fileInput.files[0]);
+          });
+        }
+
+        try {
+          const res = await fetch("/api/seller/products", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ name, category, description, price, images: image ? [image] : [] }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not submit product.";
+            errorEl.style.display = "block";
+            return;
+          }
+          document.getElementById("spName").value = "";
+          document.getElementById("spCategory").value = "";
+          document.getElementById("spDescription").value = "";
+          document.getElementById("spPrice").value = "";
+          fileInput.value = "";
+          showSellerTab("products");
+        } catch (error) {
+          errorEl.textContent = "Could not submit product. Please try again.";
+          errorEl.style.display = "block";
+        }
+      }
+
+      // ================================
+      // PRODUCT REVIEWS
+      // ================================
+
+      async function loadReviews(productId) {
+        const listEl = document.getElementById("reviewsList");
+        const formBox = document.getElementById("reviewFormBox");
+        const signInNote = document.getElementById("reviewSignInNote");
+        listEl.innerHTML = "Loading reviews...";
+
+        try {
+          const res = await fetch("/api/products/" + productId + "/reviews");
+          const data = await res.json();
+          if (!data.success || !data.reviews.length) {
+            listEl.innerHTML = "<p class='modal-desc'>No reviews yet.</p>";
+          } else {
+            listEl.innerHTML = data.reviews.map((r) => (
+              "<div style='padding:8px 0;border-bottom:1px solid var(--blush-line);'>" +
+                "<strong>" + "★".repeat(r.rating) + "☆".repeat(5 - r.rating) + "</strong> — " + r.customerName +
+                "<p style='margin-top:4px;'>" + r.text + "</p>" +
+              "</div>"
+            )).join("");
+          }
+        } catch (error) {
+          listEl.innerHTML = "";
+        }
+
+        if (currentCustomer) {
+          formBox.style.display = "block";
+          signInNote.style.display = "none";
+        } else {
+          formBox.style.display = "none";
+          signInNote.style.display = "block";
+        }
+      }
+
+      async function submitReview() {
+        const errorEl = document.getElementById("reviewError");
+        errorEl.style.display = "none";
+        const rating = Number(document.getElementById("reviewRating").value);
+        const text = document.getElementById("reviewText").value.trim();
+        if (!text) {
+          errorEl.textContent = "Please write a short remark.";
+          errorEl.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/products/" + currentProduct.id + "/reviews", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ rating, text }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not post review.";
+            errorEl.style.display = "block";
+            return;
+          }
+          document.getElementById("reviewText").value = "";
+          loadReviews(currentProduct.id);
+        } catch (error) {
+          errorEl.textContent = "Could not post review. Please try again.";
+          errorEl.style.display = "block";
+        }
+      }
+
       let currentSize = null;
       let currentQty = 1;
       let currentGalleryImages = [];
@@ -2422,6 +2856,7 @@
         document.getElementById("qtyVal").value = currentQty;
 
         renderDiscountTiers(p, currentQty);
+        loadReviews(p.id);
 
         document.getElementById("productOverlay").classList.add("open");
       }
@@ -2696,7 +3131,7 @@
         try {
           const res = await fetch("/api/orders", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...authHeaders() },
             body: JSON.stringify({
               customer: { name, phone },
               items: cart.map((item) => ({ productId: item.productId, size: item.size, qty: item.qty })),
@@ -2759,6 +3194,8 @@
       }
 
       loadProducts();
+      loadCustomerSession();
+      window.addEventListener("load", () => setTimeout(initGoogleSignIn, 300));
 
       // ===== Tap-to-burst festive interaction (flags + rakhi threads) =====
       const aug15Quotes = [
