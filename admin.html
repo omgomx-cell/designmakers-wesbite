@@ -261,6 +261,37 @@
         cursor: pointer;
       }
       .hidden { display: none; }
+
+      /* ===== Login mascot ===== */
+      #mascotWrap { text-align:center; margin-bottom:6px; position:relative; animation: mascotFloat 2.6s ease-in-out infinite; }
+      @keyframes mascotFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+      #mascotWrap.mascot-cry { animation: mascotShake 0.4s ease-in-out 3; }
+      @keyframes mascotShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+      #mascotWrap.mascot-happy { animation: mascotJump 0.6s ease-in-out infinite; }
+      @keyframes mascotJump { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-14px) scale(1.05); } }
+
+      .mascot-speech {
+        display: inline-block; max-width: 220px; margin: 0 auto 4px; padding: 8px 12px;
+        background: #fff; border: 2px solid var(--rosewood, #8a1c42); border-radius: 14px;
+        font-size: 12.5px; font-weight: 600; color: #5a2f42; position: relative;
+      }
+      .mascot-speech::after {
+        content: ""; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+        border-width: 8px 6px 0 6px; border-style: solid; border-color: #8a1c42 transparent transparent transparent;
+      }
+
+      .mascot-blink { animation: mascotBlink 4s ease-in-out infinite; transform-origin: center; }
+      @keyframes mascotBlink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+
+      .mascot-tear { animation: tearFall 1s ease-in infinite; }
+      .mascot-tear-r { animation-delay: 0.3s; }
+      @keyframes tearFall { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(14px); } }
+
+      /* ===== Login exit / dashboard entrance (the "she pulls the page up" effect) ===== */
+      #loginScreen.mascot-exit-up { transition: transform 0.7s ease-in, opacity 0.7s ease-in; transform: translateY(-100%); opacity: 0; }
+      #dashboard.mascot-enter-down { transition: transform 0.7s ease-out; }
+      #dashboard.mascot-enter-down.mascot-enter-start { transform: translateY(-100%); }
+      #dashboard.mascot-enter-down.mascot-enter-end { transform: translateY(0); }
       .row2 { display: flex; gap: 10px; }
       .row2 > div { flex: 1; }
       #loading, .empty-state { text-align: center; padding: 40px; color: var(--muted); font-size: 13.5px; }
@@ -330,6 +361,111 @@
     <!-- LOGIN SCREEN -->
     <div id="loginScreen">
       <div class="card">
+        <div id="mascotWrap" class="mascot-idle">
+          <div class="mascot-speech" id="mascotSpeech">Hi! I'll help you log in 👋</div>
+          <svg id="mascotSvg" viewBox="0 0 160 170" width="110" height="117">
+            <defs>
+              <linearGradient id="mHair" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3d3450"/>
+                <stop offset="55%" stop-color="#241b33"/>
+                <stop offset="100%" stop-color="#140e1f"/>
+              </linearGradient>
+              <linearGradient id="mHairShine" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#6f5f96" stop-opacity="0.85"/>
+                <stop offset="100%" stop-color="#6f5f96" stop-opacity="0"/>
+              </linearGradient>
+              <radialGradient id="mFace" cx="42%" cy="34%" r="72%">
+                <stop offset="0%" stop-color="#ffe9d6"/>
+                <stop offset="70%" stop-color="#ffdcbd"/>
+                <stop offset="100%" stop-color="#f0c6a3"/>
+              </radialGradient>
+              <linearGradient id="mBlouse" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="100%" stop-color="#e4e2ea"/>
+              </linearGradient>
+              <radialGradient id="mEyeGreen" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stop-color="#8fe0a0"/>
+                <stop offset="55%" stop-color="#3f9e5c"/>
+                <stop offset="100%" stop-color="#1f5c37"/>
+              </radialGradient>
+              <linearGradient id="mCheek" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff9f9f" stop-opacity="0.55"/>
+                <stop offset="100%" stop-color="#ff9f9f" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+
+            <!-- white blouse + black ribbon -->
+            <path d="M 38 150 Q 80 170 122 150 L 122 172 L 38 172 Z" fill="url(#mBlouse)" stroke="#d8d5de" stroke-width="0.6"/>
+            <path d="M 60 148 L 80 168 L 100 148 L 93 143 L 80 158 L 67 143 Z" fill="#ffffff" stroke="#ded9de" stroke-width="0.6"/>
+            <path d="M 80 153 L 71 160 L 80 165 L 89 160 Z" fill="#161219"/>
+            <path d="M 71 160 Q 58 158 56 168 Q 66 168 71 160 Z" fill="#161219"/>
+            <path d="M 89 160 Q 102 158 104 168 Q 94 168 89 160 Z" fill="#161219"/>
+
+            <!-- hair back (dark, soft wavy silhouette) -->
+            <path d="M 28 58 Q 18 96 26 132 Q 32 150 44 146 Q 34 112 40 76 Q 30 70 28 58 Z" fill="url(#mHair)"/>
+            <path d="M 132 58 Q 142 96 134 132 Q 128 150 116 146 Q 126 112 120 76 Q 130 70 132 58 Z" fill="url(#mHair)"/>
+            <path d="M 32 96 Q 24 112 30 128 Q 34 118 40 108 Z" fill="#160f21" opacity="0.6"/>
+            <path d="M 128 96 Q 136 112 130 128 Q 126 118 120 108 Z" fill="#160f21" opacity="0.6"/>
+            <ellipse cx="80" cy="72" rx="52" ry="54" fill="url(#mHair)"/>
+
+            <!-- face -->
+            <ellipse cx="80" cy="86" rx="40" ry="38" fill="url(#mFace)"/>
+            <ellipse cx="58" cy="98" rx="9" ry="6" fill="url(#mCheek)"/>
+            <ellipse cx="102" cy="98" rx="9" ry="6" fill="url(#mCheek)"/>
+
+            <!-- soft wavy bangs, parted -->
+            <path d="M 32 60 Q 80 26 128 60 Q 124 44 80 38 Q 36 44 32 60 Z" fill="#2a2038"/>
+            <path d="M 32 60 Q 44 70 52 62 Q 46 50 36 48 Z" fill="#241c33"/>
+            <path d="M 128 60 Q 116 70 108 62 Q 114 50 124 48 Z" fill="#241c33"/>
+            <path d="M 76 40 Q 80 50 78 62" stroke="#4a3d63" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.7"/>
+
+            <!-- hair shine overlay -->
+            <ellipse cx="66" cy="52" rx="20" ry="10" fill="url(#mHairShine)"/>
+
+            <!-- ===== eyes: normal (narrow, calm, sharp, green) ===== -->
+            <g class="mascot-eyes-normal">
+              <path class="mascot-blink" d="M 54 82 Q 64 76 74 82 Q 64 87 54 82 Z" fill="url(#mEyeGreen)"/>
+              <path class="mascot-blink" d="M 86 82 Q 96 76 106 82 Q 96 87 86 82 Z" fill="url(#mEyeGreen)"/>
+              <path d="M 54 82 Q 64 76 74 82" stroke="#1a1220" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+              <path d="M 86 82 Q 96 76 106 82" stroke="#1a1220" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+              <circle cx="67" cy="80" r="1.6" fill="#fff"/>
+              <circle cx="99" cy="80" r="1.6" fill="#fff"/>
+            </g>
+
+            <!-- ===== eyes: happy (soft closed arcs) ===== -->
+            <g class="mascot-eyes-happy" style="display:none;">
+              <path d="M 55 82 Q 64 76 73 82" stroke="#2b1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+              <path d="M 87 82 Q 96 76 105 82" stroke="#2b1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+            </g>
+
+            <!-- ===== eyes: crying (squeezed shut) ===== -->
+            <g class="mascot-eyes-cry" style="display:none;">
+              <path d="M 55 84 Q 64 90 73 84" stroke="#2b1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+              <path d="M 87 84 Q 96 90 105 84" stroke="#2b1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+              <!-- tears -->
+              <ellipse class="mascot-tear mascot-tear-l" cx="58" cy="96" rx="4" ry="6" fill="#6fc3ff"/>
+              <ellipse class="mascot-tear mascot-tear-r" cx="102" cy="96" rx="4" ry="6" fill="#6fc3ff"/>
+            </g>
+
+            <!-- ===== mouth: normal (calm, faint confident smirk) ===== -->
+            <path class="mascot-mouth-normal" d="M 70 106 Q 80 110 88 104" stroke="#a3465a" stroke-width="3" fill="none" stroke-linecap="round"/>
+            <!-- ===== mouth: happy (bigger smile) ===== -->
+            <path class="mascot-mouth-happy" style="display:none;" d="M 66 104 Q 80 120 94 104 Q 80 114 66 104 Z" fill="#a3465a"/>
+            <!-- ===== mouth: sad (down curve) ===== -->
+            <path class="mascot-mouth-sad" style="display:none;" d="M 68 112 Q 80 102 92 112" stroke="#a3465a" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+            <!-- pointing arm (shown while guiding to a field) -->
+            <g class="mascot-arm-point">
+              <path d="M 106 118 Q 128 128 126 150" stroke="#ffdcbd" stroke-width="10" fill="none" stroke-linecap="round"/>
+              <circle cx="126" cy="152" r="6" fill="#ffdcbd"/>
+            </g>
+            <!-- raised arm (shown on success) -->
+            <g class="mascot-arm-wave" style="display:none;">
+              <path d="M 106 118 Q 130 108 128 82" stroke="#ffdcbd" stroke-width="10" fill="none" stroke-linecap="round"/>
+              <circle cx="128" cy="80" r="6" fill="#ffdcbd"/>
+            </g>
+          </svg>
+        </div>
         <h1 style="text-align:center; color:var(--rosewood); font-size:24px;">🎁 Design Makers</h1>
         <p style="text-align:center; color:var(--muted); margin-top:-8px; font-size:13.5px;">Admin Login</p>
         <label>Username</label>
@@ -394,6 +530,23 @@
             <button class="btn small" id="applyThemeBtn" style="margin-top:14px; display:none;" onclick="applyTheme()">Apply Selected Theme</button>
             <div class="error" id="themeError"></div>
           </div>
+
+          <div class="card" style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <input
+              type="text"
+              id="productSearchInput"
+              placeholder="Search products by name..."
+              style="flex:2; min-width:200px; margin:0;"
+              oninput="renderProducts()"
+            />
+            <select id="productCategoryFilter" style="flex:1; min-width:160px; margin:0;" onchange="renderProducts()">
+              <option value="">All Categories</option>
+            </select>
+            <button class="btn small hidden" id="newCategoryBtn" onclick="createCategory()" style="white-space:nowrap;">+ New Category</button>
+            <button class="btn small secondary hidden" id="seedCategoryProductsBtn" onclick="seedCategoryProducts()" style="white-space:nowrap;">Add 10 sample products/category</button>
+            <span id="productFilterCount" style="font-size:13px; color:#8c7d78; white-space:nowrap;"></span>
+          </div>
+          <div class="error" id="categoryActionError"></div>
 
           <div id="productsLoading">Loading products...</div>
           <div id="productList"></div>
@@ -603,6 +756,7 @@
 
           if (!data.success) {
             errorEl.textContent = data.message || "Login failed.";
+            mascotCryReaction();
             return;
           }
 
@@ -613,13 +767,65 @@
           localStorage.setItem("dm_admin_role", role);
           localStorage.setItem("dm_admin_username", myUsername);
           setBubbleText(myUsername);
-          showDashboard();
+          mascotSuccessReaction(() => {
+            showDashboard();
+            startSessionTimer();
+          });
         } catch (err) {
           errorEl.textContent = "Network error. Check your connection and try again.";
         }
       }
 
+      // ---------- SESSION KEEP-ALIVE (10 min prompt, 10s to respond) ----------
+      let sessionTimerId = null;
+      let sessionCountdownId = null;
+
+      function startSessionTimer() {
+        clearTimeout(sessionTimerId);
+        sessionTimerId = setTimeout(showSessionPrompt, 10 * 60 * 1000);
+      }
+
+      function showSessionPrompt() {
+        const overlay = document.getElementById("sessionPromptOverlay");
+        const countdownEl = document.getElementById("sessionPromptCountdown");
+        let secondsLeft = 10;
+        countdownEl.textContent = secondsLeft;
+        overlay.style.display = "flex";
+
+        clearInterval(sessionCountdownId);
+        sessionCountdownId = setInterval(() => {
+          secondsLeft -= 1;
+          countdownEl.textContent = secondsLeft;
+          if (secondsLeft <= 0) {
+            clearInterval(sessionCountdownId);
+            logout();
+          }
+        }, 1000);
+      }
+
+      // Called when the admin clicks "Yes, stay logged in" — hides the
+      // prompt and restarts the 10-minute cycle.
+      function staySessionAlive() {
+        clearInterval(sessionCountdownId);
+        document.getElementById("sessionPromptOverlay").style.display = "none";
+        startSessionTimer();
+      }
+
       function logout() {
+        clearTimeout(sessionTimerId);
+        clearInterval(sessionCountdownId);
+        document.getElementById("sessionPromptOverlay").style.display = "none";
+
+        // Best-effort: tell the server to free up this session slot so it
+        // doesn't count against the 2-concurrent-login limit. Don't block
+        // on it — logout should feel instant either way.
+        if (token) {
+          fetch("/api/admin/logout", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + token },
+          }).catch(() => {});
+        }
+
         token = null;
         role = null;
         myUsername = null;
@@ -645,6 +851,7 @@
             if (myUsername) localStorage.setItem("dm_admin_username", myUsername);
             setBubbleText(myUsername || "Design Makers");
             showDashboard();
+            startSessionTimer();
           } else {
             logout();
           }
@@ -658,6 +865,8 @@
         document.getElementById("dashboard").classList.remove("hidden");
         document.getElementById("tabBtnAdmins").classList.toggle("hidden", role !== "boss");
         document.getElementById("backupBtn").classList.toggle("hidden", role !== "boss");
+        document.getElementById("newCategoryBtn").classList.toggle("hidden", role !== "boss");
+        document.getElementById("seedCategoryProductsBtn").classList.toggle("hidden", role !== "boss");
 
         myCanDeleteProducts = role === "boss";
         try {
@@ -839,6 +1048,12 @@
             list.push(c);
           }
         });
+        (emptyCategories || []).forEach((c) => {
+          if (c && !seen.has(c.toLowerCase())) {
+            seen.add(c.toLowerCase());
+            list.push(c);
+          }
+        });
         return list.sort((a, b) => a.localeCompare(b));
       }
 
@@ -884,6 +1099,23 @@
         }
       });
 
+      // Categories that exist (boss-created) but have zero products yet, so
+      // they still show up in the filter dropdown / new-product suggestions.
+      let emptyCategories = [];
+
+      async function loadCategories() {
+        try {
+          const res = await fetch("/api/admin/categories", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (data.success) {
+            const used = new Set(products.map((p) => p.category || "Uncategorized"));
+            emptyCategories = data.categories.filter((c) => !used.has(c));
+          }
+        } catch (err) {
+          // Non-fatal — dropdown just falls back to product-derived categories only.
+        }
+      }
+
       async function loadProducts() {
         document.getElementById("productsLoading").classList.remove("hidden");
         document.getElementById("addProductFab").classList.remove("hidden");
@@ -899,20 +1131,107 @@
           }
 
           products = data.products;
+          await loadCategories();
+          populateCategoryFilter();
           renderProducts();
         } finally {
           document.getElementById("productsLoading").classList.add("hidden");
         }
       }
 
+      async function createCategory() {
+        const errEl = document.getElementById("categoryActionError");
+        errEl.textContent = "";
+        const name = (prompt("New category name (e.g. Keychains):") || "").trim();
+        if (!name) return;
+
+        try {
+          const res = await fetch("/api/admin/categories", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ name }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errEl.textContent = data.message || "Could not create category.";
+            return;
+          }
+          await loadCategories();
+          populateCategoryFilter();
+          document.getElementById("productCategoryFilter").value = name;
+          renderProducts();
+        } catch (err) {
+          errEl.textContent = "Network error — please try again.";
+        }
+      }
+
+      async function seedCategoryProducts() {
+        const errEl = document.getElementById("categoryActionError");
+        errEl.textContent = "";
+        if (!confirm("Add 10 blank sample products to every existing category? They'll be hidden (inactive, no image) until you edit each one and add a photo. Your current products are kept as-is.")) return;
+
+        try {
+          const res = await fetch("/api/admin/seed-category-products", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errEl.textContent = data.message || "Could not add sample products.";
+            return;
+          }
+          products = data.products;
+          await loadCategories();
+          populateCategoryFilter();
+          renderProducts();
+          alert(data.message);
+        } catch (err) {
+          errEl.textContent = "Network error — please try again.";
+        }
+      }
+
+      // Builds the category dropdown (with a live count per category) from
+      // whatever is currently in `products`. Called once per load — the
+      // dropdown's selected value is then read by renderProducts() on every
+      // search/filter change, so we don't rebuild (and reset) it on every keystroke.
+      function populateCategoryFilter() {
+        const select = document.getElementById("productCategoryFilter");
+        const prevValue = select.value;
+        const counts = {};
+        products.forEach((p) => {
+          const cat = p.category || "Uncategorized";
+          counts[cat] = (counts[cat] || 0) + 1;
+        });
+        (emptyCategories || []).forEach((c) => {
+          if (!(c in counts)) counts[c] = 0;
+        });
+        const cats = Object.keys(counts).sort();
+        select.innerHTML =
+          '<option value="">All Categories (' + products.length + ")</option>" +
+          cats.map((c) => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + " (" + counts[c] + ")</option>").join("");
+        if (cats.includes(prevValue)) select.value = prevValue;
+      }
+
       function renderProducts() {
         const list = document.getElementById("productList");
-        if (!products.length) {
-          list.innerHTML = '<p class="empty-state">No products yet. Tap + to add one.</p>';
+        const searchTerm = (document.getElementById("productSearchInput").value || "").trim().toLowerCase();
+        const categoryFilter = document.getElementById("productCategoryFilter").value;
+
+        const filtered = products.filter((p) => {
+          const matchesSearch = !searchTerm || (p.name || "").toLowerCase().includes(searchTerm);
+          const matchesCategory = !categoryFilter || (p.category || "Uncategorized") === categoryFilter;
+          return matchesSearch && matchesCategory;
+        });
+
+        document.getElementById("productFilterCount").textContent =
+          "Showing " + filtered.length + " of " + products.length + " products";
+
+        if (!filtered.length) {
+          list.innerHTML = '<p class="empty-state">No products match this search/filter.</p>';
           return;
         }
 
-        list.innerHTML = products
+        list.innerHTML = filtered
           .map((p) => {
             const sizeText = (p.sizes || []).length ? p.sizes.join(", ") : "—";
             const discountText = (p.discounts || []).length
@@ -1640,11 +1959,78 @@
         }
       }
 
+      // ---------- MASCOT (login helper girl) ----------
+      function setMascotState(state, speechText) {
+        const wrap = document.getElementById("mascotWrap");
+        if (!wrap) return;
+        wrap.classList.remove("mascot-idle", "mascot-cry", "mascot-happy");
+        wrap.classList.add("mascot-" + state);
+
+        document.querySelector(".mascot-eyes-normal").style.display = state === "idle" ? "" : "none";
+        document.querySelector(".mascot-eyes-happy").style.display = state === "happy" ? "" : "none";
+        document.querySelector(".mascot-eyes-cry").style.display = state === "cry" ? "" : "none";
+        document.querySelector(".mascot-mouth-normal").style.display = state === "idle" ? "" : "none";
+        document.querySelector(".mascot-mouth-happy").style.display = state === "happy" ? "" : "none";
+        document.querySelector(".mascot-mouth-sad").style.display = state === "cry" ? "" : "none";
+        document.querySelector(".mascot-arm-point").style.display = state === "happy" ? "none" : "";
+        document.querySelector(".mascot-arm-wave").style.display = state === "happy" ? "" : "none";
+
+        if (speechText !== undefined) {
+          document.getElementById("mascotSpeech").textContent = speechText;
+        }
+      }
+
+      // Girl reacts to whichever field is focused — points you to the next one.
+      function initMascotFieldGuides() {
+        const userInput = document.getElementById("loginUsername");
+        const passInput = document.getElementById("loginPassword");
+        if (!userInput || !passInput) return;
+        userInput.addEventListener("focus", () => setMascotState("idle", "Please enter your username! 👇"));
+        passInput.addEventListener("focus", () => setMascotState("idle", "Now enter your password! 🔒"));
+      }
+
+      // Sad reaction to a failed login — resets back to idle after a bit so
+      // she's ready to guide the next attempt.
+      function mascotCryReaction() {
+        setMascotState("cry", "Oops! That's not right... try again? 😢");
+        setTimeout(() => {
+          setMascotState("idle", "Please check your username & password 👇");
+        }, 2200);
+      }
+
+      // Happy reaction on a correct login, then she "pulls" the login card
+      // up and away while the dashboard slides down from behind it.
+      function mascotSuccessReaction(afterAnimation) {
+        setMascotState("happy", "Yay! Logging you in... 🎉");
+        setTimeout(() => {
+          const loginScreen = document.getElementById("loginScreen");
+          const dashboard = document.getElementById("dashboard");
+
+          dashboard.classList.remove("hidden");
+          dashboard.classList.add("mascot-enter-down", "mascot-enter-start");
+          // Force layout so the "start" transform is applied before we
+          // animate to "end" — otherwise the browser may collapse both
+          // class changes into one and skip the slide.
+          void dashboard.offsetHeight;
+          dashboard.classList.add("mascot-enter-end");
+
+          loginScreen.classList.add("mascot-exit-up");
+
+          setTimeout(() => {
+            loginScreen.classList.add("hidden");
+            loginScreen.classList.remove("mascot-exit-up");
+            dashboard.classList.remove("mascot-enter-down", "mascot-enter-start", "mascot-enter-end");
+            afterAnimation();
+          }, 700);
+        }, 500);
+      }
+
       // Enter key submits login
       document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("loginPassword").addEventListener("keydown", (e) => {
           if (e.key === "Enter") login();
         });
+        initMascotFieldGuides();
         checkSession();
       });
 
@@ -1755,5 +2141,20 @@
         });
       })();
     </script>
+    <!-- SESSION KEEP-ALIVE PROMPT — shown every 10 minutes; auto-logout if
+         no response within 10 seconds. -->
+    <div id="sessionPromptOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
+      <div style="background:#fff; border-radius:12px; padding:24px; max-width:340px; width:90%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+        <h3 style="margin:0 0 10px; color:#8a1c42;">Still there?</h3>
+        <p style="margin:0 0 16px; font-size:14px; color:#555;">Do you want to stay logged in?</p>
+        <p style="margin:0 0 16px; font-size:13px; color:#a3002a;">
+          Auto logout in <span id="sessionPromptCountdown">10</span>s
+        </p>
+        <div style="display:flex; gap:10px; justify-content:center;">
+          <button class="btn small" onclick="staySessionAlive()">Yes, stay logged in</button>
+          <button class="btn small secondary" onclick="logout()">No, log out</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
