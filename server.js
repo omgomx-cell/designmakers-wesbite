@@ -3,12 +3,30 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const { OAuth2Client } = require("google-auth-library");
 
 const { connectDB, readDatabase, writeDatabase, getNextId } = require("./database");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", true);
+
+// ================================
+// GOOGLE SIGN-IN (customers + sellers)
+// ================================
+// Set GOOGLE_CLIENT_ID in Replit Secrets once you've created it in Google
+// Cloud Console (console.cloud.google.com > APIs & Services > Credentials).
+// Until it's set, /api/auth/google will return a clear error instead of
+// silently failing, so it's obvious what's missing.
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+if (!GOOGLE_CLIENT_ID) {
+  console.warn(
+    "⚠️  GOOGLE_CLIENT_ID is not set — customer/seller Google login will not work " +
+      "until you add it in Replit Secrets. The rest of the site works fine without it.",
+  );
+}
 
 function getClientIp(req) {
   const forwarded = req.headers["x-forwarded-for"];
@@ -141,6 +159,50 @@ function requireBoss(req, res, next) {
 }
 
 // ================================
+// CUSTOMER / SELLER AUTH MIDDLEWARE
+// ================================
+// Separate from admin auth above — customers/sellers log in with Google,
+// never with a username/password, and their tokens carry a customerId
+// instead of a username.
+
+function requireCustomer(req, res, next) {
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: "Please sign in to continue." });
+  }
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.type !== "customer") {
+      return res.status(401).json({ success: false, message: "Please sign in to continue." });
+    }
+    const database = readDatabase();
+    const customer = database.customers.find((c) => c.id === payload.customerId);
+    if (!customer) {
+      return res.status(401).json({ success: false, message: "Account not found. Please sign in again." });
+    }
+    req.customer = customer;
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "Session expired. Please sign in again." });
+  }
+}
+
+// Must be used after requireCustomer. Only lets through customers whose
+// seller application has actually been approved by the admin.
+function requireApprovedSeller(req, res, next) {
+  if (!req.customer || req.customer.sellerStatus !== "approved") {
+    return res.status(403).json({
+      success: false,
+      message: "You need to be an approved seller to do this.",
+    });
+  }
+  next();
+}
+
+// ================================
 // ADMIN LOGIN
 // ================================
 
@@ -251,6 +313,149 @@ app.get("/api/admin/me", requireAdmin, (req, res) => {
     role: req.admin.role,
     canDeleteProducts: !!(account && account.canDeleteProducts),
   });
+});
+
+// ================================
+// CUSTOMER / SELLER LOGIN (Sign in with Google)
+// ================================
+// The frontend gets a Google ID token from Google's "Sign in with Google"
+// button and sends it here. We verify it with Google, then find-or-create
+// our own customer record and issue our own JWT — same pattern as the admin
+// login above, just backed by Google instead of a password.
+
+app.post("/api/auth/google", async (req, res) => {
+  if (!GOOGLE_CLIENT_ID) {
+    return res.status(500).json({
+      success: false,
+      message: "Google login isn't configured on the server yet (missing GOOGLE_CLIENT_ID).",
+    });
+  }
+
+  const { credential } = req.body || {};
+  if (!credential) {
+    return res.status(400).json({ success: false, message: "Missing Google credential." });
+  }
+
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "Google sign-in failed. Please try again." });
+  }
+
+  const database = readDatabase();
+  let customer = database.customers.find((c) => c.googleId === payload.sub);
+
+  if (!customer) {
+    customer = {
+      id: getNextId(database.customers),
+      googleId: payload.sub,
+      email: payload.email || "",
+      name: payload.name || payload.email || "Customer",
+      picture: payload.picture || "",
+      role: "customer",
+      shopTitle: "",
+      sellerStatus: "none",
+      createdAt: new Date().toISOString(),
+    };
+    database.customers.push(customer);
+    writeDatabase(database);
+  }
+
+  const token = jwt.sign(
+    { type: "customer", customerId: customer.id },
+    JWT_SECRET,
+    { expiresIn: "30d" },
+  );
+
+  res.json({
+    success: true,
+    token,
+    customer: {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      picture: customer.picture,
+      role: customer.role,
+      shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus,
+    },
+  });
+});
+
+app.get("/api/customer/me", requireCustomer, (req, res) => {
+  const c = req.customer;
+  res.json({
+    success: true,
+    customer: {
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      picture: c.picture,
+      role: c.role,
+      shopTitle: c.shopTitle,
+      sellerStatus: c.sellerStatus,
+    },
+  });
+});
+
+// A logged-in customer applies to become a seller. Goes into "pending"
+// until the boss/admin approves it from the admin panel.
+app.post("/api/customer/apply-seller", requireCustomer, (req, res) => {
+  const shopTitle = String((req.body || {}).shopTitle || "").trim();
+  if (!shopTitle) {
+    return res.status(400).json({ success: false, message: "Shop title is required." });
+  }
+  if (req.customer.sellerStatus === "approved") {
+    return res.status(400).json({ success: false, message: "You're already an approved seller." });
+  }
+  if (req.customer.sellerStatus === "pending") {
+    return res.status(400).json({ success: false, message: "Your seller application is already pending review." });
+  }
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  customer.shopTitle = shopTitle;
+  customer.sellerStatus = "pending";
+  customer.role = "seller";
+  writeDatabase(database);
+
+  res.json({ success: true, message: "Application submitted — waiting for admin approval.", sellerStatus: "pending" });
+});
+
+// ================================
+// ADMIN: REVIEW SELLER APPLICATIONS
+// ================================
+
+app.get("/api/admin/seller-applications", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const applications = database.customers
+    .filter((c) => c.sellerStatus === "pending")
+    .map((c) => ({ id: c.id, name: c.name, email: c.email, shopTitle: c.shopTitle, picture: c.picture }));
+  res.json({ success: true, applications });
+});
+
+app.put("/api/admin/seller-applications/:id/approve", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === Number(req.params.id));
+  if (!customer) return res.status(404).json({ success: false, message: "Applicant not found." });
+  customer.sellerStatus = "approved";
+  customer.role = "seller";
+  writeDatabase(database);
+  res.json({ success: true, message: `${customer.name} is now an approved seller.` });
+});
+
+app.put("/api/admin/seller-applications/:id/reject", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === Number(req.params.id));
+  if (!customer) return res.status(404).json({ success: false, message: "Applicant not found." });
+  customer.sellerStatus = "rejected";
+  writeDatabase(database);
+  res.json({ success: true, message: `${customer.name}'s application was rejected.` });
 });
 
 // ================================
@@ -626,11 +831,103 @@ app.post("/api/admin/products", requireAdmin, (req, res) => {
   }
 
   const database = readDatabase();
-  const newProduct = { id: getNextId(database.products), ...product };
+  const newProduct = { id: getNextId(database.products), sellerId: null, approved: true, ...product };
   database.products.push(newProduct);
   writeDatabase(database);
 
   res.status(201).json({ success: true, product: newProduct });
+});
+
+// ================================
+// SELLER: PRODUCT MANAGEMENT
+// ================================
+// A seller's new products are NOT active/approved by default — they only
+// appear on the storefront once the admin approves them below. Sellers can
+// see their own products (including pending ones) via GET /api/seller/products.
+
+app.post("/api/seller/products", requireCustomer, requireApprovedSeller, (req, res) => {
+  const { errors, product } = validateProductInput(req.body || {});
+
+  if (errors.length) {
+    return res.status(400).json({ success: false, message: errors.join(" ") });
+  }
+
+  const database = readDatabase();
+  const newProduct = {
+    id: getNextId(database.products),
+    sellerId: req.customer.id,
+    approved: false, // waits for admin approval before showing on the storefront
+    ...product,
+  };
+  database.products.push(newProduct);
+  writeDatabase(database);
+
+  res.status(201).json({
+    success: true,
+    message: "Product submitted — it will appear on the storefront once an admin approves it.",
+    product: newProduct,
+  });
+});
+
+app.get("/api/seller/products", requireCustomer, requireApprovedSeller, (req, res) => {
+  const database = readDatabase();
+  const products = database.products.filter((p) => p.sellerId === req.customer.id);
+  res.json({ success: true, products });
+});
+
+// Orders that include at least one of this seller's products. Each order
+// keeps its normal shape, but `items` is filtered down to just this
+// seller's lines so a seller never sees another seller's line items.
+app.get("/api/seller/orders", requireCustomer, requireApprovedSeller, (req, res) => {
+  const database = readDatabase();
+  const myProductIds = new Set(
+    database.products.filter((p) => p.sellerId === req.customer.id).map((p) => p.id),
+  );
+
+  const orders = database.orders
+    .map((order) => {
+      const myItems = (order.items || []).filter((item) => myProductIds.has(item.productId));
+      if (!myItems.length) return null;
+      return { ...order, items: myItems };
+    })
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  res.json({ success: true, orders });
+});
+
+// ================================
+// ADMIN: APPROVE SELLER PRODUCTS
+// ================================
+
+app.get("/api/admin/products/pending", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const pending = database.products
+    .filter((p) => p.sellerId && p.approved === false)
+    .map((p) => {
+      const seller = database.customers.find((c) => c.id === p.sellerId);
+      return { ...p, sellerName: seller ? seller.name : "Unknown seller", shopTitle: seller ? seller.shopTitle : "" };
+    });
+  res.json({ success: true, products: pending });
+});
+
+app.put("/api/admin/products/:id/approve", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const product = database.products.find((p) => p.id === Number(req.params.id));
+  if (!product) return res.status(404).json({ success: false, message: "Product not found." });
+  product.approved = true;
+  writeDatabase(database);
+  res.json({ success: true, message: "Product approved and now live.", product });
+});
+
+app.put("/api/admin/products/:id/reject", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const product = database.products.find((p) => p.id === Number(req.params.id));
+  if (!product) return res.status(404).json({ success: false, message: "Product not found." });
+  const index = database.products.indexOf(product);
+  database.products.splice(index, 1);
+  writeDatabase(database);
+  res.json({ success: true, message: "Product rejected and removed." });
 });
 
 // ================================
@@ -1000,7 +1297,7 @@ app.get("/api/products", (req, res) => {
     const trendingIds = new Set(trending.map((p) => p.id));
 
     const products = database.products
-      .filter((product) => product.active)
+      .filter((product) => product.active && product.approved !== false)
       .map((product) => ({
         ...product,
         saleActive: isSaleActive(product),
@@ -1072,6 +1369,72 @@ app.post("/api/products/:id/view", (req, res) => {
 });
 
 // ================================
+// PRODUCT REVIEWS
+// ================================
+// Text-only reviews (no photos) — anyone can read them, but only a signed-in
+// customer who actually has a past order containing this product can post one.
+
+app.get("/api/products/:id/reviews", (req, res) => {
+  try {
+    const database = readDatabase();
+    const productId = Number(req.params.id);
+    const reviews = (database.reviews || [])
+      .filter((r) => r.productId === productId)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({ success: true, reviews });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to load reviews." });
+  }
+});
+
+app.post("/api/products/:id/reviews", requireCustomer, (req, res) => {
+  const database = readDatabase();
+  const productId = Number(req.params.id);
+  const product = database.products.find((p) => p.id === productId);
+  if (!product) {
+    return res.status(404).json({ success: false, message: "Product not found." });
+  }
+
+  const boughtIt = database.orders.some(
+    (o) => o.customerId === req.customer.id && (o.items || []).some((item) => item.productId === productId),
+  );
+  if (!boughtIt) {
+    return res.status(403).json({ success: false, message: "You can only review products you've bought." });
+  }
+
+  const rating = Number((req.body || {}).rating);
+  const text = String((req.body || {}).text || "").trim().slice(0, 1000);
+  if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+    return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
+  }
+  if (!text) {
+    return res.status(400).json({ success: false, message: "Please write a short remark." });
+  }
+
+  const alreadyReviewed = database.reviews.some(
+    (r) => r.productId === productId && r.customerId === req.customer.id,
+  );
+  if (alreadyReviewed) {
+    return res.status(400).json({ success: false, message: "You've already reviewed this product." });
+  }
+
+  const review = {
+    id: getNextId(database.reviews),
+    productId,
+    customerId: req.customer.id,
+    customerName: req.customer.name,
+    rating,
+    text,
+    createdAt: new Date().toISOString(),
+  };
+  database.reviews.push(review);
+  writeDatabase(database);
+
+  res.status(201).json({ success: true, review });
+});
+
+// ================================
 // PRODUCT PHOTO (real, linkable URL)
 // ================================
 // Product photos are stored as base64 data URIs in the database, which isn't
@@ -1124,6 +1487,22 @@ app.get("/api/phone-brands", (req, res) => {
 // CREATE ORDER
 // ================================
 
+// If the shopper is signed in with Google, their token is sent along with
+// the order so we can link the order to their account (used later to check
+// "did this customer actually buy this product" before allowing a review).
+// Login is still NOT required to order — this only reads the token if present.
+function getOptionalCustomerId(req) {
+  const header = req.headers.authorization || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+  if (!token) return null;
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    return payload.type === "customer" ? payload.customerId : null;
+  } catch (error) {
+    return null;
+  }
+}
+
 app.post("/api/orders", (req, res) => {
   try {
     const database = readDatabase();
@@ -1149,6 +1528,7 @@ app.post("/api/orders", (req, res) => {
       id: getNextId(database.orders),
       orderNumber: "DM-" + Date.now().toString().slice(-8),
       customer: { name, phone },
+      customerId: getOptionalCustomerId(req),
       items: pricing.pricedItems,
       subtotal: Math.round(pricing.subtotal * 100) / 100,
       discount: Math.round(pricing.discountTotal * 100) / 100,
