@@ -490,9 +490,9 @@
       <div class="tabs">
         <button class="tab-btn active" id="tabBtnProducts" onclick="switchTab('products')">Products</button>
         <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">Orders</button>
-        <button class="tab-btn" id="tabBtnCustomers" onclick="switchTab('customers')">Customers</button>
         <button class="tab-btn" id="tabBtnHomepage" onclick="switchTab('homepage')">Homepage Sections</button>
         <button class="tab-btn" id="tabBtnSellers" onclick="switchTab('sellers')">Sellers</button>
+        <button class="tab-btn" id="tabBtnCustomers" onclick="switchTab('customers')">Customers</button>
         <button class="tab-btn hidden" id="tabBtnAdmins" onclick="switchTab('admins')">Admins</button>
       </div>
 
@@ -561,22 +561,6 @@
           <div id="orderList"></div>
         </div>
 
-        <!-- CUSTOMERS TAB -->
-        <div class="tab-panel" id="tabCustomers">
-          <div class="card" style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <input
-              type="text"
-              id="customerSearchInput"
-              placeholder="Search by name, email, or mobile..."
-              style="flex:2; min-width:200px; margin:0;"
-              oninput="renderCustomers()"
-            />
-            <span id="customerFilterCount" style="font-size:13px; color:#8c7d78; white-space:nowrap;"></span>
-          </div>
-          <div id="customersLoading">Loading customers...</div>
-          <div id="customerList"></div>
-        </div>
-
         <!-- HOMEPAGE SECTIONS TAB -->
         <div class="tab-panel" id="tabHomepage">
           <div class="card" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -617,6 +601,16 @@
             <div class="phone" style="margin:0 0 10px;">New products submitted by sellers — they won't appear on the storefront until approved.</div>
             <div id="pendingProductsLoading">Loading pending products...</div>
             <div id="pendingProductsList"></div>
+          </div>
+        </div>
+
+                <!-- CUSTOMERS TAB -->
+        <div class="tab-panel" id="tabCustomers">
+          <div class="card">
+            <h3 style="margin:0 0 10px;color:var(--rosewood);">Customer Accounts</h3>
+            <div class="phone" style="margin:0 0 10px;">Customers who signed up with mobile number + password. Use "Reset password" to generate a new password if a customer forgets theirs — it's shown here once, so pass it on to them right away.</div>
+            <div id="customersLoading">Loading customers...</div>
+            <div id="customersList"></div>
           </div>
         </div>
 
@@ -762,7 +756,6 @@
       let myCanDeleteProducts = false;
       let products = [];
       let orders = [];
-      let customers = [];
       let admins = [];
       let editingId = null;
       let currentTab = "products";
@@ -923,7 +916,7 @@
       function switchTab(tab) {
         currentTab = tab;
 
-        ["products", "orders", "customers", "homepage", "sellers", "admins"].forEach((t) => {
+        ["products", "orders", "homepage", "sellers", "customers", "admins"].forEach((t) => {
           document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
           document.getElementById("tabBtn" + capitalize(t)).classList.toggle("active", t === tab);
         });
@@ -931,7 +924,6 @@
         document.getElementById("addProductFab").classList.toggle("hidden", tab !== "products");
 
         if (tab === "orders" && !orders.length) loadOrders();
-        if (tab === "customers" && !customers.length) loadCustomers();
         if (tab === "homepage") {
           document.getElementById("homepageSectionsSaved").style.display = "none";
           loadHomepagePreview();
@@ -940,6 +932,7 @@
           loadSellerApplications();
           loadPendingProducts();
         }
+        if (tab === "customers") loadCustomers();
         if (tab === "admins") loadAdmins();
       }
 
@@ -1058,6 +1051,56 @@
       function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
       // ---------- SELLERS TAB — applications + pending products ----------
+
+      // ---------- CUSTOMERS (mobile + password accounts) ----------
+      async function loadCustomers() {
+        const loadingEl = document.getElementById("customersLoading");
+        const listEl = document.getElementById("customersList");
+        loadingEl.classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/customers", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          loadingEl.classList.add("hidden");
+          if (!data.success || !data.customers.length) {
+            listEl.innerHTML = '<p class="empty-state">No customer accounts yet.</p>';
+            return;
+          }
+          listEl.innerHTML = data.customers.map((c) => (
+            '<div class="card" id="customerRow' + c.id + '" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;">' +
+              '<div><strong>' + escapeHtml(c.name) + '</strong><br>' +
+                '<span style="font-size:13px;color:#8c7d78;">' + escapeHtml(c.mobile) + '</span></div>' +
+              '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
+                '<span id="customerNewPw' + c.id + '" style="font-size:13px;color:#1c7a34;"></span>' +
+                '<button class="btn small secondary" onclick="resetCustomerPassword(' + c.id + ')">Reset password</button>' +
+              '</div>' +
+            '</div>'
+          )).join("");
+        } catch (err) {
+          loadingEl.classList.add("hidden");
+          listEl.innerHTML = '<p class="empty-state">Network error loading customers.</p>';
+        }
+      }
+
+      async function resetCustomerPassword(id) {
+        if (!confirm("Generate a new password for this customer? Their old password will stop working.")) return;
+        try {
+          const res = await fetch("/api/admin/customers/" + id + "/reset-password", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          const label = document.getElementById("customerNewPw" + id);
+          if (!data.success) {
+            alert(data.message || "Could not reset password.");
+            return;
+          }
+          if (label) {
+            label.textContent = "New password: " + data.newPassword + " (copy it now)";
+          }
+        } catch (err) {
+          alert("Network error. Please try again.");
+        }
+      }
 
       async function loadSellerApplications() {
         const loadingEl = document.getElementById("sellerAppsLoading");
@@ -1728,78 +1771,17 @@
         }
       }
 
-      async function loadCustomers() {
-        document.getElementById("customersLoading").classList.remove("hidden");
-        try {
-          const res = await fetch("/api/admin/customers", {
-            headers: { Authorization: "Bearer " + token },
-          });
-          const data = await res.json();
-
-          if (!data.success) {
-            if (res.status === 401) logout();
-            return;
-          }
-
-          customers = data.customers;
-          renderCustomers();
-        } finally {
-          document.getElementById("customersLoading").classList.add("hidden");
-        }
-      }
-
-      function renderCustomers() {
-        const list = document.getElementById("customerList");
-        const search = (document.getElementById("customerSearchInput").value || "").trim().toLowerCase();
-
-        const filtered = customers.filter((c) => {
-          if (!search) return true;
-          return (
-            (c.name || "").toLowerCase().includes(search) ||
-            (c.email || "").toLowerCase().includes(search) ||
-            (c.mobile || "").includes(search)
-          );
-        });
-
-        document.getElementById("customerFilterCount").textContent =
-          filtered.length + " of " + customers.length + " customers";
-
-        if (!filtered.length) {
-          list.innerHTML = '<p class="empty-state">No customers found.</p>';
-          return;
-        }
-
-        list.innerHTML =
-          '<table class="data-table" style="width:100%; border-collapse:collapse;">' +
-            '<thead><tr>' +
-              '<th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Name</th>' +
-              '<th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Email</th>' +
-              '<th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Mobile</th>' +
-              '<th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Signed up</th>' +
-            '</tr></thead><tbody>' +
-            filtered
-              .map((c) => {
-                const signedUp = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "—";
-                return (
-                  '<tr>' +
-                    '<td style="padding:8px; border-bottom:1px solid #f5f5f5;">' + escapeHtml(c.name || "—") + '</td>' +
-                    '<td style="padding:8px; border-bottom:1px solid #f5f5f5;">' + escapeHtml(c.email || "—") + '</td>' +
-                    '<td style="padding:8px; border-bottom:1px solid #f5f5f5;">' + escapeHtml(c.mobile || "—") + '</td>' +
-                    '<td style="padding:8px; border-bottom:1px solid #f5f5f5;">' + escapeHtml(signedUp) + '</td>' +
-                  '</tr>'
-                );
-              })
-              .join("") +
-            '</tbody></table>';
-      }
-
       function renderOrderStats() {
-        const totalRevenue = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+        // Cancelled orders don't count towards revenue.
+        const activeOrders = orders.filter((o) => o.status !== "Cancelled");
+        const totalRevenue = activeOrders.reduce((sum, o) => sum + (o.total || 0), 0);
         const newCount = orders.filter((o) => o.status === "New").length;
+        const cancelledCount = orders.filter((o) => o.status === "Cancelled").length;
 
         document.getElementById("orderStats").innerHTML =
           statCard("Total Orders", orders.length) +
           statCard("New / Unfulfilled", newCount) +
+          statCard("Cancelled", cancelledCount) +
           statCard("Revenue (COD)", "₹" + Math.round(totalRevenue));
       }
 
@@ -1826,9 +1808,16 @@
               .join(", ");
 
             const statusClass = "status-" + String(o.status || "New").toLowerCase();
+            const isCancelled = o.status === "Cancelled";
+            const lockReactivate = isCancelled && role !== "boss";
             const statusOptions = STATUS_OPTIONS
               .map((s) => '<option value="' + s + '" ' + (s === o.status ? "selected" : "") + ">" + s + "</option>")
               .join("");
+
+            const totalHtml = isCancelled
+              ? '<span class="order-total" style="text-decoration:line-through;color:#8c7d78;">₹' + Math.round(o.total) + '</span>' +
+                '<span style="font-size:11px;color:#a3002a;margin-left:6px;">not counted</span>'
+              : '<span class="order-total">₹' + Math.round(o.total) + "</span>";
 
             return (
               '<div class="card order-card">' +
@@ -1842,8 +1831,10 @@
                 '<div class="order-items">' + escapeHtml(itemsText) + "</div>" +
                 '<div class="order-foot">' +
                   '<span class="badge gold">COD</span>' +
-                  '<span class="order-total">₹' + Math.round(o.total) + "</span>" +
-                  '<select class="status-select ' + statusClass + '" onchange="updateOrderStatus(' + o.id + ', this.value)">' +
+                  totalHtml +
+                  '<select class="status-select ' + statusClass + '" ' +
+                    (lockReactivate ? 'disabled title="Only the main admin can re-activate a cancelled order"' : "") +
+                    ' onchange="updateOrderStatus(' + o.id + ', this.value, this)">' +
                     statusOptions +
                   "</select>" +
                 "</div>" +
@@ -1853,7 +1844,19 @@
           .join("");
       }
 
-      async function updateOrderStatus(id, status) {
+      async function updateOrderStatus(id, status, selectEl) {
+        const o = orders.find((x) => x.id === id);
+        const prevStatus = o ? o.status : null;
+
+        // Ask for confirmation before cancelling an order.
+        if (status === "Cancelled") {
+          const ok = confirm("Are you sure you want to cancel this order?\n\nIts amount will stop counting towards revenue. Only the main admin can re-activate it later.");
+          if (!ok) {
+            if (selectEl && prevStatus) selectEl.value = prevStatus; // revert the dropdown
+            return;
+          }
+        }
+
         try {
           const res = await fetch("/api/admin/orders/" + id + "/status", {
             method: "PUT",
@@ -1865,12 +1868,16 @@
           });
           const data = await res.json();
           if (data.success) {
-            const o = orders.find((x) => x.id === id);
             if (o) o.status = status;
             renderOrderStats();
+            renderOrders();
+          } else {
+            alert(data.message || "Could not update this order.");
+            if (selectEl && prevStatus) selectEl.value = prevStatus;
           }
         } catch (err) {
           alert("Network error. Try again.");
+          if (selectEl && prevStatus) selectEl.value = prevStatus;
         }
       }
 
