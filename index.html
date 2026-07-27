@@ -1643,7 +1643,6 @@
         </svg>
         YouTube
       </a> |
-      <a href="javascript:void(0)" onclick="openSellerApplyModal()">Become a Seller</a> |
       <a href="javascript:void(0)" onclick="openSellerLoginModal()">Seller Login</a>
       <p style="margin-top:10px;">© 2026 Design Makers. All rights reserved.</p>
     </footer>
@@ -1799,8 +1798,6 @@
             </div>
 
             <div class="auth-seller-links">
-              <a href="javascript:void(0)" onclick="closeAccountModal();openSellerApplyModal();">Become a seller</a>
-              &nbsp;·&nbsp;
               <a href="javascript:void(0)" onclick="closeAccountModal();openSellerLoginModal();">Seller login</a>
             </div>
           </div>
@@ -2078,10 +2075,15 @@
         // separate application + login, not tied to this account — so we just point to it.
         const statusBox = document.getElementById("sellerStatusBox");
         const actionBtn = document.getElementById("sellerActionBtn");
-        statusBox.innerHTML = getSellerToken()
+        const isSeller = !!getSellerToken();
+        statusBox.innerHTML = isSeller
           ? "<span style='color:#1c7a34;font-weight:600;'>You're logged in as a seller</span>"
           : "";
-        actionBtn.textContent = getSellerToken() ? "Open Seller Dashboard" : "Become a Seller";
+        // "Become a Seller" is intentionally hidden from customers — sellers are
+        // invited via the shareable link (see #sell handler below). This button
+        // only appears for someone already logged in as a seller.
+        actionBtn.textContent = "Open Seller Dashboard";
+        actionBtn.style.display = isSeller ? "block" : "none";
         actionBtn.disabled = false;
       }
 
@@ -3544,9 +3546,11 @@
       loadProducts();
       loadCustomerSession();
 
-      // Shareable link: https://designmakers.shop/#sell opens the seller
-      // application form directly — hand this URL out anywhere.
-      if (window.location.hash === "#sell") {
+      // Shareable link: https://designmakers.shop/#sell (or ?sell=1) opens the
+      // seller application form directly — hand this URL out to people you invite
+      // to sell. It's hidden from normal customers everywhere else.
+      const _sellParams = new URLSearchParams(window.location.search);
+      if (window.location.hash === "#sell" || _sellParams.get("sell") === "1") {
         openSellerApplyModal();
       }
 
