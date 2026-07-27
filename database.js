@@ -483,7 +483,19 @@ const defaultDatabase = {
 
   admins: [],
 
+  // Customer / seller accounts, created via "Sign in with Google".
+  // Each entry: {
+  //   id, googleId, email, name, picture,
+  //   role: "customer" | "seller",
+  //   shopTitle: "" ,                 // set when applying to sell
+  //   sellerStatus: "none" | "pending" | "approved" | "rejected",
+  //   createdAt
+  // }
   customers: [],
+
+  // Product reviews left by customers on products they've bought.
+  // Each entry: { id, productId, customerId, customerName, rating, text, createdAt }
+  reviews: [],
 
   settings: {
     storeName: "Design Makers",
@@ -569,6 +581,27 @@ function ensureShape(database) {
 
   if (!Array.isArray(database.customers)) {
     database.customers = [];
+    needsUpgrade = true;
+  }
+  // Older customer records (or ones created before Google login existed)
+  // won't have the seller/role fields yet — backfill sane defaults.
+  database.customers.forEach((c) => {
+    if (!c.role) {
+      c.role = "customer";
+      needsUpgrade = true;
+    }
+    if (!c.sellerStatus) {
+      c.sellerStatus = "none";
+      needsUpgrade = true;
+    }
+    if (typeof c.shopTitle !== "string") {
+      c.shopTitle = "";
+      needsUpgrade = true;
+    }
+  });
+
+  if (!Array.isArray(database.reviews)) {
+    database.reviews = [];
     needsUpgrade = true;
   }
 
