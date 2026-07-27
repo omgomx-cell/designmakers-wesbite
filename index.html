@@ -1720,7 +1720,8 @@
       </div>
       <div class="cart-items" id="cartItems"></div>
       <div class="cart-footer" id="cartFooter" style="display:none;">
-        <div class="checkout-fields">
+        <div id="checkoutIdentity" style="display:none;font-size:13px;color:var(--rosewood);background:var(--blush);border:1px solid var(--blush-line);border-radius:8px;padding:10px 12px;margin-bottom:12px;"></div>
+        <div class="checkout-fields" id="guestFields">
           <input type="text" id="custName" class="checkout-input" placeholder="Your name" />
           <input type="tel" id="custPhone" class="checkout-input" placeholder="10-digit phone number" maxlength="10" />
         </div>
@@ -1770,7 +1771,8 @@
 
             <!-- LOG IN FORM -->
             <div id="loginFormBox">
-              <input type="tel" id="loginMobile" class="checkout-input" placeholder="Mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
+              <input type="tel" id="loginMobile" class="checkout-input" placeholder="WhatsApp mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:6px;" />
+              <p style="font-size:0.78em;color:var(--muted);margin:0 0 10px;">📱 Use your <strong>WhatsApp number</strong> — we send order updates there.</p>
               <input type="password" id="loginPassword" class="checkout-input" placeholder="Password" style="width:100%;margin-bottom:10px;" />
               <div class="modal-error" id="loginError" style="display:none;"></div>
               <button class="add-cart-btn" onclick="submitCustomerLogin()">Log in</button>
@@ -1786,7 +1788,8 @@
             <!-- CREATE ACCOUNT FORM -->
             <div id="registerFormBox" style="display:none;">
               <input type="text" id="registerName" class="checkout-input" placeholder="Your name" style="width:100%;margin-bottom:10px;" />
-              <input type="tel" id="registerMobile" class="checkout-input" placeholder="Mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
+              <input type="tel" id="registerMobile" class="checkout-input" placeholder="WhatsApp mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:6px;" />
+              <p style="font-size:0.78em;color:var(--muted);margin:0 0 10px;">📱 Use your <strong>WhatsApp number</strong> — we send order updates there.</p>
               <input type="password" id="registerPassword" class="checkout-input" placeholder="Choose a password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
               <input type="password" id="registerPasswordConfirm" class="checkout-input" placeholder="Confirm password" style="width:100%;margin-bottom:10px;" />
               <div class="modal-error" id="registerError" style="display:none;"></div>
@@ -1919,7 +1922,7 @@
 
       function showLoginForm() {
         document.getElementById("authFormTitle").textContent = "Log in";
-        document.getElementById("authFormDesc").textContent = "Log in with your mobile number and password.";
+        document.getElementById("authFormDesc").textContent = "Log in with your WhatsApp number and password.";
         document.getElementById("loginFormBox").style.display = "block";
         document.getElementById("registerFormBox").style.display = "none";
         document.getElementById("loginError").style.display = "none";
@@ -1927,7 +1930,7 @@
 
       function showRegisterForm() {
         document.getElementById("authFormTitle").textContent = "Create an account";
-        document.getElementById("authFormDesc").textContent = "Sign up with your mobile number to order or review products.";
+        document.getElementById("authFormDesc").textContent = "Sign up with your WhatsApp number to order or review products.";
         document.getElementById("loginFormBox").style.display = "none";
         document.getElementById("registerFormBox").style.display = "block";
         document.getElementById("registerError").style.display = "none";
@@ -3370,6 +3373,7 @@
         }
 
         footer.style.display = "block";
+        updateCheckoutIdentity();
 
         container.innerHTML = cart
           .map((item, idx) => {
@@ -3453,14 +3457,37 @@
       }
 
       // ---------- CHECKOUT: create the order server-side, then hand off to WhatsApp ----------
+      // When signed in, checkout uses the account's name + mobile automatically —
+      // no need to re-type them. Guests still see the name/phone fields.
+      function updateCheckoutIdentity() {
+        const guestFields = document.getElementById("guestFields");
+        const identity = document.getElementById("checkoutIdentity");
+        if (!guestFields || !identity) return;
+        if (currentCustomer) {
+          guestFields.style.display = "none";
+          identity.style.display = "block";
+          identity.textContent = "Ordering as " + (currentCustomer.name || "") + " · " + (currentCustomer.mobile || "");
+          document.getElementById("custName").value = currentCustomer.name || "";
+          document.getElementById("custPhone").value = currentCustomer.mobile || "";
+        } else {
+          guestFields.style.display = "";
+          identity.style.display = "none";
+        }
+      }
+
       async function placeOrder() {
         if (!cart.length) return;
 
         const errorEl = document.getElementById("checkoutError");
         errorEl.style.display = "none";
 
-        const name = document.getElementById("custName").value.trim();
-        const phone = document.getElementById("custPhone").value.replace(/\D/g, "");
+        // Logged-in customers order with their account name + mobile automatically.
+        const name = currentCustomer
+          ? String(currentCustomer.name || "").trim()
+          : document.getElementById("custName").value.trim();
+        const phone = currentCustomer
+          ? String(currentCustomer.mobile || "").replace(/\D/g, "")
+          : document.getElementById("custPhone").value.replace(/\D/g, "");
 
         if (!name) {
           errorEl.textContent = "Please enter your name.";
