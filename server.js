@@ -3,7 +3,6 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-const { OAuth2Client } = require("google-auth-library");
 const nodemailer = require("nodemailer");
 
 const { connectDB, readDatabase, writeDatabase, getNextId } = require("./database");
@@ -11,23 +10,6 @@ const { connectDB, readDatabase, writeDatabase, getNextId } = require("./databas
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", true);
-
-// ================================
-// GOOGLE SIGN-IN (customers + sellers)
-// ================================
-// Set GOOGLE_CLIENT_ID in Replit Secrets once you've created it in Google
-// Cloud Console (console.cloud.google.com > APIs & Services > Credentials).
-// Until it's set, /api/auth/google will return a clear error instead of
-// silently failing, so it's obvious what's missing.
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
-const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
-
-if (!GOOGLE_CLIENT_ID) {
-  console.warn(
-    "⚠️  GOOGLE_CLIENT_ID is not set — customer/seller Google login will not work " +
-      "until you add it in Replit Secrets. The rest of the site works fine without it.",
-  );
-}
 
 // ================================
 // EMAIL (seller applications + credentials)
@@ -358,143 +340,53 @@ app.get("/api/admin/me", requireAdmin, (req, res) => {
 });
 
 // ================================
-// CUSTOMER / SELLER LOGIN (Sign in with Google)
 // ================================
-// The frontend gets a Google ID token from Google's "Sign in with Google"
-// button and sends it here. We verify it with Google, then find-or-create
-// our own customer record and issue our own JWT — same pattern as the admin
-// login above, just backed by Google instead of a password.
-
+// CUSTOMER SIGN UP / LOGIN (mobile number + password)
 // ================================
-// PASSWORD SETUP (first-time Google sign-in only)
-// ================================
-// A brand-new Google sign-in doesn't get a full session right away — the
-// customer is asked to choose a password right there (no email/OTP step).
-// That password later lets them log in with plain email+password too (see
-// /api/customer/login below), without needing Google every time. Accounts
-// that predate this feature (passwordHash still null) go through the same
-// one-time flow the next time they sign in.
+// Customers create their own account with a mobile number + password —
+// no email, no Google, no OTP. Same JWT session pattern as everywhere
+// else on the site.
 
-app.post("/api/auth/google", async (req, res) => {
-  if (!GOOGLE_CLIENT_ID) {
-    return res.status(500).json({
-      success: false,
-      message: "Google login isn't configured on the server yet (missing GOOGLE_CLIENT_ID).",
-    });
+function normalizeMobile(raw) {
+  return String(raw || "").replace(/\D/g, "").slice(-10); // keep last 10 digits
+}
+
+function isValidMobile(mobile) {
+  return /^[6-9]\d{9}$/.test(mobile); // 10-digit Indian mobile number
+}
+
+app.post("/api/customer/register", (req, res) => {
+  const { name, mobile, password } = req.body || {};
+  const cleanName = String(name || "").trim();
+  const cleanMobile = normalizeMobile(mobile);
+
+  if (!cleanName) {
+    return res.status(400).json({ success: false, message: "Please enter your name." });
   }
-
-  const { credential } = req.body || {};
-  if (!credential) {
-    return res.status(400).json({ success: false, message: "Missing Google credential." });
-  }
-
-  let payload;
-  try {
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: GOOGLE_CLIENT_ID,
-    });
-    payload = ticket.getPayload();
-  } catch (error) {
-    return res.status(401).json({ success: false, message: "Google sign-in failed. Please try again." });
-  }
-
-  const database = readDatabase();
-  let customer = database.customers.find((c) => c.googleId === payload.sub);
-
-  if (!customer) {
-    customer = {
-      id: getNextId(database.customers),
-      googleId: payload.sub,
-      email: payload.email || "",
-      name: payload.name || payload.email || "Customer",
-      picture: payload.picture || "",
-      role: "customer",
-      shopTitle: "",
-      sellerStatus: "none",
-      passwordHash: null,
-      createdAt: new Date().toISOString(),
-    };
-    database.customers.push(customer);
-  }
-
-  // First-time (or never-completed) setup: hand back a short-lived setup
-  // token instead of a real session. No full login token is issued until
-  // /api/auth/google/set-password succeeds.
-  if (!customer.passwordHash) {
-    writeDatabase(database);
-
-    const setupToken = jwt.sign(
-      { type: "customer_setup", customerId: customer.id },
-      JWT_SECRET,
-      { expiresIn: "15m" },
-    );
-
-    return res.json({
-      success: true,
-      requiresSetup: true,
-      setupToken,
-      email: customer.email,
-      message: "Choose a password to finish setting up your account.",
-    });
-  }
-
-  const token = jwt.sign(
-    { type: "customer", customerId: customer.id },
-    JWT_SECRET,
-    { expiresIn: "30d" },
-  );
-
-  res.json({
-    success: true,
-    token,
-    customer: {
-      id: customer.id,
-      name: customer.name,
-      email: customer.email,
-      mobile: customer.mobile,
-      picture: customer.picture,
-      role: customer.role,
-      shopTitle: customer.shopTitle,
-      sellerStatus: customer.sellerStatus,
-    },
-  });
-});
-
-// Sets the customer's password directly (no OTP/email verification step),
-// completing account setup and issuing their first real session token.
-app.post("/api/auth/google/set-password", (req, res) => {
-  const { setupToken, mobile, password } = req.body || {};
-  if (!setupToken || !mobile || !password) {
-    return res.status(400).json({ success: false, message: "Mobile number and password are required." });
-  }
-  const normalizedMobile = normalizePhone(mobile);
-  if (normalizedMobile.length !== 10) {
+  if (!isValidMobile(cleanMobile)) {
     return res.status(400).json({ success: false, message: "Enter a valid 10-digit mobile number." });
   }
-  if (String(password).length < 6) {
+  if (!password || String(password).length < 6) {
     return res.status(400).json({ success: false, message: "Password should be at least 6 characters." });
   }
 
-  let payload;
-  try {
-    payload = jwt.verify(setupToken, JWT_SECRET);
-    if (payload.type !== "customer_setup") throw new Error("wrong token type");
-  } catch (error) {
-    return res.status(401).json({ success: false, message: "This setup session expired. Please sign in with Google again." });
-  }
-
   const database = readDatabase();
-  const customer = database.customers.find((c) => c.id === payload.customerId);
-  if (!customer) {
-    return res.status(404).json({ success: false, message: "Account not found." });
-  }
-  if (customer.passwordHash) {
-    return res.status(400).json({ success: false, message: "This account is already set up — please sign in normally." });
+  const exists = database.customers.find((c) => c.mobile === cleanMobile);
+  if (exists) {
+    return res.status(409).json({ success: false, message: "An account with this mobile number already exists. Please log in instead." });
   }
 
-  customer.mobile = normalizedMobile;
-  customer.passwordHash = bcrypt.hashSync(String(password), 10);
+  const customer = {
+    id: getNextId(database.customers),
+    mobile: cleanMobile,
+    name: cleanName,
+    passwordHash: bcrypt.hashSync(String(password), 10),
+    role: "customer",
+    shopTitle: "",
+    sellerStatus: "none",
+    createdAt: new Date().toISOString(),
+  };
+  database.customers.push(customer);
   writeDatabase(database);
 
   const token = jwt.sign(
@@ -509,9 +401,7 @@ app.post("/api/auth/google/set-password", (req, res) => {
     customer: {
       id: customer.id,
       name: customer.name,
-      email: customer.email,
       mobile: customer.mobile,
-      picture: customer.picture,
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
@@ -519,25 +409,18 @@ app.post("/api/auth/google/set-password", (req, res) => {
   });
 });
 
-// ================================
-// CUSTOMER LOGIN (email + password)
-// ================================
-// Available once a customer has completed the password setup above.
-// Google sign-in still works too — either one issues the same kind of
-// "customer" session token.
 app.post("/api/customer/login", (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) {
-    return res.status(400).json({ success: false, message: "Email and password are required." });
+  const { mobile, password } = req.body || {};
+  const cleanMobile = normalizeMobile(mobile);
+  if (!cleanMobile || !password) {
+    return res.status(400).json({ success: false, message: "Mobile number and password are required." });
   }
 
   const database = readDatabase();
-  const customer = database.customers.find(
-    (c) => (c.email || "").toLowerCase() === String(email).trim().toLowerCase(),
-  );
+  const customer = database.customers.find((c) => c.mobile === cleanMobile);
 
   if (!customer || !customer.passwordHash || !bcrypt.compareSync(password, customer.passwordHash)) {
-    return res.status(401).json({ success: false, message: "Invalid email or password." });
+    return res.status(401).json({ success: false, message: "Invalid mobile number or password." });
   }
 
   const token = jwt.sign(
@@ -552,9 +435,7 @@ app.post("/api/customer/login", (req, res) => {
     customer: {
       id: customer.id,
       name: customer.name,
-      email: customer.email,
       mobile: customer.mobile,
-      picture: customer.picture,
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
@@ -569,9 +450,7 @@ app.get("/api/customer/me", requireCustomer, (req, res) => {
     customer: {
       id: c.id,
       name: c.name,
-      email: c.email,
       mobile: c.mobile,
-      picture: c.picture,
       role: c.role,
       shopTitle: c.shopTitle,
       sellerStatus: c.sellerStatus,
@@ -781,26 +660,47 @@ function requireSeller(req, res, next) {
 }
 
 // ================================
-// ADMIN: CUSTOMER DIRECTORY
+// ADMIN: CUSTOMERS (mobile + password accounts)
 // ================================
-// Read-only list of registered customer accounts (name/email/mobile), so
-// the boss/admins can see who has signed up without digging into orders.
+// Read-only list for the admin panel, plus a "reset password" action.
+// We never expose passwordHash — resetting generates a brand-new plaintext
+// password, saves its hash, and returns the plaintext ONCE so the admin can
+// pass it on to the customer.
 
 app.get("/api/admin/customers", requireAdmin, (req, res) => {
   const database = readDatabase();
   const customers = (database.customers || [])
-    .filter((c) => c.passwordHash) // only accounts that finished setup
+    .slice()
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
     .map((c) => ({
       id: c.id,
       name: c.name,
-      email: c.email,
-      mobile: c.mobile || "",
+      mobile: c.mobile,
       role: c.role,
+      shopTitle: c.shopTitle,
       sellerStatus: c.sellerStatus,
       createdAt: c.createdAt,
     }));
-
   res.json({ success: true, customers });
+});
+
+app.post("/api/admin/customers/:id/reset-password", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === Number(req.params.id));
+  if (!customer) {
+    return res.status(404).json({ success: false, message: "Customer not found." });
+  }
+
+  const newPassword = generateSellerPassword();
+  customer.passwordHash = bcrypt.hashSync(newPassword, 10);
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    newPassword,
+    mobile: customer.mobile,
+    message: "New password generated. Share it with the customer now — it won't be shown again.",
+  });
 });
 
 // ================================
@@ -2040,6 +1940,12 @@ app.put("/api/admin/orders/:id/status", requireAdmin, (req, res) => {
   const order = database.orders.find((o) => o.id === id);
   if (!order) {
     return res.status(404).json({ success: false, message: "Order not found." });
+  }
+
+  // Re-activating a cancelled order (moving it out of "Cancelled") is
+  // restricted to the main admin (boss) account.
+  if (order.status === "Cancelled" && status !== "Cancelled" && req.admin.role !== "boss") {
+    return res.status(403).json({ success: false, message: "Only the main admin can re-activate a cancelled order." });
   }
 
   order.status = status;
