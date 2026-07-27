@@ -497,6 +497,32 @@ const defaultDatabase = {
   // Each entry: { id, productId, customerId, customerName, rating, text, createdAt }
   reviews: [],
 
+  // Public "Apply to Sell" submissions — anyone can submit without an
+  // account. Admin approves/rejects from the Sellers tab.
+  // Each entry: {
+  //   id, name, email, phone, shopTitle,
+  //   aadhaarLast4,            // ONLY last 4 digits are stored — never the full number
+  //   aadhaarPhoto,            // base64 photo of the card, for manual verification
+  //   status: "pending" | "approved" | "rejected",
+  //   createdAt
+  // }
+  sellerApplications: [],
+
+  // Approved sellers — log in with a generated Seller ID + password
+  // (emailed to them on approval), NOT Google sign-in.
+  // Each entry: {
+  //   id, sellerId, passwordHash, name, email, phone, shopTitle,
+  //   applicationId, createdAt
+  // }
+  sellers: [],
+
+  // Forgot-password requests raised by sellers from the login screen.
+  // Each entry: {
+  //   id, sellerRecordId, sellerId (code), name, shopTitle, email,
+  //   status: "pending" | "resolved", createdAt, resolvedAt
+  // }
+  sellerPasswordResetRequests: [],
+
   settings: {
     storeName: "Design Makers",
     tagline: "Gifts Made Personal",
@@ -602,6 +628,21 @@ function ensureShape(database) {
 
   if (!Array.isArray(database.reviews)) {
     database.reviews = [];
+    needsUpgrade = true;
+  }
+
+  if (!Array.isArray(database.sellerApplications)) {
+    database.sellerApplications = [];
+    needsUpgrade = true;
+  }
+
+  if (!Array.isArray(database.sellers)) {
+    database.sellers = [];
+    needsUpgrade = true;
+  }
+
+  if (!Array.isArray(database.sellerPasswordResetRequests)) {
+    database.sellerPasswordResetRequests = [];
     needsUpgrade = true;
   }
 
