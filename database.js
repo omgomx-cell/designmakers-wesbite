@@ -531,9 +531,33 @@ async function connectDB() {
     cachedData = existing;
     console.log("Design Makers database loaded from MongoDB.");
   } else {
+    // SAFETY NET: previously, a missing document here silently triggered
+    // creating a brand-new database from `defaultDatabase` (the hardcoded
+    // sample products). That's exactly what happens if MONGODB_URI ever
+    // points somewhere new/wrong (bad env var, wrong cluster) after the
+    // site has been live for a while — the app would quietly "reset" to
+    // only the code's sample data, making it look like every admin-added
+    // product vanished, even though the real data was untouched and just
+    // sitting in the old database, now orphaned.
+    //
+    // Now this fails loudly instead of failing silently: unless someone
+    // explicitly confirms this is a brand-new site (ALLOW_NEW_DATABASE=true),
+    // the server refuses to start and logs exactly why. A misconfigured
+    // MONGODB_URI now means visible downtime you'll notice immediately,
+    // instead of invisible data loss you might not notice for days.
+    if (process.env.ALLOW_NEW_DATABASE !== "true") {
+      throw new Error(
+        `No existing database document found (_id="${DOC_ID}" in ${DB_NAME}.${COLLECTION_NAME}). ` +
+          `If this is genuinely a brand-new site, set ALLOW_NEW_DATABASE=true in your environment once ` +
+          `and redeploy to initialize it. If this site was already live, DO NOT set that — your MONGODB_URI ` +
+          `is most likely pointing at the wrong cluster/database right now. Check it in your hosting ` +
+          `environment variables and fix it before restarting; your real data is very likely still intact ` +
+          `in the correct database, just not the one this URI currently points to.`,
+      );
+    }
     cachedData = JSON.parse(JSON.stringify(defaultDatabase));
     await mongoCollection.insertOne({ _id: DOC_ID, ...cachedData });
-    console.log("Design Makers database created in MongoDB (first run).");
+    console.log("Design Makers database created in MongoDB (first run, ALLOW_NEW_DATABASE=true).");
   }
 
   ensureShape(cachedData);
