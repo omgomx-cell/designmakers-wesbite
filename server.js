@@ -669,19 +669,80 @@ function requireSeller(req, res, next) {
 
 app.get("/api/admin/customers", requireAdmin, (req, res) => {
   const database = readDatabase();
+  const orders = database.orders || [];
   const customers = (database.customers || [])
     .slice()
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      mobile: c.mobile,
-      role: c.role,
-      shopTitle: c.shopTitle,
-      sellerStatus: c.sellerStatus,
-      createdAt: c.createdAt,
-    }));
+    .map((c) => {
+      const theirOrders = orders.filter(
+        (o) => (c.mobile && o.customer && o.customer.phone === c.mobile) || o.customerId === c.id,
+      );
+      return {
+        id: c.id,
+        name: c.name,
+        mobile: c.mobile || null,
+        role: c.role,
+        shopTitle: c.shopTitle,
+        sellerStatus: c.sellerStatus,
+        createdAt: c.createdAt,
+        orderCount: theirOrders.length,
+        // Older test/Google-era rows have no mobile — flag them so they can be cleaned up.
+        legacy: !c.mobile,
+      };
+    });
   res.json({ success: true, customers });
+});
+
+// Full details for one customer, including their order history.
+app.get("/api/admin/customers/:id", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const customer = (database.customers || []).find((c) => c.id === Number(req.params.id));
+  if (!customer) {
+    return res.status(404).json({ success: false, message: "Customer not found." });
+  }
+  const theirOrders = (database.orders || [])
+    .filter((o) => (customer.mobile && o.customer && o.customer.phone === customer.mobile) || o.customerId === customer.id)
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .map((o) => ({
+      orderNumber: o.orderNumber,
+      createdAt: o.createdAt,
+      status: o.status,
+      total: o.total,
+      items: (o.items || []).map((it) => ({ name: it.name, size: it.size || "", qty: it.qty })),
+    }));
+
+  // Amount spent excludes cancelled orders.
+  const totalSpent = theirOrders
+    .filter((o) => o.status !== "Cancelled")
+    .reduce((sum, o) => sum + (o.total || 0), 0);
+
+  res.json({
+    success: true,
+    customer: {
+      id: customer.id,
+      name: customer.name,
+      mobile: customer.mobile || null,
+      role: customer.role,
+      shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus,
+      createdAt: customer.createdAt,
+      legacy: !customer.mobile,
+      orders: theirOrders,
+      totalSpent,
+    },
+  });
+});
+
+// Permanently delete a customer account.
+app.delete("/api/admin/customers/:id", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const idx = (database.customers || []).findIndex((c) => c.id === Number(req.params.id));
+  if (idx === -1) {
+    return res.status(404).json({ success: false, message: "Customer not found." });
+  }
+  const [removed] = database.customers.splice(idx, 1);
+  writeDatabase(database);
+  res.json({ success: true, message: "Customer account deleted.", name: removed.name });
 });
 
 app.post("/api/admin/customers/:id/reset-password", requireAdmin, (req, res) => {
