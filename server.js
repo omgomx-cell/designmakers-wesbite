@@ -366,37 +366,14 @@ app.get("/api/admin/me", requireAdmin, (req, res) => {
 // login above, just backed by Google instead of a password.
 
 // ================================
-// EMAIL OTP + PASSWORD SETUP (first-time Google sign-in only)
+// PASSWORD SETUP (first-time Google sign-in only)
 // ================================
-// A brand-new Google sign-in doesn't get a full session right away — we
-// first email a 6-digit OTP and ask the customer to confirm it and choose a
-// password. That password later lets them log in with plain email+password
-// too (see /api/customer/login below), without needing Google every time.
-// Accounts that predate this feature (passwordHash still null) go through
-// the same one-time flow the next time they sign in.
-
-function generateOtp() {
-  return String(Math.floor(100000 + Math.random() * 900000)); // 6 digits, never starts with 0
-}
-
-const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
-const MAX_OTP_ATTEMPTS = 5;
-
-async function sendOtpEmail(customer) {
-  const otp = generateOtp();
-  customer.otpHash = bcrypt.hashSync(otp, 10);
-  customer.otpExpiresAt = Date.now() + OTP_TTL_MS;
-  customer.otpAttempts = 0;
-
-  await sendMail(
-    customer.email,
-    "Your Design Makers verification code",
-    `<p>Hi ${customer.name},</p>
-     <p>Your verification code is:</p>
-     <p style="font-size:28px;font-weight:700;letter-spacing:4px;">${otp}</p>
-     <p>This code expires in 10 minutes. Enter it on the site to finish setting up your account and choose a password.</p>`,
-  );
-}
+// A brand-new Google sign-in doesn't get a full session right away — the
+// customer is asked to choose a password right there (no email/OTP step).
+// That password later lets them log in with plain email+password too (see
+// /api/customer/login below), without needing Google every time. Accounts
+// that predate this feature (passwordHash still null) go through the same
+// one-time flow the next time they sign in.
 
 app.post("/api/auth/google", async (req, res) => {
   if (!GOOGLE_CLIENT_ID) {
@@ -441,11 +418,10 @@ app.post("/api/auth/google", async (req, res) => {
     database.customers.push(customer);
   }
 
-  // First-time (or never-completed) setup: email an OTP and hand back a
-  // short-lived setup token instead of a real session. No full login token
-  // is issued until /api/auth/google/verify-otp succeeds.
+  // First-time (or never-completed) setup: hand back a short-lived setup
+  // token instead of a real session. No full login token is issued until
+  // /api/auth/google/set-password succeeds.
   if (!customer.passwordHash) {
-    await sendOtpEmail(customer);
     writeDatabase(database);
 
     const setupToken = jwt.sign(
@@ -459,7 +435,7 @@ app.post("/api/auth/google", async (req, res) => {
       requiresSetup: true,
       setupToken,
       email: customer.email,
-      message: "We emailed you a verification code — enter it below and choose a password to finish setting up your account.",
+      message: "Choose a password to finish setting up your account.",
     });
   }
 
@@ -476,6 +452,7 @@ app.post("/api/auth/google", async (req, res) => {
       id: customer.id,
       name: customer.name,
       email: customer.email,
+      mobile: customer.mobile,
       picture: customer.picture,
       role: customer.role,
       shopTitle: customer.shopTitle,
@@ -484,43 +461,16 @@ app.post("/api/auth/google", async (req, res) => {
   });
 });
 
-// Re-sends a fresh OTP using the setup token from the response above —
-// used when the first email is missed, delayed, or the code expires.
-app.post("/api/auth/google/resend-otp", async (req, res) => {
-  const { setupToken } = req.body || {};
-  if (!setupToken) {
-    return res.status(400).json({ success: false, message: "Missing verification session." });
+// Sets the customer's password directly (no OTP/email verification step),
+// completing account setup and issuing their first real session token.
+app.post("/api/auth/google/set-password", (req, res) => {
+  const { setupToken, mobile, password } = req.body || {};
+  if (!setupToken || !mobile || !password) {
+    return res.status(400).json({ success: false, message: "Mobile number and password are required." });
   }
-
-  let payload;
-  try {
-    payload = jwt.verify(setupToken, JWT_SECRET);
-    if (payload.type !== "customer_setup") throw new Error("wrong token type");
-  } catch (error) {
-    return res.status(401).json({ success: false, message: "This verification session expired. Please sign in with Google again." });
-  }
-
-  const database = readDatabase();
-  const customer = database.customers.find((c) => c.id === payload.customerId);
-  if (!customer) {
-    return res.status(404).json({ success: false, message: "Account not found." });
-  }
-  if (customer.passwordHash) {
-    return res.status(400).json({ success: false, message: "This account is already set up — please sign in normally." });
-  }
-
-  await sendOtpEmail(customer);
-  writeDatabase(database);
-
-  res.json({ success: true, message: "We sent a new verification code." });
-});
-
-// Confirms the OTP and sets the customer's password, completing account
-// setup and issuing their first real session token.
-app.post("/api/auth/google/verify-otp", (req, res) => {
-  const { setupToken, otp, password } = req.body || {};
-  if (!setupToken || !otp || !password) {
-    return res.status(400).json({ success: false, message: "Verification code and password are required." });
+  const normalizedMobile = normalizePhone(mobile);
+  if (normalizedMobile.length !== 10) {
+    return res.status(400).json({ success: false, message: "Enter a valid 10-digit mobile number." });
   }
   if (String(password).length < 6) {
     return res.status(400).json({ success: false, message: "Password should be at least 6 characters." });
@@ -531,7 +481,7 @@ app.post("/api/auth/google/verify-otp", (req, res) => {
     payload = jwt.verify(setupToken, JWT_SECRET);
     if (payload.type !== "customer_setup") throw new Error("wrong token type");
   } catch (error) {
-    return res.status(401).json({ success: false, message: "This verification session expired. Please sign in with Google again." });
+    return res.status(401).json({ success: false, message: "This setup session expired. Please sign in with Google again." });
   }
 
   const database = readDatabase();
@@ -543,30 +493,8 @@ app.post("/api/auth/google/verify-otp", (req, res) => {
     return res.status(400).json({ success: false, message: "This account is already set up — please sign in normally." });
   }
 
-  if (!customer.otpHash || !customer.otpExpiresAt) {
-    return res.status(400).json({ success: false, message: "No verification code on file. Please sign in with Google again." });
-  }
-  if (Date.now() > customer.otpExpiresAt) {
-    return res.status(400).json({ success: false, message: "That code expired. Please request a new one." });
-  }
-
-  if (!bcrypt.compareSync(String(otp).trim(), customer.otpHash)) {
-    customer.otpAttempts = (customer.otpAttempts || 0) + 1;
-    if (customer.otpAttempts >= MAX_OTP_ATTEMPTS) {
-      delete customer.otpHash;
-      delete customer.otpExpiresAt;
-      customer.otpAttempts = 0;
-      writeDatabase(database);
-      return res.status(429).json({ success: false, message: "Too many incorrect attempts. Please request a new code." });
-    }
-    writeDatabase(database);
-    return res.status(400).json({ success: false, message: "Incorrect code. Please try again." });
-  }
-
+  customer.mobile = normalizedMobile;
   customer.passwordHash = bcrypt.hashSync(String(password), 10);
-  delete customer.otpHash;
-  delete customer.otpExpiresAt;
-  delete customer.otpAttempts;
   writeDatabase(database);
 
   const token = jwt.sign(
@@ -582,6 +510,7 @@ app.post("/api/auth/google/verify-otp", (req, res) => {
       id: customer.id,
       name: customer.name,
       email: customer.email,
+      mobile: customer.mobile,
       picture: customer.picture,
       role: customer.role,
       shopTitle: customer.shopTitle,
@@ -593,9 +522,9 @@ app.post("/api/auth/google/verify-otp", (req, res) => {
 // ================================
 // CUSTOMER LOGIN (email + password)
 // ================================
-// Available once a customer has completed the OTP setup above and chosen a
-// password. Google sign-in still works too — either one issues the same
-// kind of "customer" session token.
+// Available once a customer has completed the password setup above.
+// Google sign-in still works too — either one issues the same kind of
+// "customer" session token.
 app.post("/api/customer/login", (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) {
@@ -624,6 +553,7 @@ app.post("/api/customer/login", (req, res) => {
       id: customer.id,
       name: customer.name,
       email: customer.email,
+      mobile: customer.mobile,
       picture: customer.picture,
       role: customer.role,
       shopTitle: customer.shopTitle,
@@ -640,6 +570,7 @@ app.get("/api/customer/me", requireCustomer, (req, res) => {
       id: c.id,
       name: c.name,
       email: c.email,
+      mobile: c.mobile,
       picture: c.picture,
       role: c.role,
       shopTitle: c.shopTitle,
@@ -848,6 +779,29 @@ function requireSeller(req, res, next) {
     return res.status(401).json({ success: false, message: "Session expired. Please log in again." });
   }
 }
+
+// ================================
+// ADMIN: CUSTOMER DIRECTORY
+// ================================
+// Read-only list of registered customer accounts (name/email/mobile), so
+// the boss/admins can see who has signed up without digging into orders.
+
+app.get("/api/admin/customers", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const customers = (database.customers || [])
+    .filter((c) => c.passwordHash) // only accounts that finished setup
+    .map((c) => ({
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      mobile: c.mobile || "",
+      role: c.role,
+      sellerStatus: c.sellerStatus,
+      createdAt: c.createdAt,
+    }));
+
+  res.json({ success: true, customers });
+});
 
 // ================================
 // ADMIN: REVIEW SELLER APPLICATIONS
