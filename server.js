@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
+const nodemailer = require("nodemailer");
 
 const { connectDB, readDatabase, writeDatabase, getNextId } = require("./database");
 
@@ -26,6 +27,59 @@ if (!GOOGLE_CLIENT_ID) {
     "⚠️  GOOGLE_CLIENT_ID is not set — customer/seller Google login will not work " +
       "until you add it in Replit Secrets. The rest of the site works fine without it.",
   );
+}
+
+// ================================
+// EMAIL (seller applications + credentials)
+// ================================
+// Sends mail through Gmail using an App Password (not your normal Gmail
+// password — generate one at myaccount.google.com > Security >
+// 2-Step Verification > App passwords). Set GMAIL_USER and
+// GMAIL_APP_PASSWORD in Render's Environment tab. ADMIN_NOTIFY_EMAIL is
+// where new-application alerts go — defaults to GMAIL_USER if not set.
+const GMAIL_USER = process.env.GMAIL_USER || "";
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "";
+const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || GMAIL_USER;
+
+let mailTransporter = null;
+if (GMAIL_USER && GMAIL_APP_PASSWORD) {
+  mailTransporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+  });
+} else {
+  console.warn(
+    "⚠️  GMAIL_USER / GMAIL_APP_PASSWORD not set — seller application emails " +
+      "will be skipped (the site still works, applications still save to the database).",
+  );
+}
+
+// Never throws — email is a nice-to-have, not something that should ever
+// break an approval or an application just because a message failed to send.
+async function sendMail(to, subject, html) {
+  if (!mailTransporter || !to) {
+    console.warn(`(email skipped — not configured) To: ${to} | Subject: ${subject}`);
+    return;
+  }
+  try {
+    await mailTransporter.sendMail({
+      from: `"Design Makers" <${GMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
+  } catch (error) {
+    console.error("Failed to send email:", error.message);
+  }
+}
+
+// Generates a seller ID like SLR-1042 and a random 10-character password.
+function generateSellerId(nextNumericId) {
+  return `SLR-${1000 + nextNumericId}`;
+}
+
+function generateSellerPassword() {
+  return crypto.randomBytes(6).toString("base64url"); // 8 chars, URL-safe
 }
 
 function getClientIp(req) {
@@ -190,18 +244,6 @@ function requireCustomer(req, res, next) {
   }
 }
 
-// Must be used after requireCustomer. Only lets through customers whose
-// seller application has actually been approved by the admin.
-function requireApprovedSeller(req, res, next) {
-  if (!req.customer || req.customer.sellerStatus !== "approved") {
-    return res.status(403).json({
-      success: false,
-      message: "You need to be an approved seller to do this.",
-    });
-  }
-  next();
-}
-
 // ================================
 // ADMIN LOGIN
 // ================================
@@ -323,6 +365,39 @@ app.get("/api/admin/me", requireAdmin, (req, res) => {
 // our own customer record and issue our own JWT — same pattern as the admin
 // login above, just backed by Google instead of a password.
 
+// ================================
+// EMAIL OTP + PASSWORD SETUP (first-time Google sign-in only)
+// ================================
+// A brand-new Google sign-in doesn't get a full session right away — we
+// first email a 6-digit OTP and ask the customer to confirm it and choose a
+// password. That password later lets them log in with plain email+password
+// too (see /api/customer/login below), without needing Google every time.
+// Accounts that predate this feature (passwordHash still null) go through
+// the same one-time flow the next time they sign in.
+
+function generateOtp() {
+  return String(Math.floor(100000 + Math.random() * 900000)); // 6 digits, never starts with 0
+}
+
+const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const MAX_OTP_ATTEMPTS = 5;
+
+async function sendOtpEmail(customer) {
+  const otp = generateOtp();
+  customer.otpHash = bcrypt.hashSync(otp, 10);
+  customer.otpExpiresAt = Date.now() + OTP_TTL_MS;
+  customer.otpAttempts = 0;
+
+  await sendMail(
+    customer.email,
+    "Your Design Makers verification code",
+    `<p>Hi ${customer.name},</p>
+     <p>Your verification code is:</p>
+     <p style="font-size:28px;font-weight:700;letter-spacing:4px;">${otp}</p>
+     <p>This code expires in 10 minutes. Enter it on the site to finish setting up your account and choose a password.</p>`,
+  );
+}
+
 app.post("/api/auth/google", async (req, res) => {
   if (!GOOGLE_CLIENT_ID) {
     return res.status(500).json({
@@ -360,10 +435,180 @@ app.post("/api/auth/google", async (req, res) => {
       role: "customer",
       shopTitle: "",
       sellerStatus: "none",
+      passwordHash: null,
       createdAt: new Date().toISOString(),
     };
     database.customers.push(customer);
+  }
+
+  // First-time (or never-completed) setup: email an OTP and hand back a
+  // short-lived setup token instead of a real session. No full login token
+  // is issued until /api/auth/google/verify-otp succeeds.
+  if (!customer.passwordHash) {
+    await sendOtpEmail(customer);
     writeDatabase(database);
+
+    const setupToken = jwt.sign(
+      { type: "customer_setup", customerId: customer.id },
+      JWT_SECRET,
+      { expiresIn: "15m" },
+    );
+
+    return res.json({
+      success: true,
+      requiresSetup: true,
+      setupToken,
+      email: customer.email,
+      message: "We emailed you a verification code — enter it below and choose a password to finish setting up your account.",
+    });
+  }
+
+  const token = jwt.sign(
+    { type: "customer", customerId: customer.id },
+    JWT_SECRET,
+    { expiresIn: "30d" },
+  );
+
+  res.json({
+    success: true,
+    token,
+    customer: {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      picture: customer.picture,
+      role: customer.role,
+      shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus,
+    },
+  });
+});
+
+// Re-sends a fresh OTP using the setup token from the response above —
+// used when the first email is missed, delayed, or the code expires.
+app.post("/api/auth/google/resend-otp", async (req, res) => {
+  const { setupToken } = req.body || {};
+  if (!setupToken) {
+    return res.status(400).json({ success: false, message: "Missing verification session." });
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(setupToken, JWT_SECRET);
+    if (payload.type !== "customer_setup") throw new Error("wrong token type");
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "This verification session expired. Please sign in with Google again." });
+  }
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === payload.customerId);
+  if (!customer) {
+    return res.status(404).json({ success: false, message: "Account not found." });
+  }
+  if (customer.passwordHash) {
+    return res.status(400).json({ success: false, message: "This account is already set up — please sign in normally." });
+  }
+
+  await sendOtpEmail(customer);
+  writeDatabase(database);
+
+  res.json({ success: true, message: "We sent a new verification code." });
+});
+
+// Confirms the OTP and sets the customer's password, completing account
+// setup and issuing their first real session token.
+app.post("/api/auth/google/verify-otp", (req, res) => {
+  const { setupToken, otp, password } = req.body || {};
+  if (!setupToken || !otp || !password) {
+    return res.status(400).json({ success: false, message: "Verification code and password are required." });
+  }
+  if (String(password).length < 6) {
+    return res.status(400).json({ success: false, message: "Password should be at least 6 characters." });
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(setupToken, JWT_SECRET);
+    if (payload.type !== "customer_setup") throw new Error("wrong token type");
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "This verification session expired. Please sign in with Google again." });
+  }
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === payload.customerId);
+  if (!customer) {
+    return res.status(404).json({ success: false, message: "Account not found." });
+  }
+  if (customer.passwordHash) {
+    return res.status(400).json({ success: false, message: "This account is already set up — please sign in normally." });
+  }
+
+  if (!customer.otpHash || !customer.otpExpiresAt) {
+    return res.status(400).json({ success: false, message: "No verification code on file. Please sign in with Google again." });
+  }
+  if (Date.now() > customer.otpExpiresAt) {
+    return res.status(400).json({ success: false, message: "That code expired. Please request a new one." });
+  }
+
+  if (!bcrypt.compareSync(String(otp).trim(), customer.otpHash)) {
+    customer.otpAttempts = (customer.otpAttempts || 0) + 1;
+    if (customer.otpAttempts >= MAX_OTP_ATTEMPTS) {
+      delete customer.otpHash;
+      delete customer.otpExpiresAt;
+      customer.otpAttempts = 0;
+      writeDatabase(database);
+      return res.status(429).json({ success: false, message: "Too many incorrect attempts. Please request a new code." });
+    }
+    writeDatabase(database);
+    return res.status(400).json({ success: false, message: "Incorrect code. Please try again." });
+  }
+
+  customer.passwordHash = bcrypt.hashSync(String(password), 10);
+  delete customer.otpHash;
+  delete customer.otpExpiresAt;
+  delete customer.otpAttempts;
+  writeDatabase(database);
+
+  const token = jwt.sign(
+    { type: "customer", customerId: customer.id },
+    JWT_SECRET,
+    { expiresIn: "30d" },
+  );
+
+  res.json({
+    success: true,
+    token,
+    customer: {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      picture: customer.picture,
+      role: customer.role,
+      shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus,
+    },
+  });
+});
+
+// ================================
+// CUSTOMER LOGIN (email + password)
+// ================================
+// Available once a customer has completed the OTP setup above and chosen a
+// password. Google sign-in still works too — either one issues the same
+// kind of "customer" session token.
+app.post("/api/customer/login", (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: "Email and password are required." });
+  }
+
+  const database = readDatabase();
+  const customer = database.customers.find(
+    (c) => (c.email || "").toLowerCase() === String(email).trim().toLowerCase(),
+  );
+
+  if (!customer || !customer.passwordHash || !bcrypt.compareSync(password, customer.passwordHash)) {
+    return res.status(401).json({ success: false, message: "Invalid email or password." });
   }
 
   const token = jwt.sign(
@@ -403,29 +648,206 @@ app.get("/api/customer/me", requireCustomer, (req, res) => {
   });
 });
 
-// A logged-in customer applies to become a seller. Goes into "pending"
-// until the boss/admin approves it from the admin panel.
-app.post("/api/customer/apply-seller", requireCustomer, (req, res) => {
-  const shopTitle = String((req.body || {}).shopTitle || "").trim();
-  if (!shopTitle) {
-    return res.status(400).json({ success: false, message: "Shop title is required." });
-  }
-  if (req.customer.sellerStatus === "approved") {
-    return res.status(400).json({ success: false, message: "You're already an approved seller." });
-  }
-  if (req.customer.sellerStatus === "pending") {
-    return res.status(400).json({ success: false, message: "Your seller application is already pending review." });
+// ================================
+// SELLER APPLICATIONS (public — no account needed)
+// ================================
+// Anyone can apply from the /sell page (or the "Become a Seller" link in a
+// customer's account). No login required to submit. Only the LAST 4 DIGITS
+// of the Aadhaar number are ever stored — never the full number — along
+// with a photo of the card for the admin to manually verify.
+
+app.post("/api/seller-applications", async (req, res) => {
+  const body = req.body || {};
+  const name = String(body.name || "").trim();
+  const email = String(body.email || "").trim();
+  const phone = String(body.phone || "").trim();
+  const shopTitle = String(body.shopTitle || "").trim();
+  const aadhaar = String(body.aadhaar || "").replace(/\D/g, "");
+  const aadhaarPhoto = String(body.aadhaarPhoto || ""); // base64 data URL
+  const personPhoto = String(body.personPhoto || ""); // base64 data URL — a photo of the applicant
+
+  if (!name || !email || !phone || !shopTitle || aadhaar.length !== 12 || !personPhoto) {
+    return res.status(400).json({
+      success: false,
+      message: "Name, email, phone, shop title, a photo of yourself, and a valid 12-digit Aadhaar number are required.",
+    });
   }
 
   const database = readDatabase();
-  const customer = database.customers.find((c) => c.id === req.customer.id);
-  customer.shopTitle = shopTitle;
-  customer.sellerStatus = "pending";
-  customer.role = "seller";
+  const application = {
+    id: getNextId(database.sellerApplications),
+    name,
+    email,
+    phone,
+    shopTitle,
+    aadhaarLast4: aadhaar.slice(-4),
+    aadhaarPhoto,
+    personPhoto,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  };
+  database.sellerApplications.push(application);
   writeDatabase(database);
 
-  res.json({ success: true, message: "Application submitted — waiting for admin approval.", sellerStatus: "pending" });
+  // Notify the admin — email + it already shows up in the admin panel
+  // via GET /api/admin/seller-applications.
+  sendMail(
+    ADMIN_NOTIFY_EMAIL,
+    "New seller application — Design Makers",
+    `<p>New seller application received:</p>
+     <ul>
+       <li><b>Name:</b> ${name}</li>
+       <li><b>Shop title:</b> ${shopTitle}</li>
+       <li><b>Email:</b> ${email}</li>
+       <li><b>Phone:</b> ${phone}</li>
+       <li><b>Aadhaar (last 4):</b> ${application.aadhaarLast4}</li>
+     </ul>
+     <p>Review and approve it from the admin panel's Sellers tab.</p>`,
+  );
+
+  res.json({ success: true, message: "Application submitted — we'll email you once it's reviewed." });
 });
+
+// ================================
+// SELLER LOGIN (ID + password, issued on approval)
+// ================================
+
+app.post("/api/seller/login", (req, res) => {
+  const { sellerId, password } = req.body || {};
+  if (!sellerId || !password) {
+    return res.status(400).json({ success: false, message: "Seller ID and password are required." });
+  }
+
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.sellerId === sellerId);
+  if (!seller || !bcrypt.compareSync(password, seller.passwordHash)) {
+    return res.status(401).json({ success: false, message: "Invalid Seller ID or password." });
+  }
+
+  const token = jwt.sign({ type: "seller", sellerId: seller.id }, JWT_SECRET, { expiresIn: "30d" });
+  res.json({
+    success: true,
+    token,
+    seller: { id: seller.id, sellerId: seller.sellerId, name: seller.name, shopTitle: seller.shopTitle },
+  });
+});
+
+// ================================
+// SELLER: FORGOT PASSWORD
+// ================================
+// No self-service reset — sellers only have an ID + password, with no
+// email/OTP flow behind it. Instead this raises a query that shows up in
+// the admin panel; the boss reviews it and clicks a button to generate a
+// fresh password and email it to the seller.
+
+app.post("/api/seller/forgot-password", async (req, res) => {
+  const sellerId = String((req.body || {}).sellerId || "").trim();
+  if (!sellerId) {
+    return res.status(400).json({ success: false, message: "Enter your Seller ID." });
+  }
+
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.sellerId === sellerId);
+  if (!seller) {
+    return res.status(404).json({ success: false, message: "We couldn't find that Seller ID." });
+  }
+
+  if (!Array.isArray(database.sellerPasswordResetRequests)) database.sellerPasswordResetRequests = [];
+
+  const alreadyPending = database.sellerPasswordResetRequests.some(
+    (r) => r.sellerRecordId === seller.id && r.status === "pending",
+  );
+
+  if (!alreadyPending) {
+    database.sellerPasswordResetRequests.push({
+      id: getNextId(database.sellerPasswordResetRequests),
+      sellerRecordId: seller.id,
+      sellerId: seller.sellerId,
+      name: seller.name,
+      shopTitle: seller.shopTitle,
+      email: seller.email,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+    });
+    writeDatabase(database);
+
+    sendMail(
+      ADMIN_NOTIFY_EMAIL,
+      "Seller password reset request — Design Makers",
+      `<p>${seller.name} (${seller.sellerId}, ${seller.shopTitle}) has requested a password reset.</p>
+       <p>Resolve it from the admin panel's Sellers tab.</p>`,
+    );
+  }
+
+  res.json({
+    success: true,
+    message: "Your request has been sent to the admin — you'll get a new password by email once it's resolved.",
+  });
+});
+
+// Boss/admin: view pending seller password-reset requests.
+app.get("/api/admin/seller-password-requests", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const requests = (database.sellerPasswordResetRequests || [])
+    .filter((r) => r.status === "pending")
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json({ success: true, requests });
+});
+
+// Boss/admin: generate a new password for the seller and email it to them,
+// then mark the request resolved.
+app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, async (req, res) => {
+  const database = readDatabase();
+  const request = (database.sellerPasswordResetRequests || []).find((r) => r.id === Number(req.params.id));
+  if (!request) {
+    return res.status(404).json({ success: false, message: "Request not found." });
+  }
+  if (request.status === "resolved") {
+    return res.status(400).json({ success: false, message: "Already resolved." });
+  }
+
+  const seller = database.sellers.find((s) => s.id === request.sellerRecordId);
+  if (!seller) {
+    return res.status(404).json({ success: false, message: "That seller account no longer exists." });
+  }
+
+  const newPassword = generateSellerPassword();
+  seller.passwordHash = bcrypt.hashSync(newPassword, 10);
+  request.status = "resolved";
+  request.resolvedAt = new Date().toISOString();
+  writeDatabase(database);
+
+  await sendMail(
+    seller.email,
+    "Your Design Makers password has been reset",
+    `<p>Hi ${seller.name},</p>
+     <p>Your password has been reset. Here's your new login for <b>${seller.shopTitle}</b>:</p>
+     <ul>
+       <li><b>Seller ID:</b> ${seller.sellerId}</li>
+       <li><b>New Password:</b> ${newPassword}</li>
+     </ul>
+     <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
+  );
+
+  res.json({ success: true, message: `New password generated and emailed to ${seller.name}.` });
+});
+
+function requireSeller(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (!token) return res.status(401).json({ success: false, message: "Not logged in." });
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    if (payload.type !== "seller") throw new Error("wrong token type");
+    const database = readDatabase();
+    const seller = database.sellers.find((s) => s.id === payload.sellerId);
+    if (!seller) return res.status(401).json({ success: false, message: "Seller account not found." });
+    req.seller = seller;
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: "Session expired. Please log in again." });
+  }
+}
 
 // ================================
 // ADMIN: REVIEW SELLER APPLICATIONS
@@ -433,29 +855,82 @@ app.post("/api/customer/apply-seller", requireCustomer, (req, res) => {
 
 app.get("/api/admin/seller-applications", requireAdmin, (req, res) => {
   const database = readDatabase();
-  const applications = database.customers
-    .filter((c) => c.sellerStatus === "pending")
-    .map((c) => ({ id: c.id, name: c.name, email: c.email, shopTitle: c.shopTitle, picture: c.picture }));
+  const applications = database.sellerApplications
+    .filter((a) => a.status === "pending")
+    .map((a) => ({
+      id: a.id,
+      name: a.name,
+      email: a.email,
+      phone: a.phone,
+      shopTitle: a.shopTitle,
+      aadhaarLast4: a.aadhaarLast4,
+      aadhaarPhoto: a.aadhaarPhoto,
+      personPhoto: a.personPhoto,
+      createdAt: a.createdAt,
+    }));
   res.json({ success: true, applications });
 });
 
-app.put("/api/admin/seller-applications/:id/approve", requireAdmin, (req, res) => {
+// Approving generates a Seller ID + random password, creates the seller
+// account, and emails the credentials — nothing further needed from you.
+app.put("/api/admin/seller-applications/:id/approve", requireAdmin, async (req, res) => {
   const database = readDatabase();
-  const customer = database.customers.find((c) => c.id === Number(req.params.id));
-  if (!customer) return res.status(404).json({ success: false, message: "Applicant not found." });
-  customer.sellerStatus = "approved";
-  customer.role = "seller";
+  const application = database.sellerApplications.find((a) => a.id === Number(req.params.id));
+  if (!application) return res.status(404).json({ success: false, message: "Application not found." });
+  if (application.status === "approved") {
+    return res.status(400).json({ success: false, message: "Already approved." });
+  }
+
+  const nextNum = getNextId(database.sellers);
+  const sellerId = generateSellerId(nextNum);
+  const plainPassword = generateSellerPassword();
+
+  const seller = {
+    id: nextNum,
+    sellerId,
+    passwordHash: bcrypt.hashSync(plainPassword, 10),
+    name: application.name,
+    email: application.email,
+    phone: application.phone,
+    shopTitle: application.shopTitle,
+    applicationId: application.id,
+    createdAt: new Date().toISOString(),
+  };
+  database.sellers.push(seller);
+  application.status = "approved";
   writeDatabase(database);
-  res.json({ success: true, message: `${customer.name} is now an approved seller.` });
+
+  await sendMail(
+    application.email,
+    "You're approved as a seller on Design Makers!",
+    `<p>Hi ${application.name},</p>
+     <p>Your seller application for <b>${application.shopTitle}</b> has been approved.</p>
+     <p>Log in to your seller dashboard with:</p>
+     <ul>
+       <li><b>Seller ID:</b> ${sellerId}</li>
+       <li><b>Password:</b> ${plainPassword}</li>
+     </ul>
+     <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
+  );
+
+  res.json({ success: true, message: `${application.name} is now an approved seller (${sellerId}).` });
 });
 
-app.put("/api/admin/seller-applications/:id/reject", requireAdmin, (req, res) => {
+app.put("/api/admin/seller-applications/:id/reject", requireAdmin, async (req, res) => {
   const database = readDatabase();
-  const customer = database.customers.find((c) => c.id === Number(req.params.id));
-  if (!customer) return res.status(404).json({ success: false, message: "Applicant not found." });
-  customer.sellerStatus = "rejected";
+  const application = database.sellerApplications.find((a) => a.id === Number(req.params.id));
+  if (!application) return res.status(404).json({ success: false, message: "Application not found." });
+  application.status = "rejected";
   writeDatabase(database);
-  res.json({ success: true, message: `${customer.name}'s application was rejected.` });
+
+  await sendMail(
+    application.email,
+    "Update on your Design Makers seller application",
+    `<p>Hi ${application.name},</p>
+     <p>Thanks for your interest in selling on Design Makers. After review, we're not able to approve your application at this time.</p>`,
+  );
+
+  res.json({ success: true, message: `${application.name}'s application was rejected.` });
 });
 
 // ================================
@@ -845,7 +1320,7 @@ app.post("/api/admin/products", requireAdmin, (req, res) => {
 // appear on the storefront once the admin approves them below. Sellers can
 // see their own products (including pending ones) via GET /api/seller/products.
 
-app.post("/api/seller/products", requireCustomer, requireApprovedSeller, (req, res) => {
+app.post("/api/seller/products", requireSeller, (req, res) => {
   const { errors, product } = validateProductInput(req.body || {});
 
   if (errors.length) {
@@ -855,7 +1330,7 @@ app.post("/api/seller/products", requireCustomer, requireApprovedSeller, (req, r
   const database = readDatabase();
   const newProduct = {
     id: getNextId(database.products),
-    sellerId: req.customer.id,
+    sellerId: req.seller.id,
     approved: false, // waits for admin approval before showing on the storefront
     ...product,
   };
@@ -869,26 +1344,30 @@ app.post("/api/seller/products", requireCustomer, requireApprovedSeller, (req, r
   });
 });
 
-app.get("/api/seller/products", requireCustomer, requireApprovedSeller, (req, res) => {
+app.get("/api/seller/products", requireSeller, (req, res) => {
   const database = readDatabase();
-  const products = database.products.filter((p) => p.sellerId === req.customer.id);
+  const products = database.products.filter((p) => p.sellerId === req.seller.id);
   res.json({ success: true, products });
 });
 
 // Orders that include at least one of this seller's products. Each order
 // keeps its normal shape, but `items` is filtered down to just this
 // seller's lines so a seller never sees another seller's line items.
-app.get("/api/seller/orders", requireCustomer, requireApprovedSeller, (req, res) => {
+app.get("/api/seller/orders", requireSeller, (req, res) => {
   const database = readDatabase();
   const myProductIds = new Set(
-    database.products.filter((p) => p.sellerId === req.customer.id).map((p) => p.id),
+    database.products.filter((p) => p.sellerId === req.seller.id).map((p) => p.id),
   );
 
   const orders = database.orders
     .map((order) => {
       const myItems = (order.items || []).filter((item) => myProductIds.has(item.productId));
       if (!myItems.length) return null;
-      return { ...order, items: myItems };
+      // A single order can contain products from more than one seller, so
+      // order.total (the whole order) is NOT this seller's revenue — only
+      // the lines that are actually theirs count.
+      const sellerTotal = Math.round(myItems.reduce((sum, item) => sum + (item.lineTotal || 0), 0) * 100) / 100;
+      return { ...order, items: myItems, sellerTotal };
     })
     .filter(Boolean)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -905,7 +1384,7 @@ app.get("/api/admin/products/pending", requireAdmin, (req, res) => {
   const pending = database.products
     .filter((p) => p.sellerId && p.approved === false)
     .map((p) => {
-      const seller = database.customers.find((c) => c.id === p.sellerId);
+      const seller = database.sellers.find((s) => s.id === p.sellerId);
       return { ...p, sellerName: seller ? seller.name : "Unknown seller", shopTitle: seller ? seller.shopTitle : "" };
     });
   res.json({ success: true, products: pending });
@@ -1570,7 +2049,26 @@ app.get("/api/admin/backup", requireAdmin, requireBoss, (req, res) => {
 
 app.get("/api/admin/orders", requireAdmin, (req, res) => {
   const database = readDatabase();
-  const orders = database.orders.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const orders = database.orders
+    .slice()
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map((order) => ({
+      ...order,
+      // Tag each line item with who it came from — a seller's shop title,
+      // or null for products listed directly by an admin — so the admin
+      // panel can show whose products are actually being ordered.
+      items: (order.items || []).map((item) => {
+        const product = database.products.find((p) => p.id === item.productId);
+        const seller = product && product.sellerId
+          ? database.sellers.find((s) => s.id === product.sellerId)
+          : null;
+        return {
+          ...item,
+          sellerId: seller ? seller.id : null,
+          sellerName: seller ? (seller.shopTitle || seller.name) : null,
+        };
+      }),
+    }));
   res.json({ success: true, orders });
 });
 
