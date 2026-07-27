@@ -1596,7 +1596,9 @@
           <path d="M13 11.5 L22 16 L13 20.5 Z" fill="#fff"/>
         </svg>
         YouTube
-      </a>
+      </a> |
+      <a href="javascript:void(0)" onclick="openSellerApplyModal()">Become a Seller</a> |
+      <a href="javascript:void(0)" onclick="openSellerLoginModal()">Seller Login</a>
       <p style="margin-top:10px;">© 2026 Design Makers. All rights reserved.</p>
     </footer>
 
@@ -1708,8 +1710,26 @@
         <div class="modal-body" style="padding-top:36px;">
           <div id="accountSignedOut" style="text-align:center;">
             <h2 class="modal-title" style="margin-bottom:6px;">Sign in</h2>
-            <p class="modal-desc" style="margin-bottom:20px;">Sign in with Google to order, review products, or sell on Design Makers.</p>
+            <p class="modal-desc" style="margin-bottom:20px;">Sign in with Google to order or review products.</p>
             <div id="googleSignInBtn" style="display:flex;justify-content:center;"></div>
+
+            <div style="display:flex;align-items:center;gap:10px;margin:18px 0;">
+              <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+              <span style="font-size:0.78em;color:#8c7d78;">or</span>
+              <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+            </div>
+
+            <input type="email" id="emailLoginEmail" class="checkout-input" placeholder="Email address" style="width:100%;margin-bottom:8px;" />
+            <input type="password" id="emailLoginPassword" class="checkout-input" placeholder="Password" style="width:100%;margin-bottom:10px;" />
+            <div class="modal-error" id="emailLoginError" style="display:none;"></div>
+            <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="submitEmailPasswordLogin()">Log in with email</button>
+            <p style="font-size:0.75em;color:#8c7d78;margin:8px 0 0;">Only works after you've signed in with Google once and set a password.</p>
+
+            <div style="text-align:center;margin-top:18px;font-size:0.85em;">
+              <a href="javascript:void(0)" onclick="closeAccountModal();openSellerApplyModal();" style="color:var(--rosewood);">Become a seller</a>
+              &nbsp;·&nbsp;
+              <a href="javascript:void(0)" onclick="closeAccountModal();openSellerLoginModal();" style="color:var(--rosewood);">Seller login</a>
+            </div>
           </div>
           <div id="accountSignedIn" style="display:none;">
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
@@ -1729,16 +1749,68 @@
       </div>
     </div>
 
-    <!-- APPLY TO SELL MODAL -->
-    <div class="overlay" id="sellerApplyOverlay" onclick="closeSellerApplyModal(event)">
+    <!-- OTP + SET PASSWORD MODAL (shown once, right after first Google sign-in) -->
+    <div class="overlay" id="otpSetupOverlay">
       <div class="modal" onclick="event.stopPropagation()" style="max-width:380px;">
+        <div class="modal-body" style="padding-top:36px;">
+          <h2 class="modal-title" style="margin-bottom:6px;">Verify your email</h2>
+          <p class="modal-desc" id="otpSetupDesc" style="margin-bottom:16px;">We emailed you a 6-digit code. Enter it below and choose a password for your account.</p>
+          <input type="text" id="otpCode" class="checkout-input" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="width:100%;margin-bottom:10px;letter-spacing:4px;text-align:center;" />
+          <input type="password" id="otpPassword" class="checkout-input" placeholder="Choose a password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
+          <input type="password" id="otpPasswordConfirm" class="checkout-input" placeholder="Confirm password" style="width:100%;margin-bottom:12px;" />
+          <div class="modal-error" id="otpSetupError"></div>
+          <button class="add-cart-btn" onclick="submitOtpSetup()">Verify & set password</button>
+          <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);margin-top:8px;" onclick="resendOtp()">Resend code</button>
+          <p style="text-align:center;margin-top:14px;">
+            <a href="javascript:void(0)" onclick="closeOtpSetupModal()" style="font-size:0.8em;color:#8c7d78;">Cancel for now</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPLY TO SELL MODAL (public — no account needed) -->
+    <div class="overlay" id="sellerApplyOverlay" onclick="closeSellerApplyModal(event)">
+      <div class="modal" onclick="event.stopPropagation()" style="max-width:420px;max-height:85vh;overflow-y:auto;">
         <button class="modal-close" onclick="closeSellerApplyModal()">✕</button>
         <div class="modal-body" style="padding-top:36px;">
           <h2 class="modal-title" style="margin-bottom:6px;">Become a seller</h2>
-          <p class="modal-desc" style="margin-bottom:16px;">Give your shop a title. An admin will review your application before you can start listing products.</p>
-          <input type="text" id="shopTitleInput" class="checkout-input" placeholder="Your shop title" style="margin-bottom:12px;width:100%;" />
+          <p class="modal-desc" style="margin-bottom:16px;">Fill this in and we'll review your application. You'll get your Seller ID and password by email once approved.</p>
+          <input type="text" id="applyName" class="checkout-input" placeholder="Full name" style="margin-bottom:10px;width:100%;" />
+          <input type="email" id="applyEmail" class="checkout-input" placeholder="Email address" style="margin-bottom:10px;width:100%;" />
+          <input type="tel" id="applyPhone" class="checkout-input" placeholder="Phone number" style="margin-bottom:10px;width:100%;" />
+          <input type="text" id="applyShopTitle" class="checkout-input" placeholder="Your shop title" style="margin-bottom:10px;width:100%;" />
+          <input type="text" id="applyAadhaar" class="checkout-input" placeholder="Aadhaar number (12 digits)" maxlength="12" style="margin-bottom:6px;width:100%;" />
+          <p style="font-size:0.78em;color:#8c7d78;margin:0 0 10px;">We only keep the last 4 digits on file — used to match against the photo below.</p>
+          <label style="font-size:0.85em;color:#4a3b36;display:block;margin-bottom:4px;">Your photo (a clear selfie or headshot)</label>
+          <input type="file" id="applyPersonPhoto" accept="image/*" style="margin-bottom:12px;" />
+          <label style="font-size:0.85em;color:#4a3b36;display:block;margin-bottom:4px;">Photo of your Aadhaar card</label>
+          <input type="file" id="applyAadhaarPhoto" accept="image/*" style="margin-bottom:12px;" />
           <div class="modal-error" id="sellerApplyError"></div>
           <button class="add-cart-btn" onclick="submitSellerApplication()">Submit application</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SELLER LOGIN MODAL (ID + password, issued by email on approval) -->
+    <div class="overlay" id="sellerLoginOverlay" onclick="closeSellerLoginModal(event)">
+      <div class="modal" onclick="event.stopPropagation()" style="max-width:380px;">
+        <button class="modal-close" onclick="closeSellerLoginModal()">✕</button>
+        <div class="modal-body" style="padding-top:36px;">
+          <h2 class="modal-title" style="margin-bottom:6px;">Seller login</h2>
+          <p class="modal-desc" style="margin-bottom:16px;">Use the Seller ID and password emailed to you after approval.</p>
+          <input type="text" id="sellerLoginId" class="checkout-input" placeholder="Seller ID (e.g. SLR-1001)" style="margin-bottom:10px;width:100%;" />
+          <input type="password" id="sellerLoginPassword" class="checkout-input" placeholder="Password" style="margin-bottom:12px;width:100%;" />
+          <div class="modal-error" id="sellerLoginError"></div>
+          <button class="add-cart-btn" onclick="submitSellerLogin()">Log in</button>
+          <p style="text-align:center;margin-top:12px;">
+            <a href="javascript:void(0)" onclick="toggleForgotSellerPassword()" style="font-size:0.8em;color:#8c7d78;">Forgot password?</a>
+          </p>
+          <div id="forgotSellerPasswordBox" style="display:none;margin-top:10px;padding-top:14px;border-top:1px solid var(--blush-line);">
+            <p class="modal-desc" style="margin-bottom:10px;font-size:0.85em;">Enter your Seller ID — we'll send a request to the admin, who will email you a new password.</p>
+            <input type="text" id="forgotSellerIdInput" class="checkout-input" placeholder="Seller ID (e.g. SLR-1001)" style="margin-bottom:10px;width:100%;" />
+            <div class="modal-error" id="forgotSellerError"></div>
+            <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="submitForgotSellerPassword()">Send request</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1748,16 +1820,21 @@
       <div class="modal" onclick="event.stopPropagation()" style="max-width:640px;max-height:85vh;overflow-y:auto;">
         <button class="modal-close" onclick="closeSellerDashModal()">✕</button>
         <div class="modal-body" style="padding-top:36px;">
-          <h2 class="modal-title" style="margin-bottom:16px;">Seller dashboard</h2>
+          <h2 class="modal-title" style="margin-bottom:4px;">Seller dashboard</h2>
+          <p id="sellerDashShopTitle" style="font-size:0.85em;color:#8c7d78;margin:0 0 16px;"></p>
 
-          <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
             <button class="add-cart-btn" style="width:auto;padding:8px 16px;" onclick="showSellerTab('products')">My Products</button>
             <button class="add-cart-btn" style="width:auto;padding:8px 16px;background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="showSellerTab('orders')">My Orders</button>
             <button class="add-cart-btn" style="width:auto;padding:8px 16px;background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="showSellerTab('addProduct')">+ Add Product</button>
+            <button class="add-cart-btn" style="width:auto;padding:8px 16px;background:transparent;color:#8c7d78;border:1px solid #ccc;margin-left:auto;" onclick="signOutSeller()">Log out</button>
           </div>
 
           <div id="sellerTabProducts"></div>
-          <div id="sellerTabOrders" style="display:none;"></div>
+          <div id="sellerTabOrders" style="display:none;">
+            <div id="sellerOrderStats" style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"></div>
+            <div id="sellerOrderList"></div>
+          </div>
           <div id="sellerTabAddProduct" style="display:none;">
             <input type="text" id="spName" class="checkout-input" placeholder="Product name" style="width:100%;margin-bottom:8px;" />
             <input type="text" id="spCategory" class="checkout-input" placeholder="Category" style="width:100%;margin-bottom:8px;" />
@@ -1820,12 +1897,161 @@
             alert(data.message || "Sign-in failed. Please try again.");
             return;
           }
+
+          if (data.requiresSetup) {
+            // First-ever sign-in (or an older account that never finished
+            // setup) — no session token yet. Ask for the emailed OTP + a
+            // password before we consider them signed in.
+            closeAccountModal();
+            openOtpSetupModal(data.setupToken, data.email);
+            return;
+          }
+
           localStorage.setItem("dm_customer_token", data.token);
           currentCustomer = data.customer;
           renderAccountState();
           closeAccountModal();
         } catch (error) {
           alert("Sign-in failed. Please try again.");
+        }
+      }
+
+      // ================================
+      // OTP + SET PASSWORD (first-time Google sign-in)
+      // ================================
+      let otpSetupToken = null;
+
+      function openOtpSetupModal(setupToken, email) {
+        otpSetupToken = setupToken;
+        document.getElementById("otpCode").value = "";
+        document.getElementById("otpPassword").value = "";
+        document.getElementById("otpPasswordConfirm").value = "";
+        document.getElementById("otpSetupError").style.display = "none";
+        document.getElementById("otpSetupDesc").textContent =
+          "We emailed a 6-digit code to " + (email || "your email") + ". Enter it below and choose a password for your account.";
+        document.getElementById("otpSetupOverlay").classList.add("open");
+      }
+
+      function closeOtpSetupModal() {
+        document.getElementById("otpSetupOverlay").classList.remove("open");
+        otpSetupToken = null;
+      }
+
+      async function submitOtpSetup() {
+        const errorEl = document.getElementById("otpSetupError");
+        errorEl.style.display = "none";
+        errorEl.style.color = "";
+
+        const otp = document.getElementById("otpCode").value.trim();
+        const password = document.getElementById("otpPassword").value;
+        const confirmPassword = document.getElementById("otpPasswordConfirm").value;
+
+        if (!otp || otp.length !== 6) {
+          errorEl.textContent = "Enter the 6-digit code we emailed you.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (password.length < 6) {
+          errorEl.textContent = "Password should be at least 6 characters.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (password !== confirmPassword) {
+          errorEl.textContent = "Passwords don't match.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!otpSetupToken) {
+          errorEl.textContent = "This verification session expired. Please sign in with Google again.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/auth/google/verify-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ setupToken: otpSetupToken, otp, password }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Verification failed. Please try again.";
+            errorEl.style.display = "block";
+            return;
+          }
+
+          localStorage.setItem("dm_customer_token", data.token);
+          currentCustomer = data.customer;
+          renderAccountState();
+          closeOtpSetupModal();
+        } catch (error) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        }
+      }
+
+      async function resendOtp() {
+        const errorEl = document.getElementById("otpSetupError");
+        errorEl.style.display = "none";
+        if (!otpSetupToken) {
+          errorEl.textContent = "This verification session expired. Please sign in with Google again.";
+          errorEl.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/auth/google/resend-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ setupToken: otpSetupToken }),
+          });
+          const data = await res.json();
+          errorEl.style.color = data.success ? "#1c7a34" : "";
+          errorEl.textContent = data.message || (data.success ? "Sent!" : "Could not resend code.");
+          errorEl.style.display = "block";
+        } catch (error) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        }
+      }
+
+      // ================================
+      // EMAIL + PASSWORD LOGIN (after OTP setup is complete)
+      // ================================
+      async function submitEmailPasswordLogin() {
+        const errorEl = document.getElementById("emailLoginError");
+        errorEl.style.display = "none";
+
+        const email = document.getElementById("emailLoginEmail").value.trim();
+        const password = document.getElementById("emailLoginPassword").value;
+
+        if (!email || !password) {
+          errorEl.textContent = "Enter your email and password.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/customer/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Invalid email or password.";
+            errorEl.style.display = "block";
+            return;
+          }
+
+          localStorage.setItem("dm_customer_token", data.token);
+          currentCustomer = data.customer;
+          renderAccountState();
+          closeAccountModal();
+          document.getElementById("emailLoginEmail").value = "";
+          document.getElementById("emailLoginPassword").value = "";
+        } catch (error) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
         }
       }
 
@@ -1877,31 +2103,23 @@
           pic.style.display = "block";
         }
 
+        // Selling is a separate application + login (Seller ID/password by
+        // email), not tied to this Google account — so we just point to it.
         const statusBox = document.getElementById("sellerStatusBox");
         const actionBtn = document.getElementById("sellerActionBtn");
-        if (currentCustomer.sellerStatus === "approved") {
-          statusBox.innerHTML = "<span style='color:#1c7a34;font-weight:600;'>✓ Approved seller</span> — " + currentCustomer.shopTitle;
-          actionBtn.textContent = "Open Seller Dashboard";
-        } else if (currentCustomer.sellerStatus === "pending") {
-          statusBox.innerHTML = "<span style='color:#b8863f;font-weight:600;'>Seller application pending review</span>";
-          actionBtn.textContent = "Application Pending";
-          actionBtn.disabled = true;
-        } else if (currentCustomer.sellerStatus === "rejected") {
-          statusBox.innerHTML = "<span style='color:#a33;font-weight:600;'>Seller application was not approved</span>";
-          actionBtn.textContent = "Apply Again";
-          actionBtn.disabled = false;
-        } else {
-          statusBox.innerHTML = "";
-          actionBtn.textContent = "Become a Seller";
-          actionBtn.disabled = false;
-        }
+        statusBox.innerHTML = getSellerToken()
+          ? "<span style='color:#1c7a34;font-weight:600;'>You're logged in as a seller</span>"
+          : "";
+        actionBtn.textContent = getSellerToken() ? "Open Seller Dashboard" : "Become a Seller";
+        actionBtn.disabled = false;
       }
 
       function onSellerActionBtn() {
-        if (currentCustomer.sellerStatus === "approved") {
+        if (getSellerToken()) {
           closeAccountModal();
           openSellerDashModal();
         } else {
+          closeAccountModal();
           openSellerApplyModal();
         }
       }
@@ -1923,20 +2141,54 @@
         document.getElementById("sellerApplyOverlay").classList.remove("open");
       }
 
+      // Public application — no login required. Only the last 4 digits of
+      // the Aadhaar number ever leave the browser as a labeled field; the
+      // full number is sent once for the admin's manual check and the
+      // server itself only stores the last 4 (see server.js).
       async function submitSellerApplication() {
-        const shopTitle = document.getElementById("shopTitleInput").value.trim();
         const errorEl = document.getElementById("sellerApplyError");
         errorEl.style.display = "none";
-        if (!shopTitle) {
-          errorEl.textContent = "Please enter a shop title.";
+
+        const name = document.getElementById("applyName").value.trim();
+        const email = document.getElementById("applyEmail").value.trim();
+        const phone = document.getElementById("applyPhone").value.trim();
+        const shopTitle = document.getElementById("applyShopTitle").value.trim();
+        const aadhaar = document.getElementById("applyAadhaar").value.trim();
+        const personPhotoInput = document.getElementById("applyPersonPhoto");
+        const fileInput = document.getElementById("applyAadhaarPhoto");
+
+        if (!name || !email || !phone || !shopTitle || aadhaar.length !== 12) {
+          errorEl.textContent = "Please fill in every field with a valid 12-digit Aadhaar number.";
           errorEl.style.display = "block";
           return;
         }
+        if (!personPhotoInput.files || !personPhotoInput.files[0]) {
+          errorEl.textContent = "Please upload a photo of yourself.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!fileInput.files || !fileInput.files[0]) {
+          errorEl.textContent = "Please upload a photo of your Aadhaar card.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        const personPhoto = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(personPhotoInput.files[0]);
+        });
+        const aadhaarPhoto = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+
         try {
-          const res = await fetch("/api/customer/apply-seller", {
+          const res = await fetch("/api/seller-applications", {
             method: "POST",
-            headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({ shopTitle }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, phone, shopTitle, aadhaar, personPhoto, aadhaarPhoto }),
           });
           const data = await res.json();
           if (!data.success) {
@@ -1944,18 +2196,116 @@
             errorEl.style.display = "block";
             return;
           }
-          currentCustomer.sellerStatus = "pending";
-          currentCustomer.shopTitle = shopTitle;
-          renderAccountState();
           closeSellerApplyModal();
+          alert("Application submitted! We'll email you at " + email + " once it's reviewed.");
         } catch (error) {
           errorEl.textContent = "Could not submit application. Please try again.";
           errorEl.style.display = "block";
         }
       }
 
+      // ================================
+      // SELLER LOGIN (ID + password, separate from customer Google login)
+      // ================================
+      function getSellerToken() {
+        return localStorage.getItem("sellerToken") || "";
+      }
+      function sellerAuthHeaders() {
+        const token = getSellerToken();
+        return token ? { Authorization: "Bearer " + token } : {};
+      }
+
+      function openSellerLoginModal() {
+        document.getElementById("sellerLoginOverlay").classList.add("open");
+        document.getElementById("forgotSellerPasswordBox").style.display = "none";
+      }
+      function closeSellerLoginModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById("sellerLoginOverlay").classList.remove("open");
+        document.getElementById("forgotSellerPasswordBox").style.display = "none";
+      }
+
+      async function submitSellerLogin() {
+        const errorEl = document.getElementById("sellerLoginError");
+        errorEl.style.display = "none";
+        const sellerId = document.getElementById("sellerLoginId").value.trim();
+        const password = document.getElementById("sellerLoginPassword").value;
+        if (!sellerId || !password) {
+          errorEl.textContent = "Please enter your Seller ID and password.";
+          errorEl.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/seller/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sellerId, password }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Login failed.";
+            errorEl.style.display = "block";
+            return;
+          }
+          localStorage.setItem("sellerToken", data.token);
+          localStorage.setItem("sellerShopTitle", data.seller.shopTitle || "");
+          closeSellerLoginModal();
+          openSellerDashModal();
+        } catch (error) {
+          errorEl.textContent = "Login failed. Please try again.";
+          errorEl.style.display = "block";
+        }
+      }
+
+      function toggleForgotSellerPassword() {
+        const box = document.getElementById("forgotSellerPasswordBox");
+        const isOpen = box.style.display !== "none";
+        box.style.display = isOpen ? "none" : "block";
+        if (!isOpen) {
+          document.getElementById("forgotSellerIdInput").value = document.getElementById("sellerLoginId").value.trim();
+          document.getElementById("forgotSellerError").style.display = "none";
+        }
+      }
+
+      async function submitForgotSellerPassword() {
+        const errorEl = document.getElementById("forgotSellerError");
+        errorEl.style.display = "none";
+        errorEl.style.color = "";
+        const sellerId = document.getElementById("forgotSellerIdInput").value.trim();
+        if (!sellerId) {
+          errorEl.textContent = "Enter your Seller ID.";
+          errorEl.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/seller/forgot-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sellerId }),
+          });
+          const data = await res.json();
+          errorEl.style.color = data.success ? "#1c7a34" : "";
+          errorEl.textContent = data.message || (data.success ? "Request sent." : "Something went wrong.");
+          errorEl.style.display = "block";
+        } catch (error) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        }
+      }
+
+      function signOutSeller() {
+        localStorage.removeItem("sellerToken");
+        localStorage.removeItem("sellerShopTitle");
+        closeSellerDashModal();
+      }
+
       function openSellerDashModal() {
+        if (!getSellerToken()) {
+          openSellerLoginModal();
+          return;
+        }
         document.getElementById("sellerDashOverlay").classList.add("open");
+        document.getElementById("sellerDashShopTitle").textContent = localStorage.getItem("sellerShopTitle") || "";
         showSellerTab("products");
       }
       function closeSellerDashModal(e) {
@@ -1969,7 +2319,7 @@
         document.getElementById("sellerTabAddProduct").style.display = tab === "addProduct" ? "block" : "none";
 
         if (tab === "products") {
-          const res = await fetch("/api/seller/products", { headers: authHeaders() });
+          const res = await fetch("/api/seller/products", { headers: sellerAuthHeaders() });
           const data = await res.json();
           const box = document.getElementById("sellerTabProducts");
           if (!data.success || !data.products.length) {
@@ -1978,7 +2328,7 @@
           }
           box.innerHTML = data.products.map((p) => (
             "<div style='display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--blush-line);'>" +
-              "<div><strong>" + p.name + "</strong><br><span style='font-size:0.85em;color:#8c7d78;'>₹" + p.price + "</span></div>" +
+              "<div><strong>" + escapeHtml(p.name) + "</strong><br><span style='font-size:0.85em;color:#8c7d78;'>₹" + escapeHtml(String(p.price)) + "</span></div>" +
               "<span style='font-size:0.8em;font-weight:600;color:" + (p.approved ? "#1c7a34" : "#b8863f") + ";'>" +
                 (p.approved ? "Live" : "Pending approval") +
               "</span>" +
@@ -1987,19 +2337,46 @@
         }
 
         if (tab === "orders") {
-          const res = await fetch("/api/seller/orders", { headers: authHeaders() });
+          const res = await fetch("/api/seller/orders", { headers: sellerAuthHeaders() });
           const data = await res.json();
-          const box = document.getElementById("sellerTabOrders");
+          const statsBox = document.getElementById("sellerOrderStats");
+          const listBox = document.getElementById("sellerOrderList");
+
           if (!data.success || !data.orders.length) {
-            box.innerHTML = "<p class='modal-desc'>No orders yet for your products.</p>";
+            statsBox.innerHTML = "";
+            listBox.innerHTML = "<p class='modal-desc'>No orders yet for your products.</p>";
             return;
           }
-          box.innerHTML = data.orders.map((o) => (
-            "<div style='padding:10px 0;border-bottom:1px solid var(--blush-line);'>" +
-              "<strong>" + o.orderNumber + "</strong> — " + o.status + "<br>" +
-              o.items.map((i) => i.name + " × " + i.qty).join(", ") +
+
+          // Cancelled orders were never fulfilled, so only Delivered ones
+          // count toward revenue — same rule the admin dashboard uses.
+          const deliveredRevenue = data.orders
+            .filter((o) => o.status === "Delivered")
+            .reduce((sum, o) => sum + (o.sellerTotal || 0), 0);
+          const cancelledCount = data.orders.filter((o) => o.status === "Cancelled").length;
+
+          const statCard = (label, value) => (
+            "<div style='flex:1;min-width:110px;background:var(--blush);border-radius:10px;padding:10px 12px;'>" +
+              "<div style='font-size:0.72em;color:#8c7d78;text-transform:uppercase;letter-spacing:0.4px;'>" + escapeHtml(label) + "</div>" +
+              "<div style='font-size:1.15em;font-weight:700;color:var(--rosewood);'>" + escapeHtml(String(value)) + "</div>" +
             "</div>"
-          )).join("");
+          );
+
+          statsBox.innerHTML =
+            statCard("Orders", data.orders.length) +
+            statCard("Cancelled", cancelledCount) +
+            statCard("Revenue (Delivered)", "₹" + Math.round(deliveredRevenue));
+
+          listBox.innerHTML = data.orders.map((o) => {
+            const itemsText = o.items.map((i) => escapeHtml(i.name) + " × " + i.qty).join(", ");
+            return (
+              "<div style='padding:10px 0;border-bottom:1px solid var(--blush-line);'>" +
+                "<strong>" + escapeHtml(o.orderNumber) + "</strong> — " + escapeHtml(o.status) +
+                " · ₹" + Math.round(o.sellerTotal || 0) + "<br>" +
+                itemsText +
+              "</div>"
+            );
+          }).join("");
         }
       }
 
@@ -2030,7 +2407,7 @@
         try {
           const res = await fetch("/api/seller/products", {
             method: "POST",
-            headers: { "Content-Type": "application/json", ...authHeaders() },
+            headers: { "Content-Type": "application/json", ...sellerAuthHeaders() },
             body: JSON.stringify({ name, category, description, price, images: image ? [image] : [] }),
           });
           const data = await res.json();
@@ -2069,8 +2446,8 @@
           } else {
             listEl.innerHTML = data.reviews.map((r) => (
               "<div style='padding:8px 0;border-bottom:1px solid var(--blush-line);'>" +
-                "<strong>" + "★".repeat(r.rating) + "☆".repeat(5 - r.rating) + "</strong> — " + r.customerName +
-                "<p style='margin-top:4px;'>" + r.text + "</p>" +
+                "<strong>" + "★".repeat(r.rating) + "☆".repeat(5 - r.rating) + "</strong> — " + escapeHtml(r.customerName) +
+                "<p style='margin-top:4px;'>" + escapeHtml(r.text) + "</p>" +
               "</div>"
             )).join("");
           }
@@ -3195,6 +3572,12 @@
 
       loadProducts();
       loadCustomerSession();
+
+      // Shareable link: https://designmakers.shop/#sell opens the seller
+      // application form directly — hand this URL out anywhere.
+      if (window.location.hash === "#sell") {
+        openSellerApplyModal();
+      }
       window.addEventListener("load", () => setTimeout(initGoogleSignIn, 300));
 
       // ===== Tap-to-burst festive interaction (flags + rakhi threads) =====
