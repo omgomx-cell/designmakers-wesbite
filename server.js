@@ -381,6 +381,7 @@ app.post("/api/customer/register", (req, res) => {
     mobile: cleanMobile,
     name: cleanName,
     passwordHash: bcrypt.hashSync(String(password), 10),
+    picture: "",
     role: "customer",
     shopTitle: "",
     sellerStatus: "none",
@@ -402,6 +403,7 @@ app.post("/api/customer/register", (req, res) => {
       id: customer.id,
       name: customer.name,
       mobile: customer.mobile,
+      picture: customer.picture || "",
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
@@ -419,8 +421,17 @@ app.post("/api/customer/login", (req, res) => {
   const database = readDatabase();
   const customer = database.customers.find((c) => c.mobile === cleanMobile);
 
-  if (!customer || !customer.passwordHash || !bcrypt.compareSync(password, customer.passwordHash)) {
-    return res.status(401).json({ success: false, message: "Invalid mobile number or password." });
+  // No account for this number → tell the frontend so it can offer sign-up.
+  if (!customer || !customer.passwordHash) {
+    return res.status(404).json({
+      success: false,
+      notRegistered: true,
+      message: "No account found for this number. Create one below.",
+    });
+  }
+  // Account exists but the password is wrong.
+  if (!bcrypt.compareSync(password, customer.passwordHash)) {
+    return res.status(401).json({ success: false, message: "Incorrect password. Please try again." });
   }
 
   const token = jwt.sign(
@@ -436,6 +447,7 @@ app.post("/api/customer/login", (req, res) => {
       id: customer.id,
       name: customer.name,
       mobile: customer.mobile,
+      picture: customer.picture || "",
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
@@ -451,11 +463,33 @@ app.get("/api/customer/me", requireCustomer, (req, res) => {
       id: c.id,
       name: c.name,
       mobile: c.mobile,
+      picture: c.picture || "",
       role: c.role,
       shopTitle: c.shopTitle,
       sellerStatus: c.sellerStatus,
     },
   });
+});
+
+// Customer uploads / changes their profile picture (stored as a data URL).
+app.post("/api/customer/photo", requireCustomer, (req, res) => {
+  const { picture } = req.body || {};
+  if (typeof picture !== "string" || !/^data:image\/(png|jpe?g|webp);base64,/.test(picture)) {
+    return res.status(400).json({ success: false, message: "Please upload a valid image." });
+  }
+  // Guard against huge uploads (~2MB of base64).
+  if (picture.length > 2_800_000) {
+    return res.status(413).json({ success: false, message: "Image is too large. Please use a smaller photo." });
+  }
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) {
+    return res.status(404).json({ success: false, message: "Account not found." });
+  }
+  customer.picture = picture;
+  writeDatabase(database);
+  res.json({ success: true, picture });
 });
 
 // ================================
@@ -765,6 +799,44 @@ app.post("/api/admin/customers/:id/reset-password", requireAdmin, (req, res) => 
 });
 
 // ================================
+// ADMIN: SELLER LIST (approved sellers + their products)
+// ================================
+
+app.get("/api/admin/sellers", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const allProducts = database.products || [];
+  const sellers = (database.sellers || [])
+    .slice()
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .map((s) => {
+      const products = allProducts.filter((p) => p.sellerId === s.id);
+      const approvedCount = products.filter((p) => p.approved !== false).length;
+      const pendingCount = products.filter((p) => p.approved === false).length;
+      return {
+        id: s.id,
+        sellerId: s.sellerId,
+        name: s.name,
+        email: s.email,
+        phone: s.phone,
+        shopTitle: s.shopTitle,
+        createdAt: s.createdAt,
+        productCount: products.length,
+        approvedCount,
+        pendingCount,
+        products: products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          category: p.category,
+          approved: p.approved !== false,
+          image: (Array.isArray(p.images) && p.images[0]) || p.image || "",
+        })),
+      };
+    });
+  res.json({ success: true, sellers });
+});
+
+// ================================
 // ADMIN: REVIEW SELLER APPLICATIONS
 // ================================
 
@@ -883,6 +955,53 @@ app.get("/api/admin/login-history", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const history = (database.loginHistory || []).slice().reverse();
   res.json({ success: true, history });
+});
+
+// ================================
+// ADMIN ROLES (boss / main "om" account only)
+// ================================
+// The two built-in roles below always exist. The boss can add extra custom
+// roles from the Admins tab; they're stored in the database and offered as
+// options when creating a sub-admin. Only the boss account can manage roles.
+const DEFAULT_ADMIN_ROLES = ["Product Listing Manager", "Sales Manager"];
+
+function allAdminRoles(database) {
+  const custom = Array.isArray(database.adminRoles) ? database.adminRoles : [];
+  return Array.from(new Set([...DEFAULT_ADMIN_ROLES, ...custom]));
+}
+
+app.get("/api/admin/roles", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  res.json({ success: true, roles: allAdminRoles(database), defaults: DEFAULT_ADMIN_ROLES });
+});
+
+app.post("/api/admin/roles", requireAdmin, requireBoss, (req, res) => {
+  const name = String((req.body || {}).name || "").trim();
+  if (!name) {
+    return res.status(400).json({ success: false, message: "Enter a role name." });
+  }
+  if (name.length > 40) {
+    return res.status(400).json({ success: false, message: "Role name is too long (max 40 characters)." });
+  }
+  const database = readDatabase();
+  if (!Array.isArray(database.adminRoles)) database.adminRoles = [];
+  if (allAdminRoles(database).some((r) => r.toLowerCase() === name.toLowerCase())) {
+    return res.status(409).json({ success: false, message: "That role already exists." });
+  }
+  database.adminRoles.push(name);
+  writeDatabase(database);
+  res.json({ success: true, roles: allAdminRoles(database) });
+});
+
+app.delete("/api/admin/roles/:name", requireAdmin, requireBoss, (req, res) => {
+  const name = decodeURIComponent(req.params.name || "");
+  if (DEFAULT_ADMIN_ROLES.some((r) => r.toLowerCase() === name.toLowerCase())) {
+    return res.status(400).json({ success: false, message: "Built-in roles can't be removed." });
+  }
+  const database = readDatabase();
+  database.adminRoles = (database.adminRoles || []).filter((r) => r.toLowerCase() !== name.toLowerCase());
+  writeDatabase(database);
+  res.json({ success: true, roles: allAdminRoles(database) });
 });
 
 app.post("/api/admin/admins", requireAdmin, requireBoss, (req, res) => {
