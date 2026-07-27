@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
@@ -898,6 +897,53 @@
       .modal-thumb.active { border-color: var(--gold); opacity: 1; }
       .modal-body { flex: 1; padding: 30px; }
       .modal-cat { display: inline-block; background: var(--blush); color: var(--gold); font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 4px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+      /* ===== Split-panel auth (login / signup) modal ===== */
+      .auth-modal { max-width: 720px; overflow: hidden; }
+      .auth-brand {
+        flex: 1 1 45%;
+        background: linear-gradient(150deg, var(--rosewood) 0%, var(--rosewood-dark) 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        min-height: 420px;
+      }
+      .auth-brand::after {
+        content: "";
+        position: absolute; inset: 0;
+        background:
+          radial-gradient(circle at 25% 20%, rgba(184,134,63,0.35) 0, transparent 45%),
+          radial-gradient(circle at 80% 85%, rgba(255,255,255,0.12) 0, transparent 40%);
+        pointer-events: none;
+      }
+      .auth-brand-inner { position: relative; z-index: 1; text-align: center; color: #fff; }
+      .auth-brand-logo {
+        width: 84px; height: 84px; object-fit: contain;
+        background: rgba(255,255,255,0.9);
+        border-radius: 18px; padding: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        margin-bottom: 18px;
+      }
+      .auth-brand-name {
+        font-family: "Playfair Display", Georgia, serif;
+        font-size: 30px; font-weight: 800; letter-spacing: 1px; margin-bottom: 8px;
+      }
+      .auth-brand-tag {
+        font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+        color: rgba(255,255,255,0.85);
+      }
+      .auth-form { flex: 1 1 55%; padding: 40px 34px; display: flex; flex-direction: column; justify-content: center; }
+      .auth-seller-links { text-align: center; margin-top: 22px; font-size: 0.85em; padding-top: 16px; border-top: 1px solid var(--blush-line); }
+      .auth-seller-links a { color: var(--rosewood); }
+      @media (max-width: 640px) {
+        .auth-brand { min-height: 150px; padding: 22px; }
+        .auth-brand-logo { width: 58px; height: 58px; margin-bottom: 10px; }
+        .auth-brand-name { font-size: 22px; }
+        .auth-form { padding: 26px 22px; }
+      }
+
       .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
       .modal-desc { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
       .modal-price { font-size: 25px; font-weight: 700; color: var(--rosewood); margin-bottom: 4px; font-family: "Playfair Display", serif; }
@@ -1705,39 +1751,65 @@
 
     <!-- ACCOUNT MODAL (sign in / profile / seller status) -->
     <div class="overlay" id="accountOverlay" onclick="closeAccountModal(event)">
-      <div class="modal" onclick="event.stopPropagation()" style="max-width:380px;">
+      <div class="modal auth-modal" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeAccountModal()">✕</button>
-        <div class="modal-body" style="padding-top:36px;">
-          <div id="accountSignedOut" style="text-align:center;">
-            <h2 class="modal-title" style="margin-bottom:6px;">Sign in</h2>
-            <p class="modal-desc" style="margin-bottom:20px;">Sign in with Google to order or review products.</p>
-            <div id="googleSignInBtn" style="display:flex;justify-content:center;"></div>
 
-            <div style="display:flex;align-items:center;gap:10px;margin:18px 0;">
-              <div style="flex:1;height:1px;background:var(--blush-line);"></div>
-              <span style="font-size:0.78em;color:#8c7d78;">or</span>
-              <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+        <!-- LEFT: brand panel -->
+        <div class="auth-brand">
+          <div class="auth-brand-inner">
+            <img src="Logo.png" alt="Design Makers" class="auth-brand-logo" />
+            <div class="auth-brand-name">DESIGN MAKERS</div>
+            <div class="auth-brand-tag">Gifts That Feel Like Royalty</div>
+          </div>
+        </div>
+
+        <!-- RIGHT: form panel -->
+        <div class="auth-form">
+          <div id="accountSignedOut">
+            <h2 class="modal-title" style="margin-bottom:6px;" id="authFormTitle">Log in</h2>
+            <p class="modal-desc" style="margin-bottom:20px;" id="authFormDesc">Log in with your mobile number and password.</p>
+
+            <!-- LOG IN FORM -->
+            <div id="loginFormBox">
+              <input type="tel" id="loginMobile" class="checkout-input" placeholder="Mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
+              <input type="password" id="loginPassword" class="checkout-input" placeholder="Password" style="width:100%;margin-bottom:10px;" />
+              <div class="modal-error" id="loginError" style="display:none;"></div>
+              <button class="add-cart-btn" onclick="submitCustomerLogin()">Log in</button>
+              <p style="font-size:0.85em;margin-top:12px;color:var(--muted);">
+                Forgot your password? <a href="https://wa.me/" target="_blank" rel="noopener" style="color:var(--rosewood);font-weight:600;">Message us on WhatsApp</a> to reset it.
+              </p>
+              <p style="font-size:0.9em;margin-top:14px;">
+                Don't have an account?
+                <a href="javascript:void(0)" onclick="showRegisterForm()" style="color:var(--rosewood);font-weight:700;">Sign up</a>
+              </p>
             </div>
 
-            <input type="email" id="emailLoginEmail" class="checkout-input" placeholder="Email address" style="width:100%;margin-bottom:8px;" />
-            <input type="password" id="emailLoginPassword" class="checkout-input" placeholder="Password" style="width:100%;margin-bottom:10px;" />
-            <div class="modal-error" id="emailLoginError" style="display:none;"></div>
-            <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="submitEmailPasswordLogin()">Log in with email</button>
-            <p style="font-size:0.75em;color:#8c7d78;margin:8px 0 0;">Only works after you've signed in with Google once and set a password.</p>
+            <!-- CREATE ACCOUNT FORM -->
+            <div id="registerFormBox" style="display:none;">
+              <input type="text" id="registerName" class="checkout-input" placeholder="Your name" style="width:100%;margin-bottom:10px;" />
+              <input type="tel" id="registerMobile" class="checkout-input" placeholder="Mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
+              <input type="password" id="registerPassword" class="checkout-input" placeholder="Choose a password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
+              <input type="password" id="registerPasswordConfirm" class="checkout-input" placeholder="Confirm password" style="width:100%;margin-bottom:10px;" />
+              <div class="modal-error" id="registerError" style="display:none;"></div>
+              <button class="add-cart-btn" onclick="submitCustomerRegister()">Create account</button>
+              <p style="font-size:0.9em;margin-top:14px;">
+                Already have an account?
+                <a href="javascript:void(0)" onclick="showLoginForm()" style="color:var(--rosewood);font-weight:700;">Log in</a>
+              </p>
+            </div>
 
-            <div style="text-align:center;margin-top:18px;font-size:0.85em;">
-              <a href="javascript:void(0)" onclick="closeAccountModal();openSellerApplyModal();" style="color:var(--rosewood);">Become a seller</a>
+            <div class="auth-seller-links">
+              <a href="javascript:void(0)" onclick="closeAccountModal();openSellerApplyModal();">Become a seller</a>
               &nbsp;·&nbsp;
-              <a href="javascript:void(0)" onclick="closeAccountModal();openSellerLoginModal();" style="color:var(--rosewood);">Seller login</a>
+              <a href="javascript:void(0)" onclick="closeAccountModal();openSellerLoginModal();">Seller login</a>
             </div>
           </div>
+
           <div id="accountSignedIn" style="display:none;">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
-              <img id="accountPic" src="" alt="" style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:none;" />
-              <div>
-                <div id="accountName" style="font-weight:700;"></div>
-                <div id="accountEmail" style="font-size:0.85em;color:#8c7d78;"></div>
-              </div>
+            <h2 class="modal-title" style="margin-bottom:6px;">My account</h2>
+            <div style="margin:12px 0 18px;">
+              <div id="accountName" style="font-weight:700;font-size:1.05em;"></div>
+              <div id="accountMobile" style="font-size:0.9em;color:var(--muted);"></div>
             </div>
 
             <div id="sellerStatusBox" style="margin-bottom:14px;"></div>
@@ -1745,24 +1817,6 @@
             <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-bottom:10px;"></button>
             <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="signOutCustomer()">Sign out</button>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SET PASSWORD MODAL (shown once, right after first Google sign-in — no OTP) -->
-    <div class="overlay" id="otpSetupOverlay">
-      <div class="modal" onclick="event.stopPropagation()" style="max-width:380px;">
-        <div class="modal-body" style="padding-top:36px;">
-          <h2 class="modal-title" style="margin-bottom:6px;">Complete your account</h2>
-          <p class="modal-desc" id="otpSetupDesc" style="margin-bottom:16px;">Add your mobile number and choose a password to finish setting up your account.</p>
-          <input type="tel" id="otpMobile" class="checkout-input" placeholder="Mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
-          <input type="password" id="otpPassword" class="checkout-input" placeholder="Choose a password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
-          <input type="password" id="otpPasswordConfirm" class="checkout-input" placeholder="Confirm password" style="width:100%;margin-bottom:12px;" />
-          <div class="modal-error" id="otpSetupError"></div>
-          <button class="add-cart-btn" onclick="submitOtpSetup()">Set password</button>
-          <p style="text-align:center;margin-top:14px;">
-            <a href="javascript:void(0)" onclick="closeOtpSetupModal()" style="font-size:0.8em;color:#8c7d78;">Cancel for now</a>
-          </p>
         </div>
       </div>
     </div>
@@ -1853,15 +1907,9 @@
       let currentProduct = null;
 
       // ================================
-      // CUSTOMER / SELLER LOGIN (Google)
+      // CUSTOMER SIGN UP / LOGIN (mobile number + password)
       // ================================
-      // TODO: replace with the real Client ID from Google Cloud Console
-      // (console.cloud.google.com > APIs & Services > Credentials).
-      // Everything else on the site works fine while this is a placeholder —
-      // only the "Sign in" button won't do anything until it's set.
-      const GOOGLE_CLIENT_ID = "982773085262-n04rje1hcha9om6h2qe7fshhirmi9j6t.apps.googleusercontent.com";
-
-      let currentCustomer = null; // { id, name, email, picture, role, shopTitle, sellerStatus } or null
+      let currentCustomer = null; // { id, name, mobile, role, shopTitle, sellerStatus } or null
 
       function getCustomerToken() {
         return localStorage.getItem("dm_customer_token") || null;
@@ -1872,37 +1920,45 @@
         return token ? { Authorization: "Bearer " + token } : {};
       }
 
-      function initGoogleSignIn() {
-        if (!window.google || !google.accounts || !google.accounts.id) return;
-        google.accounts.id.initialize({
-          client_id: GOOGLE_CLIENT_ID,
-          callback: onGoogleCredential,
-        });
-        const btnBox = document.getElementById("googleSignInBtn");
-        if (btnBox) {
-          google.accounts.id.renderButton(btnBox, { theme: "outline", size: "large", shape: "pill" });
-        }
+      function showLoginForm() {
+        document.getElementById("authFormTitle").textContent = "Log in";
+        document.getElementById("authFormDesc").textContent = "Log in with your mobile number and password.";
+        document.getElementById("loginFormBox").style.display = "block";
+        document.getElementById("registerFormBox").style.display = "none";
+        document.getElementById("loginError").style.display = "none";
       }
 
-      async function onGoogleCredential(response) {
+      function showRegisterForm() {
+        document.getElementById("authFormTitle").textContent = "Create an account";
+        document.getElementById("authFormDesc").textContent = "Sign up with your mobile number to order or review products.";
+        document.getElementById("loginFormBox").style.display = "none";
+        document.getElementById("registerFormBox").style.display = "block";
+        document.getElementById("registerError").style.display = "none";
+      }
+
+      async function submitCustomerLogin() {
+        const errorEl = document.getElementById("loginError");
+        errorEl.style.display = "none";
+
+        const mobile = document.getElementById("loginMobile").value.trim();
+        const password = document.getElementById("loginPassword").value;
+
+        if (!/^[6-9]\d{9}$/.test(mobile) || !password) {
+          errorEl.textContent = "Enter a valid 10-digit mobile number and password.";
+          errorEl.style.display = "block";
+          return;
+        }
+
         try {
-          const res = await fetch("/api/auth/google", {
+          const res = await fetch("/api/customer/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ credential: response.credential }),
+            body: JSON.stringify({ mobile, password }),
           });
           const data = await res.json();
           if (!data.success) {
-            alert(data.message || "Sign-in failed. Please try again.");
-            return;
-          }
-
-          if (data.requiresSetup) {
-            // First-ever sign-in (or an older account that never finished
-            // setup) — no session token yet. Ask them to choose a password
-            // before we consider them signed in (no OTP/email step).
-            closeAccountModal();
-            openOtpSetupModal(data.setupToken, data.email);
+            errorEl.textContent = data.message || "Invalid mobile number or password.";
+            errorEl.style.display = "block";
             return;
           }
 
@@ -1910,42 +1966,29 @@
           currentCustomer = data.customer;
           renderAccountState();
           closeAccountModal();
+          document.getElementById("loginMobile").value = "";
+          document.getElementById("loginPassword").value = "";
         } catch (error) {
-          alert("Sign-in failed. Please try again.");
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
         }
       }
 
-      // ================================
-      // SET PASSWORD (first-time Google sign-in — no OTP required)
-      // ================================
-      let otpSetupToken = null;
-
-      function openOtpSetupModal(setupToken, email) {
-        otpSetupToken = setupToken;
-        document.getElementById("otpMobile").value = "";
-        document.getElementById("otpPassword").value = "";
-        document.getElementById("otpPasswordConfirm").value = "";
-        document.getElementById("otpSetupError").style.display = "none";
-        document.getElementById("otpSetupDesc").textContent =
-          "Add your mobile number and choose a password for " + (email || "your account") + " to finish setting up your account.";
-        document.getElementById("otpSetupOverlay").classList.add("open");
-      }
-
-      function closeOtpSetupModal() {
-        document.getElementById("otpSetupOverlay").classList.remove("open");
-        otpSetupToken = null;
-      }
-
-      async function submitOtpSetup() {
-        const errorEl = document.getElementById("otpSetupError");
+      async function submitCustomerRegister() {
+        const errorEl = document.getElementById("registerError");
         errorEl.style.display = "none";
-        errorEl.style.color = "";
 
-        const mobile = document.getElementById("otpMobile").value.trim();
-        const password = document.getElementById("otpPassword").value;
-        const confirmPassword = document.getElementById("otpPasswordConfirm").value;
+        const name = document.getElementById("registerName").value.trim();
+        const mobile = document.getElementById("registerMobile").value.trim();
+        const password = document.getElementById("registerPassword").value;
+        const confirmPassword = document.getElementById("registerPasswordConfirm").value;
 
-        if (!/^[0-9]{10}$/.test(mobile)) {
+        if (!name) {
+          errorEl.textContent = "Please enter your name.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!/^[6-9]\d{9}$/.test(mobile)) {
           errorEl.textContent = "Enter a valid 10-digit mobile number.";
           errorEl.style.display = "block";
           return;
@@ -1960,60 +2003,16 @@
           errorEl.style.display = "block";
           return;
         }
-        if (!otpSetupToken) {
-          errorEl.textContent = "This setup session expired. Please sign in with Google again.";
-          errorEl.style.display = "block";
-          return;
-        }
 
         try {
-          const res = await fetch("/api/auth/google/set-password", {
+          const res = await fetch("/api/customer/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ setupToken: otpSetupToken, mobile, password }),
+            body: JSON.stringify({ name, mobile, password }),
           });
           const data = await res.json();
           if (!data.success) {
-            errorEl.textContent = data.message || "Could not set password. Please try again.";
-            errorEl.style.display = "block";
-            return;
-          }
-
-          localStorage.setItem("dm_customer_token", data.token);
-          currentCustomer = data.customer;
-          renderAccountState();
-          closeOtpSetupModal();
-        } catch (error) {
-          errorEl.textContent = "Network error. Please try again.";
-          errorEl.style.display = "block";
-        }
-      }
-
-      // ================================
-      // EMAIL + PASSWORD LOGIN (after OTP setup is complete)
-      // ================================
-      async function submitEmailPasswordLogin() {
-        const errorEl = document.getElementById("emailLoginError");
-        errorEl.style.display = "none";
-
-        const email = document.getElementById("emailLoginEmail").value.trim();
-        const password = document.getElementById("emailLoginPassword").value;
-
-        if (!email || !password) {
-          errorEl.textContent = "Enter your email and password.";
-          errorEl.style.display = "block";
-          return;
-        }
-
-        try {
-          const res = await fetch("/api/customer/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-          const data = await res.json();
-          if (!data.success) {
-            errorEl.textContent = data.message || "Invalid email or password.";
+            errorEl.textContent = data.message || "Could not create account. Please try again.";
             errorEl.style.display = "block";
             return;
           }
@@ -2022,8 +2021,10 @@
           currentCustomer = data.customer;
           renderAccountState();
           closeAccountModal();
-          document.getElementById("emailLoginEmail").value = "";
-          document.getElementById("emailLoginPassword").value = "";
+          document.getElementById("registerName").value = "";
+          document.getElementById("registerMobile").value = "";
+          document.getElementById("registerPassword").value = "";
+          document.getElementById("registerPasswordConfirm").value = "";
         } catch (error) {
           errorEl.textContent = "Network error. Please try again.";
           errorEl.style.display = "block";
@@ -2071,15 +2072,10 @@
         signedOutBox.style.display = "none";
         signedInBox.style.display = "block";
         document.getElementById("accountName").textContent = currentCustomer.name;
-        document.getElementById("accountEmail").textContent = currentCustomer.email;
-        const pic = document.getElementById("accountPic");
-        if (currentCustomer.picture) {
-          pic.src = currentCustomer.picture;
-          pic.style.display = "block";
-        }
+        document.getElementById("accountMobile").textContent = currentCustomer.mobile;
 
         // Selling is a separate application + login (Seller ID/password by
-        // email), not tied to this Google account — so we just point to it.
+        // separate application + login, not tied to this account — so we just point to it.
         const statusBox = document.getElementById("sellerStatusBox");
         const actionBtn = document.getElementById("sellerActionBtn");
         statusBox.innerHTML = getSellerToken()
@@ -2101,7 +2097,7 @@
 
       function openAccountModal() {
         document.getElementById("accountOverlay").classList.add("open");
-        setTimeout(initGoogleSignIn, 50);
+        if (!currentCustomer) showLoginForm();
       }
       function closeAccountModal(e) {
         if (e && e.target !== e.currentTarget) return;
@@ -2180,7 +2176,7 @@
       }
 
       // ================================
-      // SELLER LOGIN (ID + password, separate from customer Google login)
+      // SELLER LOGIN (ID + password, separate from customer login)
       // ================================
       function getSellerToken() {
         return localStorage.getItem("sellerToken") || "";
@@ -3553,7 +3549,6 @@
       if (window.location.hash === "#sell") {
         openSellerApplyModal();
       }
-      window.addEventListener("load", () => setTimeout(initGoogleSignIn, 300));
 
       // ===== Tap-to-burst festive interaction (flags + rakhi threads) =====
       const aug15Quotes = [
