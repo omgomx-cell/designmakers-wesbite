@@ -1749,18 +1749,17 @@
       </div>
     </div>
 
-    <!-- OTP + SET PASSWORD MODAL (shown once, right after first Google sign-in) -->
+    <!-- SET PASSWORD MODAL (shown once, right after first Google sign-in — no OTP) -->
     <div class="overlay" id="otpSetupOverlay">
       <div class="modal" onclick="event.stopPropagation()" style="max-width:380px;">
         <div class="modal-body" style="padding-top:36px;">
-          <h2 class="modal-title" style="margin-bottom:6px;">Verify your email</h2>
-          <p class="modal-desc" id="otpSetupDesc" style="margin-bottom:16px;">We emailed you a 6-digit code. Enter it below and choose a password for your account.</p>
-          <input type="text" id="otpCode" class="checkout-input" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="width:100%;margin-bottom:10px;letter-spacing:4px;text-align:center;" />
+          <h2 class="modal-title" style="margin-bottom:6px;">Complete your account</h2>
+          <p class="modal-desc" id="otpSetupDesc" style="margin-bottom:16px;">Add your mobile number and choose a password to finish setting up your account.</p>
+          <input type="tel" id="otpMobile" class="checkout-input" placeholder="Mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
           <input type="password" id="otpPassword" class="checkout-input" placeholder="Choose a password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
           <input type="password" id="otpPasswordConfirm" class="checkout-input" placeholder="Confirm password" style="width:100%;margin-bottom:12px;" />
           <div class="modal-error" id="otpSetupError"></div>
-          <button class="add-cart-btn" onclick="submitOtpSetup()">Verify & set password</button>
-          <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);margin-top:8px;" onclick="resendOtp()">Resend code</button>
+          <button class="add-cart-btn" onclick="submitOtpSetup()">Set password</button>
           <p style="text-align:center;margin-top:14px;">
             <a href="javascript:void(0)" onclick="closeOtpSetupModal()" style="font-size:0.8em;color:#8c7d78;">Cancel for now</a>
           </p>
@@ -1900,8 +1899,8 @@
 
           if (data.requiresSetup) {
             // First-ever sign-in (or an older account that never finished
-            // setup) — no session token yet. Ask for the emailed OTP + a
-            // password before we consider them signed in.
+            // setup) — no session token yet. Ask them to choose a password
+            // before we consider them signed in (no OTP/email step).
             closeAccountModal();
             openOtpSetupModal(data.setupToken, data.email);
             return;
@@ -1917,18 +1916,18 @@
       }
 
       // ================================
-      // OTP + SET PASSWORD (first-time Google sign-in)
+      // SET PASSWORD (first-time Google sign-in — no OTP required)
       // ================================
       let otpSetupToken = null;
 
       function openOtpSetupModal(setupToken, email) {
         otpSetupToken = setupToken;
-        document.getElementById("otpCode").value = "";
+        document.getElementById("otpMobile").value = "";
         document.getElementById("otpPassword").value = "";
         document.getElementById("otpPasswordConfirm").value = "";
         document.getElementById("otpSetupError").style.display = "none";
         document.getElementById("otpSetupDesc").textContent =
-          "We emailed a 6-digit code to " + (email || "your email") + ". Enter it below and choose a password for your account.";
+          "Add your mobile number and choose a password for " + (email || "your account") + " to finish setting up your account.";
         document.getElementById("otpSetupOverlay").classList.add("open");
       }
 
@@ -1942,12 +1941,12 @@
         errorEl.style.display = "none";
         errorEl.style.color = "";
 
-        const otp = document.getElementById("otpCode").value.trim();
+        const mobile = document.getElementById("otpMobile").value.trim();
         const password = document.getElementById("otpPassword").value;
         const confirmPassword = document.getElementById("otpPasswordConfirm").value;
 
-        if (!otp || otp.length !== 6) {
-          errorEl.textContent = "Enter the 6-digit code we emailed you.";
+        if (!/^[0-9]{10}$/.test(mobile)) {
+          errorEl.textContent = "Enter a valid 10-digit mobile number.";
           errorEl.style.display = "block";
           return;
         }
@@ -1962,20 +1961,20 @@
           return;
         }
         if (!otpSetupToken) {
-          errorEl.textContent = "This verification session expired. Please sign in with Google again.";
+          errorEl.textContent = "This setup session expired. Please sign in with Google again.";
           errorEl.style.display = "block";
           return;
         }
 
         try {
-          const res = await fetch("/api/auth/google/verify-otp", {
+          const res = await fetch("/api/auth/google/set-password", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ setupToken: otpSetupToken, otp, password }),
+            body: JSON.stringify({ setupToken: otpSetupToken, mobile, password }),
           });
           const data = await res.json();
           if (!data.success) {
-            errorEl.textContent = data.message || "Verification failed. Please try again.";
+            errorEl.textContent = data.message || "Could not set password. Please try again.";
             errorEl.style.display = "block";
             return;
           }
@@ -1984,30 +1983,6 @@
           currentCustomer = data.customer;
           renderAccountState();
           closeOtpSetupModal();
-        } catch (error) {
-          errorEl.textContent = "Network error. Please try again.";
-          errorEl.style.display = "block";
-        }
-      }
-
-      async function resendOtp() {
-        const errorEl = document.getElementById("otpSetupError");
-        errorEl.style.display = "none";
-        if (!otpSetupToken) {
-          errorEl.textContent = "This verification session expired. Please sign in with Google again.";
-          errorEl.style.display = "block";
-          return;
-        }
-        try {
-          const res = await fetch("/api/auth/google/resend-otp", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ setupToken: otpSetupToken }),
-          });
-          const data = await res.json();
-          errorEl.style.color = data.success ? "#1c7a34" : "";
-          errorEl.textContent = data.message || (data.success ? "Sent!" : "Could not resend code.");
-          errorEl.style.display = "block";
         } catch (error) {
           errorEl.textContent = "Network error. Please try again.";
           errorEl.style.display = "block";
