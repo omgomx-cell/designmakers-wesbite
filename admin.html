@@ -491,7 +491,8 @@
         <button class="tab-btn active" id="tabBtnProducts" onclick="switchTab('products')">Products</button>
         <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">Orders</button>
         <button class="tab-btn" id="tabBtnHomepage" onclick="switchTab('homepage')">Homepage Sections</button>
-        <button class="tab-btn" id="tabBtnSellers" onclick="switchTab('sellers')">Sellers</button>
+        <button class="tab-btn" id="tabBtnSellerlist" onclick="switchTab('sellerlist')">Seller List</button>
+        <button class="tab-btn" id="tabBtnSellers" onclick="switchTab('sellers')">Seller Approvals</button>
         <button class="tab-btn" id="tabBtnCustomers" onclick="switchTab('customers')">Customers</button>
         <button class="tab-btn hidden" id="tabBtnAdmins" onclick="switchTab('admins')">Admins</button>
       </div>
@@ -585,6 +586,16 @@
           <button class="btn" onclick="saveHomepageSections()">Save MOQ / Discount changes</button>
           <div class="error" id="homepageSectionsError"></div>
           <div id="homepageSectionsSaved" style="display:none;color:#1c7a34;font-size:13px;margin-top:8px;">✓ Saved.</div>
+        </div>
+
+        <!-- SELLER LIST TAB (approved sellers + their products) -->
+        <div class="tab-panel" id="tabSellerlist">
+          <div class="card" style="margin-bottom:16px;">
+            <h3 style="margin:0 0 6px;color:var(--rosewood);">Sellers</h3>
+            <div class="phone" style="margin:0;">All approved sellers. Click a seller to see their details and every product they've listed — edit any product inline, or approve/reject the ones still pending.</div>
+          </div>
+          <div id="sellerListLoading">Loading sellers...</div>
+          <div id="sellerListContainer"></div>
         </div>
 
         <!-- SELLERS TAB -->
@@ -916,7 +927,7 @@
       function switchTab(tab) {
         currentTab = tab;
 
-        ["products", "orders", "homepage", "sellers", "customers", "admins"].forEach((t) => {
+        ["products", "orders", "homepage", "sellerlist", "sellers", "customers", "admins"].forEach((t) => {
           document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
           document.getElementById("tabBtn" + capitalize(t)).classList.toggle("active", t === tab);
         });
@@ -928,6 +939,7 @@
           document.getElementById("homepageSectionsSaved").style.display = "none";
           loadHomepagePreview();
         }
+        if (tab === "sellerlist") loadSellerList();
         if (tab === "sellers") {
           loadSellerApplications();
           loadPendingProducts();
@@ -1175,6 +1187,99 @@
         } catch (err) {
           alert("Network error. Please try again.");
         }
+      }
+
+      // ---------- SELLER LIST (approved sellers + their products) ----------
+      let sellerListData = [];
+
+      async function loadSellerList() {
+        const loadingEl = document.getElementById("sellerListLoading");
+        const listEl = document.getElementById("sellerListContainer");
+        loadingEl.classList.remove("hidden");
+        // Make sure the global products array is loaded so inline "Edit" works.
+        if (!products.length) {
+          try { await loadProducts(); } catch (e) {}
+        }
+        try {
+          const res = await fetch("/api/admin/sellers", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          loadingEl.classList.add("hidden");
+          if (!data.success || !data.sellers.length) {
+            listEl.innerHTML = '<p class="empty-state">No approved sellers yet. Approve applications in the Seller Approvals tab.</p>';
+            return;
+          }
+          sellerListData = data.sellers;
+          listEl.innerHTML = data.sellers.map((s) => {
+            // Seller List shows approved products only — pending ones are handled
+            // in the Seller Approvals tab.
+            const approvedProducts = s.products.filter((p) => p.approved);
+            const productsHtml = approvedProducts.length
+              ? approvedProducts.map((p) => (
+                  '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--blush-line);">' +
+                    (p.image ? '<img src="' + p.image + '" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />' : '<div style="width:44px;height:44px;border-radius:8px;background:var(--blush);"></div>') +
+                    '<div style="flex:1;min-width:0;">' +
+                      '<div style="font-weight:600;">' + escapeHtml(p.name) + '</div>' +
+                      '<div style="font-size:12px;color:#8c7d78;">' + escapeHtml(p.category || "Uncategorised") + ' · ₹' + Math.round(p.price || 0) + '</div>' +
+                    '</div>' +
+                    '<span class="badge status-delivered">Approved</span>' +
+                    '<button class="btn small" onclick="editProduct(' + p.id + ')">Edit</button>' +
+                  '</div>'
+                )).join("")
+              : '<p style="color:#8c7d78;font-size:13px;margin:8px 0 0;">No approved products yet.</p>';
+
+            const pendingNote = s.pendingCount
+              ? '<div style="font-size:12px;color:#a3002a;margin-top:8px;">' + s.pendingCount + ' product' + (s.pendingCount === 1 ? '' : 's') + ' awaiting approval — review in the Seller Approvals tab.</div>'
+              : '';
+
+            return (
+              '<div class="card" style="margin-bottom:12px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;cursor:pointer;" onclick="toggleSellerProducts(' + s.id + ')">' +
+                  '<div>' +
+                    '<div style="font-weight:700;font-size:16px;color:var(--rosewood);">' + escapeHtml(s.shopTitle || s.name) + '</div>' +
+                    '<div style="font-size:13px;color:#8c7d78;">' + escapeHtml(s.name) + ' · ' + escapeHtml(s.sellerId) + '</div>' +
+                    '<div style="font-size:13px;color:#8c7d78;">' + escapeHtml(s.phone || "—") + ' · ' + escapeHtml(s.email || "—") + '</div>' +
+                  '</div>' +
+                  '<div style="text-align:right;font-size:12px;color:#8c7d78;">' +
+                    '<div><strong style="color:var(--ink);font-size:15px;">' + s.productCount + '</strong> products</div>' +
+                    '<div>' + s.approvedCount + ' approved · ' + s.pendingCount + ' pending</div>' +
+                    '<div style="margin-top:4px;color:var(--rosewood);">▼ view products</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div id="sellerProducts' + s.id + '" style="display:none;margin-top:12px;border-top:1px solid var(--blush-line);padding-top:8px;">' +
+                  productsHtml +
+                  pendingNote +
+                '</div>' +
+              '</div>'
+            );
+          }).join("");
+        } catch (err) {
+          loadingEl.classList.add("hidden");
+          listEl.innerHTML = '<p class="empty-state">Network error loading sellers.</p>';
+        }
+      }
+
+      function toggleSellerProducts(id) {
+        const box = document.getElementById("sellerProducts" + id);
+        if (box) box.style.display = box.style.display === "none" ? "block" : "none";
+      }
+
+      async function approveSellerProduct(id) {
+        await fetch("/api/admin/products/" + id + "/approve", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        await loadProducts();
+        loadSellerList();
+      }
+
+      async function rejectSellerProduct(id) {
+        if (!confirm("Reject and remove this product?")) return;
+        await fetch("/api/admin/products/" + id + "/reject", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        await loadProducts();
+        loadSellerList();
       }
 
       async function loadSellerApplications() {
