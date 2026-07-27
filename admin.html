@@ -491,8 +491,8 @@
         <button class="tab-btn active" id="tabBtnProducts" onclick="switchTab('products')">Products</button>
         <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">Orders</button>
         <button class="tab-btn" id="tabBtnHomepage" onclick="switchTab('homepage')">Homepage Sections</button>
-        <button class="tab-btn" id="tabBtnSellerlist" onclick="switchTab('sellerlist')">Seller List</button>
-        <button class="tab-btn" id="tabBtnSellers" onclick="switchTab('sellers')">Seller Approvals</button>
+        <button class="tab-btn" id="tabBtnSellerlist" onclick="switchTab('sellerlist')">Live Sellers</button>
+        <button class="tab-btn" id="tabBtnSellers" onclick="switchTab('sellers')">Approval for Seller</button>
         <button class="tab-btn" id="tabBtnCustomers" onclick="switchTab('customers')">Customers</button>
         <button class="tab-btn hidden" id="tabBtnAdmins" onclick="switchTab('admins')">Admins</button>
       </div>
@@ -591,8 +591,8 @@
         <!-- SELLER LIST TAB (approved sellers + their products) -->
         <div class="tab-panel" id="tabSellerlist">
           <div class="card" style="margin-bottom:16px;">
-            <h3 style="margin:0 0 6px;color:var(--rosewood);">Sellers</h3>
-            <div class="phone" style="margin:0;">All approved sellers. Click a seller to see their details and every product they've listed — edit any product inline, or approve/reject the ones still pending.</div>
+            <h3 style="margin:0 0 6px;color:var(--rosewood);">Live Sellers</h3>
+            <div class="phone" style="margin:0;">All approved (live) sellers. Click a seller to see their details and every approved product they've listed — edit any product inline. New applications and products awaiting approval are in the "Approval for Seller" tab.</div>
           </div>
           <div id="sellerListLoading">Loading sellers...</div>
           <div id="sellerListContainer"></div>
@@ -632,11 +632,13 @@
             <input type="text" id="newAdminUsername" placeholder="e.g. priya" />
             <label>New Admin Password</label>
             <input type="text" id="newAdminPassword" placeholder="min 6 characters" />
-            <label>Tag</label>
-            <select id="newAdminDesignation">
-              <option value="Product Listing Manager">Product Listing Manager</option>
-              <option value="Sales Manager">Sales Manager</option>
-            </select>
+            <label>Role / Tag</label>
+            <select id="newAdminDesignation"></select>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <input type="text" id="newRoleName" placeholder="Add a new role (e.g. Order Manager)" style="flex:1;margin:0;" />
+              <button class="btn small secondary" onclick="addAdminRole()" style="white-space:nowrap;">+ Add role</button>
+            </div>
+            <div class="error" id="roleError"></div>
             <label style="display:flex;align-items:center;gap:8px;margin-top:12px;">
               <input type="checkbox" id="newAdminCanDelete" style="width:auto;" />
               Allow deleting products
@@ -1062,6 +1064,12 @@
 
       function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
+      // Indian rupee formatting: ₹ + lakh/crore comma grouping (e.g. 1,24,500).
+      function fmtINR(n) {
+        const num = Math.round(Number(n) || 0);
+        return "₹" + num.toLocaleString("en-IN");
+      }
+
       // ---------- SELLERS TAB — applications + pending products ----------
 
       // ---------- CUSTOMERS (mobile + password accounts) ----------
@@ -1121,7 +1129,7 @@
                   '<div style="border-bottom:1px solid #3d2b32;padding:8px 0;">' +
                     '<div style="display:flex;justify-content:space-between;gap:10px;">' +
                       '<strong>' + escapeHtml(o.orderNumber) + '</strong>' +
-                      '<span style="' + (cancelled ? "text-decoration:line-through;color:#8c7d78;" : "") + '">₹' + Math.round(o.total || 0) + '</span>' +
+                      '<span style="' + (cancelled ? "text-decoration:line-through;color:#8c7d78;" : "") + '">' + fmtINR(o.total || 0) + '</span>' +
                     '</div>' +
                     '<div style="font-size:12px;color:#8c7d78;">' + escapeHtml(o.status || "") + ' · ' + items + '</div>' +
                   '</div>'
@@ -1136,7 +1144,7 @@
             '</div>' +
             '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">' +
               '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Orders</div><div class="stat-value">' + (c.orders ? c.orders.length : 0) + '</div></div>' +
-              '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Spent (excl. cancelled)</div><div class="stat-value">₹' + Math.round(c.totalSpent || 0) + '</div></div>' +
+              '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Spent (excl. cancelled)</div><div class="stat-value">' + fmtINR(c.totalSpent || 0) + '</div></div>' +
               '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Joined</div><div class="stat-value" style="font-size:15px;">' + joined + '</div></div>' +
             '</div>' +
             '<h4 style="margin:0 0 8px;color:var(--rosewood);">Order history</h4>' +
@@ -1205,7 +1213,7 @@
           const data = await res.json();
           loadingEl.classList.add("hidden");
           if (!data.success || !data.sellers.length) {
-            listEl.innerHTML = '<p class="empty-state">No approved sellers yet. Approve applications in the Seller Approvals tab.</p>';
+            listEl.innerHTML = '<p class="empty-state">No live sellers yet. Approve applications in the "Approval for Seller" tab.</p>';
             return;
           }
           sellerListData = data.sellers;
@@ -1219,7 +1227,7 @@
                     (p.image ? '<img src="' + p.image + '" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />' : '<div style="width:44px;height:44px;border-radius:8px;background:var(--blush);"></div>') +
                     '<div style="flex:1;min-width:0;">' +
                       '<div style="font-weight:600;">' + escapeHtml(p.name) + '</div>' +
-                      '<div style="font-size:12px;color:#8c7d78;">' + escapeHtml(p.category || "Uncategorised") + ' · ₹' + Math.round(p.price || 0) + '</div>' +
+                      '<div style="font-size:12px;color:#8c7d78;">' + escapeHtml(p.category || "Uncategorised") + ' · ' + fmtINR(p.price || 0) + '</div>' +
                     '</div>' +
                     '<span class="badge status-delivered">Approved</span>' +
                     '<button class="btn small" onclick="editProduct(' + p.id + ')">Edit</button>' +
@@ -1228,7 +1236,7 @@
               : '<p style="color:#8c7d78;font-size:13px;margin:8px 0 0;">No approved products yet.</p>';
 
             const pendingNote = s.pendingCount
-              ? '<div style="font-size:12px;color:#a3002a;margin-top:8px;">' + s.pendingCount + ' product' + (s.pendingCount === 1 ? '' : 's') + ' awaiting approval — review in the Seller Approvals tab.</div>'
+              ? '<div style="font-size:12px;color:#a3002a;margin-top:8px;">' + s.pendingCount + ' product' + (s.pendingCount === 1 ? '' : 's') + ' awaiting approval — review in the "Approval for Seller" tab.</div>'
               : '';
 
             return (
@@ -1343,7 +1351,7 @@
             '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
               '<div style="display:flex;gap:12px;align-items:center;">' +
                 (p.image ? '<img src="' + p.image + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />' : '') +
-                '<div><strong>' + escapeHtml(p.name) + '</strong> — ₹' + p.price + '<br>' +
+                '<div><strong>' + escapeHtml(p.name) + '</strong> — ' + fmtINR(p.price) + '<br>' +
                   '<span style="font-size:13px;color:#8c7d78;">by ' + escapeHtml(p.shopTitle || p.sellerName) + '</span></div>' +
               '</div>' +
               '<div style="display:flex;gap:8px;">' +
@@ -1606,7 +1614,7 @@
                 '<div class="info">' +
                   "<h3>" + escapeHtml(p.name) + "</h3>" +
                   '<div class="meta">' +
-                    '<span class="badge">₹' + p.price + "</span>" +
+                    '<span class="badge">' + fmtINR(p.price) + "</span>" +
                     '<span class="badge">MOQ ' + (p.moq || 1) + "</span>" +
                     (p.onSale ? '<span class="badge" style="background:#e8f7ea;color:#1c7a34;">🔥 ' + p.salePercent + "% off" + saleTimerLabel(p) + '</span>' : "") +
                     (p.giftFor === "her" ? '<span class="badge" style="background:#f3dbe2;color:#8a1c42;">👧 Gift for Her</span>' : "") +
@@ -1962,7 +1970,7 @@
           statCard("Total Orders", orders.length) +
           statCard("New / Unfulfilled", newCount) +
           statCard("Cancelled", cancelledCount) +
-          statCard("Revenue (COD)", "₹" + Math.round(totalRevenue));
+          statCard("Revenue (COD)", fmtINR(totalRevenue));
       }
 
       function statCard(label, value) {
@@ -1995,9 +2003,9 @@
               .join("");
 
             const totalHtml = isCancelled
-              ? '<span class="order-total" style="text-decoration:line-through;color:#8c7d78;">₹' + Math.round(o.total) + '</span>' +
+              ? '<span class="order-total" style="text-decoration:line-through;color:#8c7d78;">' + fmtINR(o.total) + '</span>' +
                 '<span style="font-size:11px;color:#a3002a;margin-left:6px;">not counted</span>'
-              : '<span class="order-total">₹' + Math.round(o.total) + "</span>";
+              : '<span class="order-total">' + fmtINR(o.total) + "</span>";
 
             return (
               '<div class="card order-card">' +
@@ -2176,6 +2184,7 @@
           }
           admins = data.admins;
           renderAdmins();
+          loadAdminRoles();
           loadLoginHistory();
         } finally {
           document.getElementById("adminsLoading").classList.add("hidden");
@@ -2253,6 +2262,48 @@
             );
           })
           .join("");
+      }
+
+      // ---------- ADMIN ROLES (boss / main "om" account only) ----------
+      let adminRoles = [];
+
+      async function loadAdminRoles() {
+        try {
+          const res = await fetch("/api/admin/roles", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (!data.success) return;
+          adminRoles = data.roles || [];
+          const sel = document.getElementById("newAdminDesignation");
+          const prev = sel.value;
+          sel.innerHTML = adminRoles.map((r) => '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>').join("");
+          if (adminRoles.includes(prev)) sel.value = prev;
+        } catch (err) {
+          // non-fatal
+        }
+      }
+
+      async function addAdminRole() {
+        const input = document.getElementById("newRoleName");
+        const errEl = document.getElementById("roleError");
+        errEl.textContent = "";
+        const name = input.value.trim();
+        if (!name) { errEl.textContent = "Enter a role name."; return; }
+        try {
+          const res = await fetch("/api/admin/roles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ name }),
+          });
+          const data = await res.json();
+          if (!data.success) { errEl.textContent = data.message || "Could not add role."; return; }
+          adminRoles = data.roles || [];
+          const sel = document.getElementById("newAdminDesignation");
+          sel.innerHTML = adminRoles.map((r) => '<option value="' + escapeHtml(r) + '">' + escapeHtml(r) + '</option>').join("");
+          sel.value = name;      // select the newly added role
+          input.value = "";
+        } catch (err) {
+          errEl.textContent = "Network error. Try again.";
+        }
       }
 
       async function createAdmin() {
