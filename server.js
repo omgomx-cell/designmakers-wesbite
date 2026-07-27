@@ -382,6 +382,7 @@ app.post("/api/customer/register", (req, res) => {
     name: cleanName,
     passwordHash: bcrypt.hashSync(String(password), 10),
     picture: "",
+    cart: [],
     role: "customer",
     shopTitle: "",
     sellerStatus: "none",
@@ -490,6 +491,49 @@ app.post("/api/customer/photo", requireCustomer, (req, res) => {
   customer.picture = picture;
   writeDatabase(database);
   res.json({ success: true, picture });
+});
+
+// ================================
+// CUSTOMER CART (saved to the account so it survives logout / new devices)
+// ================================
+app.get("/api/customer/cart", requireCustomer, (req, res) => {
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  res.json({ success: true, cart: (customer && Array.isArray(customer.cart)) ? customer.cart : [] });
+});
+
+app.put("/api/customer/cart", requireCustomer, (req, res) => {
+  const { cart } = req.body || {};
+  if (!Array.isArray(cart)) {
+    return res.status(400).json({ success: false, message: "Cart must be a list." });
+  }
+  if (cart.length > 100) {
+    return res.status(400).json({ success: false, message: "Too many items in the cart." });
+  }
+  // Keep only the fields we need, and sane values.
+  const clean = cart
+    .filter((it) => it && (it.productId !== undefined && it.productId !== null))
+    .slice(0, 100)
+    .map((it) => ({
+      productId: it.productId,
+      name: String(it.name || "").slice(0, 200),
+      price: Number(it.price) || 0,
+      originalPrice: Number(it.originalPrice) || Number(it.price) || 0,
+      onSale: !!it.onSale,
+      image: typeof it.image === "string" ? it.image.slice(0, 500) : "",
+      size: it.size || "",
+      qty: Math.max(1, Math.min(100000, Math.round(Number(it.qty) || 1))),
+      discounts: Array.isArray(it.discounts) ? it.discounts.slice(0, 20) : [],
+    }));
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) {
+    return res.status(404).json({ success: false, message: "Account not found." });
+  }
+  customer.cart = clean;
+  writeDatabase(database);
+  res.json({ success: true });
 });
 
 // ================================
