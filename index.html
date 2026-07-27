@@ -1807,9 +1807,18 @@
 
           <div id="accountSignedIn" style="display:none;">
             <h2 class="modal-title" style="margin-bottom:6px;">My account</h2>
-            <div style="margin:12px 0 18px;">
-              <div id="accountName" style="font-weight:700;font-size:1.05em;"></div>
-              <div id="accountMobile" style="font-size:0.9em;color:var(--muted);"></div>
+            <div style="display:flex;align-items:center;gap:14px;margin:12px 0 18px;">
+              <div>
+                <img id="accountPic" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--blush-line);display:none;" />
+                <div id="accountPicPlaceholder" style="width:64px;height:64px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:28px;">🙂</div>
+              </div>
+              <div>
+                <div id="accountName" style="font-weight:700;font-size:1.05em;"></div>
+                <div id="accountMobile" style="font-size:0.9em;color:var(--muted);"></div>
+                <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.82em;color:var(--rosewood);font-weight:600;">Change photo</a>
+                <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
+                <div id="profilePicError" style="font-size:0.78em;color:#a3002a;display:none;margin-top:4px;"></div>
+              </div>
             </div>
 
             <div id="sellerStatusBox" style="margin-bottom:14px;"></div>
@@ -1957,7 +1966,17 @@
           });
           const data = await res.json();
           if (!data.success) {
-            errorEl.textContent = data.message || "Invalid mobile number or password.";
+            if (data.notRegistered) {
+              // New number — take them straight to sign-up, pre-filled.
+              showRegisterForm();
+              document.getElementById("registerMobile").value = mobile;
+              const rErr = document.getElementById("registerError");
+              rErr.textContent = "Looks like you're new here — create your account below. 👇";
+              rErr.style.color = "var(--rosewood)";
+              rErr.style.display = "block";
+              return;
+            }
+            errorEl.textContent = data.message || "Incorrect password.";
             errorEl.style.display = "block";
             return;
           }
@@ -2055,6 +2074,66 @@
         closeAccountModal();
       }
 
+      // Customer uploads/changes their profile picture. We downscale it to a
+      // small square on-device first so the stored image stays lightweight.
+      async function uploadProfilePicture(event) {
+        const file = event.target.files && event.target.files[0];
+        const errEl = document.getElementById("profilePicError");
+        errEl.style.display = "none";
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+          errEl.textContent = "Please choose an image file.";
+          errEl.style.display = "block";
+          return;
+        }
+        try {
+          const dataUrl = await downscaleImage(file, 400);
+          const res = await fetch("/api/customer/photo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ picture: dataUrl }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errEl.textContent = data.message || "Could not save photo.";
+            errEl.style.display = "block";
+            return;
+          }
+          if (currentCustomer) currentCustomer.picture = data.picture;
+          renderAccountState();
+        } catch (e) {
+          errEl.textContent = "Could not process that image. Try another.";
+          errEl.style.display = "block";
+        } finally {
+          event.target.value = "";
+        }
+      }
+
+      // Resize an image file to a max square size and return a JPEG data URL.
+      function downscaleImage(file, maxSize) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error("read failed"));
+          reader.onload = () => {
+            const img = new Image();
+            img.onerror = () => reject(new Error("decode failed"));
+            img.onload = () => {
+              const side = Math.min(img.width, img.height);
+              const sx = (img.width - side) / 2;
+              const sy = (img.height - side) / 2;
+              const canvas = document.createElement("canvas");
+              canvas.width = maxSize;
+              canvas.height = maxSize;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, sx, sy, side, side, 0, 0, maxSize, maxSize);
+              resolve(canvas.toDataURL("image/jpeg", 0.85));
+            };
+            img.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
       function renderAccountState() {
         const btnIcon = document.getElementById("accountBtnIcon");
         if (btnIcon) btnIcon.textContent = currentCustomer ? "🙂" : "👤";
@@ -2073,6 +2152,18 @@
         signedInBox.style.display = "block";
         document.getElementById("accountName").textContent = currentCustomer.name;
         document.getElementById("accountMobile").textContent = currentCustomer.mobile;
+        const accPic = document.getElementById("accountPic");
+        const accPh = document.getElementById("accountPicPlaceholder");
+        if (accPic && accPh) {
+          if (currentCustomer.picture) {
+            accPic.src = currentCustomer.picture;
+            accPic.style.display = "block";
+            accPh.style.display = "none";
+          } else {
+            accPic.style.display = "none";
+            accPh.style.display = "flex";
+          }
+        }
 
         // Selling is a separate application + login (Seller ID/password by
         // separate application + login, not tied to this account — so we just point to it.
@@ -2304,7 +2395,7 @@
           }
           box.innerHTML = data.products.map((p) => (
             "<div style='display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--blush-line);'>" +
-              "<div><strong>" + escapeHtml(p.name) + "</strong><br><span style='font-size:0.85em;color:#8c7d78;'>₹" + escapeHtml(String(p.price)) + "</span></div>" +
+              "<div><strong>" + escapeHtml(p.name) + "</strong><br><span style='font-size:0.85em;color:#8c7d78;'>₹" + fmtINR(p.price) + "</span></div>" +
               "<span style='font-size:0.8em;font-weight:600;color:" + (p.approved ? "#1c7a34" : "#b8863f") + ";'>" +
                 (p.approved ? "Live" : "Pending approval") +
               "</span>" +
@@ -2341,14 +2432,14 @@
           statsBox.innerHTML =
             statCard("Orders", data.orders.length) +
             statCard("Cancelled", cancelledCount) +
-            statCard("Revenue (Delivered)", "₹" + Math.round(deliveredRevenue));
+            statCard("Revenue (Delivered)", "₹" + fmtINR(deliveredRevenue));
 
           listBox.innerHTML = data.orders.map((o) => {
             const itemsText = o.items.map((i) => escapeHtml(i.name) + " × " + i.qty).join(", ");
             return (
               "<div style='padding:10px 0;border-bottom:1px solid var(--blush-line);'>" +
                 "<strong>" + escapeHtml(o.orderNumber) + "</strong> — " + escapeHtml(o.status) +
-                " · ₹" + Math.round(o.sellerTotal || 0) + "<br>" +
+                " · ₹" + fmtINR(o.sellerTotal || 0) + "<br>" +
                 itemsText +
               "</div>"
             );
