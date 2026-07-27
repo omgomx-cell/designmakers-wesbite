@@ -491,6 +491,7 @@
         <button class="tab-btn active" id="tabBtnProducts" onclick="switchTab('products')">Products</button>
         <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">Orders</button>
         <button class="tab-btn" id="tabBtnHomepage" onclick="switchTab('homepage')">Homepage Sections</button>
+        <button class="tab-btn" id="tabBtnSellers" onclick="switchTab('sellers')">Sellers</button>
         <button class="tab-btn hidden" id="tabBtnAdmins" onclick="switchTab('admins')">Admins</button>
       </div>
 
@@ -583,6 +584,23 @@
           <button class="btn" onclick="saveHomepageSections()">Save MOQ / Discount changes</button>
           <div class="error" id="homepageSectionsError"></div>
           <div id="homepageSectionsSaved" style="display:none;color:#1c7a34;font-size:13px;margin-top:8px;">✓ Saved.</div>
+        </div>
+
+        <!-- SELLERS TAB -->
+        <div class="tab-panel" id="tabSellers">
+          <div class="card" style="margin-bottom:16px;">
+            <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Applications</h3>
+            <div class="phone" style="margin:0 0 10px;">Customers who applied to become sellers, awaiting your approval.</div>
+            <div id="sellerAppsLoading">Loading applications...</div>
+            <div id="sellerAppsList"></div>
+          </div>
+
+          <div class="card">
+            <h3 style="margin:0 0 10px;color:var(--rosewood);">Pending Seller Products</h3>
+            <div class="phone" style="margin:0 0 10px;">New products submitted by sellers — they won't appear on the storefront until approved.</div>
+            <div id="pendingProductsLoading">Loading pending products...</div>
+            <div id="pendingProductsList"></div>
+          </div>
         </div>
 
         <!-- ADMINS TAB (boss only) -->
@@ -887,7 +905,7 @@
       function switchTab(tab) {
         currentTab = tab;
 
-        ["products", "orders", "homepage", "admins"].forEach((t) => {
+        ["products", "orders", "homepage", "sellers", "admins"].forEach((t) => {
           document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
           document.getElementById("tabBtn" + capitalize(t)).classList.toggle("active", t === tab);
         });
@@ -898,6 +916,10 @@
         if (tab === "homepage") {
           document.getElementById("homepageSectionsSaved").style.display = "none";
           loadHomepagePreview();
+        }
+        if (tab === "sellers") {
+          loadSellerApplications();
+          loadPendingProducts();
         }
         if (tab === "admins") loadAdmins();
       }
@@ -1015,6 +1037,101 @@
       }
 
       function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+      // ---------- SELLERS TAB — applications + pending products ----------
+
+      async function loadSellerApplications() {
+        const loadingEl = document.getElementById("sellerAppsLoading");
+        const listEl = document.getElementById("sellerAppsList");
+        loadingEl.classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/seller-applications", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          loadingEl.classList.add("hidden");
+          if (!data.success || !data.applications.length) {
+            listEl.innerHTML = '<p class="empty-state">No pending seller applications.</p>';
+            return;
+          }
+          listEl.innerHTML = data.applications.map((a) => (
+            '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
+              '<div><strong>' + escapeHtml(a.shopTitle) + '</strong><br>' +
+                '<span style="font-size:13px;color:#8c7d78;">' + escapeHtml(a.name) + ' — ' + escapeHtml(a.email) + '</span></div>' +
+              '<div style="display:flex;gap:8px;">' +
+                '<button class="btn small" onclick="approveSellerApplication(' + a.id + ')">Approve</button>' +
+                '<button class="btn small secondary" onclick="rejectSellerApplication(' + a.id + ')">Reject</button>' +
+              '</div>' +
+            '</div>'
+          )).join("");
+        } catch (err) {
+          loadingEl.classList.add("hidden");
+          listEl.innerHTML = '<p class="empty-state">Network error loading applications.</p>';
+        }
+      }
+
+      async function approveSellerApplication(id) {
+        await fetch("/api/admin/seller-applications/" + id + "/approve", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadSellerApplications();
+      }
+
+      async function rejectSellerApplication(id) {
+        if (!confirm("Reject this seller application?")) return;
+        await fetch("/api/admin/seller-applications/" + id + "/reject", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadSellerApplications();
+      }
+
+      async function loadPendingProducts() {
+        const loadingEl = document.getElementById("pendingProductsLoading");
+        const listEl = document.getElementById("pendingProductsList");
+        loadingEl.classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/products/pending", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          loadingEl.classList.add("hidden");
+          if (!data.success || !data.products.length) {
+            listEl.innerHTML = '<p class="empty-state">No products waiting for approval.</p>';
+            return;
+          }
+          listEl.innerHTML = data.products.map((p) => (
+            '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
+              '<div style="display:flex;gap:12px;align-items:center;">' +
+                (p.image ? '<img src="' + p.image + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />' : '') +
+                '<div><strong>' + escapeHtml(p.name) + '</strong> — ₹' + p.price + '<br>' +
+                  '<span style="font-size:13px;color:#8c7d78;">by ' + escapeHtml(p.shopTitle || p.sellerName) + '</span></div>' +
+              '</div>' +
+              '<div style="display:flex;gap:8px;">' +
+                '<button class="btn small" onclick="approvePendingProduct(' + p.id + ')">Approve</button>' +
+                '<button class="btn small secondary" onclick="rejectPendingProduct(' + p.id + ')">Reject</button>' +
+              '</div>' +
+            '</div>'
+          )).join("");
+        } catch (err) {
+          loadingEl.classList.add("hidden");
+          listEl.innerHTML = '<p class="empty-state">Network error loading pending products.</p>';
+        }
+      }
+
+      async function approvePendingProduct(id) {
+        await fetch("/api/admin/products/" + id + "/approve", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadPendingProducts();
+      }
+
+      async function rejectPendingProduct(id) {
+        if (!confirm("Reject and remove this product?")) return;
+        await fetch("/api/admin/products/" + id + "/reject", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadPendingProducts();
+      }
 
       async function downloadBackup() {
         try {
