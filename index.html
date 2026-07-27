@@ -630,6 +630,23 @@
         position: relative;
         display: flex; align-items: center; justify-content: center;
       }
+      /* Logged-in profile avatar shown in the header account button. */
+      .icon-btn.has-avatar {
+        width: 46px; height: 46px;
+        border-radius: 50%;
+        padding: 0;
+        overflow: visible;
+        background: transparent;
+        border: none;
+      }
+      .account-avatar {
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+        border: 2px solid var(--gold);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      }
       .cart-count {
         position: absolute;
         top: -6px; right: -6px;
@@ -1470,6 +1487,7 @@
           </button>
           <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
             <span id="accountBtnIcon">👤</span>
+            <img id="accountBtnPic" alt="" style="display:none;width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.9);box-shadow:0 1px 4px rgba(0,0,0,0.25);" />
           </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
             🛍
@@ -1912,7 +1930,63 @@
 
     <script>
       let allProducts = [];
-      let cart = []; // { productId, name, price, size, qty, discounts, image }
+      // Cart persists on the device (localStorage) and, when signed in, on the
+      // customer's account too — so it survives logout and follows them to any device.
+      let cart = loadCartLocal(); // { productId, name, price, size, qty, discounts, image }
+
+      function loadCartLocal() {
+        try { const v = JSON.parse(localStorage.getItem("dm_cart") || "[]"); return Array.isArray(v) ? v : []; }
+        catch (e) { return []; }
+      }
+
+      let _cartSyncTimer = null;
+      function saveCart() {
+        try { localStorage.setItem("dm_cart", JSON.stringify(cart)); } catch (e) {}
+        if (currentCustomer) {
+          clearTimeout(_cartSyncTimer);
+          _cartSyncTimer = setTimeout(() => {
+            fetch("/api/customer/cart", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json", ...authHeaders() },
+              body: JSON.stringify({ cart }),
+            }).catch(() => {});
+          }, 600);
+        }
+      }
+
+      // Merge two carts by productId+size, keeping the larger quantity.
+      function mergeCarts(a, b) {
+        const out = [];
+        const map = {};
+        [...(a || []), ...(b || [])].forEach((it) => {
+          if (!it || it.productId === undefined) return;
+          const k = it.productId + "|" + (it.size || "");
+          if (map[k]) { map[k].qty = Math.max(map[k].qty || 1, it.qty || 1); }
+          else { map[k] = { ...it }; out.push(map[k]); }
+        });
+        return out;
+      }
+
+      // After sign-in, pull the account's saved cart, merge with the current
+      // cart, then persist the combined cart back to the account.
+      async function restoreAccountCart() {
+        if (!currentCustomer) return;
+        try {
+          const res = await fetch("/api/customer/cart", { headers: authHeaders() });
+          const data = await res.json();
+          if (data.success) {
+            cart = mergeCarts(cart, data.cart || []);
+            try { localStorage.setItem("dm_cart", JSON.stringify(cart)); } catch (e) {}
+            fetch("/api/customer/cart", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json", ...authHeaders() },
+              body: JSON.stringify({ cart }),
+            }).catch(() => {});
+            updateCartCount();
+            if (document.getElementById("cartDrawer").classList.contains("open")) renderCart();
+          }
+        } catch (e) {}
+      }
       let currentProduct = null;
 
       // ================================
@@ -1985,6 +2059,7 @@
           currentCustomer = data.customer;
           renderAccountState();
           closeAccountModal();
+          restoreAccountCart();
           document.getElementById("loginMobile").value = "";
           document.getElementById("loginPassword").value = "";
         } catch (error) {
@@ -2040,6 +2115,7 @@
           currentCustomer = data.customer;
           renderAccountState();
           closeAccountModal();
+          restoreAccountCart();
           document.getElementById("registerName").value = "";
           document.getElementById("registerMobile").value = "";
           document.getElementById("registerPassword").value = "";
@@ -2059,6 +2135,7 @@
           if (data.success) {
             currentCustomer = data.customer;
             renderAccountState();
+            restoreAccountCart();
           } else {
             localStorage.removeItem("dm_customer_token");
           }
@@ -2070,6 +2147,12 @@
       function signOutCustomer() {
         localStorage.removeItem("dm_customer_token");
         currentCustomer = null;
+        // The cart is saved on the account — clear it from this device on
+        // logout; it comes back when they sign in again.
+        cart = [];
+        try { localStorage.removeItem("dm_cart"); } catch (e) {}
+        updateCartCount();
+        if (document.getElementById("cartDrawer").classList.contains("open")) renderCart();
         renderAccountState();
         closeAccountModal();
       }
@@ -2136,7 +2219,15 @@
 
       function renderAccountState() {
         const btnIcon = document.getElementById("accountBtnIcon");
-        if (btnIcon) btnIcon.textContent = currentCustomer ? "🙂" : "👤";
+        const btnPic = document.getElementById("accountBtnPic");
+        if (currentCustomer && currentCustomer.picture) {
+          // Show the customer's uploaded photo in place of the emoji.
+          if (btnPic) { btnPic.src = currentCustomer.picture; btnPic.style.display = "block"; }
+          if (btnIcon) btnIcon.style.display = "none";
+        } else {
+          if (btnPic) btnPic.style.display = "none";
+          if (btnIcon) { btnIcon.style.display = ""; btnIcon.textContent = currentCustomer ? "🙂" : "👤"; }
+        }
 
         const signedOutBox = document.getElementById("accountSignedOut");
         const signedInBox = document.getElementById("accountSignedIn");
@@ -3435,6 +3526,7 @@
         }
 
         updateCartCount();
+        saveCart();
         closeProductModal();
         openCart();
       }
@@ -3527,12 +3619,14 @@
 
         item.qty = next;
         updateCartCount();
+        saveCart();
         renderCart();
       }
 
       function removeFromCart(idx) {
         cart.splice(idx, 1);
         updateCartCount();
+        saveCart();
         renderCart();
       }
 
@@ -3548,37 +3642,43 @@
       }
 
       // ---------- CHECKOUT: create the order server-side, then hand off to WhatsApp ----------
-      // When signed in, checkout uses the account's name + mobile automatically —
-      // no need to re-type them. Guests still see the name/phone fields.
+      // Checkout requires sign-in. Logged-in customers order with their account
+      // name + mobile automatically; guests are prompted to sign in first.
       function updateCheckoutIdentity() {
         const guestFields = document.getElementById("guestFields");
         const identity = document.getElementById("checkoutIdentity");
+        const btnLabel = document.getElementById("checkoutBtnLabel");
         if (!guestFields || !identity) return;
+        guestFields.style.display = "none"; // guest typing removed — sign-in required
+        identity.style.display = "block";
         if (currentCustomer) {
-          guestFields.style.display = "none";
-          identity.style.display = "block";
+          identity.style.color = "";
           identity.textContent = "Ordering as " + (currentCustomer.name || "") + " · " + (currentCustomer.mobile || "");
           document.getElementById("custName").value = currentCustomer.name || "";
           document.getElementById("custPhone").value = currentCustomer.mobile || "";
+          if (btnLabel) btnLabel.textContent = "Checkout on WhatsApp";
         } else {
-          guestFields.style.display = "";
-          identity.style.display = "none";
+          identity.textContent = "Please sign in to place your order.";
+          if (btnLabel) btnLabel.textContent = "Sign in to checkout";
         }
       }
 
       async function placeOrder() {
         if (!cart.length) return;
 
+        // Sign-in is mandatory for checkout.
+        if (!currentCustomer) {
+          closeCart();
+          openAccountModal();
+          return;
+        }
+
         const errorEl = document.getElementById("checkoutError");
         errorEl.style.display = "none";
 
         // Logged-in customers order with their account name + mobile automatically.
-        const name = currentCustomer
-          ? String(currentCustomer.name || "").trim()
-          : document.getElementById("custName").value.trim();
-        const phone = currentCustomer
-          ? String(currentCustomer.mobile || "").replace(/\D/g, "")
-          : document.getElementById("custPhone").value.replace(/\D/g, "");
+        const name = String(currentCustomer.name || "").trim();
+        const phone = String(currentCustomer.mobile || "").replace(/\D/g, "");
 
         if (!name) {
           errorEl.textContent = "Please enter your name.";
@@ -3649,6 +3749,7 @@
 
           cart = [];
           updateCartCount();
+          saveCart();
           closeCart();
 
           window.open("https://wa.me/7004847813?text=" + encodeURIComponent(message), "_blank");
@@ -3663,6 +3764,7 @@
 
       loadProducts();
       loadCustomerSession();
+      updateCartCount(); // reflect any cart restored from this device
 
       // Shareable link: https://designmakers.shop/#sell (or ?sell=1) opens the
       // seller application form directly — hand this URL out to people you invite
