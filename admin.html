@@ -1065,19 +1065,94 @@
             listEl.innerHTML = '<p class="empty-state">No customer accounts yet.</p>';
             return;
           }
-          listEl.innerHTML = data.customers.map((c) => (
+          listEl.innerHTML = data.customers.map((c) => {
+            const mobileText = c.mobile ? escapeHtml(c.mobile) : '<span style="color:#a3002a;">no mobile (legacy)</span>';
+            const orderTag = c.orderCount ? ' · ' + c.orderCount + ' order' + (c.orderCount === 1 ? '' : 's') : '';
+            return (
             '<div class="card" id="customerRow' + c.id + '" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;">' +
-              '<div><strong>' + escapeHtml(c.name) + '</strong><br>' +
-                '<span style="font-size:13px;color:#8c7d78;">' + escapeHtml(c.mobile) + '</span></div>' +
+              '<div><strong>' + escapeHtml(c.name || "—") + '</strong><br>' +
+                '<span style="font-size:13px;color:#8c7d78;">' + mobileText + orderTag + '</span></div>' +
               '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
                 '<span id="customerNewPw' + c.id + '" style="font-size:13px;color:#1c7a34;"></span>' +
+                '<button class="btn small" onclick="openCustomerDetails(' + c.id + ')">View details</button>' +
                 '<button class="btn small secondary" onclick="resetCustomerPassword(' + c.id + ')">Reset password</button>' +
+                '<button class="btn small danger" onclick="deleteCustomer(' + c.id + ', \'' + escapeHtml(c.name || "").replace(/'/g, "\\'") + '\')">Delete</button>' +
               '</div>' +
             '</div>'
-          )).join("");
+            );
+          }).join("");
         } catch (err) {
           loadingEl.classList.add("hidden");
           listEl.innerHTML = '<p class="empty-state">Network error loading customers.</p>';
+        }
+      }
+
+      async function openCustomerDetails(id) {
+        const overlay = document.getElementById("customerDetailOverlay");
+        const body = document.getElementById("customerDetailBody");
+        body.innerHTML = '<p class="empty-state" style="margin:0;">Loading…</p>';
+        overlay.style.display = "flex";
+        try {
+          const res = await fetch("/api/admin/customers/" + id, { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (!data.success) {
+            body.innerHTML = '<p class="empty-state">' + escapeHtml(data.message || "Could not load customer.") + '</p>';
+            return;
+          }
+          const c = data.customer;
+          const joined = c.createdAt ? new Date(c.createdAt).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+          const ordersHtml = (c.orders && c.orders.length)
+            ? c.orders.map((o) => {
+                const items = o.items.map((it) => escapeHtml(it.name) + (it.size ? " (" + escapeHtml(it.size) + ")" : "") + " × " + it.qty).join(", ");
+                const cancelled = o.status === "Cancelled";
+                return (
+                  '<div style="border-bottom:1px solid #3d2b32;padding:8px 0;">' +
+                    '<div style="display:flex;justify-content:space-between;gap:10px;">' +
+                      '<strong>' + escapeHtml(o.orderNumber) + '</strong>' +
+                      '<span style="' + (cancelled ? "text-decoration:line-through;color:#8c7d78;" : "") + '">₹' + Math.round(o.total || 0) + '</span>' +
+                    '</div>' +
+                    '<div style="font-size:12px;color:#8c7d78;">' + escapeHtml(o.status || "") + ' · ' + items + '</div>' +
+                  '</div>'
+                );
+              }).join("")
+            : '<p style="color:#8c7d78;font-size:13px;margin:0;">No orders yet.</p>';
+
+          body.innerHTML =
+            '<div style="margin-bottom:14px;">' +
+              '<div style="font-size:20px;font-weight:700;">' + escapeHtml(c.name || "—") + '</div>' +
+              '<div style="color:#8c7d78;">' + (c.mobile ? escapeHtml(c.mobile) : '<span style="color:#a3002a;">no mobile (legacy account)</span>') + '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">' +
+              '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Orders</div><div class="stat-value">' + (c.orders ? c.orders.length : 0) + '</div></div>' +
+              '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Spent (excl. cancelled)</div><div class="stat-value">₹' + Math.round(c.totalSpent || 0) + '</div></div>' +
+              '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Joined</div><div class="stat-value" style="font-size:15px;">' + joined + '</div></div>' +
+            '</div>' +
+            '<h4 style="margin:0 0 8px;color:var(--rosewood);">Order history</h4>' +
+            '<div>' + ordersHtml + '</div>';
+        } catch (err) {
+          body.innerHTML = '<p class="empty-state">Network error loading customer.</p>';
+        }
+      }
+
+      function closeCustomerDetails() {
+        document.getElementById("customerDetailOverlay").style.display = "none";
+      }
+
+      async function deleteCustomer(id, name) {
+        if (!confirm('Delete the account for "' + (name || "this customer") + '"?\n\nThis permanently removes their login. This cannot be undone.')) return;
+        try {
+          const res = await fetch("/api/admin/customers/" + id, {
+            method: "DELETE",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (!data.success) {
+            alert(data.message || "Could not delete customer.");
+            return;
+          }
+          loadCustomers();
+        } catch (err) {
+          alert("Network error. Please try again.");
         }
       }
 
@@ -2349,6 +2424,15 @@
         });
       })();
     </script>
+        <!-- CUSTOMER DETAILS MODAL -->
+    <div id="customerDetailOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9998; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--cream); border:1px solid var(--blush-line); border-radius:12px; padding:24px; max-width:520px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
+        <button class="btn small secondary" onclick="closeCustomerDetails()" style="position:absolute; top:14px; right:14px;">✕</button>
+        <h3 style="margin:0 0 16px; color:var(--rosewood);">Customer details</h3>
+        <div id="customerDetailBody"></div>
+      </div>
+    </div>
+
     <!-- SESSION KEEP-ALIVE PROMPT — shown every 10 minutes; auto-logout if
          no response within 10 seconds. -->
     <div id="sessionPromptOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
