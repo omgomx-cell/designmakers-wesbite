@@ -602,7 +602,7 @@
         <div class="tab-panel" id="tabSellers">
           <div class="card" style="margin-bottom:16px;">
             <h3 style="margin:0 0 8px;color:var(--rosewood);">Invite a seller</h3>
-            <div class="phone" style="margin:0 0 10px;">Share this link with anyone you want to let apply as a seller. It opens the application form directly and stays hidden from normal shoppers.</div>
+            <div class="phone" style="margin:0 0 10px;">Share this link with anyone you want to let apply as a seller. It opens the application page directly and stays hidden from normal shoppers.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
               <input type="text" id="sellerInviteLink" readonly style="flex:1;min-width:220px;margin:0;" />
               <button class="btn small" onclick="copySellerInviteLink()" style="white-space:nowrap;">Copy link</button>
@@ -615,6 +615,13 @@
             <div class="phone" style="margin:0 0 10px;">Customers who applied to become sellers, awaiting your approval.</div>
             <div id="sellerAppsLoading">Loading applications...</div>
             <div id="sellerAppsList"></div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Password Reset Requests</h3>
+            <div class="phone" style="margin:0 0 10px;">A seller who forgot their password requests a reset from the seller login screen — resolve it here to generate and send a new one.</div>
+            <div id="sellerPwLoading">Loading requests...</div>
+            <div id="sellerPwList"></div>
           </div>
 
           <div class="card">
@@ -954,6 +961,7 @@
         if (tab === "sellerlist") loadSellerList();
         if (tab === "sellers") {
           loadSellerApplications();
+          loadSellerPasswordRequests();
           loadPendingProducts();
         }
         if (tab === "customers") loadCustomers();
@@ -1317,7 +1325,7 @@
       async function loadSellerApplications() {
         // Fill in the shareable seller-invite link (based on the live site URL).
         const inviteEl = document.getElementById("sellerInviteLink");
-        if (inviteEl) inviteEl.value = window.location.origin + "/#sell";
+        if (inviteEl) inviteEl.value = window.location.origin + "/sell";
         const loadingEl = document.getElementById("sellerAppsLoading");
         const listEl = document.getElementById("sellerAppsList");
         loadingEl.classList.remove("hidden");
@@ -1346,10 +1354,22 @@
       }
 
       async function approveSellerApplication(id) {
-        await fetch("/api/admin/seller-applications/" + id + "/approve", {
+        const res = await fetch("/api/admin/seller-applications/" + id + "/approve", {
           method: "PUT",
           headers: { Authorization: "Bearer " + token },
         });
+        const data = await res.json();
+        if (data.success && !data.emailSent) {
+          alert(
+            "⚠️ " + data.message + "\n\n" +
+            "Seller ID: " + data.sellerId + "\n" +
+            "Password: " + data.plainPassword + "\n\n" +
+            "Send these to them yourself (WhatsApp/SMS) — the automatic email did not go through. " +
+            "This usually means GMAIL_USER / GMAIL_APP_PASSWORD aren't set correctly in Render's Environment tab.",
+          );
+        } else if (!data.success) {
+          alert(data.message || "Could not approve this application.");
+        }
         loadSellerApplications();
       }
 
@@ -1360,6 +1380,51 @@
           headers: { Authorization: "Bearer " + token },
         });
         loadSellerApplications();
+      }
+
+      async function loadSellerPasswordRequests() {
+        const loadingEl = document.getElementById("sellerPwLoading");
+        const listEl = document.getElementById("sellerPwList");
+        loadingEl.classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/seller-password-requests", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          loadingEl.classList.add("hidden");
+          if (!data.success || !data.requests.length) {
+            listEl.innerHTML = '<p class="empty-state">No pending password reset requests.</p>';
+            return;
+          }
+          listEl.innerHTML = data.requests.map((r) => (
+            '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
+              '<div><strong>' + escapeHtml(r.shopTitle) + '</strong><br>' +
+                '<span style="font-size:13px;color:#8c7d78;">' + escapeHtml(r.name) + ' — ' + escapeHtml(r.sellerId) + '</span></div>' +
+              '<button class="btn small" onclick="resolveSellerPasswordRequest(' + r.id + ')">Generate & send new password</button>' +
+            '</div>'
+          )).join("");
+        } catch (err) {
+          loadingEl.classList.add("hidden");
+          listEl.innerHTML = '<p class="empty-state">Network error loading requests.</p>';
+        }
+      }
+
+      async function resolveSellerPasswordRequest(id) {
+        const res = await fetch("/api/admin/seller-password-requests/" + id + "/resolve", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        const data = await res.json();
+        if (data.success && !data.emailSent) {
+          alert(
+            "⚠️ " + data.message + "\n\n" +
+            "Seller ID: " + data.sellerId + "\n" +
+            "New Password: " + data.newPassword + "\n\n" +
+            "Send these to them yourself (WhatsApp/SMS) — the automatic email did not go through. " +
+            "This usually means GMAIL_USER / GMAIL_APP_PASSWORD aren't set correctly in Render's Environment tab.",
+          );
+        } else if (!data.success) {
+          alert(data.message || "Could not resolve this request.");
+        }
+        loadSellerPasswordRequests();
       }
 
       async function loadPendingProducts() {
