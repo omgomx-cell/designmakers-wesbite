@@ -82,8 +82,15 @@ function getClientIp(req) {
 // the boss from the admin panel itself — no coding needed — and is stored in
 // database.json with a hashed password. Sub-admins get locked out after 3
 // wrong password attempts in a row; only the boss can unlock them.
-const JWT_SECRET =
-  process.env.JWT_SECRET || "dev-only-secret-change-me-" + Date.now();
+// IMPORTANT: this must be stable across restarts. It used to include
+// Date.now(), which meant every single restart (every deploy, every
+// idle-spin-down-then-wake on a free host) generated a brand new secret
+// and silently invalidated every admin/seller/customer token that was
+// still "logged in" — they'd get bounced to the login screen for no
+// visible reason. Set a real JWT_SECRET in your host's environment
+// variables for production; this fallback only exists so local/dev runs
+// don't crash, and is now at least consistent within itself.
+const JWT_SECRET = process.env.JWT_SECRET || "dev-only-secret-change-me-in-production";
 
 const BOSS_ACCOUNT = {
   username: process.env.ADMIN1_USERNAME || "admin1",
@@ -94,30 +101,44 @@ const MAX_LOGIN_ATTEMPTS = 3;
 
 // ================================
 // CONCURRENT SESSION LIMIT — max 2 active logins per username at once.
-// Kept in memory (resets on server restart) since sessions are short-lived
-// by nature; no need to persist this to MongoDB.
 // ================================
+// IMPORTANT: this used to live in a plain in-memory object, which is wiped
+// out every time the Node process restarts. On a host like Render, that
+// happens on every single deploy (and, on a free-tier dyno, after any idle
+// spin-down too) — so every admin who was logged in would suddenly get
+// "You've been logged out — logged in elsewhere" for no visible reason
+// right after a redeploy, even though nothing they did caused it. Storing
+// it in the database instead means it survives restarts, same as every
+// other piece of app state.
 const MAX_CONCURRENT_SESSIONS = 2;
-const activeSessions = {}; // username -> array of sessionIds, oldest first
 
-function registerSession(username, sessionId) {
-  if (!activeSessions[username]) activeSessions[username] = [];
-  activeSessions[username].push(sessionId);
+function registerSession(database, username, sessionId) {
+  if (!database.activeSessions) database.activeSessions = {};
+  if (!database.activeSessions[username]) database.activeSessions[username] = [];
+  database.activeSessions[username].push(sessionId);
   // If this login pushes the account over the limit, the oldest session(s)
   // are evicted — that device/tab will get "logged in elsewhere" on its
   // next request instead of continuing to work silently.
-  if (activeSessions[username].length > MAX_CONCURRENT_SESSIONS) {
-    activeSessions[username] = activeSessions[username].slice(-MAX_CONCURRENT_SESSIONS);
+  if (database.activeSessions[username].length > MAX_CONCURRENT_SESSIONS) {
+    database.activeSessions[username] = database.activeSessions[username].slice(-MAX_CONCURRENT_SESSIONS);
   }
 }
 
-function isSessionActive(username, sessionId) {
-  return !!(activeSessions[username] && activeSessions[username].includes(sessionId));
+function isSessionActive(database, username, sessionId) {
+  return !!(database.activeSessions && database.activeSessions[username] && database.activeSessions[username].includes(sessionId));
 }
 
-function revokeSession(username, sessionId) {
-  if (!activeSessions[username]) return;
-  activeSessions[username] = activeSessions[username].filter((id) => id !== sessionId);
+function revokeSession(database, username, sessionId) {
+  if (!database.activeSessions || !database.activeSessions[username]) return;
+  database.activeSessions[username] = database.activeSessions[username].filter((id) => id !== sessionId);
+}
+
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    "⚠️  JWT_SECRET is not set — using a shared dev fallback. Set a long random " +
+      "JWT_SECRET in your host's environment variables so login tokens can't be forged " +
+      "and stay valid across restarts as intended.",
+  );
 }
 
 if (!process.env.ADMIN1_PASSWORD) {
@@ -196,7 +217,8 @@ function requireAdmin(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    if (!isSessionActive(payload.username, payload.sessionId)) {
+    const database = readDatabase();
+    if (!isSessionActive(database, payload.username, payload.sessionId)) {
       return res.status(401).json({
         success: false,
         message: "You've been logged out — either this session ended or the account hit its 2-device login limit and got signed in elsewhere.",
@@ -287,9 +309,9 @@ app.post("/api/admin/login", (req, res) => {
     }
     logAttempt(database, "boss", true);
     database.bossLastLogin = { ip, at: new Date().toISOString() };
-    writeDatabase(database);
     const sessionId = crypto.randomUUID();
-    registerSession(username, sessionId);
+    registerSession(database, username, sessionId);
+    writeDatabase(database);
     const token = jwt.sign({ username, role: "boss", sessionId }, JWT_SECRET, { expiresIn: "7d" });
     return res.json({ success: true, token, username, role: "boss" });
   }
@@ -334,16 +356,18 @@ app.post("/api/admin/login", (req, res) => {
   account.failedAttempts = 0;
   account.lastLogin = { ip, at: new Date().toISOString() };
   logAttempt(database, "admin", true);
+  const sessionId = crypto.randomUUID();
+  registerSession(database, username, sessionId);
   writeDatabase(database);
 
-  const sessionId = crypto.randomUUID();
-  registerSession(username, sessionId);
   const token = jwt.sign({ username, role: "admin", sessionId }, JWT_SECRET, { expiresIn: "7d" });
   res.json({ success: true, token, username, role: "admin" });
 });
 
 app.post("/api/admin/logout", requireAdmin, (req, res) => {
-  revokeSession(req.admin.username, req.admin.sessionId);
+  const database = readDatabase();
+  revokeSession(database, req.admin.username, req.admin.sessionId);
+  writeDatabase(database);
   res.json({ success: true });
 });
 
@@ -1073,6 +1097,40 @@ app.put("/api/admin/sellers/:id/reset-password", requireAdmin, requireBoss, asyn
     sellerId: seller.sellerId,
     newPassword: emailResult.sent ? undefined : newPassword,
     emailSent: emailResult.sent,
+  });
+});
+
+// ================================
+// ADMIN: SET A SPECIFIC SELLER PASSWORD (boss-chosen, not random)
+// ================================
+// The "Reset password" endpoint above only ever generates a random one.
+// This lets the boss type an exact password for the seller's main ID —
+// useful when the seller wants to keep a password they'll remember, or
+// when the boss needs to hand out a known password in person right away.
+// Same storage rules as everywhere else: only the bcrypt hash is kept for
+// login; the plaintext is never written to the database at all here
+// (unlike the random-generate flow, there's nothing to "resend" if it's
+// misplaced — the boss already has it, since they typed it).
+app.put("/api/admin/sellers/:id/set-password", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+
+  const newPassword = String((req.body || {}).password || "");
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
+  }
+
+  seller.passwordHash = bcrypt.hashSync(newPassword, 10);
+  // A fresh password was just set by hand — any old "email never sent"
+  // fallback copy is now stale, clear it out.
+  delete seller.pendingPlainPassword;
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    message: `Password for ${seller.name} (${seller.sellerId}) has been set. Share it with them directly — it won't be shown again.`,
+    sellerId: seller.sellerId,
   });
 });
 
