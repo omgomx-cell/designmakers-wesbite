@@ -600,7 +600,7 @@
 
         <!-- SELLERS TAB -->
         <div class="tab-panel" id="tabSellers">
-          <div class="card" style="margin-bottom:16px;">
+          <div class="card" style="margin-bottom:16px;" id="sellerInviteCard">
             <h3 style="margin:0 0 8px;color:var(--rosewood);">Invite a seller</h3>
             <div class="phone" style="margin:0 0 10px;">Share this link with anyone you want to let apply as a seller. It opens the application page directly and stays hidden from normal shoppers.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
@@ -610,23 +610,30 @@
             </div>
           </div>
 
-          <div class="card" style="margin-bottom:16px;">
+          <div class="card" style="margin-bottom:16px;" id="sellerAppsCard">
             <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Applications</h3>
             <div class="phone" style="margin:0 0 10px;">Customers who applied to become sellers, awaiting your approval.</div>
             <div id="sellerAppsLoading">Loading applications...</div>
             <div id="sellerAppsList"></div>
           </div>
 
-          <div class="card" style="margin-bottom:16px;">
+          <div class="card" style="margin-bottom:16px;" id="sellerPwCard">
             <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Password Reset Requests</h3>
             <div class="phone" style="margin:0 0 10px;">A seller who forgot their password requests a reset from the seller login screen — resolve it here to generate and send a new one.</div>
             <div id="sellerPwLoading">Loading requests...</div>
             <div id="sellerPwList"></div>
           </div>
 
+          <div class="card" style="margin-bottom:16px;" id="sellerProfileReqCard">
+            <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Profile Update Requests</h3>
+            <div class="phone" style="margin:0 0 10px;">Sellers can't edit their phone, shop title, or photo directly — they raise a request here for you to approve or reject.</div>
+            <div id="sellerProfileReqLoading">Loading requests...</div>
+            <div id="sellerProfileReqList"></div>
+          </div>
+
           <div class="card">
             <h3 style="margin:0 0 10px;color:var(--rosewood);">Pending Seller Products</h3>
-            <div class="phone" style="margin:0 0 10px;">New products submitted by sellers — they won't appear on the storefront until approved.</div>
+            <div class="phone" style="margin:0 0 10px;">New products submitted by sellers — they won't appear on the storefront until approved. Only the shop's public name is shown here; the seller's real identity is visible to the boss account only.</div>
             <div id="pendingProductsLoading">Loading pending products...</div>
             <div id="pendingProductsList"></div>
           </div>
@@ -926,6 +933,16 @@
         document.getElementById("backupBtn").classList.toggle("hidden", role !== "boss");
         document.getElementById("newCategoryBtn").classList.toggle("hidden", role !== "boss");
         document.getElementById("seedCategoryProductsBtn").classList.toggle("hidden", role !== "boss");
+        // Live Sellers reveals real seller identity (name/email/phone) —
+        // sub-admins never get to see that, only the boss.
+        document.getElementById("tabBtnSellerlist").classList.toggle("hidden", role !== "boss");
+        // Same for the identity-revealing cards inside "Approval for Seller" —
+        // sub-admins keep that tab open, but only for the pending-products
+        // list (which already shows shop name only, not real identity).
+        document.getElementById("sellerInviteCard").classList.toggle("hidden", role !== "boss");
+        document.getElementById("sellerAppsCard").classList.toggle("hidden", role !== "boss");
+        document.getElementById("sellerPwCard").classList.toggle("hidden", role !== "boss");
+        document.getElementById("sellerProfileReqCard").classList.toggle("hidden", role !== "boss");
 
         myCanDeleteProducts = role === "boss";
         try {
@@ -960,8 +977,11 @@
         }
         if (tab === "sellerlist") loadSellerList();
         if (tab === "sellers") {
-          loadSellerApplications();
-          loadSellerPasswordRequests();
+          if (role === "boss") {
+            loadSellerApplications();
+            loadSellerPasswordRequests();
+            loadSellerProfileUpdateRequests();
+          }
           loadPendingProducts();
         }
         if (tab === "customers") loadCustomers();
@@ -1453,6 +1473,53 @@
           alert(data.message || "Could not resolve this request.");
         }
         loadSellerPasswordRequests();
+      }
+
+      async function loadSellerProfileUpdateRequests() {
+        const loadingEl = document.getElementById("sellerProfileReqLoading");
+        const listEl = document.getElementById("sellerProfileReqList");
+        loadingEl.classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/seller-profile-update-requests", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          loadingEl.classList.add("hidden");
+          if (!data.success || !data.requests.length) {
+            listEl.innerHTML = '<p class="empty-state">No pending profile update requests.</p>';
+            return;
+          }
+          listEl.innerHTML = data.requests.map((r) => {
+            const changeLines = Object.keys(r.changes || {}).map((key) => {
+              if (key === "photo") return '<div>New photo uploaded</div>';
+              const label = key === "shopTitle" ? "Shop title" : key === "phone" ? "Phone" : key;
+              return '<div>' + escapeHtml(label) + ' → ' + escapeHtml(String(r.changes[key])) + '</div>';
+            }).join("");
+            return (
+              '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
+                '<div><strong>' + escapeHtml(r.name) + '</strong> — <span style="font-size:13px;color:#8c7d78;">' + escapeHtml(r.sellerId) + '</span>' +
+                  '<div style="font-size:13px;color:#8c7d78;margin-top:4px;">' + changeLines + '</div></div>' +
+                '<div style="display:flex;gap:8px;">' +
+                  '<button class="btn small" onclick="resolveSellerProfileUpdateRequest(' + r.id + ', \'approve\')">Approve</button>' +
+                  '<button class="btn small secondary" onclick="resolveSellerProfileUpdateRequest(' + r.id + ', \'reject\')">Reject</button>' +
+                '</div>' +
+              '</div>'
+            );
+          }).join("");
+        } catch (err) {
+          loadingEl.classList.add("hidden");
+          listEl.innerHTML = '<p class="empty-state">Network error loading requests.</p>';
+        }
+      }
+
+      async function resolveSellerProfileUpdateRequest(id, decision) {
+        if (decision === "reject" && !confirm("Reject this profile update request?")) return;
+        const res = await fetch("/api/admin/seller-profile-update-requests/" + id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+          body: JSON.stringify({ decision }),
+        });
+        const data = await res.json();
+        if (!data.success) alert(data.message || "Could not resolve this request.");
+        loadSellerProfileUpdateRequests();
       }
 
       async function loadPendingProducts() {
