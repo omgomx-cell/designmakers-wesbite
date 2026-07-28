@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Seller Dashboard - Design Makers</title>
+    <title>Become a Seller - Design Makers</title>
     <link rel="icon" type="image/png" href="Logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,31 +20,47 @@
         --ink: #2a231f;
         --muted: #8c7d78;
         --surface: #ffffff;
-        --danger: #a5133a;
-        --danger-bg: #fde8ec;
-        --success: #1e7a4c;
-        --success-bg: #e7f6ee;
       }
       body {
         font-family: "Inter", sans-serif;
         background: var(--blush);
         color: var(--ink);
         min-height: 100vh;
-      }
-      h1, h2, .brand .name { font-family: "Playfair Display", serif; }
-
-      /* ---------- LOGIN SCREEN ---------- */
-      #loginScreen {
-        min-height: 100vh;
         display: flex;
         justify-content: center;
-        align-items: flex-start;
-        padding: 48px 16px;
+        padding: 32px 16px;
+        transition: background 0.4s ease, color 0.4s ease;
       }
-      .login-page { width: 100%; max-width: 420px; }
-      .brand { text-align: center; margin-bottom: 20px; }
+      .dark-toggle {
+        position: fixed;
+        top: 16px; right: 16px;
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        border: 1px solid var(--blush-line);
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 17px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      .page {
+        width: 100%;
+        max-width: 480px;
+      }
+      .brand {
+        text-align: center;
+        margin-bottom: 20px;
+      }
       .brand img { height: 44px; margin-bottom: 8px; }
-      .brand .name { font-weight: 700; font-size: 1.3em; color: var(--rosewood); }
+      .brand .name {
+        font-family: "Playfair Display", serif;
+        font-weight: 700;
+        font-size: 1.3em;
+        color: var(--rosewood);
+      }
       .card {
         background: var(--cream);
         border: 1px solid var(--blush-line);
@@ -52,10 +68,29 @@
         padding: 28px 24px;
         box-shadow: 0 8px 30px rgba(138,28,66,0.08);
       }
-      .card h1 { font-size: 1.4em; margin-bottom: 6px; }
-      .desc { font-size: 0.9em; color: var(--muted); margin-bottom: 20px; line-height: 1.4; }
-      label { font-size: 0.85em; display: block; margin-bottom: 4px; margin-top: 14px; font-weight: 500; }
-      input[type="text"], input[type="password"], input[type="tel"], textarea {
+      h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4em;
+        margin-bottom: 6px;
+        color: var(--ink);
+      }
+      .desc {
+        font-size: 0.9em;
+        color: var(--muted);
+        margin-bottom: 20px;
+        line-height: 1.4;
+      }
+      label {
+        font-size: 0.85em;
+        color: var(--ink);
+        display: block;
+        margin-bottom: 4px;
+        margin-top: 14px;
+        font-weight: 500;
+      }
+      input[type="text"],
+      input[type="email"],
+      input[type="tel"] {
         width: 100%;
         padding: 11px 12px;
         border: 1px solid var(--blush-line);
@@ -65,14 +100,31 @@
         background: var(--surface);
         color: var(--ink);
       }
-      input[type="file"] { font-size: 0.85em; margin-top: 4px; }
-      .hint { font-size: 0.78em; color: var(--muted); margin-top: 4px; }
-      .error { display: none; background: var(--danger-bg); color: var(--danger); border-radius: 8px; padding: 10px 12px; font-size: 0.85em; margin-top: 16px; }
-      .success-msg { display: none; background: var(--success-bg); color: var(--success); border-radius: 8px; padding: 10px 12px; font-size: 0.85em; margin-top: 16px; }
-      button {
-        cursor: pointer;
-        font-family: inherit;
+      input[type="file"] { font-size: 0.85em; }
+      .hint {
+        font-size: 0.78em;
+        color: var(--muted);
+        margin-top: 4px;
       }
+      .error {
+        display: none;
+        background: #fde8ec;
+        color: #a5133a;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 0.85em;
+        margin-top: 16px;
+      }
+      .success {
+        display: none;
+        text-align: center;
+      }
+      .success h2 {
+        font-family: "Playfair Display", serif;
+        color: var(--rosewood);
+        margin-bottom: 8px;
+      }
+      .success p { color: var(--muted); font-size: 0.9em; }
       button.submit {
         width: 100%;
         margin-top: 20px;
@@ -83,414 +135,95 @@
         border-radius: 10px;
         font-size: 1em;
         font-weight: 600;
+        cursor: pointer;
       }
       button.submit:disabled { opacity: 0.6; cursor: default; }
-      button.link-btn {
-        background: none;
-        border: none;
-        color: var(--rosewood);
-        font-size: 0.82em;
-        margin-top: 14px;
+      .back-link {
         display: block;
-        width: 100%;
         text-align: center;
-      }
-      .back-link { display: block; text-align: center; margin-top: 18px; font-size: 0.85em; color: var(--muted); text-decoration: none; }
-
-      /* ---------- DASHBOARD ---------- */
-      #dashboard { display: none; }
-      header.dash-header {
-        background: var(--rosewood);
-        color: #fff;
-        padding: 16px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-      }
-      header.dash-header .who { font-size: 13px; opacity: 0.9; }
-      header.dash-header h1 { font-size: 17px; margin: 0; }
-      header.dash-header button {
-        background: rgba(255,255,255,0.18);
-        border: none;
-        color: #fff;
-        padding: 8px 14px;
-        border-radius: 8px;
-        font-size: 13px;
-      }
-      .tabs {
-        display: flex;
-        gap: 4px;
-        background: var(--surface);
-        border-bottom: 1px solid var(--blush-line);
-        padding: 0 12px;
-        overflow-x: auto;
-        position: sticky;
-        top: 56px;
-        z-index: 19;
-      }
-      .tabs button {
-        background: none;
-        border: none;
-        padding: 13px 14px;
-        font-size: 13.5px;
-        color: var(--muted);
-        border-bottom: 2px solid transparent;
-        white-space: nowrap;
-        font-weight: 600;
-      }
-      .tabs button.active { color: var(--rosewood); border-bottom-color: var(--rosewood); }
-      main { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
-      .panel { display: none; }
-      .panel.active { display: block; }
-      .section-title { font-family: "Playfair Display", serif; font-size: 1.15em; margin-bottom: 14px; }
-      .empty-state { color: var(--muted); font-size: 0.9em; padding: 30px 0; text-align: center; }
-
-      /* Products / orders grid */
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
-      .p-card {
-        background: var(--surface);
-        border: 1px solid var(--blush-line);
-        border-radius: 12px;
-        overflow: hidden;
-      }
-      .p-card img { width: 100%; height: 130px; object-fit: cover; display: block; background: var(--blush); }
-      .p-card .body { padding: 10px 12px; }
-      .p-card .name { font-weight: 600; font-size: 0.92em; margin-bottom: 2px; }
-      .p-card .meta { font-size: 0.8em; color: var(--muted); }
-      .badge {
-        display: inline-block;
-        font-size: 0.72em;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 20px;
-        margin-top: 6px;
-      }
-      .badge.pending { background: #fff4de; color: #a06a10; }
-      .badge.live { background: var(--success-bg); color: var(--success); }
-
-      .order-row {
-        background: var(--surface);
-        border: 1px solid var(--blush-line);
-        border-radius: 12px;
-        padding: 14px 16px;
-        margin-bottom: 10px;
-      }
-      .order-row .top-line { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.92em; margin-bottom: 4px; }
-      .order-row .item-line { font-size: 0.85em; color: var(--muted); }
-      .order-status {
-        display: inline-block;
-        font-size: 0.72em;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 20px;
-        background: var(--blush);
-        color: var(--rosewood);
-      }
-
-      .form-card {
-        background: var(--surface);
-        border: 1px solid var(--blush-line);
-        border-radius: 12px;
-        padding: 20px;
-        max-width: 520px;
-      }
-      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
-      .pending-note {
-        background: #fff4de;
-        color: #a06a10;
-        border-radius: 8px;
-        padding: 10px 12px;
+        margin-top: 18px;
         font-size: 0.85em;
-        margin-bottom: 16px;
+        color: var(--muted);
+        text-decoration: none;
       }
     </style>
   </head>
   <body>
-
-    <!-- ============ LOGIN SCREEN ============ -->
-    <div id="loginScreen">
-      <div class="login-page">
-        <div class="brand">
-          <img src="Logo.png" alt="Design Makers" />
-          <div class="name">DESIGN MAKERS</div>
-        </div>
-        <div class="card">
-          <div id="loginFormBlock">
-            <h1>Seller login</h1>
-            <p class="desc">Log in with the Seller ID and password we emailed you when your application was approved.</p>
-
-            <label for="loginSellerId">Seller ID</label>
-            <input type="text" id="loginSellerId" placeholder="DM-SLR-001" />
-
-            <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" />
-
-            <div class="error" id="loginError"></div>
-
-            <button class="submit" id="loginBtn" onclick="doLogin()">Log in</button>
-            <button class="link-btn" onclick="showForgotPassword()">Forgot password?</button>
-          </div>
-
-          <div id="forgotBlock" style="display:none;">
-            <h1>Forgot password</h1>
-            <p class="desc">Enter your Seller ID and we'll send a request to the admin to reset it. You'll get a new password by email.</p>
-
-            <label for="forgotSellerId">Seller ID</label>
-            <input type="text" id="forgotSellerId" placeholder="DM-SLR-001" />
-
-            <div class="error" id="forgotError"></div>
-            <div class="success-msg" id="forgotSuccess"></div>
-
-            <button class="submit" id="forgotBtn" onclick="submitForgotPassword()">Send request</button>
-            <button class="link-btn" onclick="showLoginForm()">Back to login</button>
-          </div>
-        </div>
-        <a class="back-link" href="/">← Back to Design Makers</a>
-      </div>
-    </div>
-
-    <!-- ============ DASHBOARD ============ -->
-    <div id="dashboard">
-      <header class="dash-header">
-        <div>
-          <h1 id="dashShopTitle">Seller Dashboard</h1>
-          <div class="who" id="dashSellerId"></div>
-        </div>
-        <button onclick="doLogout()">Log out</button>
-      </header>
-
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="products" onclick="switchTab('products')">My Products</button>
-        <button class="tab-btn" data-tab="add" onclick="switchTab('add')">Add Product</button>
-        <button class="tab-btn" data-tab="orders" onclick="switchTab('orders')">Orders</button>
-        <button class="tab-btn" data-tab="profile" onclick="switchTab('profile')">Profile</button>
+    <button class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode" id="darkModeBtn">
+      <span id="darkModeIcon">🌙</span>
+    </button>
+    <div class="page">
+      <div class="brand">
+        <img src="Logo.png" alt="Design Makers" />
+        <div class="name">DESIGN MAKERS</div>
       </div>
 
-      <main>
-        <!-- My Products -->
-        <div class="panel active" id="panel-products">
-          <div class="section-title">My Products</div>
-          <div id="productsGrid" class="grid"></div>
-          <div class="empty-state" id="productsEmpty" style="display:none;">You haven't added any products yet.</div>
+      <div class="card">
+        <div id="formSection">
+          <h1>Become a seller</h1>
+          <p class="desc">Fill this in and we'll review your application. You'll get your Seller ID and password by email once approved.</p>
+
+          <label for="applyName">Full name</label>
+          <input type="text" id="applyName" />
+
+          <label for="applyEmail">Email address</label>
+          <input type="email" id="applyEmail" />
+
+          <label for="applyPhone">Phone number</label>
+          <input type="tel" id="applyPhone" />
+
+          <label for="applyShopTitle">Your shop title</label>
+          <input type="text" id="applyShopTitle" />
+
+          <label for="applyAadhaar">Aadhaar number (12 digits)</label>
+          <input type="text" id="applyAadhaar" maxlength="12" />
+          <div class="hint">We only keep the last 4 digits on file — used to match against the photo below.</div>
+
+          <label for="applyPersonPhoto">Your photo (a clear selfie or headshot)</label>
+          <input type="file" id="applyPersonPhoto" accept="image/*" />
+
+          <label for="applyAadhaarPhoto">Photo of your Aadhaar card</label>
+          <input type="file" id="applyAadhaarPhoto" accept="image/*" />
+
+          <div class="error" id="sellerApplyError"></div>
+
+          <button class="submit" id="submitBtn" onclick="submitSellerApplication()">Submit application</button>
         </div>
 
-        <!-- Add Product -->
-        <div class="panel" id="panel-add">
-          <div class="section-title">Add Product</div>
-          <div class="form-card">
-            <label for="pName">Product name</label>
-            <input type="text" id="pName" />
-
-            <div class="two-col">
-              <div>
-                <label for="pPrice">Price (₹)</label>
-                <input type="text" id="pPrice" />
-              </div>
-              <div>
-                <label for="pMoq">MOQ</label>
-                <input type="text" id="pMoq" placeholder="1" />
-              </div>
-            </div>
-
-            <label for="pCategory">Category</label>
-            <input type="text" id="pCategory" />
-
-            <label for="pSizes">Sizes (comma separated, optional)</label>
-            <input type="text" id="pSizes" placeholder="S, M, L" />
-
-            <label for="pDescription">Description</label>
-            <textarea id="pDescription" rows="3"></textarea>
-
-            <label for="pImage">Product photo</label>
-            <input type="file" id="pImage" accept="image/*" />
-
-            <div class="error" id="addProductError"></div>
-            <div class="success-msg" id="addProductSuccess"></div>
-
-            <button class="submit" id="addProductBtn" onclick="submitNewProduct()">Submit for approval</button>
-          </div>
+        <div class="success" id="successSection">
+          <h2>Application submitted!</h2>
+          <p id="successMsg"></p>
         </div>
+      </div>
 
-        <!-- Orders -->
-        <div class="panel" id="panel-orders">
-          <div class="section-title">Orders</div>
-          <div id="ordersList"></div>
-          <div class="empty-state" id="ordersEmpty" style="display:none;">No orders with your products yet.</div>
-        </div>
-
-        <!-- Profile -->
-        <div class="panel" id="panel-profile">
-          <div class="section-title">Profile</div>
-          <div class="form-card">
-            <div class="pending-note" id="profilePendingNote" style="display:none;">
-              You have a profile update request awaiting admin approval.
-            </div>
-
-            <label>Seller ID</label>
-            <input type="text" id="profileSellerId" disabled />
-
-            <label>Name</label>
-            <input type="text" id="profileName" disabled />
-
-            <label for="profilePhone">Phone number</label>
-            <input type="tel" id="profilePhone" />
-
-            <label for="profileShopTitle">Shop title</label>
-            <input type="text" id="profileShopTitle" />
-
-            <label for="profilePhoto">Update photo (optional)</label>
-            <input type="file" id="profilePhoto" accept="image/*" />
-
-            <div class="hint">Changes here need admin approval before they take effect.</div>
-
-            <div class="error" id="profileError"></div>
-            <div class="success-msg" id="profileSuccess"></div>
-
-            <button class="submit" id="profileSubmitBtn" onclick="submitProfileUpdate()">Request update</button>
-          </div>
-        </div>
-      </main>
+      <a class="back-link" href="/">← Back to Design Makers</a>
     </div>
 
     <script>
-      const TOKEN_KEY = "dm_seller_token";
-
-      function getToken() { return localStorage.getItem(TOKEN_KEY); }
-      function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
-      function clearToken() { localStorage.removeItem(TOKEN_KEY); }
-
-      async function api(path, options = {}) {
-        const token = getToken();
-        const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
-        if (token) headers.Authorization = "Bearer " + token;
-        const res = await fetch(path, Object.assign({}, options, { headers }));
-        const data = await res.json().catch(() => ({ success: false, message: "Server error." }));
-        return { ok: res.ok, data };
+      // Same localStorage key as the main site, so the choice carries over
+      // whichever page a visitor lands on first.
+      function applyDarkMode(on) {
+        document.body.classList.toggle("dark-mode", on);
+        const icon = document.getElementById("darkModeIcon");
+        if (icon) icon.textContent = on ? "☀️" : "🌙";
+        const btn = document.getElementById("darkModeBtn");
+        if (btn) btn.title = on ? "Switch to light mode" : "Switch to dark mode";
       }
-
-      // ---------- Login screen ----------
-      function showForgotPassword() {
-        document.getElementById("loginFormBlock").style.display = "none";
-        document.getElementById("forgotBlock").style.display = "block";
+      function toggleDarkMode() {
+        const on = !document.body.classList.contains("dark-mode");
+        try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
+        applyDarkMode(on);
       }
-      function showLoginForm() {
-        document.getElementById("forgotBlock").style.display = "none";
-        document.getElementById("loginFormBlock").style.display = "block";
-      }
+      (function initDarkMode() {
+        let saved = null;
+        try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
+        applyDarkMode(saved === "1");
+      })();
 
-      async function doLogin() {
-        const errorEl = document.getElementById("loginError");
-        errorEl.style.display = "none";
-        const sellerId = document.getElementById("loginSellerId").value.trim();
-        const password = document.getElementById("loginPassword").value;
-        if (!sellerId || !password) {
-          errorEl.textContent = "Enter your Seller ID and password.";
-          errorEl.style.display = "block";
-          return;
-        }
-        const btn = document.getElementById("loginBtn");
-        btn.disabled = true;
-        btn.textContent = "Logging in...";
-        const { data } = await api("/api/seller/login", {
-          method: "POST",
-          body: JSON.stringify({ sellerId, password }),
-        });
-        btn.disabled = false;
-        btn.textContent = "Log in";
-        if (!data.success) {
-          errorEl.textContent = data.message || "Could not log in.";
-          errorEl.style.display = "block";
-          return;
-        }
-        setToken(data.token);
-        enterDashboard(data.seller);
-      }
-
-      async function submitForgotPassword() {
-        const errorEl = document.getElementById("forgotError");
-        const successEl = document.getElementById("forgotSuccess");
-        errorEl.style.display = "none";
-        successEl.style.display = "none";
-        const sellerId = document.getElementById("forgotSellerId").value.trim();
-        if (!sellerId) {
-          errorEl.textContent = "Enter your Seller ID.";
-          errorEl.style.display = "block";
-          return;
-        }
-        const btn = document.getElementById("forgotBtn");
-        btn.disabled = true;
-        btn.textContent = "Sending...";
-        const { data } = await api("/api/seller/forgot-password", {
-          method: "POST",
-          body: JSON.stringify({ sellerId }),
-        });
-        btn.disabled = false;
-        btn.textContent = "Send request";
-        if (!data.success) {
-          errorEl.textContent = data.message || "Could not send request.";
-          errorEl.style.display = "block";
-          return;
-        }
-        successEl.textContent = data.message;
-        successEl.style.display = "block";
-      }
-
-      function doLogout() {
-        clearToken();
-        document.getElementById("dashboard").style.display = "none";
-        document.getElementById("loginScreen").style.display = "flex";
-        showLoginForm();
-      }
-
-      // ---------- Dashboard shell ----------
-      function enterDashboard(seller) {
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("dashboard").style.display = "block";
-        document.getElementById("dashShopTitle").textContent = seller.shopTitle || "Seller Dashboard";
-        document.getElementById("dashSellerId").textContent = seller.sellerId + " · " + seller.name;
-        loadProducts();
-      }
-
-      function switchTab(tab) {
-        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
-        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
-        document.getElementById("panel-" + tab).classList.add("active");
-        if (tab === "products") loadProducts();
-        if (tab === "orders") loadOrders();
-        if (tab === "profile") loadProfile();
-      }
-
-      // ---------- My Products ----------
-      async function loadProducts() {
-        const { data } = await api("/api/seller/products");
-        if (!data.success) return;
-        const grid = document.getElementById("productsGrid");
-        const empty = document.getElementById("productsEmpty");
-        grid.innerHTML = "";
-        if (!data.products.length) {
-          empty.style.display = "block";
-          return;
-        }
-        empty.style.display = "none";
-        data.products.forEach((p) => {
-          const img = (Array.isArray(p.images) && p.images[0]) || p.image || "";
-          const card = document.createElement("div");
-          card.className = "p-card";
-          card.innerHTML =
-            (img ? `<img src="${img}" alt="${escapeHtml(p.name)}" />` : `<div style="height:130px;background:var(--blush);"></div>`) +
-            `<div class="body">
-              <div class="name">${escapeHtml(p.name)}</div>
-              <div class="meta">₹${p.price} · ${escapeHtml(p.category || "Uncategorized")}</div>
-              <span class="badge ${p.approved !== false ? "live" : "pending"}">${p.approved !== false ? "Live" : "Pending approval"}</span>
-            </div>`;
-          grid.appendChild(card);
-        });
-      }
-
-      // ---------- Add Product ----------
+      // Resize a photo before sending it — phone camera photos can be 4–10MB
+      // each, and two of those in one request was overflowing the server's
+      // upload limit (that's the "Could not submit" error). Shrinking to a
+      // reasonable max width keeps quality plenty good for admin review.
       function downscaleImage(file, maxDimension, quality) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -522,179 +255,75 @@
         });
       }
 
-      async function submitNewProduct() {
-        const errorEl = document.getElementById("addProductError");
-        const successEl = document.getElementById("addProductSuccess");
+      async function submitSellerApplication() {
+        const errorEl = document.getElementById("sellerApplyError");
         errorEl.style.display = "none";
-        successEl.style.display = "none";
 
-        const name = document.getElementById("pName").value.trim();
-        const price = document.getElementById("pPrice").value.trim();
-        const moq = document.getElementById("pMoq").value.trim();
-        const category = document.getElementById("pCategory").value.trim();
-        const sizes = document.getElementById("pSizes").value.trim();
-        const description = document.getElementById("pDescription").value.trim();
-        const fileInput = document.getElementById("pImage");
+        const name = document.getElementById("applyName").value.trim();
+        const email = document.getElementById("applyEmail").value.trim();
+        const phone = document.getElementById("applyPhone").value.trim();
+        const shopTitle = document.getElementById("applyShopTitle").value.trim();
+        const aadhaar = document.getElementById("applyAadhaar").value.trim();
+        const personPhotoInput = document.getElementById("applyPersonPhoto");
+        const fileInput = document.getElementById("applyAadhaarPhoto");
 
-        if (!name || !price) {
-          errorEl.textContent = "Product name and price are required.";
+        if (!name || !email || !phone || !shopTitle || aadhaar.length !== 12) {
+          errorEl.textContent = "Please fill in every field with a valid 12-digit Aadhaar number.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!personPhotoInput.files || !personPhotoInput.files[0]) {
+          errorEl.textContent = "Please upload a photo of yourself.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!fileInput.files || !fileInput.files[0]) {
+          errorEl.textContent = "Please upload a photo of your Aadhaar card.";
           errorEl.style.display = "block";
           return;
         }
 
-        const btn = document.getElementById("addProductBtn");
-        btn.disabled = true;
-        btn.textContent = "Submitting...";
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting...";
 
-        let image = "";
-        if (fileInput.files && fileInput.files[0]) {
-          try {
-            image = await downscaleImage(fileInput.files[0], 1000, 0.82);
-          } catch (e) {
-            errorEl.textContent = "Could not process the photo. Try a different image.";
+        let personPhoto, aadhaarPhoto;
+        try {
+          personPhoto = await downscaleImage(personPhotoInput.files[0], 1000, 0.82);
+          aadhaarPhoto = await downscaleImage(fileInput.files[0], 1400, 0.82);
+        } catch (e) {
+          errorEl.textContent = "Could not process one of the photos. Try a different image.";
+          errorEl.style.display = "block";
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Submit application";
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/seller-applications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, phone, shopTitle, aadhaar, personPhoto, aadhaarPhoto }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not submit application.";
             errorEl.style.display = "block";
-            btn.disabled = false;
-            btn.textContent = "Submit for approval";
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Submit application";
             return;
           }
-        }
-
-        const { data } = await api("/api/seller/products", {
-          method: "POST",
-          body: JSON.stringify({
-            name,
-            price,
-            moq: moq || 1,
-            category,
-            sizes,
-            description,
-            images: image ? [image] : [],
-          }),
-        });
-
-        btn.disabled = false;
-        btn.textContent = "Submit for approval";
-
-        if (!data.success) {
-          errorEl.textContent = data.message || "Could not submit product.";
+          document.getElementById("formSection").style.display = "none";
+          document.getElementById("successMsg").textContent =
+            "We'll email you at " + email + " once it's reviewed.";
+          document.getElementById("successSection").style.display = "block";
+        } catch (error) {
+          errorEl.textContent = "Could not submit application. Please try again.";
           errorEl.style.display = "block";
-          return;
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Submit application";
         }
-
-        successEl.textContent = data.message || "Product submitted for approval.";
-        successEl.style.display = "block";
-        document.getElementById("pName").value = "";
-        document.getElementById("pPrice").value = "";
-        document.getElementById("pMoq").value = "";
-        document.getElementById("pCategory").value = "";
-        document.getElementById("pSizes").value = "";
-        document.getElementById("pDescription").value = "";
-        fileInput.value = "";
       }
-
-      // ---------- Orders ----------
-      async function loadOrders() {
-        const { data } = await api("/api/seller/orders");
-        if (!data.success) return;
-        const list = document.getElementById("ordersList");
-        const empty = document.getElementById("ordersEmpty");
-        list.innerHTML = "";
-        if (!data.orders.length) {
-          empty.style.display = "block";
-          return;
-        }
-        empty.style.display = "none";
-        data.orders.forEach((o) => {
-          const row = document.createElement("div");
-          row.className = "order-row";
-          const itemsText = (o.items || [])
-            .map((it) => `${escapeHtml(it.name)}${it.size ? " (" + escapeHtml(it.size) + ")" : ""} × ${it.qty}`)
-            .join(", ");
-          row.innerHTML = `
-            <div class="top-line">
-              <span>${escapeHtml(o.orderNumber || "")}</span>
-              <span class="order-status">${escapeHtml(o.status || "")}</span>
-            </div>
-            <div class="item-line">${itemsText}</div>
-            <div class="item-line">Your total: ₹${o.sellerTotal}</div>
-          `;
-          list.appendChild(row);
-        });
-      }
-
-      // ---------- Profile ----------
-      async function loadProfile() {
-        const { data } = await api("/api/seller/me");
-        if (!data.success) return;
-        const s = data.seller;
-        document.getElementById("profileSellerId").value = s.sellerId;
-        document.getElementById("profileName").value = s.name;
-        document.getElementById("profilePhone").value = s.phone || "";
-        document.getElementById("profileShopTitle").value = s.shopTitle || "";
-      }
-
-      async function submitProfileUpdate() {
-        const errorEl = document.getElementById("profileError");
-        const successEl = document.getElementById("profileSuccess");
-        errorEl.style.display = "none";
-        successEl.style.display = "none";
-
-        const phone = document.getElementById("profilePhone").value.trim();
-        const shopTitle = document.getElementById("profileShopTitle").value.trim();
-        const fileInput = document.getElementById("profilePhoto");
-
-        const btn = document.getElementById("profileSubmitBtn");
-        btn.disabled = true;
-        btn.textContent = "Submitting...";
-
-        let photo = "";
-        if (fileInput.files && fileInput.files[0]) {
-          try {
-            photo = await downscaleImage(fileInput.files[0], 800, 0.82);
-          } catch (e) {
-            errorEl.textContent = "Could not process the photo. Try a different image.";
-            errorEl.style.display = "block";
-            btn.disabled = false;
-            btn.textContent = "Request update";
-            return;
-          }
-        }
-
-        const { data } = await api("/api/seller/profile-update-request", {
-          method: "POST",
-          body: JSON.stringify({ phone, shopTitle, photo }),
-        });
-
-        btn.disabled = false;
-        btn.textContent = "Request update";
-
-        if (!data.success) {
-          errorEl.textContent = data.message || "Could not submit request.";
-          errorEl.style.display = "block";
-          return;
-        }
-        successEl.textContent = data.message || "Request submitted.";
-        successEl.style.display = "block";
-        document.getElementById("profilePendingNote").style.display = "block";
-      }
-
-      function escapeHtml(str) {
-        return String(str || "").replace(/[&<>"']/g, (c) => ({
-          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-        }[c]));
-      }
-
-      // ---------- Boot ----------
-      (async function boot() {
-        const token = getToken();
-        if (!token) return;
-        const { data } = await api("/api/seller/me");
-        if (data.success) {
-          enterDashboard(data.seller);
-        } else {
-          clearToken();
-        }
-      })();
     </script>
   </body>
 </html>
