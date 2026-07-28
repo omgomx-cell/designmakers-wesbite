@@ -512,7 +512,13 @@ const defaultDatabase = {
   // (emailed to them on approval), NOT Google sign-in.
   // Each entry: {
   //   id, sellerId, passwordHash, name, email, phone, shopTitle,
-  //   applicationId, createdAt
+  //   applicationId, createdAt,
+  //   pendingPlainPassword   // ONLY set when the credentials email failed to
+  //                          // send (approval or password reset) — lets the
+  //                          // boss look the password up later in the admin
+  //                          // panel to share it manually. Cleared as soon as
+  //                          // the boss confirms it's been shared, or the
+  //                          // next time a reset succeeds via email.
   // }
   sellers: [],
 
