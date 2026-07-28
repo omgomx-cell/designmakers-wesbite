@@ -523,6 +523,17 @@ const defaultDatabase = {
   // }
   sellerPasswordResetRequests: [],
 
+  // Sellers can't edit their own profile (phone / shop title / photo)
+  // directly — they submit a change request here, and the boss approves
+  // or rejects it from the admin panel. Approving copies the change onto
+  // the real seller record.
+  // Each entry: {
+  //   id, sellerRecordId, sellerId (code), name,
+  //   changes: { phone?, shopTitle?, photo? },  // only the fields being changed
+  //   status: "pending" | "approved" | "rejected", createdAt, resolvedAt
+  // }
+  sellerProfileUpdateRequests: [],
+
   settings: {
     storeName: "Design Makers",
     tagline: "Gifts Made Personal",
@@ -643,6 +654,11 @@ function ensureShape(database) {
 
   if (!Array.isArray(database.sellerPasswordResetRequests)) {
     database.sellerPasswordResetRequests = [];
+    needsUpgrade = true;
+  }
+
+  if (!Array.isArray(database.sellerProfileUpdateRequests)) {
+    database.sellerProfileUpdateRequests = [];
     needsUpgrade = true;
   }
 
