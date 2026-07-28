@@ -3,7 +3,8 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+// nodemailer was used for automatic emails (Gmail SMTP). Removed — see note
+// on sendMail() below for why.
 
 const { connectDB, readDatabase, writeDatabase, getNextId } = require("./database");
 
@@ -12,49 +13,21 @@ const PORT = process.env.PORT || 3000;
 app.set("trust proxy", true);
 
 // ================================
-// EMAIL (seller applications + credentials)
+// EMAIL (seller applications + credentials) — DISABLED
 // ================================
-// Sends mail through Gmail using an App Password (not your normal Gmail
-// password — generate one at myaccount.google.com > Security >
-// 2-Step Verification > App passwords). Set GMAIL_USER and
-// GMAIL_APP_PASSWORD in Render's Environment tab. ADMIN_NOTIFY_EMAIL is
-// where new-application alerts go — defaults to GMAIL_USER if not set.
-const GMAIL_USER = process.env.GMAIL_USER || "";
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "";
-const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || GMAIL_USER;
+// Automatic email was removed on purpose: Render's free web-service tier
+// blocks outbound SMTP ports (25/465/587), so every send attempt just sat
+// there and timed out. Rather than pay for a paid instance or wire up an
+// HTTP email API, every "email" in this app is now handled manually —
+// passwords/approvals/rejections show up in the admin panel for the boss
+// to share by hand (WhatsApp/SMS/etc). This function is kept as a no-op
+// so none of the call sites below had to change: they already treat a
+// failed send as "share it manually," which is now just the only path.
+const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || "";
 
-let mailTransporter = null;
-if (GMAIL_USER && GMAIL_APP_PASSWORD) {
-  mailTransporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
-  });
-} else {
-  console.warn(
-    "⚠️  GMAIL_USER / GMAIL_APP_PASSWORD not set — seller application emails " +
-      "will be skipped (the site still works, applications still save to the database).",
-  );
-}
-
-// Never throws — email is a nice-to-have, not something that should ever
-// break an approval or an application just because a message failed to send.
-async function sendMail(to, subject, html) {
-  if (!mailTransporter || !to) {
-    console.warn(`(email skipped — not configured) To: ${to} | Subject: ${subject}`);
-    return { sent: false, reason: !mailTransporter ? "not-configured" : "no-recipient" };
-  }
-  try {
-    await mailTransporter.sendMail({
-      from: `"Design Makers" <${GMAIL_USER}>`,
-      to,
-      subject,
-      html,
-    });
-    return { sent: true };
-  } catch (error) {
-    console.error("Failed to send email:", error.message);
-    return { sent: false, reason: error.message };
-  }
+async function sendMail(to, subject, _html) {
+  console.log(`(automailer disabled — handle manually) To: ${to} | Subject: ${subject}`);
+  return { sent: false, reason: "automailer-disabled" };
 }
 
 // Generates a seller ID like DM-SLR-001 and a random 10-character password.
@@ -679,7 +652,7 @@ app.post("/api/seller-applications", async (req, res) => {
      <p>Review and approve it from the admin panel's Sellers tab.</p>`,
   );
 
-  res.json({ success: true, message: "Application submitted — we'll email you once it's reviewed." });
+  res.json({ success: true, message: "Application submitted — we'll contact you once it's reviewed." });
 });
 
 // ================================
@@ -766,7 +739,7 @@ app.post("/api/seller/forgot-password", async (req, res) => {
 
   res.json({
     success: true,
-    message: "Your request has been sent to the admin — you'll get a new password by email once it's resolved.",
+    message: "Your request has been sent to the admin — they'll contact you with a new password once it's resolved.",
   });
 });
 
@@ -825,7 +798,7 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, require
     success: true,
     message: emailResult.sent
       ? `New password generated and emailed to ${seller.name}.`
-      : `New password generated for ${seller.name}, but the EMAIL FAILED to send. You can find and share it any time from the Live Sellers tab.`,
+      : `New password generated for ${seller.name}. Share it with them yourself (WhatsApp/SMS/etc) — find it any time from the Live Sellers tab.`,
     sellerId: seller.sellerId,
     newPassword: emailResult.sent ? undefined : newPassword,
     emailSent: emailResult.sent,
@@ -1131,7 +1104,7 @@ app.put("/api/admin/sellers/:id/reset-password", requireAdmin, requireBoss, asyn
     success: true,
     message: emailResult.sent
       ? `New password generated and emailed to ${seller.name}.`
-      : `New password generated for ${seller.name}, but the EMAIL FAILED to send. You can find and share it any time from the Live Sellers tab.`,
+      : `New password generated for ${seller.name}. Share it with them yourself (WhatsApp/SMS/etc) — find it any time from the Live Sellers tab.`,
     sellerId: seller.sellerId,
     newPassword: emailResult.sent ? undefined : newPassword,
     emailSent: emailResult.sent,
@@ -1280,7 +1253,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
     success: true,
     message: emailResult.sent
       ? `${application.name} is now an approved seller (${sellerId}). Login email sent.`
-      : `${application.name} is now an approved seller (${sellerId}), but the login EMAIL FAILED to send. You can find and share the password any time from the Live Sellers tab.`,
+      : `${application.name} is now an approved seller (${sellerId}). Share the login details with them yourself (WhatsApp/SMS/etc) — find the password any time from the Live Sellers tab.`,
     sellerId,
     // Only returned when the email failed — so the admin panel can show a
     // manual-share fallback instead of the seller being stuck with no way in.
