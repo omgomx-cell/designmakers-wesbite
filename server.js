@@ -641,6 +641,9 @@ app.post("/api/seller/login", (req, res) => {
   if (!seller || !bcrypt.compareSync(password, seller.passwordHash)) {
     return res.status(401).json({ success: false, message: "Invalid Seller ID or password." });
   }
+  if (seller.banned) {
+    return res.status(403).json({ success: false, message: "This seller account has been suspended. Contact Design Makers for details." });
+  }
 
   const token = jwt.sign({ type: "seller", sellerId: seller.id }, JWT_SECRET, { expiresIn: "30d" });
   res.json({
@@ -768,6 +771,7 @@ function requireSeller(req, res, next) {
     const database = readDatabase();
     const seller = database.sellers.find((s) => s.id === payload.sellerId);
     if (!seller) return res.status(401).json({ success: false, message: "Seller account not found." });
+    if (seller.banned) return res.status(403).json({ success: false, message: "This seller account has been suspended." });
     req.seller = seller;
     next();
   } catch (error) {
@@ -902,6 +906,7 @@ app.get("/api/admin/sellers", requireAdmin, (req, res) => {
         phone: s.phone,
         shopTitle: s.shopTitle,
         createdAt: s.createdAt,
+        banned: !!s.banned,
         productCount: products.length,
         approvedCount,
         pendingCount,
@@ -916,6 +921,31 @@ app.get("/api/admin/sellers", requireAdmin, (req, res) => {
       };
     });
   res.json({ success: true, sellers });
+});
+
+// ================================
+// ADMIN: BAN / UNBAN A SELLER
+// ================================
+// Banning blocks the seller from logging in (or continuing an existing
+// session) and hides their products from the storefront, without deleting
+// their account, order history, or product listings.
+
+app.put("/api/admin/sellers/:id/ban", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+  seller.banned = true;
+  writeDatabase(database);
+  res.json({ success: true, message: `${seller.name} (${seller.sellerId}) has been banned.` });
+});
+
+app.put("/api/admin/sellers/:id/unban", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+  seller.banned = false;
+  writeDatabase(database);
+  res.json({ success: true, message: `${seller.name} (${seller.sellerId}) has been unbanned.` });
 });
 
 // ================================
@@ -964,6 +994,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, async (req, 
     shopTitle: application.shopTitle,
     applicationId: application.id,
     createdAt: new Date().toISOString(),
+    banned: false,
   };
   database.sellers.push(seller);
   application.status = "approved";
@@ -1909,9 +1940,17 @@ app.get("/api/products", (req, res) => {
     const { popular, trending } = computeHomepageRankings(database);
     const popularIds = new Set(popular.map((p) => p.id));
     const trendingIds = new Set(trending.map((p) => p.id));
+    const bannedSellerIds = new Set(
+      (database.sellers || []).filter((s) => s.banned).map((s) => s.id),
+    );
 
     const products = database.products
-      .filter((product) => product.active && product.approved !== false)
+      .filter(
+        (product) =>
+          product.active &&
+          product.approved !== false &&
+          !(product.sellerId && bannedSellerIds.has(product.sellerId)),
+      )
       .map((product) => ({
         ...product,
         saleActive: isSaleActive(product),
