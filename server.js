@@ -64,8 +64,20 @@ function generateSellerId(nextNumericId) {
   return `DM-SLR-${String(nextNumericId).padStart(3, "0")}`;
 }
 
+// Generates a random password for manual sharing (WhatsApp, in person, a
+// screenshot, etc). Deliberately avoids ambiguous look-alike characters
+// (0/O, 1/l/I) — a base64url charset includes all of those, which is fine
+// for a password a computer pastes for you, but is a real source of
+// "I typed it exactly and it still says invalid" when a human has to
+// read it off a popup/screenshot and retype it by hand.
+const SAFE_PASSWORD_CHARS = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
 function generateSellerPassword() {
-  return crypto.randomBytes(6).toString("base64url"); // 8 chars, URL-safe
+  let out = "";
+  const bytes = crypto.randomBytes(10);
+  for (let i = 0; i < 10; i++) {
+    out += SAFE_PASSWORD_CHARS[bytes[i] % SAFE_PASSWORD_CHARS.length];
+  }
+  return out;
 }
 
 function getClientIp(req) {
@@ -940,6 +952,32 @@ app.post("/api/admin/customers/:id/reset-password", requireAdmin, (req, res) => 
     newPassword,
     mobile: customer.mobile,
     message: "New password generated. Share it with the customer now — it won't be shown again.",
+  });
+});
+
+// ================================
+// ADMIN: LOG IN AS A SELLER (no password needed)
+// ================================
+// For when the boss just needs to see/use a seller's dashboard directly —
+// no password exchange required at all. Issues a normal seller session
+// token, exactly like a real seller login would, scoped to that one
+// seller's account. Boss-only, and every use is written to the seller's
+// own login-adjacent record via loginHistory-style logging isn't needed
+// here since it's not a credentialed login — but we do still block it for
+// banned sellers, same as a real login would be blocked.
+app.post("/api/admin/sellers/:id/login-as", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+  if (seller.banned) {
+    return res.status(403).json({ success: false, message: "This seller is banned — unban them first." });
+  }
+
+  const token = jwt.sign({ type: "seller", sellerId: seller.id }, JWT_SECRET, { expiresIn: "1d" });
+  res.json({
+    success: true,
+    token,
+    seller: { id: seller.id, sellerId: seller.sellerId, name: seller.name, shopTitle: seller.shopTitle },
   });
 });
 
