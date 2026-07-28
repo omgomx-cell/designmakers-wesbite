@@ -727,7 +727,7 @@ app.post("/api/seller/forgot-password", async (req, res) => {
 });
 
 // Boss/admin: view pending seller password-reset requests.
-app.get("/api/admin/seller-password-requests", requireAdmin, (req, res) => {
+app.get("/api/admin/seller-password-requests", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const requests = (database.sellerPasswordResetRequests || [])
     .filter((r) => r.status === "pending")
@@ -737,7 +737,7 @@ app.get("/api/admin/seller-password-requests", requireAdmin, (req, res) => {
 
 // Boss/admin: generate a new password for the seller and email it to them,
 // then mark the request resolved.
-app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, async (req, res) => {
+app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, requireBoss, async (req, res) => {
   const database = readDatabase();
   const request = (database.sellerPasswordResetRequests || []).find((r) => r.id === Number(req.params.id));
   if (!request) {
@@ -908,7 +908,7 @@ app.post("/api/admin/customers/:id/reset-password", requireAdmin, (req, res) => 
 // ADMIN: SELLER LIST (approved sellers + their products)
 // ================================
 
-app.get("/api/admin/sellers", requireAdmin, (req, res) => {
+app.get("/api/admin/sellers", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const allProducts = database.products || [];
   const sellers = (database.sellers || [])
@@ -950,7 +950,7 @@ app.get("/api/admin/sellers", requireAdmin, (req, res) => {
 // session) and hides their products from the storefront, without deleting
 // their account, order history, or product listings.
 
-app.put("/api/admin/sellers/:id/ban", requireAdmin, (req, res) => {
+app.put("/api/admin/sellers/:id/ban", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const seller = database.sellers.find((s) => s.id === Number(req.params.id));
   if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
@@ -959,7 +959,7 @@ app.put("/api/admin/sellers/:id/ban", requireAdmin, (req, res) => {
   res.json({ success: true, message: `${seller.name} (${seller.sellerId}) has been banned.` });
 });
 
-app.put("/api/admin/sellers/:id/unban", requireAdmin, (req, res) => {
+app.put("/api/admin/sellers/:id/unban", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const seller = database.sellers.find((s) => s.id === Number(req.params.id));
   if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
@@ -972,7 +972,7 @@ app.put("/api/admin/sellers/:id/unban", requireAdmin, (req, res) => {
 // ADMIN: REVIEW SELLER APPLICATIONS
 // ================================
 
-app.get("/api/admin/seller-applications", requireAdmin, (req, res) => {
+app.get("/api/admin/seller-applications", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const applications = database.sellerApplications
     .filter((a) => a.status === "pending")
@@ -992,7 +992,7 @@ app.get("/api/admin/seller-applications", requireAdmin, (req, res) => {
 
 // Approving generates a Seller ID + random password, creates the seller
 // account, and emails the credentials — nothing further needed from you.
-app.put("/api/admin/seller-applications/:id/approve", requireAdmin, async (req, res) => {
+app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss, async (req, res) => {
   const database = readDatabase();
   const application = database.sellerApplications.find((a) => a.id === Number(req.params.id));
   if (!application) return res.status(404).json({ success: false, message: "Application not found." });
@@ -1046,7 +1046,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, async (req, 
   });
 });
 
-app.put("/api/admin/seller-applications/:id/reject", requireAdmin, async (req, res) => {
+app.put("/api/admin/seller-applications/:id/reject", requireAdmin, requireBoss, async (req, res) => {
   const database = readDatabase();
   const application = database.sellerApplications.find((a) => a.id === Number(req.params.id));
   if (!application) return res.status(404).json({ success: false, message: "Application not found." });
@@ -1553,16 +1553,134 @@ app.get("/api/seller/orders", requireSeller, (req, res) => {
 });
 
 // ================================
+// SELLER: PROFILE
+// ================================
+// Sellers can't edit phone/shop title/photo directly — they submit a
+// request here, and the boss reviews it from the admin panel.
+
+app.get("/api/seller/me", requireSeller, (req, res) => {
+  const seller = req.seller;
+  res.json({
+    success: true,
+    seller: {
+      id: seller.id,
+      sellerId: seller.sellerId,
+      name: seller.name,
+      email: seller.email,
+      phone: seller.phone,
+      shopTitle: seller.shopTitle,
+      photo: seller.photo || "",
+      createdAt: seller.createdAt,
+    },
+  });
+});
+
+app.post("/api/seller/profile-update-request", requireSeller, (req, res) => {
+  const body = req.body || {};
+  const phone = String(body.phone || "").trim();
+  const shopTitle = String(body.shopTitle || "").trim();
+  const photo = String(body.photo || "").trim(); // base64 data URL, optional
+
+  const changes = {};
+  if (phone && phone !== req.seller.phone) changes.phone = phone;
+  if (shopTitle && shopTitle !== req.seller.shopTitle) changes.shopTitle = shopTitle;
+  if (photo) changes.photo = photo;
+
+  if (!Object.keys(changes).length) {
+    return res.status(400).json({ success: false, message: "No changes to submit." });
+  }
+
+  const database = readDatabase();
+  if (!Array.isArray(database.sellerProfileUpdateRequests)) database.sellerProfileUpdateRequests = [];
+
+  const alreadyPending = database.sellerProfileUpdateRequests.some(
+    (r) => r.sellerRecordId === req.seller.id && r.status === "pending",
+  );
+  if (alreadyPending) {
+    return res.status(409).json({
+      success: false,
+      message: "You already have a pending profile update request — please wait for it to be reviewed.",
+    });
+  }
+
+  const request = {
+    id: getNextId(database.sellerProfileUpdateRequests),
+    sellerRecordId: req.seller.id,
+    sellerId: req.seller.sellerId,
+    name: req.seller.name,
+    changes,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+  };
+  database.sellerProfileUpdateRequests.push(request);
+  writeDatabase(database);
+
+  sendMail(
+    ADMIN_NOTIFY_EMAIL,
+    "Seller profile update request — Design Makers",
+    `<p>${req.seller.name} (${req.seller.sellerId}) requested a profile update.</p>
+     <p>Review it from the admin panel's Sellers tab.</p>`,
+  );
+
+  res.json({ success: true, message: "Your request has been sent to the admin for approval." });
+});
+
+// Boss-only: view + resolve seller profile-update requests.
+app.get("/api/admin/seller-profile-update-requests", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const requests = (database.sellerProfileUpdateRequests || [])
+    .filter((r) => r.status === "pending")
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  res.json({ success: true, requests });
+});
+
+app.put("/api/admin/seller-profile-update-requests/:id", requireAdmin, requireBoss, (req, res) => {
+  const decision = String((req.body || {}).decision || "").trim(); // "approve" | "reject"
+  if (!["approve", "reject"].includes(decision)) {
+    return res.status(400).json({ success: false, message: "decision must be 'approve' or 'reject'." });
+  }
+
+  const database = readDatabase();
+  const request = (database.sellerProfileUpdateRequests || []).find((r) => r.id === Number(req.params.id));
+  if (!request) return res.status(404).json({ success: false, message: "Request not found." });
+  if (request.status !== "pending") {
+    return res.status(400).json({ success: false, message: "This request was already resolved." });
+  }
+
+  if (decision === "approve") {
+    const seller = database.sellers.find((s) => s.id === request.sellerRecordId);
+    if (!seller) return res.status(404).json({ success: false, message: "That seller account no longer exists." });
+    Object.assign(seller, request.changes);
+  }
+
+  request.status = decision === "approve" ? "approved" : "rejected";
+  request.resolvedAt = new Date().toISOString();
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    message: decision === "approve" ? "Profile update approved and applied." : "Profile update request rejected.",
+  });
+});
+
+// ================================
 // ADMIN: APPROVE SELLER PRODUCTS
 // ================================
 
 app.get("/api/admin/products/pending", requireAdmin, (req, res) => {
   const database = readDatabase();
+  const isBoss = req.admin.role === "boss";
   const pending = database.products
     .filter((p) => p.sellerId && p.approved === false)
     .map((p) => {
       const seller = database.sellers.find((s) => s.id === p.sellerId);
-      return { ...p, sellerName: seller ? seller.name : "Unknown seller", shopTitle: seller ? seller.shopTitle : "" };
+      return {
+        ...p,
+        // Sub-admins only ever see the seller's public shop name — never
+        // their real name/ID/contact. Only the boss gets sellerName.
+        sellerName: isBoss ? (seller ? seller.name : "Unknown seller") : undefined,
+        shopTitle: seller ? seller.shopTitle : "",
+      };
     });
   res.json({ success: true, products: pending });
 });
@@ -1931,6 +2049,14 @@ app.get("/admin", (req, res) => {
 
 app.get("/sell", (req, res) => {
   res.sendFile(path.join(__dirname, "sell.html"));
+});
+
+// ================================
+// SELLER LOGIN / DASHBOARD PAGE
+// ================================
+
+app.get("/seller", (req, res) => {
+  res.sendFile(path.join(__dirname, "seller.html"));
 });
 
 
