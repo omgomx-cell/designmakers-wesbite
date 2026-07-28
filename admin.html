@@ -1277,6 +1277,17 @@
               ? '<div style="font-size:12px;color:#a3002a;margin-top:8px;">' + s.pendingCount + ' product' + (s.pendingCount === 1 ? '' : 's') + ' awaiting approval — review in the "Approval for Seller" tab.</div>'
               : '';
 
+            const escapedName = escapeHtml(s.name).replace(/'/g, "\\'");
+            const pendingPasswordBanner = s.hasPendingPassword
+              ? '<div style="margin-top:10px;padding:8px 10px;background:#fff4e5;border:1px solid #e0a336;border-radius:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">' +
+                  '<span>⚠️ This seller\'s password email never went through — a password is on file to share manually.</span>' +
+                  '<span style="display:flex;gap:6px;">' +
+                    '<button class="btn small" onclick="viewPendingPassword(' + s.id + ')">View password</button>' +
+                    '<button class="btn small secondary" onclick="clearPendingPassword(' + s.id + ')">Mark as shared</button>' +
+                  '</span>' +
+                '</div>'
+              : '';
+
             return (
               '<div class="card" style="margin-bottom:12px;' + (s.banned ? 'opacity:0.7;border-color:#a3002a;' : '') + '">' +
                 '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
@@ -1292,12 +1303,15 @@
                     '<div>' + s.approvedCount + ' approved · ' + s.pendingCount + ' pending</div>' +
                     '<div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">' +
                       '<button class="btn small" onclick="toggleSellerProducts(' + s.id + ')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">▼ Products</button>' +
+                      '<button class="btn small" onclick="editSellerDetails(' + s.id + ')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">Edit details</button>' +
+                      '<button class="btn small" onclick="resetSellerPassword(' + s.id + ', \'' + escapedName + '\')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">Reset password</button>' +
                       (s.banned
                         ? '<button class="btn small" onclick="unbanSeller(' + s.id + ')">Unban</button>'
                         : '<button class="btn small secondary" onclick="banSeller(' + s.id + ')">Ban</button>') +
                     '</div>' +
                   '</div>' +
                 '</div>' +
+                pendingPasswordBanner +
                 '<div id="sellerProducts' + s.id + '" style="display:none;margin-top:12px;border-top:1px solid var(--blush-line);padding-top:8px;">' +
                   productsHtml +
                   pendingNote +
@@ -1330,6 +1344,98 @@
         const data = await res.json();
         if (!data.success) alert(data.message || "Could not unban this seller.");
         loadSellerList();
+      }
+
+      // Direct edit of a seller's own details (name/email/phone/shop title) —
+      // separate from the seller-initiated profile-update-request flow.
+      async function editSellerDetails(id) {
+        const s = sellerListData.find((x) => x.id === id);
+        if (!s) return;
+
+        const name = prompt("Seller's name:", s.name);
+        if (name === null) return;
+        const email = prompt("Email:", s.email || "");
+        if (email === null) return;
+        const phone = prompt("Phone:", s.phone || "");
+        if (phone === null) return;
+        const shopTitle = prompt("Shop title:", s.shopTitle || "");
+        if (shopTitle === null) return;
+
+        if (!name.trim() || !email.trim() || !shopTitle.trim()) {
+          alert("Name, email, and shop title cannot be empty.");
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/admin/sellers/" + id, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({
+              name: name.trim(),
+              email: email.trim(),
+              phone: phone.trim(),
+              shopTitle: shopTitle.trim(),
+            }),
+          });
+          const data = await res.json();
+          if (!data.success) { alert(data.message || "Could not update seller."); return; }
+          loadSellerList();
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      // Passwords are stored as bcrypt hashes only — there's no plaintext to
+      // "see" for an existing seller. This generates a brand-new one, emails
+      // it to the seller, and (only if that email fails) shows it here once
+      // so it can be shared manually.
+      async function resetSellerPassword(id, name) {
+        if (!confirm("Generate a new password for " + name + " and email it to them? Their current password will stop working.")) return;
+        try {
+          const res = await fetch("/api/admin/sellers/" + id + "/reset-password", {
+            method: "PUT",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (!data.success) { alert(data.message || "Could not reset password."); return; }
+          alert(
+            data.message +
+              (data.newPassword ? "\n\nSeller ID: " + data.sellerId + "\nNew Password: " + data.newPassword : ""),
+          );
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      // Looks up the plaintext password that's kept ONLY because the
+      // credentials email failed to send at approval or last reset — this
+      // is the fallback for "the seller says they never got the email".
+      async function viewPendingPassword(id) {
+        try {
+          const res = await fetch("/api/admin/sellers/" + id + "/pending-password", {
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (!data.success) { alert(data.message || "No unsent password on file."); loadSellerList(); return; }
+          alert("Seller ID: " + data.sellerId + "\nPassword: " + data.password);
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
+      }
+
+      async function clearPendingPassword(id) {
+        if (!confirm("Mark this password as shared? It'll no longer be viewable from here afterward.")) return;
+        try {
+          const res = await fetch("/api/admin/sellers/" + id + "/pending-password", {
+            method: "DELETE",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (!data.success) { alert(data.message || "Could not clear it."); return; }
+          loadSellerList();
+        } catch (err) {
+          alert("Network error. Try again.");
+        }
       }
 
       function toggleSellerProducts(id) {
