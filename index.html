@@ -20,6 +20,49 @@
         --ink: #2a231f;
         --muted: #8c7d78;
         --glow: rgba(138,28,66,0.30);
+        --surface: #ffffff;
+      }
+      /* ===== Dark mode — user toggle, works on top of / instead of festive themes ===== */
+      body.dark-mode {
+        --rosewood: #e6a4bf;
+        --rosewood-dark: #f0bfd3;
+        --blush: #241a1f;
+        --blush-line: #3a2a30;
+        --gold: #e3b566;
+        --cream: #151112;
+        --ink: #f1e6e2;
+        --muted: #b3a099;
+        --glow: rgba(230,164,191,0.30);
+        --surface: #211a1d;
+      }
+      body.dark-mode header.site-header {
+        background: linear-gradient(135deg, #3a1626 0%, #250f1a 100%);
+        border-bottom: 4px solid var(--gold);
+      }
+      body.dark-mode .logo { color: #f1e6e2; }
+      body.dark-mode .icon-btn {
+        background: rgba(241,230,226,0.10);
+        border: 1px solid rgba(241,230,226,0.20);
+        color: #f1e6e2;
+      }
+      body.dark-mode .hero-btn.primary,
+      body.dark-mode .hero-badge { color: #151112; }
+      body.dark-mode input,
+      body.dark-mode select,
+      body.dark-mode textarea {
+        background: var(--surface);
+        color: var(--ink);
+        border-color: var(--blush-line);
+      }
+      body.dark-mode ::placeholder { color: var(--muted); opacity: 0.8; }
+      body.dark-mode img.product-image,
+      body.dark-mode .modal-main-img img,
+      body.dark-mode .modal-thumb img { filter: brightness(0.94); }
+      body.dark-mode .product-card,
+      body.dark-mode .modal,
+      body.dark-mode .search-results,
+      body.dark-mode .cart-panel {
+        box-shadow: 0 2px 16px rgba(0,0,0,0.45);
       }
       /* ===== Festival themes — admin-controlled, applied as a body class ===== */
       body.theme-rakshabandhan {
@@ -496,7 +539,7 @@
         height: 38px;
         border-radius: 50%;
         border: 1px solid var(--blush-line);
-        background: #fff;
+        background: var(--surface);
         color: var(--rosewood);
         font-size: 18px;
         display: flex;
@@ -550,7 +593,7 @@
         font-weight: 800;
         letter-spacing: 0.4px;
         color: var(--rosewood);
-        background: #fff;
+        background: var(--surface);
         padding: 1px 5px;
         border-radius: 6px;
       }
@@ -673,7 +716,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        background: #fff;
+        background: var(--surface);
         border-radius: 999px;
         padding: 10px 16px;
       }
@@ -696,7 +739,7 @@
       }
       .search-results {
         margin-top: 8px;
-        background: #fff;
+        background: var(--surface);
         border-radius: 12px;
         overflow: hidden;
         max-height: 320px;
@@ -746,7 +789,7 @@
         margin-top: 24px;
       }
       .product-card {
-        background: white;
+        background: var(--surface);
         border-radius: 12px;
         overflow: hidden;
         border: 1px solid var(--blush-line);
@@ -826,7 +869,7 @@
       }
       .overlay.open { display: flex; }
       .modal {
-        background: white;
+        background: var(--surface);
         border-radius: 12px;
         max-width: 900px;
         width: 100%;
@@ -841,7 +884,7 @@
       .modal-close {
         position: absolute;
         top: 14px; right: 14px;
-        background: white;
+        background: var(--surface);
         border: 1px solid var(--blush-line);
         width: 34px; height: 34px;
         border-radius: 8px;
@@ -888,7 +931,7 @@
         color: var(--rosewood);
         z-index: 3;
       }
-      .modal-nav-btn:hover { background: white; }
+      .modal-nav-btn:hover { background: var(--surface); }
       .modal-nav-prev { left: 10px; }
       .modal-nav-next { right: 10px; }
       .modal-thumbs {
@@ -970,7 +1013,7 @@
       .size-options { display: flex; gap: 8px; flex-wrap: wrap; }
       .size-chip {
         border: 1.5px solid var(--blush-line);
-        background: white;
+        background: var(--surface);
         color: var(--ink);
         padding: 8px 16px;
         border-radius: 6px;
@@ -985,7 +1028,7 @@
         width: 36px; height: 36px;
         border-radius: 6px;
         border: 1.5px solid var(--blush-line);
-        background: white;
+        background: var(--surface);
         font-size: 17px;
         cursor: pointer;
         font-weight: 700;
@@ -1048,7 +1091,7 @@
         top: 0; right: 0;
         width: min(420px, 100%);
         height: 100%;
-        background: white;
+        background: var(--surface);
         box-shadow: -4px 0 24px rgba(0,0,0,0.12);
         display: flex;
         flex-direction: column;
@@ -1071,7 +1114,7 @@
       .cart-item-name { font-size: 14px; font-weight: 600; }
       .cart-item-meta { font-size: 12px; color: var(--muted); margin: 2px 0; }
       .cart-item-controls { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-      .cart-item-controls button { width: 25px; height: 25px; border-radius: 5px; border: 1px solid var(--blush-line); background: white; cursor: pointer; font-weight: 700; color: var(--rosewood); }
+      .cart-item-controls button { width: 25px; height: 25px; border-radius: 5px; border: 1px solid var(--blush-line); background: var(--surface); cursor: pointer; font-weight: 700; color: var(--rosewood); }
       .cart-item-price { font-weight: 700; color: var(--rosewood); font-size: 14px; white-space: nowrap; font-family: "Playfair Display", serif; }
       .remove-btn { background: none; border: none; color: #a3002a; font-size: 12px; cursor: pointer; margin-top: 6px; padding: 0; }
       .cart-footer { padding: 20px; border-top: 1px solid var(--blush-line); }
@@ -1102,7 +1145,7 @@
         font-size: 14px;
         font-family: inherit;
         color: var(--ink);
-        background: white;
+        background: var(--surface);
       }
       .checkout-input:focus { outline: none; border-color: var(--gold); }
       .checkout-error {
@@ -1151,7 +1194,7 @@
       }
       .hero-btn.primary { background: var(--rosewood); color: white; box-shadow: 0 0 0 var(--glow); transition: box-shadow 0.25s ease, background 0.15s ease; }
       .hero-btn.primary:hover { background: var(--rosewood-dark); box-shadow: 0 0 20px var(--glow); }
-      .hero-btn.secondary { background: white; color: var(--rosewood); border: 1.5px solid var(--gold); }
+      .hero-btn.secondary { background: var(--surface); color: var(--rosewood); border: 1.5px solid var(--gold); }
       .hero-trust { margin-top: 22px; display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; }
       .hero-trust-item { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
 
@@ -1326,7 +1369,7 @@
           display: flex;
           position: fixed;
           bottom: 0; left: 0; right: 0;
-          background: white;
+          background: var(--surface);
           border-top: 1px solid var(--blush-line);
           padding: 10px 16px;
           z-index: 90;
@@ -1479,6 +1522,9 @@
       <div class="header-inner">
         <div class="logo"><img src="Logo.png" alt="Design Makers" style="height:48px;width:48px;object-fit:contain;vertical-align:middle;"> DESIGN MAKERS<span>Gifts That Feel Like Royalty</span></div>
         <div class="header-actions">
+          <button class="icon-btn" onclick="toggleDarkMode()" title="Toggle dark mode" id="darkModeBtn">
+            <span id="darkModeIcon">🌙</span>
+          </button>
           <button class="icon-btn" onclick="toggleSearchBar()" title="Search" id="searchToggleBtn">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
@@ -1904,6 +1950,26 @@
     </div>
 
     <script>
+      // ===== Dark mode — remembered per-browser via localStorage, works for
+      // logged-out visitors too (no account needed). =====
+      function applyDarkMode(on) {
+        document.body.classList.toggle("dark-mode", on);
+        const icon = document.getElementById("darkModeIcon");
+        if (icon) icon.textContent = on ? "☀️" : "🌙";
+        const btn = document.getElementById("darkModeBtn");
+        if (btn) btn.title = on ? "Switch to light mode" : "Switch to dark mode";
+      }
+      function toggleDarkMode() {
+        const on = !document.body.classList.contains("dark-mode");
+        try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
+        applyDarkMode(on);
+      }
+      (function initDarkMode() {
+        let saved = null;
+        try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
+        applyDarkMode(saved === "1");
+      })();
+
       let allProducts = [];
       // Cart persists on the device (localStorage) and, when signed in, on the
       // customer's account too — so it survives logout and follows them to any device.
