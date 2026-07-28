@@ -1818,9 +1818,6 @@
               </p>
             </div>
 
-            <div class="auth-seller-links">
-              <a href="javascript:void(0)" onclick="closeAccountModal();openSellerLoginModal();">Seller login</a>
-            </div>
           </div>
 
           <div id="accountSignedIn" style="display:none;">
@@ -1849,28 +1846,6 @@
     </div>
 
     <!-- APPLY TO SELL MODAL (public — no account needed) -->
-    <div class="overlay" id="sellerApplyOverlay" onclick="closeSellerApplyModal(event)">
-      <div class="modal" onclick="event.stopPropagation()" style="max-width:420px;max-height:85vh;overflow-y:auto;">
-        <button class="modal-close" onclick="closeSellerApplyModal()">✕</button>
-        <div class="modal-body" style="padding-top:36px;">
-          <h2 class="modal-title" style="margin-bottom:6px;">Become a seller</h2>
-          <p class="modal-desc" style="margin-bottom:16px;">Fill this in and we'll review your application. You'll get your Seller ID and password by email once approved.</p>
-          <input type="text" id="applyName" class="checkout-input" placeholder="Full name" style="margin-bottom:10px;width:100%;" />
-          <input type="email" id="applyEmail" class="checkout-input" placeholder="Email address" style="margin-bottom:10px;width:100%;" />
-          <input type="tel" id="applyPhone" class="checkout-input" placeholder="Phone number" style="margin-bottom:10px;width:100%;" />
-          <input type="text" id="applyShopTitle" class="checkout-input" placeholder="Your shop title" style="margin-bottom:10px;width:100%;" />
-          <input type="text" id="applyAadhaar" class="checkout-input" placeholder="Aadhaar number (12 digits)" maxlength="12" style="margin-bottom:6px;width:100%;" />
-          <p style="font-size:0.78em;color:#8c7d78;margin:0 0 10px;">We only keep the last 4 digits on file — used to match against the photo below.</p>
-          <label style="font-size:0.85em;color:#4a3b36;display:block;margin-bottom:4px;">Your photo (a clear selfie or headshot)</label>
-          <input type="file" id="applyPersonPhoto" accept="image/*" style="margin-bottom:12px;" />
-          <label style="font-size:0.85em;color:#4a3b36;display:block;margin-bottom:4px;">Photo of your Aadhaar card</label>
-          <input type="file" id="applyAadhaarPhoto" accept="image/*" style="margin-bottom:12px;" />
-          <div class="modal-error" id="sellerApplyError"></div>
-          <button class="add-cart-btn" onclick="submitSellerApplication()">Submit application</button>
-        </div>
-      </div>
-    </div>
-
     <!-- SELLER LOGIN MODAL (ID + password, issued by email on approval) -->
     <div class="overlay" id="sellerLoginOverlay" onclick="closeSellerLoginModal(event)">
       <div class="modal" onclick="event.stopPropagation()" style="max-width:380px;">
@@ -2278,7 +2253,7 @@
           openSellerDashModal();
         } else {
           closeAccountModal();
-          openSellerApplyModal();
+          window.open("/sell", "_blank");
         }
       }
 
@@ -2291,78 +2266,7 @@
         document.getElementById("accountOverlay").classList.remove("open");
       }
 
-      function openSellerApplyModal() {
-        document.getElementById("sellerApplyOverlay").classList.add("open");
-      }
-      function closeSellerApplyModal(e) {
-        if (e && e.target !== e.currentTarget) return;
-        document.getElementById("sellerApplyOverlay").classList.remove("open");
-      }
 
-      // Public application — no login required. Only the last 4 digits of
-      // the Aadhaar number ever leave the browser as a labeled field; the
-      // full number is sent once for the admin's manual check and the
-      // server itself only stores the last 4 (see server.js).
-      async function submitSellerApplication() {
-        const errorEl = document.getElementById("sellerApplyError");
-        errorEl.style.display = "none";
-
-        const name = document.getElementById("applyName").value.trim();
-        const email = document.getElementById("applyEmail").value.trim();
-        const phone = document.getElementById("applyPhone").value.trim();
-        const shopTitle = document.getElementById("applyShopTitle").value.trim();
-        const aadhaar = document.getElementById("applyAadhaar").value.trim();
-        const personPhotoInput = document.getElementById("applyPersonPhoto");
-        const fileInput = document.getElementById("applyAadhaarPhoto");
-
-        if (!name || !email || !phone || !shopTitle || aadhaar.length !== 12) {
-          errorEl.textContent = "Please fill in every field with a valid 12-digit Aadhaar number.";
-          errorEl.style.display = "block";
-          return;
-        }
-        if (!personPhotoInput.files || !personPhotoInput.files[0]) {
-          errorEl.textContent = "Please upload a photo of yourself.";
-          errorEl.style.display = "block";
-          return;
-        }
-        if (!fileInput.files || !fileInput.files[0]) {
-          errorEl.textContent = "Please upload a photo of your Aadhaar card.";
-          errorEl.style.display = "block";
-          return;
-        }
-
-        const personPhoto = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(personPhotoInput.files[0]);
-        });
-        const aadhaarPhoto = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(fileInput.files[0]);
-        });
-
-        try {
-          const res = await fetch("/api/seller-applications", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, phone, shopTitle, aadhaar, personPhoto, aadhaarPhoto }),
-          });
-          const data = await res.json();
-          if (!data.success) {
-            errorEl.textContent = data.message || "Could not submit application.";
-            errorEl.style.display = "block";
-            return;
-          }
-          closeSellerApplyModal();
-          alert("Application submitted! We'll email you at " + email + " once it's reviewed.");
-        } catch (error) {
-          errorEl.textContent = "Could not submit application. Please try again.";
-          errorEl.style.display = "block";
-        }
-      }
-
-      // ================================
       // SELLER LOGIN (ID + password, separate from customer login)
       // ================================
       function getSellerToken() {
@@ -3562,8 +3466,13 @@
           .map((item, idx) => {
             const discountPct = calcItemDiscount(item);
             const lineTotal = item.price * item.qty * (1 - discountPct / 100);
-            const imgHtml = item.image
-              ? '<img src="' + escapeHtml(item.image) + '" />'
+            // Resolve the photo from the live product list first (the saved
+            // cart may have an empty/stale image field), falling back to
+            // whatever the cart item itself carries.
+            const liveProduct = allProducts.find((p) => p.id === item.productId);
+            const cartImage = (liveProduct && liveProduct.image) || item.image || "";
+            const imgHtml = cartImage
+              ? '<img src="' + escapeHtml(cartImage) + '" />'
               : "🎁";
 
             return (
@@ -3766,12 +3675,12 @@
       loadCustomerSession();
       updateCartCount(); // reflect any cart restored from this device
 
-      // Shareable link: https://designmakers.shop/#sell (or ?sell=1) opens the
-      // seller application form directly — hand this URL out to people you invite
-      // to sell. It's hidden from normal customers everywhere else.
+      // Old shareable link: https://designmakers.shop/#sell (or ?sell=1) used
+      // to pop the seller application form open on this page. It now lives
+      // at its own address — send anyone who still has the old link there.
       const _sellParams = new URLSearchParams(window.location.search);
       if (window.location.hash === "#sell" || _sellParams.get("sell") === "1") {
-        openSellerApplyModal();
+        window.location.replace("/sell");
       }
 
       // ===== Tap-to-burst festive interaction (flags + rakhi threads) =====
