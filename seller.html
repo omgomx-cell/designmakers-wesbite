@@ -686,6 +686,16 @@
 
       // ---------- Boot ----------
       (async function boot() {
+        // If the admin panel opened this page with "Log in as this seller",
+        // the token arrives as ?impersonate=... — store it like a normal
+        // login token, then strip it from the visible URL.
+        const urlParams = new URLSearchParams(window.location.search);
+        const impersonateToken = urlParams.get("impersonate");
+        if (impersonateToken) {
+          setToken(impersonateToken);
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+
         const token = getToken();
         if (!token) return;
         const { data } = await api("/api/seller/me");
