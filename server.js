@@ -665,6 +665,14 @@ app.post("/api/seller/login", (req, res) => {
     return res.status(403).json({ success: false, message: "This seller account has been suspended. Contact Design Makers for details." });
   }
 
+  // A successful login proves the seller now has their password one way or
+  // another — clear any "unsent, share manually" fallback sitting on the
+  // record so it doesn't linger in the admin panel forever.
+  if (seller.pendingPlainPassword) {
+    delete seller.pendingPlainPassword;
+    writeDatabase(database);
+  }
+
   const token = jwt.sign({ type: "seller", sellerId: seller.id }, JWT_SECRET, { expiresIn: "30d" });
   res.json({
     success: true,
@@ -754,6 +762,8 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, require
 
   const newPassword = generateSellerPassword();
   seller.passwordHash = bcrypt.hashSync(newPassword, 10);
+  // Clear out any stale unsent-password flag before we know how this one goes.
+  delete seller.pendingPlainPassword;
   request.status = "resolved";
   request.resolvedAt = new Date().toISOString();
   writeDatabase(database);
@@ -770,11 +780,16 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, require
      <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
   );
 
+  if (!emailResult.sent) {
+    seller.pendingPlainPassword = newPassword;
+  }
+  writeDatabase(database);
+
   res.json({
     success: true,
     message: emailResult.sent
       ? `New password generated and emailed to ${seller.name}.`
-      : `New password generated for ${seller.name}, but the EMAIL FAILED to send. Share these credentials with them yourself.`,
+      : `New password generated for ${seller.name}, but the EMAIL FAILED to send. You can find and share it any time from the Live Sellers tab.`,
     sellerId: seller.sellerId,
     newPassword: emailResult.sent ? undefined : newPassword,
     emailSent: emailResult.sent,
@@ -927,6 +942,10 @@ app.get("/api/admin/sellers", requireAdmin, requireBoss, (req, res) => {
         shopTitle: s.shopTitle,
         createdAt: s.createdAt,
         banned: !!s.banned,
+        // The actual password is never included in the list response — it's
+        // fetched only on demand via the endpoint below, so it isn't sitting
+        // in a network response every time the tab loads.
+        hasPendingPassword: !!s.pendingPlainPassword,
         productCount: products.length,
         approvedCount,
         pendingCount,
@@ -966,6 +985,125 @@ app.put("/api/admin/sellers/:id/unban", requireAdmin, requireBoss, (req, res) =>
   seller.banned = false;
   writeDatabase(database);
   res.json({ success: true, message: `${seller.name} (${seller.sellerId}) has been unbanned.` });
+});
+
+// ================================
+// ADMIN: EDIT SELLER DETAILS (name / email / phone / shop title)
+// ================================
+// Direct edit by the boss — separate from the seller-initiated
+// profile-update-request flow above, which still exists for sellers
+// asking to change their own phone/shopTitle/photo. This lets the boss
+// fix a typo or update a seller's details immediately, no request needed.
+
+app.put("/api/admin/sellers/:id", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+
+  const body = req.body || {};
+  const name = body.name !== undefined ? String(body.name).trim() : seller.name;
+  const email = body.email !== undefined ? String(body.email).trim() : seller.email;
+  const phone = body.phone !== undefined ? String(body.phone).trim() : seller.phone;
+  const shopTitle = body.shopTitle !== undefined ? String(body.shopTitle).trim() : seller.shopTitle;
+
+  if (!name) return res.status(400).json({ success: false, message: "Name cannot be empty." });
+  if (!email) return res.status(400).json({ success: false, message: "Email cannot be empty." });
+  if (!shopTitle) return res.status(400).json({ success: false, message: "Shop title cannot be empty." });
+
+  // Guard against colliding with another seller's email/phone.
+  const clash = database.sellers.find(
+    (s) => s.id !== seller.id && (s.email === email || (phone && s.phone === phone)),
+  );
+  if (clash) {
+    return res.status(409).json({ success: false, message: "Another seller already uses that email or phone." });
+  }
+
+  seller.name = name;
+  seller.email = email;
+  seller.phone = phone;
+  seller.shopTitle = shopTitle;
+  writeDatabase(database);
+
+  res.json({ success: true, message: `${seller.name} (${seller.sellerId}) has been updated.` });
+});
+
+// ================================
+// ADMIN: RESET SELLER PASSWORD (direct, no request needed)
+// ================================
+// Same mechanism as resolving a seller's own forgot-password request —
+// a fresh random password is generated and only its bcrypt hash is kept
+// for actual login — but the boss can trigger it any time, without
+// waiting for the seller to ask first. If the credentials email fails to
+// send, the plaintext is also stashed in pendingPlainPassword purely as a
+// manual-share fallback (see the two endpoints below).
+
+app.put("/api/admin/sellers/:id/reset-password", requireAdmin, requireBoss, async (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+
+  const newPassword = generateSellerPassword();
+  seller.passwordHash = bcrypt.hashSync(newPassword, 10);
+  // Clear out any stale unsent-password flag before we know how this one goes.
+  delete seller.pendingPlainPassword;
+  writeDatabase(database);
+
+  const emailResult = await sendMail(
+    seller.email,
+    "Your Design Makers password has been reset",
+    `<p>Hi ${seller.name},</p>
+     <p>Your password has been reset. Here's your new login for <b>${seller.shopTitle}</b>:</p>
+     <ul>
+       <li><b>Seller ID:</b> ${seller.sellerId}</li>
+       <li><b>New Password:</b> ${newPassword}</li>
+     </ul>
+     <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
+  );
+
+  if (!emailResult.sent) {
+    seller.pendingPlainPassword = newPassword;
+  }
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    message: emailResult.sent
+      ? `New password generated and emailed to ${seller.name}.`
+      : `New password generated for ${seller.name}, but the EMAIL FAILED to send. You can find and share it any time from the Live Sellers tab.`,
+    sellerId: seller.sellerId,
+    newPassword: emailResult.sent ? undefined : newPassword,
+    emailSent: emailResult.sent,
+  });
+});
+
+// Boss-only: look up a seller's password when the credentials email never
+// reached them. Only returns something when pendingPlainPassword is actually
+// set — i.e. the last approval/reset genuinely failed to email out. There's
+// no way to recover the password for a seller whose email succeeded, since
+// the plaintext is never kept once it's been sent.
+app.get("/api/admin/sellers/:id/pending-password", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+  if (!seller.pendingPlainPassword) {
+    return res.status(404).json({
+      success: false,
+      message: "No unsent password on file for this seller — their credentials email went through, or it's already been marked as shared.",
+    });
+  }
+  res.json({ success: true, sellerId: seller.sellerId, password: seller.pendingPlainPassword });
+});
+
+// Boss-only: once the boss has shared the password with the seller some
+// other way (phone, WhatsApp, in person), clear it from the record so it
+// doesn't sit around indefinitely.
+app.delete("/api/admin/sellers/:id/pending-password", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+  delete seller.pendingPlainPassword;
+  writeDatabase(database);
+  res.json({ success: true, message: "Cleared." });
 });
 
 // ================================
@@ -1033,11 +1171,20 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
      <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
   );
 
+  // If the email didn't go through, keep the plaintext password on the
+  // record (separately from passwordHash, which is what's actually used to
+  // log in) so the boss can come back later — even in a new session — and
+  // look it up from the Live Sellers tab instead of only seeing it once here.
+  if (!emailResult.sent) {
+    seller.pendingPlainPassword = plainPassword;
+    writeDatabase(database);
+  }
+
   res.json({
     success: true,
     message: emailResult.sent
       ? `${application.name} is now an approved seller (${sellerId}). Login email sent.`
-      : `${application.name} is now an approved seller (${sellerId}), but the login EMAIL FAILED to send. Share these credentials with them yourself.`,
+      : `${application.name} is now an approved seller (${sellerId}), but the login EMAIL FAILED to send. You can find and share the password any time from the Live Sellers tab.`,
     sellerId,
     // Only returned when the email failed — so the admin panel can show a
     // manual-share fallback instead of the seller being stuck with no way in.
