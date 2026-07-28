@@ -19,6 +19,18 @@
         --cream: #fffdfb;
         --ink: #2a231f;
         --muted: #8c7d78;
+        --surface: #ffffff;
+      }
+      body.dark-mode {
+        --rosewood: #e6a4bf;
+        --rosewood-dark: #f0bfd3;
+        --blush: #241a1f;
+        --blush-line: #3a2a30;
+        --gold: #e3b566;
+        --cream: #151112;
+        --ink: #f1e6e2;
+        --muted: #b3a099;
+        --surface: #211a1d;
       }
       body {
         font-family: "Inter", sans-serif;
@@ -28,6 +40,22 @@
         display: flex;
         justify-content: center;
         padding: 32px 16px;
+        transition: background 0.4s ease, color 0.4s ease;
+      }
+      .dark-toggle {
+        position: fixed;
+        top: 16px; right: 16px;
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        border: 1px solid var(--blush-line);
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 17px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       }
       .page {
         width: 100%;
@@ -80,7 +108,8 @@
         border-radius: 8px;
         font-size: 0.95em;
         font-family: inherit;
-        background: #fff;
+        background: var(--surface);
+        color: var(--ink);
       }
       input[type="file"] { font-size: 0.85em; }
       .hint {
@@ -131,6 +160,9 @@
     </style>
   </head>
   <body>
+    <button class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode" id="darkModeBtn">
+      <span id="darkModeIcon">🌙</span>
+    </button>
     <div class="page">
       <div class="brand">
         <img src="Logo.png" alt="Design Makers" />
@@ -179,6 +211,61 @@
     </div>
 
     <script>
+      // Same localStorage key as the main site, so the choice carries over
+      // whichever page a visitor lands on first.
+      function applyDarkMode(on) {
+        document.body.classList.toggle("dark-mode", on);
+        const icon = document.getElementById("darkModeIcon");
+        if (icon) icon.textContent = on ? "☀️" : "🌙";
+        const btn = document.getElementById("darkModeBtn");
+        if (btn) btn.title = on ? "Switch to light mode" : "Switch to dark mode";
+      }
+      function toggleDarkMode() {
+        const on = !document.body.classList.contains("dark-mode");
+        try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
+        applyDarkMode(on);
+      }
+      (function initDarkMode() {
+        let saved = null;
+        try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
+        applyDarkMode(saved === "1");
+      })();
+
+      // Resize a photo before sending it — phone camera photos can be 4–10MB
+      // each, and two of those in one request was overflowing the server's
+      // upload limit (that's the "Could not submit" error). Shrinking to a
+      // reasonable max width keeps quality plenty good for admin review.
+      function downscaleImage(file, maxDimension, quality) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error("read failed"));
+          reader.onload = () => {
+            const img = new Image();
+            img.onerror = () => reject(new Error("decode failed"));
+            img.onload = () => {
+              let { width, height } = img;
+              if (width > maxDimension || height > maxDimension) {
+                if (width >= height) {
+                  height = Math.round((height / width) * maxDimension);
+                  width = maxDimension;
+                } else {
+                  width = Math.round((width / height) * maxDimension);
+                  height = maxDimension;
+                }
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+            img.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
       async function submitSellerApplication() {
         const errorEl = document.getElementById("sellerApplyError");
         errorEl.style.display = "none";
@@ -211,16 +298,17 @@
         submitBtn.disabled = true;
         submitBtn.textContent = "Submitting...";
 
-        const personPhoto = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(personPhotoInput.files[0]);
-        });
-        const aadhaarPhoto = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(fileInput.files[0]);
-        });
+        let personPhoto, aadhaarPhoto;
+        try {
+          personPhoto = await downscaleImage(personPhotoInput.files[0], 1000, 0.82);
+          aadhaarPhoto = await downscaleImage(fileInput.files[0], 1400, 0.82);
+        } catch (e) {
+          errorEl.textContent = "Could not process one of the photos. Try a different image.";
+          errorEl.style.display = "block";
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Submit application";
+          return;
+        }
 
         try {
           const res = await fetch("/api/seller-applications", {
