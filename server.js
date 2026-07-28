@@ -2044,10 +2044,10 @@ app.get("/admin", (req, res) => {
 });
 
 // ================================
-// SELLER APPLICATION PAGE (standalone — not a popup inside the storefront)
+// SELLER APPLICATION PAGE (invitation link — fill the form)
 // ================================
 
-app.get("/sell", (req, res) => {
+app.get("/seller", (req, res) => {
   res.sendFile(path.join(__dirname, "sell.html"));
 });
 
@@ -2055,7 +2055,7 @@ app.get("/sell", (req, res) => {
 // SELLER LOGIN / DASHBOARD PAGE
 // ================================
 
-app.get("/seller", (req, res) => {
+app.get("/sell", (req, res) => {
   res.sendFile(path.join(__dirname, "seller.html"));
 });
 
