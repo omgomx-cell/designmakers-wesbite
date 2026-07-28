@@ -1258,17 +1258,24 @@
               : '';
 
             return (
-              '<div class="card" style="margin-bottom:12px;">' +
-                '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;cursor:pointer;" onclick="toggleSellerProducts(' + s.id + ')">' +
-                  '<div>' +
-                    '<div style="font-weight:700;font-size:16px;color:var(--rosewood);">' + escapeHtml(s.shopTitle || s.name) + '</div>' +
+              '<div class="card" style="margin-bottom:12px;' + (s.banned ? 'opacity:0.7;border-color:#a3002a;' : '') + '">' +
+                '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
+                  '<div style="cursor:pointer;" onclick="toggleSellerProducts(' + s.id + ')">' +
+                    '<div style="font-weight:700;font-size:16px;color:var(--rosewood);">' + escapeHtml(s.shopTitle || s.name) +
+                      (s.banned ? ' <span class="badge" style="background:#a3002a;color:#fff;">Banned</span>' : '') +
+                    '</div>' +
                     '<div style="font-size:13px;color:#8c7d78;">' + escapeHtml(s.name) + ' · ' + escapeHtml(s.sellerId) + '</div>' +
                     '<div style="font-size:13px;color:#8c7d78;">' + escapeHtml(s.phone || "—") + ' · ' + escapeHtml(s.email || "—") + '</div>' +
                   '</div>' +
                   '<div style="text-align:right;font-size:12px;color:#8c7d78;">' +
                     '<div><strong style="color:var(--ink);font-size:15px;">' + s.productCount + '</strong> products</div>' +
                     '<div>' + s.approvedCount + ' approved · ' + s.pendingCount + ' pending</div>' +
-                    '<div style="margin-top:4px;color:var(--rosewood);">▼ view products</div>' +
+                    '<div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">' +
+                      '<button class="btn small" onclick="toggleSellerProducts(' + s.id + ')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">▼ Products</button>' +
+                      (s.banned
+                        ? '<button class="btn small" onclick="unbanSeller(' + s.id + ')">Unban</button>'
+                        : '<button class="btn small secondary" onclick="banSeller(' + s.id + ')">Ban</button>') +
+                    '</div>' +
                   '</div>' +
                 '</div>' +
                 '<div id="sellerProducts' + s.id + '" style="display:none;margin-top:12px;border-top:1px solid var(--blush-line);padding-top:8px;">' +
@@ -1282,6 +1289,27 @@
           loadingEl.classList.add("hidden");
           listEl.innerHTML = '<p class="empty-state">Network error loading sellers.</p>';
         }
+      }
+
+      async function banSeller(id) {
+        if (!confirm("Ban this seller? They won't be able to log in, and their products will disappear from the storefront until you unban them.")) return;
+        const res = await fetch("/api/admin/sellers/" + id + "/ban", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        const data = await res.json();
+        if (!data.success) alert(data.message || "Could not ban this seller.");
+        loadSellerList();
+      }
+
+      async function unbanSeller(id) {
+        const res = await fetch("/api/admin/sellers/" + id + "/unban", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        const data = await res.json();
+        if (!data.success) alert(data.message || "Could not unban this seller.");
+        loadSellerList();
       }
 
       function toggleSellerProducts(id) {
