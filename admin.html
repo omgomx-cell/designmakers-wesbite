@@ -237,6 +237,15 @@
         overflow-y: auto;
       }
       #modalOverlay.open { display: block; }
+      .seller-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        z-index: 85;
+        overflow-y: auto;
+      }
+      .seller-modal-overlay.open { display: block; }
       .modal-card {
         background: var(--surface);
         max-width: 500px;
@@ -786,6 +795,48 @@
       </div>
     </div>
 
+    <!-- SELLER DETAILS MODAL -->
+    <div id="sellerModalOverlay" class="seller-modal-overlay">
+      <div class="modal-card">
+        <h2 id="sellerModalShopTitle" style="margin-bottom:2px;">Seller</h2>
+        <div style="font-size:13px;color:#8c7d78;margin-bottom:16px;">Seller ID: <strong id="sellerModalSellerId"></strong></div>
+
+        <div id="sellerModalPendingBox"></div>
+
+        <h3 style="font-size:14px;color:var(--rosewood);margin:0 0 8px;">Details</h3>
+        <label>Name</label>
+        <input type="text" id="sellerModalName" />
+        <label>Email</label>
+        <input type="email" id="sellerModalEmail" />
+        <label>Phone</label>
+        <input type="text" id="sellerModalPhone" />
+        <label>Shop title</label>
+        <input type="text" id="sellerModalShopTitleInput" />
+        <button class="btn small" style="margin-top:6px;" onclick="saveSellerDetailsModal()">Save details</button>
+        <div id="sellerModalDetailsStatus" style="font-size:13px;margin-top:6px;min-height:18px;"></div>
+
+        <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
+
+        <h3 style="font-size:14px;color:var(--rosewood);margin:0 0 8px;">Password</h3>
+        <div style="font-size:12.5px;color:#8c7d78;margin-bottom:10px;">Only a hashed copy of the password is ever stored — there's no way to "view" the seller's current password, only to set a new one.</div>
+
+        <button class="btn small secondary" onclick="generateRandomPasswordModal()">Generate &amp; email a random password</button>
+
+        <label style="margin-top:14px;">Or set a specific password</label>
+        <input type="text" id="sellerModalCustomPassword" placeholder="At least 6 characters" autocomplete="off" />
+        <button class="btn small" style="margin-top:6px;" onclick="setCustomPasswordModal()">Set this password</button>
+
+        <div id="sellerModalPasswordStatus" style="font-size:13px;margin-top:8px;min-height:18px;font-weight:600;"></div>
+
+        <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
+
+        <div style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
+          <button class="btn small secondary" id="sellerModalBanBtn">Ban this seller</button>
+          <button class="btn secondary" onclick="closeSellerModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       let token = localStorage.getItem("dm_admin_token") || null;
       let role = localStorage.getItem("dm_admin_role") || null;
@@ -1279,12 +1330,8 @@
 
             const escapedName = escapeHtml(s.name).replace(/'/g, "\\'");
             const pendingPasswordBanner = s.hasPendingPassword
-              ? '<div style="margin-top:10px;padding:8px 10px;background:#fff4e5;border:1px solid #e0a336;border-radius:8px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">' +
-                  '<span>⚠️ This seller\'s password email never went through — a password is on file to share manually.</span>' +
-                  '<span style="display:flex;gap:6px;">' +
-                    '<button class="btn small" onclick="viewPendingPassword(' + s.id + ')">View password</button>' +
-                    '<button class="btn small secondary" onclick="clearPendingPassword(' + s.id + ')">Mark as shared</button>' +
-                  '</span>' +
+              ? '<div style="margin-top:10px;padding:8px 10px;background:#fff4e5;border:1px solid #e0a336;border-radius:8px;font-size:13px;color:#7a4a00;">' +
+                  '⚠️ This seller\'s password email never went through — open View details to share it manually.' +
                 '</div>'
               : '';
 
@@ -1303,8 +1350,7 @@
                     '<div>' + s.approvedCount + ' approved · ' + s.pendingCount + ' pending</div>' +
                     '<div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">' +
                       '<button class="btn small" onclick="toggleSellerProducts(' + s.id + ')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">▼ Products</button>' +
-                      '<button class="btn small" onclick="editSellerDetails(' + s.id + ')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">Edit details</button>' +
-                      '<button class="btn small" onclick="resetSellerPassword(' + s.id + ', \'' + escapedName + '\')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">Reset password</button>' +
+                      '<button class="btn small" onclick="openSellerModal(' + s.id + ')" style="background:var(--rosewood);color:#fff;">View details</button>' +
                       (s.banned
                         ? '<button class="btn small" onclick="unbanSeller(' + s.id + ')">Unban</button>'
                         : '<button class="btn small secondary" onclick="banSeller(' + s.id + ')">Ban</button>') +
@@ -1346,93 +1392,234 @@
         loadSellerList();
       }
 
-      // Direct edit of a seller's own details (name/email/phone/shop title) —
-      // separate from the seller-initiated profile-update-request flow.
-      async function editSellerDetails(id) {
+      // ---------- SELLER DETAILS MODAL ----------
+      // Replaces the old window.prompt()/alert() based flow. Browsers can
+      // silently suppress repeated prompt/alert/confirm dialogs on a page
+      // ("prevent this page from creating additional dialogs") — which
+      // looks exactly like "I click OK and nothing happens". This modal
+      // does everything inline instead, with its own visible status text.
+      let sellerModalId = null;
+
+      function openSellerModal(id) {
         const s = sellerListData.find((x) => x.id === id);
         if (!s) return;
+        sellerModalId = id;
 
-        const name = prompt("Seller's name:", s.name);
-        if (name === null) return;
-        const email = prompt("Email:", s.email || "");
-        if (email === null) return;
-        const phone = prompt("Phone:", s.phone || "");
-        if (phone === null) return;
-        const shopTitle = prompt("Shop title:", s.shopTitle || "");
-        if (shopTitle === null) return;
+        document.getElementById("sellerModalShopTitle").textContent = s.shopTitle || s.name;
+        document.getElementById("sellerModalSellerId").textContent = s.sellerId;
+        document.getElementById("sellerModalName").value = s.name || "";
+        document.getElementById("sellerModalEmail").value = s.email || "";
+        document.getElementById("sellerModalPhone").value = s.phone || "";
+        document.getElementById("sellerModalShopTitleInput").value = s.shopTitle || "";
+        document.getElementById("sellerModalDetailsStatus").textContent = "";
+        document.getElementById("sellerModalCustomPassword").value = "";
+        document.getElementById("sellerModalPasswordStatus").textContent = "";
+        document.getElementById("sellerModalPasswordStatus").style.color = "";
 
-        if (!name.trim() || !email.trim() || !shopTitle.trim()) {
-          alert("Name, email, and shop title cannot be empty.");
+        const banBtn = document.getElementById("sellerModalBanBtn");
+        if (s.banned) {
+          banBtn.textContent = "Unban this seller";
+          banBtn.className = "btn small";
+          banBtn.onclick = () => modalToggleBan(id, false);
+        } else {
+          banBtn.textContent = "Ban this seller";
+          banBtn.className = "btn small secondary";
+          banBtn.onclick = () => modalToggleBan(id, true);
+        }
+
+        renderSellerModalPendingPassword(s);
+
+        document.getElementById("sellerModalOverlay").classList.add("open");
+      }
+
+      function closeSellerModal() {
+        document.getElementById("sellerModalOverlay").classList.remove("open");
+        sellerModalId = null;
+      }
+
+      function renderSellerModalPendingPassword(s) {
+        const box = document.getElementById("sellerModalPendingBox");
+        if (!s.hasPendingPassword) {
+          box.innerHTML = "";
+          box.style.display = "none";
+          return;
+        }
+        box.style.display = "block";
+        box.innerHTML =
+          '<div style="padding:10px;background:#fff4e5;border:1px solid #e0a336;border-radius:8px;font-size:13px;color:#7a4a00;margin-bottom:12px;">' +
+            '⚠️ The last password generated for this seller never got emailed to them successfully.' +
+            '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">' +
+              '<button class="btn small" onclick="modalViewPendingPassword(' + s.id + ')">View password</button>' +
+              '<button class="btn small secondary" onclick="modalClearPendingPassword(' + s.id + ')">Mark as shared</button>' +
+            '</div>' +
+            '<div id="sellerModalPendingResult" style="margin-top:8px;font-weight:600;"></div>' +
+          '</div>';
+      }
+
+      // Direct edit of a seller's own details (name/email/phone/shop title).
+      async function saveSellerDetailsModal() {
+        if (sellerModalId == null) return;
+        const statusEl = document.getElementById("sellerModalDetailsStatus");
+        const name = document.getElementById("sellerModalName").value.trim();
+        const email = document.getElementById("sellerModalEmail").value.trim();
+        const phone = document.getElementById("sellerModalPhone").value.trim();
+        const shopTitle = document.getElementById("sellerModalShopTitleInput").value.trim();
+
+        if (!name || !email || !shopTitle) {
+          statusEl.style.color = "#a3002a";
+          statusEl.textContent = "Name, email, and shop title cannot be empty.";
           return;
         }
 
+        statusEl.style.color = "";
+        statusEl.textContent = "Saving...";
         try {
-          const res = await fetch("/api/admin/sellers/" + id, {
+          const res = await fetch("/api/admin/sellers/" + sellerModalId, {
             method: "PUT",
             headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-            body: JSON.stringify({
-              name: name.trim(),
-              email: email.trim(),
-              phone: phone.trim(),
-              shopTitle: shopTitle.trim(),
-            }),
+            body: JSON.stringify({ name, email, phone, shopTitle }),
           });
           const data = await res.json();
-          if (!data.success) { alert(data.message || "Could not update seller."); return; }
-          loadSellerList();
+          if (res.status === 401) { closeSellerModal(); logout(); return; }
+          if (!data.success) {
+            statusEl.style.color = "#a3002a";
+            statusEl.textContent = data.message || "Could not update seller.";
+            return;
+          }
+          statusEl.style.color = "#1c7a34";
+          statusEl.textContent = "✓ Saved.";
+          document.getElementById("sellerModalShopTitle").textContent = shopTitle;
+          await loadSellerList();
         } catch (err) {
-          alert("Network error. Try again.");
+          statusEl.style.color = "#a3002a";
+          statusEl.textContent = "Network error — check your connection and try again.";
         }
       }
 
-      // Passwords are stored as bcrypt hashes only — there's no plaintext to
-      // "see" for an existing seller. This generates a brand-new one, emails
-      // it to the seller, and (only if that email fails) shows it here once
-      // so it can be shared manually.
-      async function resetSellerPassword(id, name) {
-        if (!confirm("Generate a new password for " + name + " and email it to them? Their current password will stop working.")) return;
+      // Generates a brand-new random password, emails it, and (only if the
+      // email fails) shows it here so it can be shared manually.
+      async function generateRandomPasswordModal() {
+        if (sellerModalId == null) return;
+        const statusEl = document.getElementById("sellerModalPasswordStatus");
+        statusEl.style.color = "";
+        statusEl.textContent = "Generating...";
         try {
-          const res = await fetch("/api/admin/sellers/" + id + "/reset-password", {
+          const res = await fetch("/api/admin/sellers/" + sellerModalId + "/reset-password", {
             method: "PUT",
             headers: { Authorization: "Bearer " + token },
           });
           const data = await res.json();
-          if (!data.success) { alert(data.message || "Could not reset password."); return; }
-          alert(
-            data.message +
-              (data.newPassword ? "\n\nSeller ID: " + data.sellerId + "\nNew Password: " + data.newPassword : ""),
-          );
+          if (res.status === 401) { closeSellerModal(); logout(); return; }
+          if (!data.success) {
+            statusEl.style.color = "#a3002a";
+            statusEl.textContent = data.message || "Could not generate a password.";
+            return;
+          }
+          statusEl.style.color = "#1c7a34";
+          statusEl.textContent = data.newPassword
+            ? "New password: " + data.newPassword + " (copy it now — it won't be shown again after you close this)"
+            : "✓ " + data.message;
+          await loadSellerList();
+          const s = sellerListData.find((x) => x.id === sellerModalId);
+          if (s) renderSellerModalPendingPassword(s);
         } catch (err) {
-          alert("Network error. Try again.");
+          statusEl.style.color = "#a3002a";
+          statusEl.textContent = "Network error — check your connection and try again.";
         }
       }
 
-      // Looks up the plaintext password that's kept ONLY because the
-      // credentials email failed to send at approval or last reset — this
-      // is the fallback for "the seller says they never got the email".
-      async function viewPendingPassword(id) {
+      // Lets the boss type an exact password for this seller's main ID,
+      // instead of only ever being able to auto-generate a random one.
+      async function setCustomPasswordModal() {
+        if (sellerModalId == null) return;
+        const statusEl = document.getElementById("sellerModalPasswordStatus");
+        const pw = document.getElementById("sellerModalCustomPassword").value;
+
+        if (pw.length < 6) {
+          statusEl.style.color = "#a3002a";
+          statusEl.textContent = "Password must be at least 6 characters.";
+          return;
+        }
+
+        statusEl.style.color = "";
+        statusEl.textContent = "Setting password...";
+        try {
+          const res = await fetch("/api/admin/sellers/" + sellerModalId + "/set-password", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ password: pw }),
+          });
+          const data = await res.json();
+          if (res.status === 401) { closeSellerModal(); logout(); return; }
+          if (!data.success) {
+            statusEl.style.color = "#a3002a";
+            statusEl.textContent = data.message || "Could not set password.";
+            return;
+          }
+          statusEl.style.color = "#1c7a34";
+          statusEl.textContent = "✓ Password set. Share it with the seller directly.";
+          document.getElementById("sellerModalCustomPassword").value = "";
+          await loadSellerList();
+          const s = sellerListData.find((x) => x.id === sellerModalId);
+          if (s) renderSellerModalPendingPassword(s);
+        } catch (err) {
+          statusEl.style.color = "#a3002a";
+          statusEl.textContent = "Network error — check your connection and try again.";
+        }
+      }
+
+      async function modalViewPendingPassword(id) {
+        const resultEl = document.getElementById("sellerModalPendingResult");
         try {
           const res = await fetch("/api/admin/sellers/" + id + "/pending-password", {
             headers: { Authorization: "Bearer " + token },
           });
           const data = await res.json();
-          if (!data.success) { alert(data.message || "No unsent password on file."); loadSellerList(); return; }
-          alert("Seller ID: " + data.sellerId + "\nPassword: " + data.password);
+          if (res.status === 401) { closeSellerModal(); logout(); return; }
+          if (!data.success) {
+            if (resultEl) resultEl.textContent = data.message || "No unsent password on file.";
+            await loadSellerList();
+            return;
+          }
+          if (resultEl) resultEl.textContent = "Password: " + data.password;
         } catch (err) {
-          alert("Network error. Try again.");
+          if (resultEl) resultEl.textContent = "Network error — try again.";
         }
       }
 
-      async function clearPendingPassword(id) {
-        if (!confirm("Mark this password as shared? It'll no longer be viewable from here afterward.")) return;
+      async function modalClearPendingPassword(id) {
+        const resultEl = document.getElementById("sellerModalPendingResult");
         try {
           const res = await fetch("/api/admin/sellers/" + id + "/pending-password", {
             method: "DELETE",
             headers: { Authorization: "Bearer " + token },
           });
           const data = await res.json();
-          if (!data.success) { alert(data.message || "Could not clear it."); return; }
-          loadSellerList();
+          if (res.status === 401) { closeSellerModal(); logout(); return; }
+          if (!data.success) {
+            if (resultEl) resultEl.textContent = data.message || "Could not clear it.";
+            return;
+          }
+          await loadSellerList();
+          const s = sellerListData.find((x) => x.id === id);
+          if (s) renderSellerModalPendingPassword(s);
+        } catch (err) {
+          if (resultEl) resultEl.textContent = "Network error — try again.";
+        }
+      }
+
+      async function modalToggleBan(id, ban) {
+        try {
+          const res = await fetch("/api/admin/sellers/" + id + "/" + (ban ? "ban" : "unban"), {
+            method: "PUT",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (res.status === 401) { closeSellerModal(); logout(); return; }
+          if (!data.success) { alert(data.message || "Could not update ban status."); return; }
+          await loadSellerList();
+          const s = sellerListData.find((x) => x.id === id);
+          if (s) openSellerModal(id);
         } catch (err) {
           alert("Network error. Try again.");
         }
