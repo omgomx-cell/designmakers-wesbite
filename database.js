@@ -711,6 +711,11 @@ function ensureShape(database) {
     needsUpgrade = true;
   }
 
+  if (!database.activeSessions || typeof database.activeSessions !== "object") {
+    database.activeSessions = {};
+    needsUpgrade = true;
+  }
+
   if (!Array.isArray(database.productViews)) {
     database.productViews = [];
     needsUpgrade = true;
