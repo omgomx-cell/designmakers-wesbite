@@ -57,9 +57,11 @@ async function sendMail(to, subject, html) {
   }
 }
 
-// Generates a seller ID like SLR-1042 and a random 10-character password.
+// Generates a seller ID like DM-SLR-001 and a random 10-character password.
+// Existing sellers already have SLR-xxxx IDs saved — those are untouched;
+// this only applies to newly approved sellers going forward.
 function generateSellerId(nextNumericId) {
-  return `SLR-${1000 + nextNumericId}`;
+  return `DM-SLR-${String(nextNumericId).padStart(3, "0")}`;
 }
 
 function generateSellerPassword() {
@@ -126,8 +128,26 @@ if (!process.env.ADMIN1_PASSWORD) {
 }
 
 // Middleware
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// If a request body is too large or malformed JSON, Express's default
+// behavior is to send back an HTML error page — which breaks any frontend
+// code doing res.json() on the response (it throws, and the user just sees
+// a generic "something went wrong"). Catching it here means they always get
+// a real, readable message instead.
+app.use((err, req, res, next) => {
+  if (err && err.type === "entity.too.large") {
+    return res.status(413).json({
+      success: false,
+      message: "That upload is too large. Please use smaller photos and try again.",
+    });
+  }
+  if (err && err.type === "entity.parse.failed") {
+    return res.status(400).json({ success: false, message: "Invalid request." });
+  }
+  next(err);
+});
 
 // ================================
 // NO STALE CACHING
@@ -2329,6 +2349,18 @@ app.put("/api/admin/settings/theme", requireAdmin, (req, res) => {
 
 app.use("/api", (req, res) => {
   res.status(404).json({ success: false, message: "API route not found." });
+});
+
+// ================================
+// CATCH-ALL ERROR HANDLER
+// ================================
+// Last line of defense — if any route throws something unexpected, this
+// makes sure the response is still JSON (not an HTML crash page), so the
+// frontend can show a real error instead of a blank generic failure.
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  if (res.headersSent) return next(err);
+  res.status(500).json({ success: false, message: "Something went wrong on our end. Please try again." });
 });
 
 // ================================
