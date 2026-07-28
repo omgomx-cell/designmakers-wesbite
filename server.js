@@ -41,7 +41,7 @@ if (GMAIL_USER && GMAIL_APP_PASSWORD) {
 async function sendMail(to, subject, html) {
   if (!mailTransporter || !to) {
     console.warn(`(email skipped — not configured) To: ${to} | Subject: ${subject}`);
-    return;
+    return { sent: false, reason: !mailTransporter ? "not-configured" : "no-recipient" };
   }
   try {
     await mailTransporter.sendMail({
@@ -50,8 +50,10 @@ async function sendMail(to, subject, html) {
       subject,
       html,
     });
+    return { sent: true };
   } catch (error) {
     console.error("Failed to send email:", error.message);
+    return { sent: false, reason: error.message };
   }
 }
 
@@ -520,7 +522,13 @@ app.put("/api/customer/cart", requireCustomer, (req, res) => {
       price: Number(it.price) || 0,
       originalPrice: Number(it.originalPrice) || Number(it.price) || 0,
       onSale: !!it.onSale,
-      image: typeof it.image === "string" ? it.image.slice(0, 500) : "",
+      // Product photos are stored as base64 data URIs, which run to
+      // hundreds of KB — far past 500 chars. Slicing them at 500 used to
+      // save a truncated, corrupted data URI that rendered as a broken
+      // image in the cart. Real short image URLs are kept as-is; anything
+      // long is dropped here and re-resolved on the frontend by looking
+      // the product's current photo up via productId instead.
+      image: typeof it.image === "string" && it.image.length <= 500 ? it.image : "",
       size: it.size || "",
       qty: Math.max(1, Math.min(100000, Math.round(Number(it.qty) || 1))),
       discounts: Array.isArray(it.discounts) ? it.discounts.slice(0, 20) : [],
@@ -562,6 +570,28 @@ app.post("/api/seller-applications", async (req, res) => {
   }
 
   const database = readDatabase();
+
+  // Block duplicate applications — same person applying twice (by email or
+  // phone) while an earlier application is still pending or already
+  // approved. A previously REJECTED application doesn't block a fresh one.
+  const emailLower = email.toLowerCase();
+  const duplicate = database.sellerApplications.find(
+    (a) =>
+      a.status !== "rejected" &&
+      (String(a.email || "").toLowerCase() === emailLower || String(a.phone || "") === phone),
+  );
+  const alreadySeller = database.sellers.find(
+    (s) => String(s.email || "").toLowerCase() === emailLower || String(s.phone || "") === phone,
+  );
+  if (duplicate || alreadySeller) {
+    return res.status(409).json({
+      success: false,
+      message: alreadySeller
+        ? "You're already registered as a seller with this email/phone."
+        : "You've already submitted an application with this email/phone. Please wait for it to be reviewed.",
+    });
+  }
+
   const application = {
     id: getNextId(database.sellerApplications),
     name,
@@ -705,7 +735,7 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, async (
   request.resolvedAt = new Date().toISOString();
   writeDatabase(database);
 
-  await sendMail(
+  const emailResult = await sendMail(
     seller.email,
     "Your Design Makers password has been reset",
     `<p>Hi ${seller.name},</p>
@@ -717,7 +747,15 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, async (
      <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
   );
 
-  res.json({ success: true, message: `New password generated and emailed to ${seller.name}.` });
+  res.json({
+    success: true,
+    message: emailResult.sent
+      ? `New password generated and emailed to ${seller.name}.`
+      : `New password generated for ${seller.name}, but the EMAIL FAILED to send. Share these credentials with them yourself.`,
+    sellerId: seller.sellerId,
+    newPassword: emailResult.sent ? undefined : newPassword,
+    emailSent: emailResult.sent,
+  });
 });
 
 function requireSeller(req, res, next) {
@@ -931,7 +969,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, async (req, 
   application.status = "approved";
   writeDatabase(database);
 
-  await sendMail(
+  const emailResult = await sendMail(
     application.email,
     "You're approved as a seller on Design Makers!",
     `<p>Hi ${application.name},</p>
@@ -944,7 +982,17 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, async (req, 
      <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
   );
 
-  res.json({ success: true, message: `${application.name} is now an approved seller (${sellerId}).` });
+  res.json({
+    success: true,
+    message: emailResult.sent
+      ? `${application.name} is now an approved seller (${sellerId}). Login email sent.`
+      : `${application.name} is now an approved seller (${sellerId}), but the login EMAIL FAILED to send. Share these credentials with them yourself.`,
+    sellerId,
+    // Only returned when the email failed — so the admin panel can show a
+    // manual-share fallback instead of the seller being stuck with no way in.
+    plainPassword: emailResult.sent ? undefined : plainPassword,
+    emailSent: emailResult.sent,
+  });
 });
 
 app.put("/api/admin/seller-applications/:id/reject", requireAdmin, async (req, res) => {
@@ -1825,6 +1873,15 @@ app.delete("/api/admin/products/:id", requireAdmin, canDeleteProducts, (req, res
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
+
+// ================================
+// SELLER APPLICATION PAGE (standalone — not a popup inside the storefront)
+// ================================
+
+app.get("/sell", (req, res) => {
+  res.sendFile(path.join(__dirname, "sell.html"));
+});
+
 
 // ================================
 // HOME PAGE
