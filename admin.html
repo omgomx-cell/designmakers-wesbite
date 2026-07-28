@@ -830,6 +830,13 @@
 
         <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
 
+        <h3 style="font-size:14px;color:var(--rosewood);margin:0 0 8px;">Skip the password entirely</h3>
+        <div style="font-size:12.5px;color:#8c7d78;margin-bottom:10px;">Opens this seller's dashboard in a new tab, already logged in as them — no password needed. Good for checking or fixing something in their account directly.</div>
+        <button class="btn small" onclick="loginAsSellerModal()">Log in as this seller</button>
+        <div id="sellerModalLoginAsStatus" style="font-size:13px;margin-top:8px;min-height:18px;font-weight:600;"></div>
+
+        <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
+
         <div style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
           <button class="btn small secondary" id="sellerModalBanBtn">Ban this seller</button>
           <button class="btn secondary" onclick="closeSellerModal()">Close</button>
@@ -1622,6 +1629,36 @@
           if (s) openSellerModal(id);
         } catch (err) {
           alert("Network error. Try again.");
+        }
+      }
+
+      // Opens the seller's own dashboard in a new tab, already authenticated
+      // as them — no password needed at all. Useful for checking or fixing
+      // something in their account directly, or when password sharing keeps
+      // going wrong (typos, look-alike characters, WhatsApp autocorrect, etc).
+      async function loginAsSellerModal() {
+        if (sellerModalId == null) return;
+        const statusEl = document.getElementById("sellerModalLoginAsStatus");
+        statusEl.style.color = "";
+        statusEl.textContent = "Opening...";
+        try {
+          const res = await fetch("/api/admin/sellers/" + sellerModalId + "/login-as", {
+            method: "POST",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (res.status === 401) { closeSellerModal(); logout(); return; }
+          if (!data.success) {
+            statusEl.style.color = "#a3002a";
+            statusEl.textContent = data.message || "Could not log in as this seller.";
+            return;
+          }
+          statusEl.style.color = "#1c7a34";
+          statusEl.textContent = "✓ Opened in a new tab.";
+          window.open("/sell?impersonate=" + encodeURIComponent(data.token), "_blank");
+        } catch (err) {
+          statusEl.style.color = "#a3002a";
+          statusEl.textContent = "Network error — check your connection and try again.";
         }
       }
 
