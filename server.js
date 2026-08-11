@@ -3,8 +3,8 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
-// nodemailer was used for automatic emails (Gmail SMTP). Removed — see note
-// on sendMail() below for why.
+const nodemailer = require("nodemailer");
+const { OAuth2Client } = require("google-auth-library");
 
 const { connectDB, readDatabase, writeDatabase, getNextId } = require("./database");
 
@@ -13,21 +13,74 @@ const PORT = process.env.PORT || 3000;
 app.set("trust proxy", true);
 
 // ================================
-// EMAIL (seller applications + credentials) — DISABLED
+// EMAIL (seller welcome mail, approvals, rejections)
 // ================================
-// Automatic email was removed on purpose: Render's free web-service tier
-// blocks outbound SMTP ports (25/465/587), so every send attempt just sat
-// there and timed out. Rather than pay for a paid instance or wire up an
-// HTTP email API, every "email" in this app is now handled manually —
-// passwords/approvals/rejections show up in the admin panel for the boss
-// to share by hand (WhatsApp/SMS/etc). This function is kept as a no-op
-// so none of the call sites below had to change: they already treat a
-// failed send as "share it manually," which is now just the only path.
+// Sends real email via Gmail SMTP using an App Password (not your normal
+// Gmail password — generate one at myaccount.google.com/apppasswords with
+// 2-Step Verification turned on). Set these in your host's environment
+// variables:
+//   GMAIL_USER          -> the Gmail address sending the mail
+//   GMAIL_APP_PASSWORD  -> the 16-character App Password (no spaces)
+// If either is missing, mail sending is skipped and every call site here
+// already falls back to "share it manually" (admin panel shows the
+// password), so nothing breaks — it just won't auto-email until both are
+// set.
 const ADMIN_NOTIFY_EMAIL = process.env.ADMIN_NOTIFY_EMAIL || "";
+const GMAIL_USER = process.env.GMAIL_USER || "";
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD || "";
 
-async function sendMail(to, subject, _html) {
-  console.log(`(automailer disabled — handle manually) To: ${to} | Subject: ${subject}`);
-  return { sent: false, reason: "automailer-disabled" };
+const mailTransporter =
+  GMAIL_USER && GMAIL_APP_PASSWORD
+    ? nodemailer.createTransport({
+        service: "gmail",
+        auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+      })
+    : null;
+
+if (!mailTransporter) {
+  console.warn(
+    "⚠️  GMAIL_USER / GMAIL_APP_PASSWORD not set — automatic emails (seller welcome mail, etc) " +
+      "are disabled. Passwords/details will still show in the admin panel to share manually.",
+  );
+}
+
+async function sendMail(to, subject, html) {
+  if (!mailTransporter || !to) {
+    console.log(`(email not sent — automailer not configured) To: ${to} | Subject: ${subject}`);
+    return { sent: false, reason: "automailer-not-configured" };
+  }
+  try {
+    await mailTransporter.sendMail({
+      from: `"Design Makers" <${GMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
+    return { sent: true };
+  } catch (err) {
+    console.error("sendMail failed:", err.message);
+    return { sent: false, reason: err.message };
+  }
+}
+
+// ================================
+// GOOGLE SIGN-IN (customers + sellers)
+// ================================
+// Uses Google Identity Services on the frontend to get an ID token, which
+// is verified here against GOOGLE_CLIENT_ID. Set this in your host's
+// environment variables (get it from console.cloud.google.com -> APIs &
+// Services -> Credentials -> OAuth Client ID -> Web application). The SAME
+// value also needs to be pasted into index.html and seller.html where
+// marked "YOUR_GOOGLE_CLIENT_ID".
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
+
+async function verifyGoogleToken(idToken) {
+  if (!googleClient) throw new Error("Google sign-in is not configured on the server yet.");
+  const ticket = await googleClient.verifyIdToken({ idToken, audience: GOOGLE_CLIENT_ID });
+  const payload = ticket.getPayload();
+  if (!payload || !payload.email) throw new Error("Could not read your Google account.");
+  return { email: payload.email, name: payload.name || "", picture: payload.picture || "", googleId: payload.sub };
 }
 
 // Generates a seller ID like DM-SLR-001 and a random 10-character password.
@@ -487,6 +540,65 @@ app.post("/api/customer/login", (req, res) => {
   });
 });
 
+// Customer signs in / signs up with Google. Existing accounts are matched
+// by email; if this is a brand-new Google user, an account is created for
+// them on the spot (mobile number stays blank — they're asked for it at
+// checkout, same as before, since orders are sent over WhatsApp).
+app.post("/api/customer/google-login", async (req, res) => {
+  const { idToken } = req.body || {};
+  if (!idToken) return res.status(400).json({ success: false, message: "Missing Google token." });
+
+  let profile;
+  try {
+    profile = await verifyGoogleToken(idToken);
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message || "Google sign-in failed." });
+  }
+
+  const database = readDatabase();
+  let customer = database.customers.find((c) => c.email && c.email.toLowerCase() === profile.email.toLowerCase());
+
+  if (!customer) {
+    customer = {
+      id: getNextId(database.customers),
+      mobile: "",
+      name: profile.name || profile.email.split("@")[0],
+      email: profile.email,
+      googleId: profile.googleId,
+      passwordHash: "",
+      picture: profile.picture || "",
+      cart: [],
+      role: "customer",
+      shopTitle: "",
+      sellerStatus: "none",
+      createdAt: new Date().toISOString(),
+    };
+    database.customers.push(customer);
+    writeDatabase(database);
+  } else if (!customer.googleId) {
+    // Existing mobile+password account signing in with Google for the
+    // first time using the same email — just link it, don't duplicate.
+    customer.googleId = profile.googleId;
+    if (!customer.picture) customer.picture = profile.picture || "";
+    writeDatabase(database);
+  }
+
+  const token = jwt.sign({ type: "customer", customerId: customer.id }, JWT_SECRET, { expiresIn: "30d" });
+  res.json({
+    success: true,
+    token,
+    customer: {
+      id: customer.id,
+      name: customer.name,
+      mobile: customer.mobile,
+      picture: customer.picture || "",
+      role: customer.role,
+      shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus,
+    },
+  });
+});
+
 app.get("/api/customer/me", requireCustomer, (req, res) => {
   const c = req.customer;
   res.json({
@@ -599,25 +711,32 @@ app.post("/api/seller-applications", async (req, res) => {
   }
 
   const database = readDatabase();
+  const aadhaarLast4 = aadhaar.slice(-4);
 
-  // Block duplicate applications — same person applying twice (by email or
-  // phone) while an earlier application is still pending or already
-  // approved. A previously REJECTED application doesn't block a fresh one.
+  // Block duplicate applications — same person applying twice (by email,
+  // phone, or Aadhaar last-4) while an earlier application is still pending
+  // or already approved. A previously REJECTED application doesn't block a
+  // fresh one.
   const emailLower = email.toLowerCase();
   const duplicate = database.sellerApplications.find(
     (a) =>
       a.status !== "rejected" &&
-      (String(a.email || "").toLowerCase() === emailLower || String(a.phone || "") === phone),
+      (String(a.email || "").toLowerCase() === emailLower ||
+        String(a.phone || "") === phone ||
+        String(a.aadhaarLast4 || "") === aadhaarLast4),
   );
   const alreadySeller = database.sellers.find(
-    (s) => String(s.email || "").toLowerCase() === emailLower || String(s.phone || "") === phone,
+    (s) =>
+      String(s.email || "").toLowerCase() === emailLower ||
+      String(s.phone || "") === phone ||
+      String(s.aadhaarLast4 || "") === aadhaarLast4,
   );
   if (duplicate || alreadySeller) {
     return res.status(409).json({
       success: false,
       message: alreadySeller
-        ? "You're already registered as a seller with this email/phone."
-        : "You've already submitted an application with this email/phone. Please wait for it to be reviewed.",
+        ? "You're already registered as a seller with this email/phone/Aadhaar."
+        : "You've already submitted an application with this email/phone/Aadhaar. Please wait for it to be reviewed.",
     });
   }
 
@@ -679,6 +798,47 @@ app.post("/api/seller/login", (req, res) => {
   // record so it doesn't linger in the admin panel forever.
   if (seller.pendingPlainPassword) {
     delete seller.pendingPlainPassword;
+    writeDatabase(database);
+  }
+
+  const token = jwt.sign({ type: "seller", sellerId: seller.id }, JWT_SECRET, { expiresIn: "30d" });
+  res.json({
+    success: true,
+    token,
+    seller: { id: seller.id, sellerId: seller.sellerId, name: seller.name, shopTitle: seller.shopTitle },
+  });
+});
+
+// Seller signs in with Google. Only works for sellers who are ALREADY
+// approved (their seller record's email must match the Google account) —
+// Google sign-in isn't a way to apply as a seller, applications still go
+// through the normal form on /sell.
+app.post("/api/seller/google-login", async (req, res) => {
+  const { idToken } = req.body || {};
+  if (!idToken) return res.status(400).json({ success: false, message: "Missing Google token." });
+
+  let profile;
+  try {
+    profile = await verifyGoogleToken(idToken);
+  } catch (err) {
+    return res.status(400).json({ success: false, message: err.message || "Google sign-in failed." });
+  }
+
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => String(s.email || "").toLowerCase() === profile.email.toLowerCase());
+
+  if (!seller) {
+    return res.status(404).json({
+      success: false,
+      message: "No approved seller account found for this Google email. Apply first, or log in with your Seller ID and password.",
+    });
+  }
+  if (seller.banned) {
+    return res.status(403).json({ success: false, message: "This seller account has been suspended. Contact Design Makers for details." });
+  }
+
+  if (!seller.googleId) {
+    seller.googleId = profile.googleId;
     writeDatabase(database);
   }
 
@@ -1219,6 +1379,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
     email: application.email,
     phone: application.phone,
     shopTitle: application.shopTitle,
+    aadhaarLast4: application.aadhaarLast4,
     applicationId: application.id,
     createdAt: new Date().toISOString(),
     banned: false,
@@ -1227,17 +1388,22 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
   application.status = "approved";
   writeDatabase(database);
 
+  const sellerLoginUrl = `${req.protocol}://${req.get("host")}/seller`;
   const emailResult = await sendMail(
     application.email,
-    "You're approved as a seller on Design Makers!",
-    `<p>Hi ${application.name},</p>
-     <p>Your seller application for <b>${application.shopTitle}</b> has been approved.</p>
-     <p>Log in to your seller dashboard with:</p>
-     <ul>
-       <li><b>Seller ID:</b> ${sellerId}</li>
-       <li><b>Password:</b> ${plainPassword}</li>
-     </ul>
-     <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
+    "Welcome to Design Makers — you're approved as a seller! 🎉",
+    `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+       <h2 style="color:#8a1c42;">Welcome aboard, ${application.name}! 🎉</h2>
+       <p>Great news — your seller application for <b>${application.shopTitle}</b> has been approved. You can now list products, set your own prices, and start selling on Design Makers.</p>
+       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
+         <p style="margin:0 0 8px;"><b>Seller ID:</b> ${sellerId}</p>
+         <p style="margin:0;"><b>Password:</b> ${plainPassword}</p>
+       </div>
+       <p><a href="${sellerLoginUrl}" style="background:#8a1c42;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;display:inline-block;">Log in to your Seller Dashboard</a></p>
+       <p style="font-size:0.85em;color:#8c7d78;">Or visit: ${sellerLoginUrl}</p>
+       <p style="font-size:0.85em;color:#8c7d78;">Please keep this password safe — we recommend not sharing it with anyone. You can also sign in with Google on the same page if your Google account uses this email address.</p>
+       <p>Welcome to the family — excited to have you selling with us!<br/>— Team Design Makers</p>
+     </div>`,
   );
 
   // If the email didn't go through, keep the plaintext password on the

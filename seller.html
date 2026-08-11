@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
@@ -232,6 +233,15 @@
 
             <button class="submit" id="loginBtn" onclick="doLogin()">Log in</button>
             <button class="link-btn" onclick="showForgotPassword()">Forgot password?</button>
+
+            <div style="display:flex;align-items:center;gap:10px;margin:18px 0;">
+              <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+              <span style="font-size:0.8em;color:var(--muted);">or</span>
+              <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+            </div>
+            <div id="googleSignInBtn" style="display:flex;justify-content:center;"></div>
+            <div class="error" id="googleLoginError" style="display:none;margin-top:8px;"></div>
+            <p style="font-size:0.78em;color:var(--muted);text-align:center;margin-top:8px;">Google sign-in works only if your seller account email matches your Google account — apply as a seller first if you don't have one yet.</p>
           </div>
 
           <div id="forgotBlock" style="display:none;">
@@ -380,6 +390,43 @@
         document.getElementById("forgotBlock").style.display = "none";
         document.getElementById("loginFormBlock").style.display = "block";
       }
+
+      // ================================
+      // GOOGLE SIGN-IN (seller)
+      // ================================
+      // Paste your Google OAuth Client ID here — same one used on index.html
+      // and set as GOOGLE_CLIENT_ID on the server.
+      const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+      function initGoogleSignIn() {
+        if (!window.google || !window.google.accounts || GOOGLE_CLIENT_ID.startsWith("YOUR_")) return;
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleSellerLogin,
+        });
+        const btnEl = document.getElementById("googleSignInBtn");
+        if (btnEl) {
+          google.accounts.id.renderButton(btnEl, { theme: "outline", size: "large", width: 280, text: "continue_with" });
+        }
+      }
+
+      async function handleGoogleSellerLogin(response) {
+        const errorEl = document.getElementById("googleLoginError");
+        errorEl.style.display = "none";
+        const { data } = await api("/api/seller/google-login", {
+          method: "POST",
+          body: JSON.stringify({ idToken: response.credential }),
+        });
+        if (!data.success) {
+          errorEl.textContent = data.message || "Google sign-in failed.";
+          errorEl.style.display = "block";
+          return;
+        }
+        setToken(data.token);
+        enterDashboard(data.seller);
+      }
+
+      window.addEventListener("load", initGoogleSignIn);
 
       async function doLogin() {
         const errorEl = document.getElementById("loginError");

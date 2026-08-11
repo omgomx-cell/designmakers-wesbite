@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
@@ -1799,6 +1800,15 @@
               <input type="password" id="loginPassword" class="checkout-input" placeholder="Password" style="width:100%;margin-bottom:10px;" />
               <div class="modal-error" id="loginError" style="display:none;"></div>
               <button class="add-cart-btn" onclick="submitCustomerLogin()">Log in</button>
+
+              <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
+                <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+                <span style="font-size:0.8em;color:var(--muted);">or</span>
+                <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+              </div>
+              <div id="googleSignInBtn" style="display:flex;justify-content:center;"></div>
+              <div class="modal-error" id="googleLoginError" style="display:none;margin-top:8px;"></div>
+
               <p style="font-size:0.85em;margin-top:12px;color:var(--muted);">
                 Forgot your password? <a href="https://wa.me/917004847813" target="_blank" rel="noopener" style="color:var(--rosewood);font-weight:600;">Message us on WhatsApp</a> to reset it.
               </p>
@@ -1998,6 +2008,54 @@
         document.getElementById("registerFormBox").style.display = "block";
         document.getElementById("registerError").style.display = "none";
       }
+
+      // ================================
+      // GOOGLE SIGN-IN (customer)
+      // ================================
+      // Paste your Google OAuth Client ID here (from console.cloud.google.com
+      // -> APIs & Services -> Credentials). The SAME client ID must also be
+      // set as the GOOGLE_CLIENT_ID environment variable on the server.
+      const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+      function initGoogleSignIn() {
+        if (!window.google || !window.google.accounts || GOOGLE_CLIENT_ID.startsWith("YOUR_")) return;
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCustomerLogin,
+        });
+        const btnEl = document.getElementById("googleSignInBtn");
+        if (btnEl) {
+          google.accounts.id.renderButton(btnEl, { theme: "outline", size: "large", width: 280, text: "continue_with" });
+        }
+      }
+
+      async function handleGoogleCustomerLogin(response) {
+        const errorEl = document.getElementById("googleLoginError");
+        errorEl.style.display = "none";
+        try {
+          const res = await fetch("/api/customer/google-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken: response.credential }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Google sign-in failed.";
+            errorEl.style.display = "block";
+            return;
+          }
+          localStorage.setItem("dm_customer_token", data.token);
+          currentCustomer = data.customer;
+          renderAccountState();
+          closeAccountModal();
+          restoreAccountCart();
+        } catch (error) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        }
+      }
+
+      window.addEventListener("load", initGoogleSignIn);
 
       async function submitCustomerLogin() {
         const errorEl = document.getElementById("loginError");
