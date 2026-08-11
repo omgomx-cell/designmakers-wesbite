@@ -1741,13 +1741,17 @@
       <div class="cart-footer" id="cartFooter" style="display:none;">
         <div id="checkoutIdentity" style="display:none;font-size:13px;color:var(--rosewood);background:var(--blush);border:1px solid var(--blush-line);border-radius:8px;padding:10px 12px;margin-bottom:12px;"></div>
         <div class="checkout-fields" id="guestFields">
-          <input type="text" id="custName" class="checkout-input" placeholder="Your name" />
+          <input type="text" id="custName" class="checkout-input" placeholder="Your name" oninput="renderCartTotals()" />
           <input type="tel" id="custPhone" class="checkout-input" placeholder="10-digit phone number" maxlength="10" />
         </div>
         <div class="cart-total-row"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
         <div class="cart-total-row"><span>Bulk discount</span><span id="cartDiscount">−₹0</span></div>
         <div class="cart-total-row grand"><span>Total</span><span id="cartTotal">₹0</span></div>
         <div class="cod-note">💵 Payment: <strong>Cash on Delivery</strong> — pay when your order arrives</div>
+        <div id="waPreviewBox" style="display:none;font-size:12px;color:#2b2b2b;background:#dcf8c6;border:1px solid #b6e6a1;border-radius:8px;padding:10px 12px;margin-bottom:12px;white-space:pre-wrap;word-break:break-word;max-height:180px;overflow-y:auto;font-family:monospace;">
+          <div style="font-weight:700;margin-bottom:4px;color:#075e54;">💬 Live WhatsApp Order Message Preview:</div>
+          <div id="waPreviewText"></div>
+        </div>
         <div class="checkout-error" id="checkoutError" style="display:none;"></div>
         <button class="checkout-btn" id="checkoutBtn" onclick="placeOrder()"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg><span id="checkoutBtnLabel">Checkout on WhatsApp</span></button>
       </div>
@@ -1796,7 +1800,7 @@
               <div class="modal-error" id="loginError" style="display:none;"></div>
               <button class="add-cart-btn" onclick="submitCustomerLogin()">Log in</button>
               <p style="font-size:0.85em;margin-top:12px;color:var(--muted);">
-                Forgot your password? <a href="https://wa.me/" target="_blank" rel="noopener" style="color:var(--rosewood);font-weight:600;">Message us on WhatsApp</a> to reset it.
+                Forgot your password? <a href="https://wa.me/917004847813" target="_blank" rel="noopener" style="color:var(--rosewood);font-weight:600;">Message us on WhatsApp</a> to reset it.
               </p>
               <p style="font-size:0.9em;margin-top:14px;">
                 Don't have an account?
@@ -2571,6 +2575,7 @@
       const CATEGORY_ICONS = {
         "All": svgIcon('<rect x="3" y="3" width="7" height="7" rx="1.2"/><rect x="14" y="3" width="7" height="7" rx="1.2"/><rect x="3" y="14" width="7" height="7" rx="1.2"/><rect x="14" y="14" width="7" height="7" rx="1.2"/>'),
         "T-Shirts": svgIcon('<path d="M8 3 4 6 2 9l3 2 1-1.5V21h12V9.5L19 11l3-2-2-3-4-3q0 2-4 2T8 3Z"/>'),
+        "Hoodies": svgIcon('<path d="M7 4c0 2 2 3 5 3s5-1 5-3"/><path d="M6 5 3 8l2 2 2-1.5V21h10V8.5L19 10l2-2-3-3-4-2q0 3-4 3T6 5Z"/>'),
         "Phone Covers": svgIcon('<rect x="7" y="2" width="10" height="20" rx="2"/><line x1="10" y1="19" x2="14" y2="19"/>'),
         "Mugs": svgIcon('<path d="M4 8h12v9a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Z"/><path d="M16 10h2a3 3 0 0 1 0 6h-2"/>'),
         "Frames": svgIcon('<rect x="3" y="3" width="18" height="18" rx="1"/><rect x="6.5" y="6.5" width="11" height="11" rx="0.5"/><circle cx="9.5" cy="10" r="1.1"/><path d="M6.5 15l3-3 2.5 2.5L16 10l1.5 1.5"/>'),
@@ -3517,6 +3522,47 @@
         document.getElementById("cartSubtotal").textContent = "₹" + fmtINR(subtotal);
         document.getElementById("cartDiscount").textContent = "−₹" + fmtINR(discountAmt);
         document.getElementById("cartTotal").textContent = "₹" + fmtINR(afterDiscount);
+
+        updateWaPreview(subtotal, discountAmt, afterDiscount);
+      }
+
+      // Live-updating preview of the exact WhatsApp message that will be sent —
+      // mirrors the real message built in placeOrder() so there are no surprises.
+      function updateWaPreview(subtotal, discountAmt, total) {
+        const box = document.getElementById("waPreviewBox");
+        const textEl = document.getElementById("waPreviewText");
+        if (!box || !textEl) return;
+
+        if (!cart.length) {
+          box.style.display = "none";
+          return;
+        }
+
+        const nameEl = document.getElementById("custName");
+        const name = (nameEl && nameEl.value.trim()) || (currentCustomer && currentCustomer.name) || "Not provided";
+
+        const lines = [];
+        lines.push("Hi! I'd like to place an order.");
+        lines.push("");
+        lines.push("*Name:* " + name);
+        lines.push("");
+        lines.push("*Items:*");
+        cart.forEach((item, idx) => {
+          const discountPct = calcItemDiscount(item);
+          const lineTotal = item.price * item.qty * (1 - discountPct / 100);
+          let line = (idx + 1) + ". " + item.name;
+          if (item.size) line += " (" + item.size + ")";
+          line += " × " + item.qty + " — ₹" + fmtINR(lineTotal);
+          lines.push(line);
+        });
+        lines.push("");
+        lines.push("*Subtotal:* ₹" + fmtINR(subtotal));
+        if (discountAmt > 0) lines.push("*Bulk discount:* −₹" + fmtINR(discountAmt));
+        lines.push("*Total:* ₹" + fmtINR(total));
+        lines.push("*Payment:* Cash on Delivery (COD)");
+
+        textEl.textContent = lines.join("\n");
+        box.style.display = "block";
       }
 
       function updateCartQty(idx, delta) {
