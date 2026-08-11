@@ -344,6 +344,128 @@
       }
       .theme-card.active { border-color: #8a1c42 !important; background: #fff0f5; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(138, 28, 66, 0.2); }
       .theme-card:hover { border-color: #c99; }
+    
+
+      /* =========================================================
+         DESIGN MAKERS PREMIUM CONTROL CENTER — PHASE 1 UI
+         Safe UI layer: preserves existing DOM IDs and JS behavior.
+         ========================================================= */
+      :root {
+        --rosewood: #8b5cf6;
+        --rosewood-dark: #6d28d9;
+        --blush: #171722;
+        --blush-line: #2b2b3a;
+        --gold: #f59e0b;
+        --cream: #0a0a0f;
+        --ink: #f7f7fb;
+        --muted: #9b9bad;
+        --surface: #11111a;
+        --field: #151520;
+      }
+      html, body { background:#09090f !important; color:#f7f7fb !important; }
+      body { min-height:100vh; }
+      #dashboard { min-height:100vh; background:radial-gradient(circle at 80% -10%, rgba(139,92,246,.12), transparent 34%), #09090f; }
+      #dashboard > header {
+        background:rgba(10,10,15,.88) !important;
+        border-bottom:1px solid #252536;
+        backdrop-filter:blur(16px);
+        padding:14px 22px !important;
+        min-height:64px;
+      }
+      #dashboard > header h1 { font-family:Inter,"Segoe UI",Arial,sans-serif !important; font-size:16px !important; letter-spacing:-.02em; }
+      #dashboard > header h1 img { box-shadow:0 0 0 1px #343449,0 8px 24px rgba(139,92,246,.2); }
+      #dashboard > header button { background:#151522 !important; border:1px solid #303044 !important; color:#e9e9f2 !important; border-radius:9px !important; transition:.18s ease; }
+      #dashboard > header button:hover { background:#1d1d2b !important; border-color:#514a75 !important; transform:translateY(-1px); }
+      .tabs {
+        position:fixed !important; left:0; top:64px !important; bottom:0; width:232px;
+        display:flex !important; flex-direction:column; align-items:stretch; gap:3px !important;
+        background:rgba(14,14,22,.96) !important; border-right:1px solid #252536 !important; border-bottom:0 !important;
+        padding:16px 10px !important; overflow-y:auto !important; overflow-x:hidden !important; z-index:55;
+      }
+      .tabs::before { content:"CONTROL CENTER"; color:#6f6f82; font-size:10px; font-weight:800; letter-spacing:.12em; padding:4px 10px 10px; }
+      .tab-btn {
+        text-align:left !important; border:1px solid transparent !important; border-radius:9px !important;
+        padding:10px 12px !important; color:#9999aa !important; font-size:13px !important; font-weight:600 !important;
+        transition:.18s ease !important; width:100%;
+      }
+      .tab-btn:hover { color:#fff !important; background:#171722 !important; border-color:#252536 !important; }
+      .tab-btn.active { color:#fff !important; background:linear-gradient(90deg,rgba(139,92,246,.20),rgba(139,92,246,.06)) !important; border-color:rgba(139,92,246,.35) !important; box-shadow:inset 3px 0 #8b5cf6,0 6px 20px rgba(0,0,0,.16) !important; }
+      .wrap { max-width:none !important; margin:0 0 0 232px !important; padding:26px 28px 70px !important; }
+      .card, .stat-card {
+        background:linear-gradient(180deg,#12121c,#101018) !important;
+        border:1px solid #272738 !important; box-shadow:0 10px 30px rgba(0,0,0,.16) !important;
+      }
+      .card { border-radius:14px !important; }
+      .stat-card { border-radius:12px !important; }
+      .stat-card .stat-value { color:#fff !important; font-family:Inter,"Segoe UI",Arial,sans-serif !important; }
+      .stat-card .stat-label, .phone, .customer-card .phone { color:#8f8fa1 !important; }
+      label { color:#a8a8b8 !important; }
+      input[type=text], input[type=password], input[type=number], input[type=tel], textarea, select {
+        background:#0d0d15 !important; color:#f5f5fa !important; border-color:#2d2d40 !important; border-radius:9px !important;
+      }
+      input:focus, textarea:focus, select:focus { border-color:#8b5cf6 !important; box-shadow:0 0 0 3px rgba(139,92,246,.12); }
+      .btn { border-radius:9px !important; transition:.18s ease !important; }
+      .btn:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.2); }
+      .btn:not(.secondary):not(.danger) { background:#7c3aed !important; }
+      .btn.secondary { background:#181824 !important; color:#c9c9d8 !important; border:1px solid #303044 !important; }
+      .btn.danger { background:rgba(239,68,68,.10) !important; color:#ff8f9a !important; border:1px solid rgba(239,68,68,.22) !important; }
+      .badge { background:#1b1b29 !important; color:#b9b9cc !important; border:1px solid #303044; }
+      .badge.gold { background:rgba(245,158,11,.10) !important; color:#f5b94d !important; }
+      .badge.status-new { background:rgba(59,130,246,.12) !important; color:#7db3ff !important; }
+      .badge.status-processing { background:rgba(245,158,11,.12) !important; color:#ffc96a !important; }
+      .badge.status-shipped,.badge.status-delivered { background:rgba(16,185,129,.12) !important; color:#63e6b1 !important; }
+      .badge.status-cancelled { background:rgba(239,68,68,.12) !important; color:#ff8b96 !important; }
+      .product-card, .order-card, .customer-card { transition:.18s ease; }
+      .product-card:hover, .order-card:hover, .customer-card:hover { border-color:#464663 !important; transform:translateY(-1px); }
+      .product-card h3, .order-num, .customer-card .name { color:#f7f7fb !important; }
+      .order-num { font-family:Inter,"Segoe UI",Arial,sans-serif !important; }
+      .fab { background:#7c3aed !important; box-shadow:0 12px 32px rgba(124,58,237,.35) !important; }
+      #modalOverlay, .seller-modal-overlay { background:rgba(2,2,7,.76) !important; backdrop-filter:blur(5px); }
+      .modal-card { background:#11111a !important; border:1px solid #303044 !important; box-shadow:0 24px 80px rgba(0,0,0,.55) !important; }
+      .modal-card h2, h3 { color:#f7f7fb !important; }
+      .error { color:#ff8f9a !important; }
+      .msg { color:#63e6b1 !important; }
+      #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; margin:0 auto !important; max-width:440px !important; }
+      #loginScreen .card { width:100%; padding:30px !important; background:linear-gradient(180deg,#141420,#0f0f17) !important; }
+      #loginScreen h1 { color:#fff !important; }
+      #loginScreen .btn { margin-top:18px; }
+      #loginScreen .mascot-speech { background:#151522 !important; border-color:#303044 !important; color:#bdbdce !important; }
+      #overviewPanel { animation:dmFade .22s ease both; }
+      .dm-overview-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
+      .dm-kpi { position:relative; overflow:hidden; min-height:118px; padding:16px; border-radius:14px; background:linear-gradient(145deg,#151521,#101018); border:1px solid #29293b; }
+      .dm-kpi::after { content:""; position:absolute; width:90px; height:90px; border-radius:50%; right:-35px; top:-35px; background:rgba(139,92,246,.10); }
+      .dm-kpi .label { color:#8f8fa1; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+      .dm-kpi .value { font-size:25px; font-weight:800; letter-spacing:-.03em; margin-top:10px; color:#fff; }
+      .dm-kpi .sub { color:#737387; font-size:11px; margin-top:5px; }
+      .dm-overview-cols { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr); gap:16px; }
+      .dm-overview-card { padding:18px; border-radius:14px; background:linear-gradient(180deg,#12121c,#101018); border:1px solid #272738; }
+      .dm-card-title { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; }
+      .dm-card-title h3 { margin:0; font-size:14px; font-weight:750; }
+      .dm-card-title span { color:#77778a; font-size:11px; }
+      .dm-order-row { display:grid; grid-template-columns:100px minmax(0,1fr) 100px 105px; gap:10px; align-items:center; padding:12px 0; border-top:1px solid #242436; font-size:12px; }
+      .dm-order-row:first-child { border-top:0; }
+      .dm-order-id { color:#d8d8e6; font-weight:700; }
+      .dm-order-customer { color:#9c9cad; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .dm-order-amount { color:#fff; font-weight:700; text-align:right; }
+      .dm-queue-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 0; border-top:1px solid #242436; }
+      .dm-queue-item:first-child { border-top:0; }
+      .dm-queue-main strong { display:block; font-size:12px; color:#eeeef5; }
+      .dm-queue-main span { display:block; color:#77778a; font-size:11px; margin-top:3px; }
+      .dm-pill { border:1px solid #35354a; background:#191925; color:#bdbdce; padding:5px 8px; border-radius:999px; font-size:10px; white-space:nowrap; }
+      .dm-empty { padding:25px 8px; text-align:center; color:#737387; font-size:12px; }
+      @keyframes dmFade { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+      @media (max-width: 1100px) { .dm-overview-grid{grid-template-columns:repeat(3,minmax(0,1fr));} .dm-overview-cols{grid-template-columns:1fr;} }
+      @media (max-width: 760px) {
+        #dashboard > header { padding:12px 14px !important; }
+        .tabs { position:sticky !important; top:0 !important; left:auto; width:auto; bottom:auto; height:auto; flex-direction:row; border-right:0 !important; border-bottom:1px solid #252536 !important; padding:8px !important; overflow-x:auto !important; }
+        .tabs::before { display:none; }
+        .tab-btn { width:auto; flex:0 0 auto; text-align:center !important; }
+        .wrap { margin-left:0 !important; padding:16px 12px 60px !important; }
+        .dm-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .dm-order-row{grid-template-columns:1fr auto;}
+        .dm-order-customer,.dm-order-amount{display:none;}
+      }
+
     </style>
   </head>
   <body>
@@ -497,7 +619,8 @@
       </header>
 
       <div class="tabs">
-        <button class="tab-btn active" id="tabBtnProducts" onclick="switchTab('products')">Products</button>
+        <button class="tab-btn active" id="tabBtnOverview" onclick="switchTab('overview')">Overview</button>
+        <button class="tab-btn" id="tabBtnProducts" onclick="switchTab('products')">Products</button>
         <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">Orders</button>
         <button class="tab-btn" id="tabBtnHomepage" onclick="switchTab('homepage')">Homepage Sections</button>
         <button class="tab-btn" id="tabBtnSellerlist" onclick="switchTab('sellerlist')">Live Sellers</button>
@@ -507,8 +630,44 @@
       </div>
 
       <div class="wrap">
+        <!-- EXECUTIVE OVERVIEW -->
+        <div class="tab-panel active" id="tabOverview">
+          <div id="overviewPanel">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+              <div>
+                <div style="color:#77778a;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Design Makers Control Center</div>
+                <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;">Good evening, <span id="overviewUserName">Admin</span> 👋</h2>
+                <p id="overviewRoleText" style="margin:6px 0 0;color:#8f8fa1;font-size:12px;">Live business overview from your existing data.</p>
+              </div>
+              <button class="btn small secondary" onclick="loadAdminOverview()">↻ Refresh overview</button>
+            </div>
+            <div class="dm-overview-grid">
+              <div class="dm-kpi"><div class="label">Revenue</div><div class="value" id="ovRevenue">—</div><div class="sub">Excludes cancelled orders</div></div>
+              <div class="dm-kpi"><div class="label">Orders</div><div class="value" id="ovOrders">—</div><div class="sub">All recorded orders</div></div>
+              <div class="dm-kpi"><div class="label">Customers</div><div class="value" id="ovCustomers">—</div><div class="sub">Registered accounts</div></div>
+              <div class="dm-kpi"><div class="label">Products</div><div class="value" id="ovProducts">—</div><div class="sub" id="ovProductsSub">Approved / live</div></div>
+              <div class="dm-kpi"><div class="label">Pending</div><div class="value" id="ovPending">—</div><div class="sub">Seller products awaiting review</div></div>
+              <div class="dm-kpi"><div class="label">Sellers</div><div class="value" id="ovSellers">—</div><div class="sub" id="ovSellersSub">Boss-only identity data</div></div>
+            </div>
+            <div class="dm-overview-cols">
+              <section class="dm-overview-card">
+                <div class="dm-card-title"><h3>Recent Orders</h3><span>Latest 6</span></div>
+                <div id="ovRecentOrders"><div class="dm-empty">Loading…</div></div>
+              </section>
+              <section class="dm-overview-card">
+                <div class="dm-card-title"><h3>Needs Attention</h3><span>Live queue</span></div>
+                <div id="ovQueue"><div class="dm-empty">Loading…</div></div>
+              </section>
+            </div>
+            <section class="dm-overview-card" style="margin-top:16px;">
+              <div class="dm-card-title"><h3>Top Products by Units Ordered</h3><span>Based on recorded orders</span></div>
+              <div id="ovTopProducts"><div class="dm-empty">Loading…</div></div>
+            </section>
+          </div>
+        </div>
+
         <!-- PRODUCTS TAB -->
-        <div class="tab-panel active" id="tabProducts">
+        <div class="tab-panel" id="tabProducts">
           <div class="card" style="margin-bottom:16px;">
             <label style="margin:0;">
               <input type="checkbox" id="bannerEnabled" style="width:auto; margin-right:6px;" />
@@ -853,7 +1012,8 @@
       let orders = [];
       let admins = [];
       let editingId = null;
-      let currentTab = "products";
+      let currentTab = "overview";
+      let myDesignation = localStorage.getItem("dm_admin_designation") || null;
       let currentImages = [];
       let saleEndsAtMs = null; // base64 photo data for the product being edited
 
@@ -956,6 +1116,7 @@
         localStorage.removeItem("dm_admin_token");
         localStorage.removeItem("dm_admin_role");
         localStorage.removeItem("dm_admin_username");
+        localStorage.removeItem("dm_admin_designation");
         setBubbleText("Design Makers");
         document.getElementById("dashboard").classList.add("hidden");
         document.getElementById("loginScreen").classList.remove("hidden");
@@ -970,8 +1131,10 @@
           const data = await res.json();
           if (data.success) {
             role = data.role || role;
+            myDesignation = data.designation || myDesignation;
             myUsername = data.username ? String(data.username).trim() : myUsername;
             localStorage.setItem("dm_admin_role", role);
+            if (myDesignation) localStorage.setItem("dm_admin_designation", myDesignation);
             if (myUsername) localStorage.setItem("dm_admin_username", myUsername);
             setBubbleText(myUsername || "Design Makers");
             showDashboard();
@@ -1006,7 +1169,11 @@
         try {
           const res = await fetch("/api/admin/me", { headers: { Authorization: "Bearer " + token } });
           const data = await res.json();
-          if (data.success) myCanDeleteProducts = !!data.canDeleteProducts;
+          if (data.success) {
+            myCanDeleteProducts = !!data.canDeleteProducts;
+            myDesignation = data.designation || myDesignation;
+            if (myDesignation) localStorage.setItem("dm_admin_designation", myDesignation);
+          }
         } catch (err) {
           // Keep the safe default set above if this fails.
         }
@@ -1014,6 +1181,7 @@
         loadProducts();
         loadSaleBanner();
         loadTheme();
+        switchTab("overview");
       }
 
       // ---------- TABS ----------
@@ -1021,13 +1189,14 @@
       function switchTab(tab) {
         currentTab = tab;
 
-        ["products", "orders", "homepage", "sellerlist", "sellers", "customers", "admins"].forEach((t) => {
+        ["overview", "products", "orders", "homepage", "sellerlist", "sellers", "customers", "admins"].forEach((t) => {
           document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
           document.getElementById("tabBtn" + capitalize(t)).classList.toggle("active", t === tab);
         });
 
         document.getElementById("addProductFab").classList.toggle("hidden", tab !== "products");
 
+        if (tab === "overview") loadAdminOverview();
         if (tab === "orders" && !orders.length) loadOrders();
         if (tab === "homepage") {
           document.getElementById("homepageSectionsSaved").style.display = "none";
@@ -1044,6 +1213,83 @@
         }
         if (tab === "customers") loadCustomers();
         if (tab === "admins") loadAdmins();
+      }
+
+      // ---------- EXECUTIVE OVERVIEW ----------
+      async function loadAdminOverview() {
+        const ids = ["ovRevenue","ovOrders","ovCustomers","ovProducts","ovPending","ovSellers","ovRecentOrders","ovQueue","ovTopProducts"];
+        ids.forEach((id) => { const el = document.getElementById(id); if (el && (id === "ovRecentOrders" || id === "ovQueue" || id === "ovTopProducts")) el.innerHTML = '<div class="dm-empty">Loading…</div>'; });
+        const auth = { Authorization: "Bearer " + token };
+        try {
+          const [productsRes, ordersRes, customersRes, pendingRes] = await Promise.all([
+            fetch("/api/admin/products", { headers: auth }),
+            fetch("/api/admin/orders", { headers: auth }),
+            fetch("/api/admin/customers", { headers: auth }),
+            fetch("/api/admin/products/pending", { headers: auth }),
+          ]);
+          const productsData = await productsRes.json();
+          const ordersData = await ordersRes.json();
+          const customersData = await customersRes.json();
+          const pendingData = await pendingRes.json();
+          if (!productsData.success || !ordersData.success || !customersData.success) throw new Error("Could not load overview data");
+
+          const ps = productsData.products || [];
+          const os = ordersData.orders || [];
+          const cs = customersData.customers || [];
+          const pendingProducts = pendingData.success ? (pendingData.products || []) : [];
+          const revenue = os.filter(o => o.status !== "Cancelled").reduce((sum,o) => sum + (Number(o.total)||0), 0);
+          const liveProducts = ps.filter(p => p.approved !== false).length;
+
+          document.getElementById("ovRevenue").textContent = fmtINR(revenue);
+          document.getElementById("ovOrders").textContent = os.length.toLocaleString("en-IN");
+          document.getElementById("ovCustomers").textContent = cs.length.toLocaleString("en-IN");
+          document.getElementById("ovProducts").textContent = liveProducts.toLocaleString("en-IN");
+          document.getElementById("ovProductsSub").textContent = liveProducts + " approved / " + ps.length + " total";
+          document.getElementById("ovPending").textContent = pendingProducts.length.toLocaleString("en-IN");
+          document.getElementById("overviewUserName").textContent = myUsername || "Admin";
+          document.getElementById("overviewRoleText").textContent = (role === "boss" ? "Super Admin · full control" : ((myDesignation || "Sub-Admin") + " · operational access"));
+
+          if (role === "boss") {
+            try {
+              const sellersRes = await fetch("/api/admin/sellers", { headers: auth });
+              const sellersData = await sellersRes.json();
+              document.getElementById("ovSellers").textContent = sellersData.success ? (sellersData.sellers || []).length.toLocaleString("en-IN") : "—";
+              document.getElementById("ovSellersSub").textContent = sellersData.success ? "Approved live sellers" : "Could not load";
+            } catch(e) { document.getElementById("ovSellers").textContent = "—"; }
+          } else {
+            document.getElementById("ovSellers").textContent = "Restricted";
+            document.getElementById("ovSellersSub").textContent = "Boss-only seller identity data";
+          }
+
+          const recent = os.slice().sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,6);
+          document.getElementById("ovRecentOrders").innerHTML = recent.length ? recent.map(o => {
+            const customer = o.customer && (o.customer.name || o.customer.phone) ? (o.customer.name || o.customer.phone) : "Customer";
+            const statusClass = String(o.status||"").toLowerCase().replace(/[^a-z]/g,"");
+            return `<div class="dm-order-row"><div class="dm-order-id">${escapeHtml(o.orderNumber || ("#" + o.id))}</div><div class="dm-order-customer">${escapeHtml(customer)}</div><div><span class="badge status status-${statusClass}">${escapeHtml(o.status || "New")}</span></div><div class="dm-order-amount">${fmtINR(o.total || 0)}</div></div>`;
+          }).join("") : '<div class="dm-empty">No orders recorded yet.</div>';
+
+          const queue = [];
+          if (pendingProducts.length) queue.push({title:"Seller products",desc:pendingProducts.length+" product(s) waiting for approval",action:"Review in Seller Approvals",tab:"sellers"});
+          if (role === "boss") {
+            try {
+              const appRes = await fetch("/api/admin/seller-applications", { headers: auth });
+              const appData = await appRes.json();
+              const pendingApps = appData.success ? (appData.applications||[]).filter(a => a.status === "pending") : [];
+              if (pendingApps.length) queue.push({title:"Seller applications",desc:pendingApps.length+" application(s) waiting for approval",action:"Review applications",tab:"sellers"});
+            } catch(e) {}
+          }
+          document.getElementById("ovQueue").innerHTML = queue.length ? queue.map(q => `<div class="dm-queue-item"><div class="dm-queue-main"><strong>${escapeHtml(q.title)}</strong><span>${escapeHtml(q.desc)}</span></div><button class="dm-pill" onclick="switchTab('${q.tab}')">${escapeHtml(q.action)}</button></div>`).join("") : '<div class="dm-empty">Nothing urgent. You are all caught up. ✓</div>';
+
+          const productMap = new Map(ps.map(p => [p.id, p.name || "Unnamed product"]));
+          const totals = {};
+          os.forEach(o => (o.items||[]).forEach(it => { const key = it.productId; if (!totals[key]) totals[key] = {name: productMap.get(key) || it.name || "Product", qty:0, revenue:0}; totals[key].qty += Number(it.qty)||0; totals[key].revenue += Number(it.lineTotal)||0; }));
+          const top = Object.values(totals).sort((a,b)=>b.qty-a.qty).slice(0,6);
+          document.getElementById("ovTopProducts").innerHTML = top.length ? top.map((p,i) => `<div class="dm-queue-item"><div class="dm-queue-main"><strong>#${i+1} · ${escapeHtml(p.name)}</strong><span>${p.qty} unit(s) ordered</span></div><span class="dm-pill">${fmtINR(p.revenue)}</span></div>`).join("") : '<div class="dm-empty">No product sales data yet.</div>';
+        } catch (err) {
+          document.getElementById("ovRecentOrders").innerHTML = '<div class="dm-empty">Could not load overview. <button class="btn small secondary" onclick="loadAdminOverview()">Retry</button></div>';
+          document.getElementById("ovQueue").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
+          document.getElementById("ovTopProducts").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
+        }
       }
 
       // ---------- HOMEPAGE SECTIONS (Most Popular / Trending) — AUTOMATIC ----------

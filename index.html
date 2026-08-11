@@ -1851,6 +1851,17 @@
               </div>
             </div>
 
+            <div id="accountCompletionBox" style="display:none;margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
+              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Complete your account</div>
+              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">You signed in with Google. Add your WhatsApp number and a password so you can also log in normally and receive order updates.</div>
+              <input type="tel" id="completeAccountMobile" class="checkout-input" placeholder="WhatsApp mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:6px;" />
+              <div style="font-size:0.76rem;color:var(--muted);margin:0 0 9px;">📱 10-digit Indian mobile number</div>
+              <input type="password" id="completeAccountPassword" class="checkout-input" placeholder="Create password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
+              <input type="password" id="completeAccountPasswordConfirm" class="checkout-input" placeholder="Confirm password" style="width:100%;margin-bottom:10px;" />
+              <div class="modal-error" id="completeAccountError" style="display:none;"></div>
+              <button class="add-cart-btn" id="completeAccountBtn" onclick="completeCustomerAccount()">Save account details</button>
+            </div>
+
             <div id="sellerStatusBox" style="margin-bottom:14px;"></div>
 
             <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-bottom:10px;"></button>
@@ -2047,7 +2058,14 @@
           localStorage.setItem("dm_customer_token", data.token);
           currentCustomer = data.customer;
           renderAccountState();
-          closeAccountModal();
+          // If this is a new Google account, keep the modal open so the
+          // customer can immediately add WhatsApp + password instead of
+          // landing in a half-complete account.
+          if (currentCustomer.needsProfileCompletion) {
+            document.getElementById("accountOverlay").classList.add("open");
+          } else {
+            closeAccountModal();
+          }
           restoreAccountCart();
         } catch (error) {
           errorEl.textContent = "Network error. Please try again.";
@@ -2078,6 +2096,11 @@
           });
           const data = await res.json();
           if (!data.success) {
+            if (data.needsPasswordSetup) {
+              errorEl.textContent = data.message || "Please sign in with Google first and complete your account setup.";
+              errorEl.style.display = "block";
+              return;
+            }
             if (data.notRegistered) {
               // New number — take them straight to sign-up, pre-filled.
               showRegisterForm();
@@ -2161,6 +2184,61 @@
         } catch (error) {
           errorEl.textContent = "Network error. Please try again.";
           errorEl.style.display = "block";
+        }
+      }
+
+      async function completeCustomerAccount() {
+        const errorEl = document.getElementById("completeAccountError");
+        const btn = document.getElementById("completeAccountBtn");
+        const mobile = document.getElementById("completeAccountMobile").value.trim();
+        const password = document.getElementById("completeAccountPassword").value;
+        const confirm = document.getElementById("completeAccountPasswordConfirm").value;
+        errorEl.style.display = "none";
+
+        if (!/^[6-9]\d{9}$/.test(mobile)) {
+          errorEl.textContent = "Enter a valid 10-digit WhatsApp mobile number.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (password.length < 6) {
+          errorEl.textContent = "Password should be at least 6 characters.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (password !== confirm) {
+          errorEl.textContent = "Passwords don't match.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+        try {
+          const res = await fetch("/api/customer/complete-account", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ mobile, password }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not complete your account.";
+            errorEl.style.display = "block";
+            return;
+          }
+
+          currentCustomer = data.customer;
+          document.getElementById("completeAccountMobile").value = "";
+          document.getElementById("completeAccountPassword").value = "";
+          document.getElementById("completeAccountPasswordConfirm").value = "";
+          renderAccountState();
+          restoreAccountCart();
+          closeAccountModal();
+        } catch (e) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Save account details";
         }
       }
 
@@ -2279,8 +2357,14 @@
 
         signedOutBox.style.display = "none";
         signedInBox.style.display = "block";
-        document.getElementById("accountName").textContent = currentCustomer.name;
-        document.getElementById("accountMobile").textContent = currentCustomer.mobile;
+        document.getElementById("accountName").textContent = currentCustomer.name || "Customer";
+        const mobileEl = document.getElementById("accountMobile");
+        mobileEl.textContent = currentCustomer.mobile ? currentCustomer.mobile : "WhatsApp number not added yet";
+        const completionBox = document.getElementById("accountCompletionBox");
+        if (completionBox) {
+          completionBox.style.display = currentCustomer.needsProfileCompletion ? "block" : "none";
+          if (currentCustomer.mobile) document.getElementById("completeAccountMobile").value = currentCustomer.mobile;
+        }
         const accPic = document.getElementById("accountPic");
         const accPh = document.getElementById("accountPicPlaceholder");
         if (accPic && accPh) {
@@ -2323,6 +2407,7 @@
       function openAccountModal() {
         document.getElementById("accountOverlay").classList.add("open");
         if (!currentCustomer) showLoginForm();
+        else renderAccountState();
       }
       function closeAccountModal(e) {
         if (e && e.target !== e.currentTarget) return;

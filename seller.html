@@ -207,6 +207,61 @@
         font-size: 0.85em;
         margin-bottom: 16px;
       }
+    
+
+      /* =========================================================
+         DESIGN MAKERS PREMIUM SELLER CENTER — PHASE 1 UI
+         ========================================================= */
+      :root {
+        --rosewood:#8b5cf6; --rosewood-dark:#6d28d9; --blush:#171722; --blush-line:#2b2b3a;
+        --gold:#f59e0b; --cream:#09090f; --ink:#f7f7fb; --muted:#9696a8; --surface:#11111a;
+        --danger:#ff7e8a; --danger-bg:rgba(239,68,68,.10); --success:#63e6b1; --success-bg:rgba(16,185,129,.10);
+      }
+      html,body{background:#09090f !important;color:#f7f7fb !important;}
+      body{background:radial-gradient(circle at 80% -10%,rgba(139,92,246,.12),transparent 35%),#09090f !important;}
+      #dashboard{min-height:100vh;}
+      header.dash-header{background:rgba(10,10,15,.90) !important;border-bottom:1px solid #252536;backdrop-filter:blur(16px);padding:14px 22px !important;min-height:66px;}
+      header.dash-header h1{font-family:Inter,"Segoe UI",Arial,sans-serif !important;font-size:16px !important;letter-spacing:-.02em;}
+      header.dash-header button{background:#151522 !important;border:1px solid #303044 !important;color:#eee !important;border-radius:9px !important;}
+      .tabs{position:fixed !important;left:0;top:66px !important;bottom:0;width:225px;display:flex !important;flex-direction:column;align-items:stretch;background:rgba(14,14,22,.97) !important;border-right:1px solid #252536 !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;z-index:19;}
+      .tabs::before{content:"SELLER CENTER";color:#6f6f82;font-size:10px;font-weight:800;letter-spacing:.12em;padding:4px 10px 10px;}
+      .tabs button{border:1px solid transparent !important;border-radius:9px !important;text-align:left !important;padding:10px 12px !important;color:#9999aa !important;transition:.18s ease;}
+      .tabs button:hover{background:#171722 !important;color:#fff !important;border-color:#252536 !important;}
+      .tabs button.active{color:#fff !important;background:linear-gradient(90deg,rgba(139,92,246,.20),rgba(139,92,246,.06)) !important;border-color:rgba(139,92,246,.35) !important;box-shadow:inset 3px 0 #8b5cf6 !important;}
+      main{max-width:none !important;margin:0 0 0 225px !important;padding:28px 28px 70px !important;}
+      .card,.form-card,.p-card,.order-row{background:linear-gradient(180deg,#12121c,#101018) !important;border:1px solid #272738 !important;box-shadow:0 10px 30px rgba(0,0,0,.16) !important;}
+      .card,.form-card{border-radius:14px !important;}
+      input[type=text],input[type=password],input[type=tel],textarea{background:#0d0d15 !important;color:#f7f7fb !important;border-color:#2d2d40 !important;border-radius:9px !important;}
+      input:focus,textarea:focus{outline:none;border-color:#8b5cf6 !important;box-shadow:0 0 0 3px rgba(139,92,246,.12);}
+      button.submit{background:#7c3aed !important;border-radius:9px !important;}
+      button.link-btn{color:#a78bfa !important;}
+      .section-title{font-family:Inter,"Segoe UI",Arial,sans-serif !important;font-size:23px !important;font-weight:800;letter-spacing:-.03em;}
+      .p-card{transition:.18s ease;overflow:hidden;}
+      .p-card:hover{transform:translateY(-2px);border-color:#474763 !important;}
+      .p-card img{background:#171722 !important;}
+      .p-card .meta,.hint,.desc,.empty-state,.order-row .item-line{color:#858598 !important;}
+      .badge.pending{background:rgba(245,158,11,.12) !important;color:#ffc96a !important;}
+      .badge.live{background:rgba(16,185,129,.12) !important;color:#63e6b1 !important;}
+      .order-status{background:#191925 !important;color:#bdbdce !important;border:1px solid #303044;}
+      .pending-note{background:rgba(245,158,11,.10) !important;color:#ffc96a !important;border:1px solid rgba(245,158,11,.18);}
+      #sellerOverview{animation:dmSellerFade .22s ease both;}
+      .seller-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px;}
+      .seller-kpi{padding:16px;border-radius:14px;background:linear-gradient(145deg,#151521,#101018);border:1px solid #29293b;min-height:112px;position:relative;overflow:hidden;}
+      .seller-kpi::after{content:"";position:absolute;width:85px;height:85px;right:-35px;top:-35px;border-radius:50%;background:rgba(139,92,246,.10);}
+      .seller-kpi .label{color:#8f8fa1;font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;}
+      .seller-kpi .value{font-size:24px;font-weight:800;letter-spacing:-.03em;margin-top:10px;color:#fff;}
+      .seller-grid-2{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;}
+      .seller-panel-card{padding:18px;border-radius:14px;background:linear-gradient(180deg,#12121c,#101018);border:1px solid #272738;}
+      .seller-panel-card h3{margin:0 0 14px;font-size:14px;}
+      .seller-recent-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #242436;font-size:12px;}
+      .seller-recent-row:first-child{border-top:0;}
+      .seller-recent-row strong{color:#eeeef5;display:block;}
+      .seller-recent-row span{color:#77778a;display:block;margin-top:3px;}
+      .seller-pill{padding:5px 8px;border-radius:999px;border:1px solid #35354a;background:#191925;color:#bdbdce;font-size:10px;white-space:nowrap;}
+      @keyframes dmSellerFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+      @media(max-width:1000px){.seller-kpis{grid-template-columns:repeat(3,minmax(0,1fr));}.seller-grid-2{grid-template-columns:1fr;}}
+      @media(max-width:700px){.tabs{position:sticky !important;top:0 !important;left:auto;width:auto;bottom:auto;height:auto;flex-direction:row;padding:8px !important;border-right:0 !important;border-bottom:1px solid #252536 !important;overflow-x:auto !important;}.tabs::before{display:none}.tabs button{width:auto;flex:0 0 auto;text-align:center !important}.tabs button.active{box-shadow:inset 0 -2px #8b5cf6 !important}.tabs{z-index:20}main{margin-left:0 !important;padding:18px 12px 60px !important}.seller-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}}
+
     </style>
   </head>
   <body>
@@ -273,15 +328,41 @@
       </header>
 
       <div class="tabs">
-        <button class="tab-btn active" data-tab="products" onclick="switchTab('products')">My Products</button>
+        <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+        <button class="tab-btn" data-tab="products" onclick="switchTab('products')">My Products</button>
         <button class="tab-btn" data-tab="add" onclick="switchTab('add')">Add Product</button>
         <button class="tab-btn" data-tab="orders" onclick="switchTab('orders')">Orders</button>
         <button class="tab-btn" data-tab="profile" onclick="switchTab('profile')">Profile</button>
       </div>
 
       <main>
+        <!-- SELLER EXECUTIVE DASHBOARD -->
+        <div class="panel active" id="panel-dashboard">
+          <div id="sellerOverview">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+              <div>
+                <div style="color:#77778a;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Seller Business Center</div>
+                <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;">Welcome back, <span id="sellerOverviewName">Seller</span> 👋</h2>
+                <p style="margin:6px 0 0;color:#8f8fa1;font-size:12px;">Your live business performance from actual orders and products.</p>
+              </div>
+              <button class="btn small secondary" onclick="loadSellerOverview()">↻ Refresh</button>
+            </div>
+            <div class="seller-kpis">
+              <div class="seller-kpi"><div class="label">Sales</div><div class="value" id="svSales">—</div></div>
+              <div class="seller-kpi"><div class="label">Orders</div><div class="value" id="svOrders">—</div></div>
+              <div class="seller-kpi"><div class="label">Products</div><div class="value" id="svProducts">—</div></div>
+              <div class="seller-kpi"><div class="label">Pending Orders</div><div class="value" id="svPending">—</div></div>
+              <div class="seller-kpi"><div class="label">Avg Order</div><div class="value" id="svAov">—</div></div>
+            </div>
+            <div class="seller-grid-2">
+              <section class="seller-panel-card"><h3>Recent Orders</h3><div id="svRecent"><div class="empty-state">Loading…</div></div></section>
+              <section class="seller-panel-card"><h3>Product Health</h3><div id="svHealth"><div class="empty-state">Loading…</div></div></section>
+            </div>
+          </div>
+        </div>
+
         <!-- My Products -->
-        <div class="panel active" id="panel-products">
+        <div class="panel" id="panel-products">
           <div class="section-title">My Products</div>
           <div id="productsGrid" class="grid"></div>
           <div class="empty-state" id="productsEmpty" style="display:none;">You haven't added any products yet.</div>
@@ -498,16 +579,49 @@
         document.getElementById("dashboard").style.display = "block";
         document.getElementById("dashShopTitle").textContent = seller.shopTitle || "Seller Dashboard";
         document.getElementById("dashSellerId").textContent = seller.sellerId + " · " + seller.name;
-        loadProducts();
+        window.__dmSeller = seller;
+        switchTab("dashboard");
       }
 
       function switchTab(tab) {
         document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
         document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
         document.getElementById("panel-" + tab).classList.add("active");
+        if (tab === "dashboard") loadSellerOverview();
         if (tab === "products") loadProducts();
         if (tab === "orders") loadOrders();
         if (tab === "profile") loadProfile();
+      }
+
+      // ---------- SELLER EXECUTIVE OVERVIEW ----------
+      async function loadSellerOverview() {
+        const authName = (window.__dmSeller && (window.__dmSeller.shopTitle || window.__dmSeller.name)) || "Seller";
+        const nameEl = document.getElementById("sellerOverviewName");
+        if (nameEl) nameEl.textContent = authName;
+        ["svSales","svOrders","svProducts","svPending","svAov","svRecent","svHealth"].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML = ["svRecent","svHealth"].includes(id) ? '<div class="empty-state">Loading…</div>' : '—'; });
+        try {
+          const [pRes,oRes] = await Promise.all([api("/api/seller/products"), api("/api/seller/orders")]);
+          const pData=pRes.data, oData=oRes.data;
+          if(!pData.success || !oData.success) throw new Error("Unable to load seller data");
+          const ps=pData.products||[], os=oData.orders||[];
+          const valid=os.filter(o=>o.status!=="Cancelled");
+          const sales=valid.reduce((sum,o)=>sum+(Number(o.sellerTotal)||0),0);
+          const pending=os.filter(o=>["New","Processing"].includes(o.status)).length;
+          const aov=valid.length ? sales/valid.length : 0;
+          const live=ps.filter(p=>p.approved!==false).length;
+          const pendingProducts=ps.filter(p=>p.approved===false).length;
+          document.getElementById("svSales").textContent="₹"+Math.round(sales).toLocaleString("en-IN");
+          document.getElementById("svOrders").textContent=os.length.toLocaleString("en-IN");
+          document.getElementById("svProducts").textContent=live.toLocaleString("en-IN");
+          document.getElementById("svPending").textContent=pending.toLocaleString("en-IN");
+          document.getElementById("svAov").textContent=aov ? "₹"+Math.round(aov).toLocaleString("en-IN") : "₹0";
+          const recent=os.slice(0,6);
+          document.getElementById("svRecent").innerHTML = recent.length ? recent.map(o => `<div class="seller-recent-row"><div><strong>${escapeHtml(o.orderNumber || "")}</strong><span>${escapeHtml((o.items || []).map(i => i.name + " × " + i.qty).join(", "))}</span></div><div style="text-align:right"><strong>₹${(Number(o.sellerTotal) || 0).toLocaleString("en-IN")}</strong><span>${escapeHtml(o.status || "")}</span></div></div>`).join("") : '<div class="empty-state">No orders with your products yet.</div>';
+          document.getElementById("svHealth").innerHTML='<div class="seller-recent-row"><div><strong>Live products</strong><span>Currently approved</span></div><span class="seller-pill">'+live+'</span></div><div class="seller-recent-row"><div><strong>Pending approval</strong><span>Waiting for admin review</span></div><span class="seller-pill">'+pendingProducts+'</span></div><div class="seller-recent-row"><div><strong>Total products</strong><span>All products in your account</span></div><span class="seller-pill">'+ps.length+'</span></div>';
+        } catch(err) {
+          document.getElementById("svRecent").innerHTML='<div class="empty-state">Could not load orders. <button class="link-btn" onclick="loadSellerOverview()">Retry</button></div>';
+          document.getElementById("svHealth").innerHTML='<div class="empty-state">Could not load product data.</div>';
+        }
       }
 
       // ---------- My Products ----------

@@ -419,6 +419,7 @@ app.get("/api/admin/me", requireAdmin, (req, res) => {
     success: true,
     username: req.admin.username,
     role: req.admin.role,
+    designation: account ? (account.designation || null) : null,
     canDeleteProducts: !!(account && account.canDeleteProducts),
   });
 });
@@ -506,8 +507,18 @@ app.post("/api/customer/login", (req, res) => {
   const database = readDatabase();
   const customer = database.customers.find((c) => c.mobile === cleanMobile);
 
+  // A Google-created account may have a mobile number but no local password yet.
+  // Do not pretend it is a brand-new account; tell the user to finish account setup.
+  if (customer && !customer.passwordHash) {
+    return res.status(409).json({
+      success: false,
+      needsPasswordSetup: true,
+      message: "Your account needs a password before you can use mobile login. Sign in with Google or complete your account setup.",
+    });
+  }
+
   // No account for this number → tell the frontend so it can offer sign-up.
-  if (!customer || !customer.passwordHash) {
+  if (!customer) {
     return res.status(404).json({
       success: false,
       notRegistered: true,
@@ -541,9 +552,8 @@ app.post("/api/customer/login", (req, res) => {
 });
 
 // Customer signs in / signs up with Google. Existing accounts are matched
-// by email; if this is a brand-new Google user, an account is created for
-// them on the spot (mobile number stays blank — they're asked for it at
-// checkout, same as before, since orders are sent over WhatsApp).
+// by email; brand-new Google users get a customer account immediately, then
+// the frontend asks them to complete their WhatsApp mobile + local password.
 app.post("/api/customer/google-login", async (req, res) => {
   const { idToken } = req.body || {};
   if (!idToken) return res.status(400).json({ success: false, message: "Missing Google token." });
@@ -590,11 +600,61 @@ app.post("/api/customer/google-login", async (req, res) => {
     customer: {
       id: customer.id,
       name: customer.name,
+      email: customer.email || "",
       mobile: customer.mobile,
       picture: customer.picture || "",
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
+      needsProfileCompletion: !customer.mobile || !customer.passwordHash,
+    },
+  });
+});
+
+// Complete a Google-created customer account with the WhatsApp mobile number
+// and a local password. This keeps Google sign-in working while also enabling
+// the site's normal mobile + password login and WhatsApp order flow.
+app.post("/api/customer/complete-account", requireCustomer, (req, res) => {
+  const { mobile, password } = req.body || {};
+  const cleanMobile = normalizeMobile(mobile);
+  const cleanPassword = String(password || "");
+
+  if (!isValidMobile(cleanMobile)) {
+    return res.status(400).json({ success: false, message: "Enter a valid 10-digit WhatsApp mobile number." });
+  }
+  if (cleanPassword.length < 6) {
+    return res.status(400).json({ success: false, message: "Password should be at least 6 characters." });
+  }
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
+
+  const duplicate = database.customers.find((c) => c.id !== customer.id && c.mobile === cleanMobile);
+  if (duplicate) {
+    return res.status(409).json({ success: false, message: "This mobile number is already linked to another customer account. Please use a different number." });
+  }
+
+  customer.mobile = cleanMobile;
+  customer.passwordHash = bcrypt.hashSync(cleanPassword, 10);
+  if (!customer.role) customer.role = "customer";
+  if (!customer.shopTitle) customer.shopTitle = "";
+  if (!customer.sellerStatus) customer.sellerStatus = "none";
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    message: "Account completed successfully.",
+    customer: {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email || "",
+      mobile: customer.mobile,
+      picture: customer.picture || "",
+      role: customer.role,
+      shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus,
+      needsProfileCompletion: false,
     },
   });
 });
@@ -606,11 +666,13 @@ app.get("/api/customer/me", requireCustomer, (req, res) => {
     customer: {
       id: c.id,
       name: c.name,
+      email: c.email || "",
       mobile: c.mobile,
       picture: c.picture || "",
       role: c.role,
       shopTitle: c.shopTitle,
       sellerStatus: c.sellerStatus,
+      needsProfileCompletion: !c.mobile || !c.passwordHash,
     },
   });
 });
