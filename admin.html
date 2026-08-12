@@ -1017,6 +1017,50 @@
       let currentImages = [];
       let saleEndsAtMs = null; // base64 photo data for the product being edited
 
+      // ---------- GLOBAL 401 HANDLER ----------
+      // Every admin data call (products, orders, sellers, seller-applications,
+      // overview, etc — 60+ call sites) sends the same Bearer token. Before
+      // this fix, if that token ever went stale mid-session — the 2-device
+      // concurrent-login limit evicting this session, JWT_SECRET changing
+      // on a redeploy, or the 7-day expiry — every one of those calls would
+      // just come back 401 and get silently swallowed by each function's own
+      // catch block. The dashboard stayed visible but every tab sat empty
+      // or half-loaded with no explanation — exactly "logged in, then blank/
+      // broken". Wrapping fetch() once here means ANY /api/admin/* call that
+      // comes back 401 immediately kicks the admin back to a visible login
+      // screen with a clear reason, instead of a silent blank dashboard.
+      (function installGlobal401Handler() {
+        const nativeFetch = window.fetch.bind(window);
+        window.fetch = async function (input, init) {
+          const res = await nativeFetch(input, init);
+          const url = typeof input === "string" ? input : (input && input.url) || "";
+          const isAdminApiCall = url.startsWith("/api/admin/") && !url.endsWith("/api/admin/login");
+          if (res.status === 401 && isAdminApiCall && token) {
+            token = null;
+            role = null;
+            myUsername = null;
+            localStorage.removeItem("dm_admin_token");
+            localStorage.removeItem("dm_admin_role");
+            localStorage.removeItem("dm_admin_username");
+            localStorage.removeItem("dm_admin_designation");
+            clearTimeout(sessionTimerId);
+            clearInterval(sessionCountdownId);
+            const overlay = document.getElementById("sessionPromptOverlay");
+            if (overlay) overlay.style.display = "none";
+            const dashboardEl = document.getElementById("dashboard");
+            const loginScreenEl = document.getElementById("loginScreen");
+            if (dashboardEl) dashboardEl.classList.add("hidden");
+            if (loginScreenEl) loginScreenEl.classList.remove("hidden");
+            const errorEl = document.getElementById("loginError");
+            if (errorEl) {
+              errorEl.textContent = "Your session ended (it expired, or the account was logged in on a 3rd device). Please log in again.";
+            }
+            setBubbleText("Design Makers");
+          }
+          return res;
+        };
+      })();
+
       // ---------- AUTH ----------
 
       async function login() {
