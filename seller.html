@@ -459,6 +459,29 @@
         if (token) headers.Authorization = "Bearer " + token;
         const res = await fetch(path, Object.assign({}, options, { headers }));
         const data = await res.json().catch(() => ({ success: false, message: "Server error." }));
+
+        // GLOBAL 401 HANDLER — every seller tab (Dashboard, My Products,
+        // Orders, Profile) calls this same api() helper. Before this fix,
+        // if the token went stale mid-session, every one of those calls
+        // just quietly failed and each tab's own catch block left it on
+        // an empty/loading state forever — "dashboard loads but data/tabs
+        // broken", with no way for the seller to tell it was an auth
+        // problem. Now a 401 on any authenticated call kicks them straight
+        // back to a visible, working login screen instead.
+        if (res.status === 401 && token && !path.includes("/login") && !path.includes("/forgot-password")) {
+          clearToken();
+          const dashboardEl = document.getElementById("dashboard");
+          const loginScreenEl = document.getElementById("loginScreen");
+          if (dashboardEl) dashboardEl.style.display = "none";
+          if (loginScreenEl) loginScreenEl.style.display = "flex";
+          showLoginForm();
+          const errorEl = document.getElementById("loginError");
+          if (errorEl) {
+            errorEl.textContent = "Your session ended. Please log in again.";
+            errorEl.style.display = "block";
+          }
+        }
+
         return { ok: res.ok, data };
       }
 
