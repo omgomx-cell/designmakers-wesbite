@@ -3248,27 +3248,38 @@
       // up and away while the dashboard slides down from behind it.
       function mascotSuccessReaction(afterAnimation) {
         setMascotState("happy", "Yay! Logging you in... 🎉");
-        setTimeout(() => {
-          const loginScreen = document.getElementById("loginScreen");
-          const dashboard = document.getElementById("dashboard");
 
-          dashboard.classList.remove("hidden");
-          dashboard.classList.add("mascot-enter-down", "mascot-enter-start");
-          // Force layout so the "start" transform is applied before we
-          // animate to "end" — otherwise the browser may collapse both
-          // class changes into one and skip the slide.
-          void dashboard.offsetHeight;
-          dashboard.classList.add("mascot-enter-end");
+        const loginScreen = document.getElementById("loginScreen");
+        const dashboard = document.getElementById("dashboard");
 
-          loginScreen.classList.add("mascot-exit-up");
+        // Guaranteed reveal — never depends on the animation below.
+        if (dashboard) dashboard.classList.remove("hidden");
+        if (loginScreen) loginScreen.classList.add("hidden");
+
+        try {
+          afterAnimation();
+        } catch (err) {
+          console.error("Dashboard init error:", err);
+        }
+
+        // Best-effort cosmetic slide only — wrapped so it can never
+        // block or break the real reveal above.
+        try {
+          if (dashboard) {
+            dashboard.classList.remove("hidden");
+            dashboard.classList.add("mascot-enter-down", "mascot-enter-start");
+            void dashboard.offsetHeight;
+            dashboard.classList.add("mascot-enter-end");
+          }
+          if (loginScreen) loginScreen.classList.add("mascot-exit-up");
 
           setTimeout(() => {
-            loginScreen.classList.add("hidden");
-            loginScreen.classList.remove("mascot-exit-up");
-            dashboard.classList.remove("mascot-enter-down", "mascot-enter-start", "mascot-enter-end");
-            afterAnimation();
+            try {
+              if (loginScreen) loginScreen.classList.remove("mascot-exit-up");
+              if (dashboard) dashboard.classList.remove("mascot-enter-down", "mascot-enter-start", "mascot-enter-end");
+            } catch (err) {}
           }, 700);
-        }, 500);
+        } catch (err) {}
       }
 
       // Enter key submits login
