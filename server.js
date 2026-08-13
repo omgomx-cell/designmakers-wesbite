@@ -24,7 +24,17 @@ app.set("trust proxy", true);
 // X-Frame-Options/clickjacking protection, HSTS, etc.) without breaking the
 // site. If the front-end is ever split into external .js files, turning CSP
 // back on (with a script-src allowlist) is worth doing.
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+// crossOriginOpenerPolicy is relaxed to "same-origin-allow-popups" — helmet's
+// default ("same-origin") silently blocks the Google Sign-In popup from
+// passing its login token back to this page (no error, it just never
+// completes), which is exactly the "Continue with Google" bug this fixes.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  })
+);
 
 // ================================
 // EMAIL (seller welcome mail, approvals, rejections)
