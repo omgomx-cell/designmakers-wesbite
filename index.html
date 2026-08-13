@@ -3774,7 +3774,12 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           document.body.classList.remove("theme-rakshabandhan", "theme-aug15");
           if (theme === "rakshabandhan" || theme === "aug15") {
             document.body.classList.add("theme-" + theme);
-          }
+          
+    applyDarkMode(false);
+    document.querySelectorAll(".dm-dark-btn").forEach(function(el){ el.style.display = "none"; });
+  } else {
+    document.querySelectorAll(".dm-dark-btn").forEach(function(el){ el.style.display = ""; });
+  }
 
           const heroTitle = document.getElementById("heroTitle");
           const heroSubtitle = document.getElementById("heroSubtitle");
