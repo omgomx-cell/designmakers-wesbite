@@ -209,6 +209,10 @@
       }
     
 
+    </style>
+    <!-- Toggleable dark-mode skin: disabled by default via media="not all",
+         flipped to media="all" by the shared theme JS when dark mode is on. -->
+    <style id="dmDarkOverride" media="not all">
       /* =========================================================
          DESIGN MAKERS PREMIUM SELLER CENTER — PHASE 1 UI
          ========================================================= */
@@ -262,9 +266,25 @@
       @media(max-width:1000px){.seller-kpis{grid-template-columns:repeat(3,minmax(0,1fr));}.seller-grid-2{grid-template-columns:1fr;}}
       @media(max-width:700px){.tabs{position:sticky !important;top:0 !important;left:auto;width:auto;bottom:auto;height:auto;flex-direction:row;padding:8px !important;border-right:0 !important;border-bottom:1px solid #252536 !important;overflow-x:auto !important;}.tabs::before{display:none}.tabs button{width:auto;flex:0 0 auto;text-align:center !important}.tabs button.active{box-shadow:inset 0 -2px #8b5cf6 !important}.tabs{z-index:20}main{margin-left:0 !important;padding:18px 12px 60px !important}.seller-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}}
 
+
+      /* ===== FINAL SELLER OBSIDIAN GOLD THEME ===== */
+      body { background:#060607 !important; color:#f5f5f7 !important; }
+      #loginScreen { background:radial-gradient(circle at 50% 30%,rgba(232,184,75,.08),transparent 30%),#060607 !important; }
+      .login-page .brand img { filter:drop-shadow(0 0 14px rgba(232,184,75,.22)); }
+      .login-page .card { background:linear-gradient(145deg,rgba(22,20,15,.88),rgba(8,8,9,.96)) !important; border:1px solid rgba(232,184,75,.20) !important; box-shadow:0 30px 90px rgba(0,0,0,.55) !important; backdrop-filter:blur(22px); }
+      button.submit { background:linear-gradient(135deg,#d99f28,#f3c85c) !important; color:#171109 !important; box-shadow:0 10px 28px rgba(232,184,75,.14); }
+      header.dash-header { background:rgba(8,8,9,.88) !important; border-bottom:1px solid rgba(232,184,75,.16); backdrop-filter:blur(18px); }
+      .tabs { background:rgba(9,9,11,.94) !important; border-bottom-color:rgba(232,184,75,.14) !important; }
+      .tabs .tab-btn.active { color:#f2ca6c !important; border-bottom-color:#e8b84b !important; }
+      .seller-kpi,.seller-panel-card,.panel-card,.card { background:linear-gradient(145deg,rgba(20,18,14,.92),rgba(10,10,11,.96)) !important; border-color:rgba(232,184,75,.14) !important; box-shadow:0 14px 36px rgba(0,0,0,.2); }
+      .seller-kpi .value { color:#f5d47a !important; }
+      input,textarea,select { background:#0d0d10 !important; color:#f5f5f7 !important; border-color:#2b2923 !important; }
     </style>
   </head>
   <body>
+    <button class="dm-dark-btn" onclick="toggleDarkMode()" title="Toggle dark mode" style="position:fixed; top:16px; right:16px; z-index:999; width:40px; height:40px; border-radius:50%; border:1px solid var(--blush-line); background:var(--surface); color:var(--ink); font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+      <span class="dm-dark-icon">🌙</span>
+    </button>
 
     <!-- ============ LOGIN SCREEN ============ -->
     <div id="loginScreen">
@@ -342,7 +362,7 @@
             <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
               <div>
                 <div style="color:#77778a;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Seller Business Center</div>
-                <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;">Welcome back, <span id="sellerOverviewName">Seller</span> 👋</h2>
+                <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;"><span id="sellerOverviewGreeting">Welcome back</span>, <span id="sellerOverviewName">Seller</span> 👋</h2>
                 <p style="margin:6px 0 0;color:#8f8fa1;font-size:12px;">Your live business performance from actual orders and products.</p>
               </div>
               <button class="btn small secondary" onclick="loadSellerOverview()">↻ Refresh</button>
@@ -618,8 +638,10 @@
 
       // ---------- SELLER EXECUTIVE OVERVIEW ----------
       async function loadSellerOverview() {
-        const authName = (window.__dmSeller && (window.__dmSeller.shopTitle || window.__dmSeller.name)) || "Seller";
+        const authName = (window.__dmSeller && window.__dmSeller.name) || "Seller";
         const nameEl = document.getElementById("sellerOverviewName");
+        const greetingEl = document.getElementById("sellerOverviewGreeting");
+        if (greetingEl) { const h = new Date().getHours(); greetingEl.textContent = h >= 5 && h < 12 ? "Good morning" : (h >= 12 && h < 17 ? "Good afternoon" : "Good evening"); }
         if (nameEl) nameEl.textContent = authName;
         ["svSales","svOrders","svProducts","svPending","svAov","svRecent","svHealth"].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML = ["svRecent","svHealth"].includes(id) ? '<div class="empty-state">Loading…</div>' : '—'; });
         try {
@@ -888,6 +910,45 @@
         } else {
           clearToken();
         }
+      })();
+    </script>
+    <script>
+      // Shared dark-mode toggle — same localStorage key as the rest of the
+      // site, so a visitor's choice carries over across pages. Flips the
+      // dmDarkOverride stylesheet on/off via its `media` attribute.
+      function applyDarkMode(on) {
+        document.body.classList.toggle("dark-mode", on);
+        var override = document.getElementById("dmDarkOverride");
+        if (override) override.media = on ? "all" : "not all";
+        document.querySelectorAll(".dm-dark-icon").forEach(function (el) {
+          el.textContent = on ? "☀️" : "🌙";
+        });
+        document.querySelectorAll(".dm-dark-btn").forEach(function (el) {
+          el.title = on ? "Switch to light mode" : "Switch to dark mode";
+        });
+      }
+      function toggleDarkMode() {
+        var on = !document.body.classList.contains("dark-mode");
+        try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
+        applyDarkMode(on);
+      }
+      (function initDarkMode() {
+        var saved = null;
+        try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
+        var on;
+        if (saved === "1" || saved === "0") {
+          on = saved === "1";
+        } else {
+          on = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        }
+        applyDarkMode(on);
+        try {
+          window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+            var cur = null;
+            try { cur = localStorage.getItem("dm_dark_mode"); } catch (err) {}
+            if (cur !== "1" && cur !== "0") applyDarkMode(e.matches);
+          });
+        } catch (e) {}
       })();
     </script>
   </body>

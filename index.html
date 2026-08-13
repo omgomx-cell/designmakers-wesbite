@@ -569,6 +569,45 @@
         padding: 10px 14px;
       }
 
+      /* ===== Gift add-on promo banner (below hero) ===== */
+      .gift-addon-banner {
+        display: none;
+        margin: 18px auto;
+        max-width: 900px;
+        background: linear-gradient(135deg, #fff3e0, #ffe4c4);
+        border: 1px solid #e6b978;
+        border-radius: 12px;
+        padding: 14px 18px;
+        text-align: center;
+        color: #6b3f10;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.5;
+      }
+      .gift-addon-banner strong { color: #a3572a; }
+
+      /* ===== Gift add-on row inside the cart ===== */
+      .gift-addon-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        margin: 6px 0 14px;
+        background: #fff6ea;
+        border: 1px dashed #d9a256;
+        border-radius: 8px;
+      }
+      .gift-addon-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        accent-color: var(--rosewood, #9e1b32);
+        cursor: pointer;
+      }
+      .gift-addon-row label { flex: 1; font-size: 13px; cursor: pointer; }
+      .gift-addon-row .gift-addon-title { font-weight: 700; display: block; }
+      .gift-addon-row .gift-addon-price { font-weight: 700; color: var(--rosewood, #9e1b32); white-space: nowrap; }
+
       /* ===== Top bar ===== */
       .announce {
         background: var(--rosewood-dark);
@@ -1349,6 +1388,688 @@
         .mobile-action-bar .cart-btn { background: var(--rosewood); color: white; }
         body { padding-bottom: 74px; }
       }
+
+/* ===== DESIGN MAKERS PREMIUM HOMEPAGE V2 (light warm gold-maroon) ===== */
+:root{--dm-bg:#fbf2e9;--dm-surface:rgba(255,255,255,.6);--dm-border:rgba(138,28,66,.13);--dm-blue:#b8863f;--dm-text:#2a1710;--dm-muted:rgba(42,23,16,.6)}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(circle at 78% 6%,rgba(184,134,63,.32),transparent 34%),radial-gradient(circle at 8% 28%,rgba(138,28,66,.22),transparent 36%),radial-gradient(circle at 30% 85%,rgba(184,134,63,.2),transparent 38%),radial-gradient(circle at 90% 75%,rgba(138,28,66,.16),transparent 34%),#fbf2e9!important;color:var(--dm-text)!important}
+body::before{background:radial-gradient(circle at 75% 12%,rgba(184,134,63,.28),transparent 28%),radial-gradient(circle at 15% 55%,rgba(138,28,66,.18),transparent 30%)!important;filter:blur(52px)!important}
+.announce{display:none!important}
+.site-header{position:sticky!important;top:14px!important;z-index:80!important;max-width:1280px!important;margin:14px auto 0!important;border:1px solid rgba(255,255,255,.5)!important;border-bottom:1px solid rgba(138,28,66,.1)!important;border-radius:22px!important;background:rgba(255,251,246,.4)!important;backdrop-filter:blur(34px) saturate(180%)!important;box-shadow:0 18px 50px rgba(138,28,66,.1),inset 0 1px rgba(255,255,255,.85)!important}
+.site-header .header-inner{min-height:72px!important;padding:0 20px!important}
+.site-header .logo{color:var(--dm-text)!important;font-family:Inter,"Segoe UI",sans-serif!important;font-weight:700!important;letter-spacing:.02em!important}
+.site-header .logo img{filter:drop-shadow(0 0 10px rgba(184,134,63,.25))!important}
+.site-header .logo span{color:rgba(42,23,16,.5)!important;font-size:10px!important;letter-spacing:.12em!important}
+.site-header .icon-btn{background:rgba(255,255,255,.3)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.6)!important;border-radius:14px!important;backdrop-filter:blur(16px) saturate(160%)!important;box-shadow:inset 0 1px rgba(255,255,255,.8),0 4px 14px rgba(138,28,66,.06)!important;transition:.25s ease!important}
+.site-header .icon-btn:hover{transform:translateY(-2px);border-color:rgba(184,134,63,.55)!important;background:rgba(184,134,63,.16)!important}
+.search-bar-panel{background:rgba(255,251,246,.55)!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(30px) saturate(170%)!important}
+.hero{margin:24px auto 0!important;max-width:1280px!important;min-height:560px!important;border-radius:32px!important;padding:58px 58px!important;background:linear-gradient(135deg,rgba(255,255,255,.42),rgba(255,255,255,.14)),radial-gradient(circle at 80% 40%,rgba(184,134,63,.2),transparent 42%),rgba(253,247,240,.5)!important;border:1px solid rgba(255,255,255,.55)!important;backdrop-filter:blur(28px) saturate(160%)!important;box-shadow:0 30px 80px rgba(138,28,66,.1),inset 0 1px rgba(255,255,255,.85)!important}
+.hero::after{display:none!important}.hero h1{font-size:clamp(42px,5vw,72px)!important;letter-spacing:-.045em!important;line-height:.96!important;color:var(--dm-text)!important}.hero h1::first-line{color:var(--dm-text)!important}.hero p{color:var(--dm-muted)!important}.hero-btn{border-radius:15px!important}.hero-btn.primary{background:linear-gradient(135deg,#b8863f,#8a1c42)!important;color:#fff!important}.hero-btn.secondary{background:rgba(255,255,255,.35)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(14px)!important}.hero-trust-item{color:rgba(42,23,16,.55)!important}
+.dm-hero-product-stage{border-radius:28px!important;background:linear-gradient(145deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important;border:1px solid rgba(255,255,255,.55)!important;backdrop-filter:blur(22px) saturate(160%)!important;box-shadow:inset 0 1px rgba(255,255,255,.85),0 25px 60px rgba(138,28,66,.09)!important}
+.dm-hero-product-stage,.dm-hero-product-stage *{color:rgba(42,23,16,.45)!important}
+
+/* ===== Light-mode DEFAULT hero: give it the same 2-column
+   copy+product-stage grid that dark mode and the festival themes
+   already have, so the product card sits properly instead of
+   stacking below the trust row. Skipped when dark mode or a
+   festival theme is active — those carry their own layout. ===== */
+body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .hero{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr)!important;
+  align-items:center!important;
+  text-align:left!important;
+  gap:20px!important;
+}
+body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-copy{min-width:0;}
+body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .hero-badge{width:max-content;}
+body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .hero-ctas,
+body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .hero-trust{justify-content:flex-start!important;}
+body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product{
+  min-height:380px;display:flex;align-items:center;justify-content:center;
+}
+body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product-stage{
+  width:min(100%,480px);height:380px;display:flex;align-items:center;justify-content:center;
+}
+@media(max-width:900px){
+  body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .hero{grid-template-columns:1fr!important;min-height:auto!important;}
+  body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product{min-height:260px;}
+  body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product-stage{height:260px;}
+}
+
+.promo-banner-wrap{margin:42px auto 0!important;gap:18px!important}
+.promo-banner{min-height:230px!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:26px!important;background:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important;color:var(--dm-text)!important;box-shadow:0 18px 45px rgba(138,28,66,.09),inset 0 1px rgba(255,255,255,.8)!important;backdrop-filter:blur(26px) saturate(170%)!important}
+.promo-banner.pb-rosewood,.promo-banner.pb-gold{background:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important}
+.promo-banner::after{content:"";position:absolute;width:220px;height:220px;right:-50px;top:-70px;border-radius:50%;background:rgba(184,134,63,.18);filter:blur(28px)}
+.promo-banner-content{z-index:3!important}.promo-banner-tag{color:#a3702c!important;letter-spacing:.12em!important}.promo-banner h3{color:var(--dm-text)!important;font-size:30px!important;letter-spacing:-.02em}.promo-banner p{color:rgba(42,23,16,.62)!important}.promo-banner-btn{background:rgba(255,255,255,.45)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.65)!important;border-radius:14px!important;backdrop-filter:blur(16px)!important}.promo-banner-btn:hover{background:rgba(184,134,63,.2)!important;border-color:rgba(184,134,63,.5)!important}
+.gift-banner-img{height:132%!important;max-width:44%!important;filter:drop-shadow(0 20px 24px rgba(138,28,66,.18))!important;transition:transform .45s ease,filter .45s ease!important}.gift-banner:hover .gift-banner-img{transform:translateY(-7px) scale(1.025);filter:drop-shadow(0 26px 30px rgba(138,28,66,.24))}
+.cat-cards-wrap{margin-top:54px!important}.cat-cards-wrap h2,.prod-section-wrap h2{font-size:27px!important;letter-spacing:-.03em!important;color:var(--dm-text)!important}.cat-carousel-track,.prod-grid{scrollbar-width:none!important}.cat-card,.product-card{border-radius:22px!important;background:linear-gradient(145deg,rgba(255,255,255,.45),rgba(255,255,255,.15))!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(18px) saturate(160%)!important;color:var(--dm-text)!important;box-shadow:0 14px 34px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.7)!important;overflow:hidden!important}.cat-card img,.product-card img{transition:transform .45s ease!important}.cat-card:hover img,.product-card:hover img{transform:scale(1.045)}
+.cat-arrow{background:rgba(255,255,255,.45)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.65)!important;backdrop-filter:blur(20px) saturate(160%)!important}
+.prod-section-wrap,.grid-wrap{margin-top:52px!important}.grid-wrap #statusMsg{color:var(--dm-muted)!important}
+.why-us-wrap{margin:56px auto 0!important;padding:28px!important;background:linear-gradient(145deg,rgba(255,255,255,.38),rgba(255,255,255,.1))!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:24px!important;backdrop-filter:blur(26px) saturate(170%)!important;box-shadow:0 18px 45px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.8)!important}.why-us-item .why-us-icon{filter:drop-shadow(0 0 8px rgba(184,134,63,.28))}.why-us-item .why-us-label{color:var(--dm-text)!important;font-size:13px!important}
+footer{max-width:1280px!important;margin:60px auto 0!important;padding:30px 20px 42px!important;border-top:1px solid rgba(138,28,66,.12)!important;color:rgba(42,23,16,.5)!important;background:transparent!important}footer a{color:#a3702c!important;text-decoration:none!important}footer a:hover{color:var(--dm-text)!important}
+.mobile-action-bar{background:rgba(255,251,246,.9)!important;border-color:rgba(138,28,66,.13)!important;backdrop-filter:blur(22px)!important}
+@media(max-width:900px){.site-header{top:8px!important;margin:8px 12px 0!important}.hero{margin:16px 12px 0!important;padding:36px 24px!important;border-radius:26px!important}.promo-banner-wrap,.cat-cards-wrap,.prod-section-wrap,.grid-wrap,.why-us-wrap{margin-left:12px!important;margin-right:12px!important;padding-left:0!important;padding-right:0!important}.promo-banner-wrap{grid-template-columns:1fr!important}.promo-banner{min-height:210px!important}.gift-banner-img{height:118%!important}}
+@media(max-width:640px){.site-header .logo span{display:none}.site-header .header-inner{padding:0 12px!important}.hero{min-height:unset!important}.hero h1{font-size:42px!important}.promo-banner h3{font-size:25px!important}.gift-banner-img{opacity:.78!important}}
+
+
+/* Override seasonal skins for the permanent premium storefront */
+body.theme-aug15 .site-header, body.theme-rakshabandhan .site-header{background:rgba(255,251,246,.72)!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important;border-bottom:1px solid var(--dm-border)!important;border-radius:22px!important;box-shadow:0 18px 50px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.6)!important}
+body.theme-aug15 .logo,body.theme-aug15 .logo span,body.theme-rakshabandhan .logo,body.theme-rakshabandhan .logo span{color:var(--dm-text)!important}
+body.theme-aug15 .icon-btn,body.theme-rakshabandhan .icon-btn{background:rgba(255,255,255,.55)!important;border:1px solid rgba(138,28,66,.14)!important;color:var(--dm-text)!important}
+body.theme-aug15 .hero,body.theme-rakshabandhan .hero{background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,255,255,.35)),radial-gradient(circle at 80% 40%,rgba(184,134,63,.16),transparent 40%),#fdf7f0!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important;border-radius:32px!important}
+body.theme-aug15 .hero h1,body.theme-rakshabandhan .hero h1{color:var(--dm-text)!important}body.theme-aug15 .hero p,body.theme-rakshabandhan .hero p{color:var(--dm-muted)!important}body.theme-aug15 .hero-btn.primary,body.theme-rakshabandhan .hero-btn.primary{background:linear-gradient(135deg,#b8863f,#8a1c42)!important;color:#fff!important}body.theme-aug15 .hero-btn.secondary,body.theme-rakshabandhan .hero-btn.secondary{background:rgba(255,255,255,.6)!important;color:var(--dm-text)!important;border:1px solid rgba(138,28,66,.16)!important}
+
+
+
+/* ================================================================
+   DESIGN MAKERS — POLISHED FULL-PAGE SEASONAL THEMES
+   Normal theme is intentionally untouched. These rules activate only
+   when admin sets body.theme-aug15 or body.theme-rakshabandhan.
+================================================================ */
+
+.seasonal-quote{display:none}
+
+/* ---------- shared seasonal architecture ---------- */
+body.theme-aug15,
+body.theme-rakshabandhan{
+  --dm-page:#fbf6ef;
+  --dm-surface:rgba(255,255,255,.78);
+  --dm-surface-solid:#fffdf9;
+  --dm-text:#2b211c;
+  --dm-muted:#766962;
+  --dm-border:rgba(90,54,34,.12);
+  --dm-shadow:0 18px 55px rgba(79,48,30,.09);
+  background:
+    radial-gradient(circle at 8% 4%,rgba(255,255,255,.95),transparent 26%),
+    radial-gradient(circle at 92% 18%,rgba(255,255,255,.75),transparent 28%),
+    var(--dm-page)!important;
+  color:var(--dm-text)!important;
+  transition:background .45s ease,color .35s ease;
+}
+
+body.theme-aug15{
+  --dm-accent:#e77918;
+  --dm-accent-dark:#c85d08;
+  --dm-green:#2f7d45;
+  --dm-navy:#183f68;
+  --dm-soft:#fff2e5;
+  --dm-soft-2:#edf4eb;
+  --dm-gold:#c48a35;
+}
+
+body.theme-rakshabandhan{
+  --dm-accent:#b63d61;
+  --dm-accent-dark:#8f2346;
+  --dm-green:#b36c76;
+  --dm-navy:#63203a;
+  --dm-soft:#fff0f3;
+  --dm-soft-2:#fff7e8;
+  --dm-gold:#c7933c;
+}
+
+body.theme-aug15::after,
+body.theme-rakshabandhan::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.55;
+}
+
+/* ---------- announcement ---------- */
+body.theme-aug15 .announce,
+body.theme-rakshabandhan .announce{
+  max-width:1280px!important;
+  margin:10px auto 0!important;
+  border-radius:14px!important;
+  padding:10px 18px!important;
+  text-align:center!important;
+  font-weight:700!important;
+  letter-spacing:.2px!important;
+  box-shadow:0 8px 25px rgba(0,0,0,.05)!important;
+  border:1px solid var(--dm-border)!important;
+}
+body.theme-aug15 .announce{
+  background:linear-gradient(90deg,#fff0df,#fffaf3,#eef5ed)!important;
+  color:var(--dm-navy)!important;
+}
+body.theme-rakshabandhan .announce{
+  background:linear-gradient(90deg,#fff0f3,#fffaf4,#fff0d8)!important;
+  color:var(--dm-accent-dark)!important;
+}
+
+/* ---------- navbar ---------- */
+body.theme-aug15 .site-header,
+body.theme-rakshabandhan .site-header{
+  background:rgba(255,253,249,.86)!important;
+  color:var(--dm-text)!important;
+  border:1px solid var(--dm-border)!important;
+  border-bottom:3px solid transparent!important;
+  border-image:linear-gradient(90deg,var(--dm-accent),#fff,var(--dm-green)) 1!important;
+  box-shadow:var(--dm-shadow)!important;
+}
+body.theme-rakshabandhan .site-header{
+  border-image:linear-gradient(90deg,var(--dm-accent),var(--dm-gold),var(--dm-accent)) 1!important;
+}
+body.theme-aug15 .logo,
+body.theme-aug15 .logo span,
+body.theme-rakshabandhan .logo,
+body.theme-rakshabandhan .logo span{color:var(--dm-text)!important}
+body.theme-aug15 .icon-btn,
+body.theme-rakshabandhan .icon-btn{
+  background:rgba(255,255,255,.72)!important;
+  color:var(--dm-text)!important;
+  border:1px solid var(--dm-border)!important;
+  box-shadow:0 6px 18px rgba(55,35,25,.06)!important;
+}
+body.theme-aug15 .icon-btn:hover{background:var(--dm-soft)!important;color:var(--dm-green)!important}
+body.theme-rakshabandhan .icon-btn:hover{background:var(--dm-soft)!important;color:var(--dm-accent)!important}
+body.theme-aug15 .cart-count{background:var(--dm-green)!important;color:#fff!important;border-color:#fff!important}
+body.theme-rakshabandhan .cart-count{background:var(--dm-gold)!important;color:#fff!important;border-color:#fff!important}
+
+/* ---------- hero: same structure, completely new visual skin ---------- */
+body.theme-aug15 .hero,
+body.theme-rakshabandhan .hero{
+  position:relative!important;
+  max-width:1280px!important;
+  margin:24px auto 28px!important;
+  min-height:430px!important;
+  padding:56px 54px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr)!important;
+  align-items:center!important;
+  text-align:left!important;
+  overflow:hidden!important;
+  border-radius:32px!important;
+  border:1px solid var(--dm-border)!important;
+  box-shadow:var(--dm-shadow)!important;
+  background:var(--dm-surface-solid)!important;
+}
+body.theme-aug15 .hero{
+  background:
+    radial-gradient(circle at 82% 24%,rgba(231,121,24,.18),transparent 26%),
+    radial-gradient(circle at 95% 90%,rgba(47,125,69,.14),transparent 30%),
+    linear-gradient(135deg,#fffdf9 0%,#fff8ef 58%,#f4f7f0 100%)!important;
+}
+body.theme-rakshabandhan .hero{
+  background:
+    radial-gradient(circle at 82% 22%,rgba(182,61,97,.17),transparent 27%),
+    radial-gradient(circle at 96% 90%,rgba(199,147,60,.15),transparent 29%),
+    linear-gradient(135deg,#fffdf9 0%,#fff5f3 58%,#fff8e9 100%)!important;
+}
+body.theme-aug15 .hero::before,
+body.theme-rakshabandhan .hero::before{
+  content:""!important;
+  position:absolute!important;
+  inset:auto -90px -120px auto!important;
+  width:360px!important;
+  height:360px!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  border:1px solid var(--dm-border)!important;
+  box-shadow:0 0 0 26px rgba(255,255,255,.35),0 0 0 52px rgba(255,255,255,.18)!important;
+  animation:none!important;
+}
+body.theme-aug15 .hero::after{
+  content:""!important;
+  position:absolute!important;
+  width:190px!important;
+  height:190px!important;
+  right:30%!important;
+  top:50%!important;
+  transform:translate(50%,-50%)!important;
+  background:
+    repeating-conic-gradient(from 0deg,rgba(24,63,104,.28) 0 5deg,transparent 5deg 15deg)!important;
+  border:2px solid rgba(24,63,104,.18)!important;
+  border-radius:50%!important;
+  opacity:.28!important;
+  z-index:0!important;
+  filter:none!important;
+  animation:dmChakra 28s linear infinite!important;
+}
+body.theme-rakshabandhan .hero::after{
+  content:"✦"!important;
+  position:absolute!important;
+  right:25%!important;
+  top:15%!important;
+  width:110px!important;
+  height:110px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle,#fff 0 18%,#f6dfaa 19% 28%,#b63d61 29% 34%,#fff 35% 42%,transparent 43%)!important;
+  color:#fff!important;
+  font-size:24px!important;
+  box-shadow:0 12px 35px rgba(182,61,97,.18)!important;
+  opacity:.9!important;
+  z-index:0!important;
+  animation:dmFloat 5s ease-in-out infinite!important;
+}
+@keyframes dmChakra{to{transform:translate(50%,-50%) rotate(360deg)}}
+@keyframes dmFloat{50%{transform:translateY(-8px) rotate(4deg)}}
+body.theme-aug15 .hero>* ,body.theme-rakshabandhan .hero>*{position:relative;z-index:2}
+body.theme-aug15 .dm-hero-copy,body.theme-rakshabandhan .dm-hero-copy{max-width:620px}
+
+body.theme-aug15 .hero-badge,
+body.theme-rakshabandhan .hero-badge{
+  display:inline-flex!important;
+  width:max-content!important;
+  max-width:100%!important;
+  padding:9px 14px!important;
+  border-radius:999px!important;
+  font-size:11px!important;
+  font-weight:800!important;
+  letter-spacing:.5px!important;
+  box-shadow:0 7px 18px rgba(50,35,25,.07)!important;
+  border:1px solid var(--dm-border)!important;
+}
+body.theme-aug15 .hero-badge{background:#eef5ed!important;color:var(--dm-green)!important}
+body.theme-rakshabandhan .hero-badge{background:#fff0f3!important;color:var(--dm-accent-dark)!important}
+body.theme-aug15 .hero h1,body.theme-rakshabandhan .hero h1{
+  color:var(--dm-text)!important;
+  font-size:clamp(38px,4.2vw,58px)!important;
+  line-height:1.04!important;
+  letter-spacing:-1.5px!important;
+  text-shadow:none!important;
+  animation:none!important;
+  margin:18px 0 12px!important;
+}
+body.theme-aug15 .hero h1::first-line{color:var(--dm-text)}
+body.theme-aug15 .hero p,body.theme-rakshabandhan .hero p{
+  color:var(--dm-muted)!important;
+  max-width:590px!important;
+  font-size:15.5px!important;
+  line-height:1.65!important;
+}
+body.theme-aug15 .seasonal-quote,
+body.theme-rakshabandhan .seasonal-quote{
+  display:block!important;
+  width:max-content!important;
+  max-width:100%!important;
+  margin-top:17px!important;
+  padding:11px 16px!important;
+  border-radius:12px!important;
+  font-family:"Playfair Display",Georgia,serif!important;
+  font-size:15px!important;
+  line-height:1.35!important;
+  box-shadow:0 7px 18px rgba(55,35,25,.06)!important;
+}
+body.theme-aug15 .seasonal-quote{background:#fff0df!important;color:#8c4b16!important;border-left:4px solid var(--dm-accent)!important}
+body.theme-rakshabandhan .seasonal-quote{background:#fff0f3!important;color:#7c2945!important;border-left:4px solid var(--dm-accent)!important}
+body.theme-aug15 .hero-btn.primary{background:linear-gradient(135deg,var(--dm-accent),#f39b3e)!important;color:#fff!important;box-shadow:0 10px 24px rgba(231,121,24,.24)!important}
+body.theme-rakshabandhan .hero-btn.primary{background:linear-gradient(135deg,var(--dm-accent-dark),var(--dm-accent))!important;color:#fff!important;box-shadow:0 10px 24px rgba(182,61,97,.24)!important}
+body.theme-aug15 .hero-btn.secondary,body.theme-rakshabandhan .hero-btn.secondary{background:rgba(255,255,255,.8)!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important}
+body.theme-aug15 .hero-trust-item,body.theme-rakshabandhan .hero-trust-item{color:var(--dm-muted)!important}
+body.theme-aug15 .dm-hero-product-stage,body.theme-rakshabandhan .dm-hero-product-stage{
+  background:rgba(255,255,255,.5)!important;
+  border:1px solid rgba(255,255,255,.9)!important;
+  border-radius:28px!important;
+  box-shadow:0 18px 45px rgba(75,45,25,.08),inset 0 1px rgba(255,255,255,.9)!important;
+}
+body.theme-aug15 .dm-hero-product-stage{box-shadow:0 18px 45px rgba(47,125,69,.08),inset 0 1px rgba(255,255,255,.9)!important}
+body.theme-rakshabandhan .dm-hero-product-stage{box-shadow:0 18px 45px rgba(182,61,97,.10),inset 0 1px rgba(255,255,255,.9)!important}
+
+/* ---------- seasonal section heading labels ---------- */
+body.theme-aug15 .cat-cards-wrap h2,
+body.theme-aug15 .prod-section-wrap h2,
+body.theme-aug15 .sale-section-wrap h2,
+body.theme-rakshabandhan .cat-cards-wrap h2,
+body.theme-rakshabandhan .prod-section-wrap h2,
+body.theme-rakshabandhan .sale-section-wrap h2{
+  color:var(--dm-text)!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  font-size:24px!important;
+  margin-bottom:16px!important;
+}
+body.theme-aug15 .cat-cards-wrap h2::after,
+body.theme-aug15 .prod-section-wrap h2::after,
+body.theme-aug15 .sale-section-wrap h2::after,
+body.theme-rakshabandhan .cat-cards-wrap h2::after,
+body.theme-rakshabandhan .prod-section-wrap h2::after,
+body.theme-rakshabandhan .sale-section-wrap h2::after{
+  content:"";height:3px;flex:1;max-width:120px;border-radius:99px;background:linear-gradient(90deg,var(--dm-accent),transparent)
+}
+body.theme-aug15 .category-heading,body.theme-rakshabandhan .category-heading{color:var(--dm-text)!important}
+
+/* ---------- For Her / For Him banners ---------- */
+body.theme-aug15 .promo-banner,
+body.theme-rakshabandhan .promo-banner{
+  border-radius:24px!important;
+  border:1px solid var(--dm-border)!important;
+  box-shadow:var(--dm-shadow)!important;
+  overflow:hidden!important;
+}
+body.theme-aug15 .promo-banner.pb-rosewood{background:linear-gradient(135deg,#fff0df,#fffaf3 62%,#eef5ed)!important}
+body.theme-aug15 .promo-banner.pb-gold{background:linear-gradient(135deg,#eef5ed,#fffaf3 62%,#fff0df)!important}
+body.theme-rakshabandhan .promo-banner.pb-rosewood{background:linear-gradient(135deg,#fff0f3,#fff8f7 58%,#fbe4eb)!important}
+body.theme-rakshabandhan .promo-banner.pb-gold{background:linear-gradient(135deg,#fff8e9,#fffdf8 58%,#f4e6c9)!important}
+body.theme-aug15 .promo-banner-tag,body.theme-rakshabandhan .promo-banner-tag{
+  display:inline-block!important;width:max-content!important;padding:6px 10px!important;border-radius:999px!important;background:rgba(255,255,255,.72)!important;border:1px solid var(--dm-border)!important;color:var(--dm-accent-dark)!important
+}
+body.theme-aug15 .promo-banner h3,body.theme-rakshabandhan .promo-banner h3{color:var(--dm-text)!important;font-size:28px!important}
+body.theme-aug15 .promo-banner p,body.theme-rakshabandhan .promo-banner p{color:var(--dm-muted)!important}
+body.theme-aug15 .promo-banner-btn{background:var(--dm-green)!important;color:#fff!important;box-shadow:0 8px 18px rgba(47,125,69,.18)!important}
+body.theme-rakshabandhan .promo-banner-btn{background:var(--dm-accent-dark)!important;color:#fff!important;box-shadow:0 8px 18px rgba(143,35,70,.18)!important}
+
+/* ---------- category tiles ---------- */
+body.theme-aug15 .tile-cat,body.theme-rakshabandhan .tile-cat{
+  background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-accent),#fff,var(--dm-green)) border-box!important;
+  box-shadow:0 10px 25px rgba(65,40,25,.08)!important;
+}
+body.theme-rakshabandhan .tile-cat{background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-accent),var(--dm-gold),#f1d8df) border-box!important}
+body.theme-aug15 .tile-cat.active{background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-green),var(--dm-accent),var(--dm-navy)) border-box!important}
+body.theme-rakshabandhan .tile-cat.active{background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-accent-dark),var(--dm-gold),var(--dm-accent)) border-box!important}
+body.theme-aug15 .tile-cat-label,body.theme-rakshabandhan .tile-cat-label{background:rgba(255,253,249,.92)!important;color:var(--dm-text)!important}
+body.theme-aug15 .tile-cat.active .tile-cat-label{background:var(--dm-navy)!important;color:#fff!important}
+body.theme-rakshabandhan .tile-cat.active .tile-cat-label{background:var(--dm-accent-dark)!important;color:#fff!important}
+body.theme-aug15 .cat-arrow,body.theme-rakshabandhan .cat-arrow{background:var(--dm-surface-solid)!important;color:var(--dm-accent-dark)!important;border-color:var(--dm-border)!important}
+
+/* ---------- product cards / sale / hot ---------- */
+body.theme-aug15 .product-card,body.theme-rakshabandhan .product-card{
+  background:rgba(255,255,255,.82)!important;
+  border:1px solid var(--dm-border)!important;
+  box-shadow:0 12px 32px rgba(65,40,25,.07)!important;
+}
+body.theme-aug15 .product-card:hover{border-color:rgba(47,125,69,.45)!important;box-shadow:0 18px 38px rgba(47,125,69,.12)!important}
+body.theme-rakshabandhan .product-card:hover{border-color:rgba(182,61,97,.4)!important;box-shadow:0 18px 38px rgba(182,61,97,.12)!important}
+body.theme-aug15 .product-img{background:#f4f7f0!important}
+body.theme-rakshabandhan .product-img{background:#fff0f3!important}
+body.theme-aug15 .product-category{color:var(--dm-green)!important}
+body.theme-rakshabandhan .product-category{color:var(--dm-gold)!important}
+body.theme-aug15 .product-price{color:var(--dm-accent-dark)!important}
+body.theme-rakshabandhan .product-price{color:var(--dm-accent-dark)!important}
+body.theme-aug15 .discount-badge{background:var(--dm-green)!important}
+body.theme-rakshabandhan .discount-badge{background:var(--dm-accent-dark)!important}
+body.theme-aug15 .sale-section-wrap,body.theme-rakshabandhan .sale-section-wrap,
+body.theme-aug15 .hot-banner-wrap,body.theme-rakshabandhan .hot-banner-wrap{filter:none!important}
+body.theme-aug15 .hot-banner{background:linear-gradient(135deg,#fff0df,#eef5ed)!important;border:1px solid var(--dm-border)!important;box-shadow:var(--dm-shadow)!important}
+body.theme-rakshabandhan .hot-banner{background:linear-gradient(135deg,#fff0f3,#fff8e9)!important;border:1px solid var(--dm-border)!important;box-shadow:var(--dm-shadow)!important}
+body.theme-aug15 .hot-banner-tag{background:#eef5ed!important;color:var(--dm-green)!important}
+body.theme-rakshabandhan .hot-banner-tag{background:#fff0f3!important;color:var(--dm-accent-dark)!important}
+body.theme-aug15 .hot-banner-btn{background:var(--dm-green)!important;color:#fff!important}
+body.theme-rakshabandhan .hot-banner-btn{background:var(--dm-accent-dark)!important;color:#fff!important}
+
+/* ---------- why-us / footer ---------- */
+body.theme-aug15 .why-us-wrap,body.theme-rakshabandhan .why-us-wrap{
+  background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(255,255,255,.55))!important;
+  border:1px solid var(--dm-border)!important;
+  box-shadow:var(--dm-shadow)!important;
+}
+body.theme-aug15 .why-us-icon{filter:drop-shadow(0 5px 10px rgba(47,125,69,.16))!important}
+body.theme-rakshabandhan .why-us-icon{filter:drop-shadow(0 5px 10px rgba(182,61,97,.16))!important}
+body.theme-aug15 .why-us-label,body.theme-rakshabandhan .why-us-label{color:var(--dm-text)!important}
+body.theme-aug15 footer,body.theme-rakshabandhan footer{color:var(--dm-muted)!important;border-top:1px solid var(--dm-border)!important}
+body.theme-aug15 footer a{color:var(--dm-green)!important}
+body.theme-rakshabandhan footer a{color:var(--dm-accent-dark)!important}
+
+/* ---------- overlays / search / cart / modals ---------- */
+body.theme-aug15 .search-bar-panel{background:#edf4eb!important}
+body.theme-rakshabandhan .search-bar-panel{background:#fff0f3!important}
+body.theme-aug15 .search-bar-input-wrap,body.theme-rakshabandhan .search-bar-input-wrap,
+body.theme-aug15 .search-results,body.theme-rakshabandhan .search-results,
+body.theme-aug15 .modal,body.theme-rakshabandhan .modal,
+body.theme-aug15 .cart-drawer,body.theme-rakshabandhan .cart-drawer{
+  background:var(--dm-surface-solid)!important;
+  border:1px solid var(--dm-border)!important;
+  box-shadow:0 22px 60px rgba(45,25,15,.16)!important;
+}
+body.theme-aug15 .modal-title,body.theme-aug15 .product-name{color:var(--dm-text)!important}
+body.theme-rakshabandhan .modal-title,body.theme-rakshabandhan .product-name{color:var(--dm-text)!important}
+body.theme-aug15 .mobile-action-bar{background:rgba(255,253,249,.94)!important;border-top:1px solid var(--dm-border)!important}
+body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!important;border-top:1px solid var(--dm-border)!important}
+
+/* ---------- festive page accents ---------- */
+body.theme-aug15 .aug15-flag{box-shadow:0 5px 12px rgba(24,63,104,.12)!important}
+body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,97,.18))!important}
+
+@media(max-width:900px){
+  body.theme-aug15 .hero,body.theme-rakshabandhan .hero{
+    grid-template-columns:1fr!important;
+    padding:38px 26px 30px!important;
+    min-height:unset!important;
+  }
+  body.theme-aug15 .dm-hero-product,body.theme-rakshabandhan .dm-hero-product{margin-top:24px!important}
+  body.theme-aug15 .hero h1,body.theme-rakshabandhan .hero h1{font-size:42px!important}
+}
+@media(max-width:560px){
+  body.theme-aug15 .hero,body.theme-rakshabandhan .hero{border-radius:24px!important;padding:30px 20px 22px!important}
+  body.theme-aug15 .hero h1,body.theme-rakshabandhan .hero h1{font-size:35px!important}
+  body.theme-aug15 .seasonal-quote,body.theme-rakshabandhan .seasonal-quote{font-size:13px!important}
+}
+
+
+      /* ===== Festival hero banners (full-artwork replacement for the default hero copy/product blocks) =====
+         Placed last in the stylesheet on purpose so it wins over the theme-skin blocks above it. */
+      .festival-hero-wrap { display: none; position: relative; width: 100%; line-height: 0; border-radius: 20px; overflow: hidden; }
+      .festival-hero-img { display: block; width: 100%; height: auto; }
+      .festival-hero-hit {
+        position: absolute;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        top: 75%;
+        height: 9.5%;
+        width: 14.5%;
+      }
+      .festival-hero-hit-shop { left: 4.5%; }
+      .festival-hero-hit-whatsapp { left: 20.5%; width: 20%; }
+      #rakhiHeroWrap .festival-hero-hit { top: 83.5%; height: 8%; }
+      #rakhiHeroWrap .festival-hero-hit-whatsapp { left: 18.5%; width: 20%; }
+      body.theme-aug15 #aug15HeroWrap { display: block !important; }
+      body.theme-rakshabandhan #rakhiHeroWrap { display: block !important; }
+      body.theme-aug15 .dm-hero-copy,
+      body.theme-aug15 .dm-hero-product,
+      body.theme-rakshabandhan .dm-hero-copy,
+      body.theme-rakshabandhan .dm-hero-product {
+        display: none !important;
+      }
+      body.theme-aug15 .hero,
+      body.theme-rakshabandhan .hero {
+        display: block !important;
+        padding: 0 !important;
+        min-height: auto !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
+      body.theme-aug15 .hero::before,
+      body.theme-aug15 .hero::after,
+      body.theme-rakshabandhan .hero::before,
+      body.theme-rakshabandhan .hero::after,
+      body.theme-rakshabandhan .hero > .rakhi-charm {
+        display: none !important;
+      }
+      @media (max-width: 900px) {
+        body.theme-aug15 .hero,
+        body.theme-rakshabandhan .hero {
+          padding: 0 !important;
+          min-height: auto !important;
+        }
+      }
+
+      /* Top strip / offer strip banners */
+      #announceBar { display: block; }
+      body.theme-aug15 #announceBar,
+      body.theme-rakshabandhan #announceBar {
+        display: none !important;
+      }
+      .festival-strip-wrap { display: none; width: 100%; line-height: 0; position: relative; }
+      .festival-strip-img { display: block; width: 100%; height: auto; }
+      body.theme-aug15 #aug15TopStripWrap,
+      body.theme-rakshabandhan #rakhiTopStripWrap {
+        display: block !important;
+      }
+      .festival-offer-wrap { display: none; max-width: 1280px; margin: 18px auto 0; border-radius: 12px; overflow: hidden; }
+      body.theme-aug15 #aug15OfferWrap,
+      body.theme-rakshabandhan #rakhiOfferWrap {
+        display: block !important;
+      }
+      .festival-strip-hit {
+        position: absolute;
+        top: 15%; height: 70%;
+        right: 3%; width: 12%;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+      }
+      #rakhiOfferWrap .festival-strip-hit { top: 63%; height: 22%; left: 58.5%; right: auto; width: 13%; }
+
+      /* Themed category cards (For Her / For Him) replacing the generic promo banners */
+      .festival-cat-wrap { display: none !important; }
+      body.theme-aug15 #aug15CatWrap,
+      body.theme-rakshabandhan #rakhiCatWrap {
+        display: grid !important;
+      }
+      body.theme-aug15 .promo-banner-wrap:not(.festival-cat-wrap),
+      body.theme-rakshabandhan .promo-banner-wrap:not(.festival-cat-wrap) {
+        display: none !important;
+      }
+      .festival-cat-card { position: relative; padding: 0 !important; overflow: hidden; line-height: 0; background: none !important; box-shadow: none !important; border: 1px solid var(--dm-border, #eee); min-height: 0 !important; backdrop-filter: none !important; }
+      .festival-cat-card::after { display: none !important; }
+      .festival-cat-card .gift-banner-img { position: static !important; width: 100% !important; max-width: 100% !important; height: auto !important; display: block; filter: none !important; transform: none !important; top: auto !important; right: auto !important; opacity: 1 !important; }
+      .festival-cat-hit {
+        position: absolute;
+        left: 5%; bottom: 8%;
+        width: 34%; height: 16%;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+      }
+    </style>
+    <!-- Toggleable dark-mode skin: disabled by default via media="not all",
+         flipped to media="all" by the shared theme JS when dark mode is on.
+         Built from the site's own (previously dormant) blue-accented
+         'Liquid Glass' dark theme, extended to cover footer/why-us/promo/etc. -->
+    <style id="dmDarkOverride" media="not all">
+
+      :root {
+        --dm-dark-rosewood: #ff7a9c;
+        --dm-dark-rosewood-dark: #e0537d;
+        --dm-dark-blush: #141824;
+        --dm-dark-blush-line: #262c3d;
+        --dm-dark-gold: #ffd76e;
+        --dm-dark-cream: #05070a;
+        --dm-dark-ink: #f5f7fb;
+        --dm-dark-muted: #9aa3b5;
+        --dm-dark-surface: #12151f;
+        --dm-dark-glow: rgba(71,158,255,.45);
+      }
+      body.dark-mode {
+        --rosewood: var(--dm-dark-rosewood);
+        --rosewood-dark: var(--dm-dark-rosewood-dark);
+        --blush: var(--dm-dark-blush);
+        --blush-line: var(--dm-dark-blush-line);
+        --gold: var(--dm-dark-gold);
+        --cream: var(--dm-dark-cream);
+        --ink: var(--dm-dark-ink);
+        --muted: var(--dm-dark-muted);
+        --surface: var(--dm-dark-surface);
+        --glow: var(--dm-dark-glow);
+      }
+      /* ===== FINAL CUSTOMER LIQUID GLASS THEME ===== */
+      body { background:#05070a !important; color:#f5f7fb; }
+      /* Festival themes define their own page background via a
+         `body.theme-aug15, body.theme-rakshabandhan { background: ... }`
+         rule (specificity 0,1,1) which otherwise beats the plain `body`
+         rule above. Re-assert the dark background here with matching/higher
+         specificity so dark mode still darkens the page chrome even while
+         a festival theme (and its untouched hero artwork) is active. */
+      body.dark-mode.theme-aug15, body.dark-mode.theme-rakshabandhan {
+        --dm-page: #05070a;
+        --dm-surface: rgba(255,255,255,.05);
+        --dm-surface-solid: #12151f;
+        --dm-text: #f5f7fb;
+        --dm-muted: rgba(255,255,255,.55);
+        --dm-border: rgba(255,255,255,.1);
+        background: radial-gradient(circle at 72% 12%, rgba(46,150,255,.14), transparent 28%), radial-gradient(circle at 18% 58%, rgba(62,103,255,.08), transparent 30%), #05070a !important;
+        color: #f5f7fb !important;
+      }
+      body::before { content:""; position:fixed; inset:-20%; pointer-events:none; z-index:-1; background:radial-gradient(circle at 72% 12%,rgba(46,150,255,.14),transparent 28%),radial-gradient(circle at 18% 58%,rgba(62,103,255,.08),transparent 30%); filter:blur(30px); }
+      body.dark-mode header, body.dark-mode .topbar, body.dark-mode .navbar { backdrop-filter:blur(22px) saturate(140%); }
+      body.dark-mode:not(.theme-aug15):not(.theme-rakshabandhan) .hero { max-width:1280px !important; margin:22px auto 0 !important; min-height:540px !important; padding:58px 54px !important; display:grid !important; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) !important; align-items:center; gap:20px; text-align:left !important; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.11) !important; border-radius:30px !important; background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.018)),radial-gradient(circle at 75% 45%,rgba(42,145,255,.13),transparent 38%),#07090d !important; box-shadow:0 30px 90px rgba(0,0,0,.46),inset 0 1px rgba(255,255,255,.08) !important; }
+      /* Festival themes keep their own hero banner artwork untouched in dark mode — only the surrounding chrome (header, cards, footer) switches to dark. */
+      body.dark-mode.theme-aug15 .hero, body.dark-mode.theme-rakshabandhan .hero { border-radius:20px !important; }
+      body.dark-mode .hero::before { content:""; position:absolute; width:420px;height:420px;right:-100px;bottom:-170px;border-radius:50%;background:rgba(38,136,255,.13);filter:blur(60px); }
+      body.dark-mode .hero > * { position:relative; z-index:2; }
+      body.dark-mode .dm-hero-copy { min-width:0; position:relative; z-index:3; }
+      body.dark-mode .hero-badge { width:max-content; background:rgba(66,154,255,.10) !important; border:1px solid rgba(82,165,255,.28); color:#8cc8ff !important; border-radius:999px !important; padding:8px 12px !important; font-size:11px !important; letter-spacing:.08em; }
+      body.dark-mode .hero h1 { font-family:Inter,"Segoe UI",Arial,sans-serif !important; font-size:clamp(40px,5vw,68px) !important; line-height:.98 !important; color:#fff !important; text-shadow:none !important; animation:none !important; }
+      body.dark-mode .hero h1::first-line { color:#fff !important; }
+      body.dark-mode .hero p { color:rgba(255,255,255,.62) !important; font-size:16px !important; max-width:500px; line-height:1.65; }
+      body.dark-mode .hero-ctas { justify-content:flex-start !important; }
+      body.dark-mode .hero-btn.primary { background:linear-gradient(135deg,#1d8dff,#4b7dff) !important; border:1px solid rgba(255,255,255,.18) !important; box-shadow:0 12px 35px rgba(38,125,255,.24) !important; }
+      body.dark-mode .hero-btn.secondary { background:rgba(255,255,255,.045) !important; color:#fff !important; border:1px solid rgba(255,255,255,.14) !important; backdrop-filter:blur(16px); }
+      body.dark-mode .hero-trust { justify-content:flex-start !important; }
+      body.dark-mode .hero-trust-item { color:rgba(255,255,255,.52) !important; }
+      body.dark-mode .dm-hero-product { min-height:430px; display:flex; align-items:center; justify-content:center; position:relative; }
+      body.dark-mode .dm-hero-product::before { content:""; position:absolute; width:330px;height:330px;border-radius:50%;background:rgba(39,140,255,.16);filter:blur(45px); }
+      body.dark-mode .dm-hero-product-stage { position:relative; width:min(100%,520px); height:420px; display:flex; align-items:center; justify-content:center; border-radius:26px; border:1px solid rgba(255,255,255,.09); background:linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.015)); box-shadow:inset 0 1px rgba(255,255,255,.06),0 30px 70px rgba(0,0,0,.28); backdrop-filter:blur(18px); overflow:hidden; }
+      body.dark-mode .dm-hero-product-stage::after { content:""; position:absolute; width:75%; height:1px; bottom:58px; background:linear-gradient(90deg,transparent,rgba(71,158,255,.75),transparent); box-shadow:0 0 35px rgba(71,158,255,.55); }
+      body.dark-mode .dm-hero-product-img { max-width:76%; max-height:78%; object-fit:contain; position:relative; z-index:2; filter:drop-shadow(0 35px 35px rgba(0,0,0,.7)); animation:dmHeroFloat 5s ease-in-out infinite; }
+      @keyframes dmHeroFloat {0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+      body.dark-mode .dm-hero-product-empty { color:rgba(255,255,255,.38); font-size:13px; text-align:center; padding:20px; }
+      body.dark-mode .cat-cards-wrap, body.dark-mode .prod-section-wrap, body.dark-mode .grid-wrap, body.dark-mode .why-us-wrap, body.dark-mode .promo-banner-wrap, body.dark-mode .sale-section-wrap, body.dark-mode .hot-banner-wrap { max-width:1280px !important; }
+      body.dark-mode .cat-cards-wrap h2, body.dark-mode .prod-section-wrap h2 { color:#fff !important; font-family:Inter,"Segoe UI",Arial,sans-serif !important; }
+      body.dark-mode .cat-carousel-track, body.dark-mode .prod-grid { gap:14px !important; }
+      body.dark-mode .cat-card, body.dark-mode .product-card { background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018)) !important; border:1px solid rgba(255,255,255,.10) !important; box-shadow:0 16px 40px rgba(0,0,0,.24) !important; backdrop-filter:blur(18px); }
+      body.dark-mode .cat-card:hover, body.dark-mode .product-card:hover { border-color:rgba(82,165,255,.34) !important; box-shadow:0 22px 50px rgba(0,0,0,.32),0 0 24px rgba(53,145,255,.08) !important; transform:translateY(-4px); }
+      /* The dark-theme offer-banner artwork has a different (taller/
+         squarer) aspect ratio than its light counterpart. Full-bleed
+         width:100% would stretch it absurdly tall, so in dark mode
+         cap its height and center it on a near-black backdrop that
+         matches the artwork's own background instead of stretching. */
+      body.dark-mode.theme-aug15 #aug15OfferWrap, body.dark-mode.theme-rakshabandhan #rakhiOfferWrap {
+        background:#0a0a0a; justify-content:center; align-items:center; border-radius:20px; overflow:hidden;
+      }
+      body.dark-mode.theme-aug15 #aug15OfferWrap.festival-strip-wrap,
+      body.dark-mode.theme-rakshabandhan #rakhiOfferWrap.festival-strip-wrap {
+        display:flex;
+      }
+      body.dark-mode.theme-aug15 #aug15OfferWrap .festival-strip-img,
+      body.dark-mode.theme-rakshabandhan #rakhiOfferWrap .festival-strip-img {
+        width:auto !important; max-width:100%; height:auto; max-height:220px; margin:0 auto;
+      }
+      @media(max-width:900px){
+        body.dark-mode.theme-aug15 #aug15OfferWrap .festival-strip-img,
+        body.dark-mode.theme-rakshabandhan #rakhiOfferWrap .festival-strip-img { max-height:160px; }
+      }
+      @media(max-width:900px) {body.dark-mode:not(.theme-aug15):not(.theme-rakshabandhan) .hero {grid-template-columns:1fr !important; min-height:auto !important; padding:36px 24px !important;}body.dark-mode .dm-hero-product {min-height:330px;}body.dark-mode .dm-hero-product-stage {height:330px;}body.dark-mode .hero-ctas, body.dark-mode .hero-trust {justify-content:flex-start !important;} }
+    
+      body.dark-mode .announce { display:none !important; }
+      body.dark-mode .site-header { background: rgba(10,14,20,.6) !important; border: 1px solid rgba(255,255,255,.10) !important; border-bottom: 1px solid rgba(255,255,255,.06) !important; box-shadow: 0 18px 50px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.06) !important; }
+      body.dark-mode .site-header .logo, body.dark-mode .site-header .logo span { color: #fff !important; }
+      body.dark-mode .site-header .icon-btn { background: rgba(255,255,255,.06) !important; border: 1px solid rgba(255,255,255,.14) !important; color: #fff !important; }
+      body.dark-mode .site-header .icon-btn:hover { background: rgba(82,165,255,.16) !important; border-color: rgba(82,165,255,.4) !important; }
+      body.dark-mode .search-bar-panel { background: rgba(10,14,20,.85) !important; border: 1px solid rgba(255,255,255,.1) !important; }
+      body.dark-mode .search-bar-input-wrap { background: rgba(255,255,255,.06) !important; }
+      body.dark-mode .search-results { background: #12151f !important; box-shadow: 0 8px 24px rgba(0,0,0,.4) !important; }
+      body.dark-mode .promo-banner { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; border: 1px solid rgba(255,255,255,.10) !important; color:#fff !important; box-shadow: 0 16px 40px rgba(0,0,0,.28) !important; }
+      body.dark-mode .promo-banner.pb-rosewood, body.dark-mode .promo-banner.pb-gold { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; }
+      body.dark-mode .promo-banner-tag { color:#8cc8ff !important; }
+      body.dark-mode .promo-banner h3 { color:#fff !important; }
+      body.dark-mode .promo-banner p { color: rgba(255,255,255,.62) !important; }
+      body.dark-mode .promo-banner-btn { background: rgba(255,255,255,.08) !important; color:#fff !important; border:1px solid rgba(255,255,255,.16) !important; }
+      body.dark-mode .promo-banner-btn:hover { background: rgba(82,165,255,.16) !important; border-color: rgba(82,165,255,.4) !important; }
+      body.dark-mode .cat-arrow { background: rgba(255,255,255,.06) !important; color:#fff !important; border-color: rgba(255,255,255,.14) !important; }
+      body.dark-mode .tile-cat { background: linear-gradient(#12151f,#12151f) padding-box, linear-gradient(135deg, rgba(255,255,255,.2), rgba(255,255,255,.05)) border-box !important; }
+      body.dark-mode .tile-cat-label { background: rgba(10,14,20,.85) !important; color:#fff !important; }
+      body.dark-mode .why-us-wrap { background: linear-gradient(145deg, rgba(255,255,255,.05), rgba(255,255,255,.015)) !important; border:1px solid rgba(255,255,255,.1) !important; box-shadow: 0 16px 40px rgba(0,0,0,.24) !important; }
+      body.dark-mode .why-us-item .why-us-label { color:#fff !important; }
+      body.dark-mode footer { color: rgba(255,255,255,.55) !important; border-top: 1px solid rgba(255,255,255,.1) !important; background: transparent !important; }
+      body.dark-mode footer a { color:#8cc8ff !important; }
+      body.dark-mode .mobile-action-bar { background: rgba(10,14,20,.94) !important; border-color: rgba(255,255,255,.1) !important; }
+      body.dark-mode .mobile-action-bar .call-btn { background: rgba(255,255,255,.08) !important; color:#fff !important; }
+      body.dark-mode .overlay { background: rgba(0,0,0,.65) !important; }
+      body.dark-mode .modal-close { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.14) !important; color: #fff !important; }
+      body.dark-mode .hot-banner { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; border: 1px solid rgba(255,255,255,.10) !important; }
+      body.dark-mode .hot-banner-tag { background: rgba(255,255,255,.08) !important; color: #fff !important; }
+      body.dark-mode .dm-dark-btn { box-shadow: 0 2px 10px rgba(0,0,0,.4) !important; }
     </style>
   </head>
   <body>
@@ -1475,24 +2196,26 @@
     </div>
 
     <div class="sale-banner" id="saleBanner" style="display:none;"></div>
-    <div class="announce">Custom-made just for you &nbsp;·&nbsp; Message us on WhatsApp for bulk orders</div>
+    <div class="announce" id="announceBar">Custom-made just for you &nbsp;·&nbsp; Message us on WhatsApp for bulk orders</div>
+    <div class="festival-strip-wrap" id="aug15TopStripWrap"><img class="festival-strip-img" src="aug15-top-strip.png" data-dark-src="aug15-top-strip-dark.png" alt="Proud to be Indian. Proud to be free. Happy 15th August."></div>
+    <div class="festival-strip-wrap" id="rakhiTopStripWrap"><img class="festival-strip-img" src="rakhi-top-strip.png" data-dark-src="rakhi-top-strip-dark.png" alt="A bond that grows stronger every day. Happy Raksha Bandhan."></div>
 
     <header class="site-header">
       <div class="header-inner">
         <div class="logo"><img src="Logo.png" alt="Design Makers" style="height:48px;width:48px;object-fit:contain;vertical-align:middle;"> DESIGN MAKERS<span>Gifts That Feel Like Royalty</span></div>
         <div class="header-actions">
-          <button class="icon-btn" onclick="toggleSearchBar()" title="Search" id="searchToggleBtn">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <button class="icon-btn dm-dark-btn" onclick="toggleDarkMode()" title="Toggle dark mode">
+            <span class="dm-dark-icon">🌙</span>
           </button>
-          <button class="icon-btn" onclick="window.open('https://wa.me/7004847813','_blank')" title="WhatsApp">
-            <svg viewBox="0 0 32 32" width="20" height="20" style="vertical-align:middle;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>
+          <button class="icon-btn" onclick="toggleSearchBar()" title="Search" id="searchToggleBtn">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
           <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
-            <span id="accountBtnIcon">👤</span>
+            <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
             <img id="accountBtnPic" alt="" style="display:none;width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.9);box-shadow:0 1px 4px rgba(0,0,0,0.25);" />
           </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
-            🛍
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7a1.5 1.5 0 0 1-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
             <span class="cart-count" id="cartCount">0</span>
           </button>
         </div>
@@ -1547,19 +2270,48 @@
           <circle cx="45" cy="83" r="3" fill="#e6c064"/>
         </svg>
       </div>
-      <span class="hero-badge">Custom-made · Bulk pricing · Pan-India delivery</span>
-      <h1 id="heroTitle">Design Makers — Gifts That Feel Like Royalty</h1>
-      <p id="heroSubtitle">Mugs, frames, apparel & corporate gifting — crafted around your story.</p>
-      <div class="hero-ctas">
-        <button class="hero-btn primary" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})">Shop Now</button>
-        <button class="hero-btn secondary" onclick="window.open('https://wa.me/7004847813','_blank')"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>Chat on WhatsApp</button>
+      <div class="dm-hero-copy">
+        <span class="hero-badge">Custom-made · Bulk pricing · Pan-India delivery</span>
+        <h1 id="heroTitle">Design Makers — Gifts That Feel Like Royalty</h1>
+        <p id="heroSubtitle">Mugs, frames, apparel &amp; corporate gifting — crafted around your story.</p>
+        <div class="seasonal-quote" id="seasonalQuote" aria-live="polite">Made with pride. Gifted with love.</div>
+        <div class="hero-ctas">
+          <button class="hero-btn primary" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})">Shop Now</button>
+          <button class="hero-btn secondary" onclick="window.open('https://wa.me/7004847813','_blank')">Chat on WhatsApp</button>
+        </div>
+        <div class="hero-trust">
+          <span class="hero-trust-item">✓ Made to order</span>
+          <span class="hero-trust-item">✓ Nationwide delivery</span>
+          <span class="hero-trust-item">✓ Secure checkout</span>
+        </div>
       </div>
-      <div class="hero-trust">
-        <span class="hero-trust-item">✅ Made to order</span>
-        <span class="hero-trust-item">🚚 Nationwide delivery</span>
-        <span class="hero-trust-item">💳 Secure checkout</span>
-        <span class="hero-trust-item">📦 Bulk order discounts</span>
+      <div class="dm-hero-product" id="dmHeroProduct">
+        <div class="dm-hero-product-stage" id="dmHeroProductStage"><div class="dm-hero-product-empty">Loading your featured creation…</div></div>
       </div>
+
+      <!-- Festival hero banners: fully-designed artwork shown instead of the default hero when a seasonal theme is active. Hidden on the normal theme. -->
+      <div class="festival-hero-wrap" id="aug15HeroWrap">
+        <img class="festival-hero-img" src="aug15-hero-desktop.png" data-dark-src="aug15-hero-desktop-dark.png" alt="Happy 15th August — Independence Day. Design Makers, gifts that feel like royalty.">
+        <button class="festival-hero-hit festival-hero-hit-shop" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
+        <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/7004847813','_blank')" aria-label="Chat on WhatsApp"></button>
+      </div>
+      <div class="festival-hero-wrap" id="rakhiHeroWrap">
+        <img class="festival-hero-img" src="rakhi-hero-desktop.png" data-dark-src="rakhi-hero-desktop-dark.png" alt="Happy Raksha Bandhan. Design Makers, celebrating the bond of love.">
+        <button class="festival-hero-hit festival-hero-hit-shop" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
+        <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/7004847813','_blank')" aria-label="Chat on WhatsApp"></button>
+      </div>
+    </div>
+    <div class="gift-addon-banner" id="giftAddonBanner">
+      🎁 <strong>Today's Special:</strong> Add a printed photo mug to your order for just ₹99 — automatically available in your cart on orders of ₹599 or more.
+    </div>
+
+    <div class="festival-strip-wrap festival-offer-wrap" id="aug15OfferWrap">
+      <img class="festival-strip-img" src="aug15-offer-banner.png" data-dark-src="aug15-offer-banner-dark.png" alt="Independence Day special offer. Flat 15% off on all customised gifts.">
+      <button class="festival-strip-hit" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
+    </div>
+    <div class="festival-strip-wrap festival-offer-wrap" id="rakhiOfferWrap">
+      <img class="festival-strip-img" src="rakhi-offer-banner.png" data-dark-src="rakhi-offer-banner-dark.png" alt="Raksha Bandhan special offer. Flat 20% off on all customised gifts.">
+      <button class="festival-strip-hit" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
     </div>
 
     <div class="promo-banner-wrap">
@@ -1580,6 +2332,27 @@
           <button class="promo-banner-btn" onclick="openGenderModal('him')">Customise Now</button>
         </div>
         <img class="gift-banner-img" src="gift-for-him.png" alt="Gift for him" loading="lazy">
+      </div>
+    </div>
+
+    <div class="promo-banner-wrap festival-cat-wrap" id="aug15CatWrap">
+      <div class="promo-banner gift-banner festival-cat-card">
+        <img class="gift-banner-img" src="aug15-gift-for-her.png" data-dark-src="aug15-gift-for-her-dark.png" alt="For her — gifts as beautiful as her smile" loading="lazy">
+        <button class="festival-cat-hit" onclick="openGenderModal('her')" aria-label="Explore gifts for her"></button>
+      </div>
+      <div class="promo-banner gift-banner festival-cat-card">
+        <img class="gift-banner-img" src="aug15-gift-for-him.png" data-dark-src="aug15-gift-for-him-dark.png" alt="For him — unique gifts for the real hero" loading="lazy">
+        <button class="festival-cat-hit" onclick="openGenderModal('him')" aria-label="Explore gifts for him"></button>
+      </div>
+    </div>
+    <div class="promo-banner-wrap festival-cat-wrap" id="rakhiCatWrap">
+      <div class="promo-banner gift-banner festival-cat-card">
+        <img class="gift-banner-img" src="rakhi-gift-for-sister.png" data-dark-src="rakhi-gift-for-sister-dark.png" alt="For your sister — because she deserves the best" loading="lazy">
+        <button class="festival-cat-hit" onclick="openGenderModal('her')" aria-label="Explore gifts for sister"></button>
+      </div>
+      <div class="promo-banner gift-banner festival-cat-card">
+        <img class="gift-banner-img" src="rakhi-gift-for-brother.png" data-dark-src="rakhi-gift-for-brother-dark.png" alt="For your brother — the one who always has you" loading="lazy">
+        <button class="festival-cat-hit" onclick="openGenderModal('him')" aria-label="Explore gifts for brother"></button>
       </div>
     </div>
 
@@ -1931,6 +2704,30 @@
 
     <script>
       let allProducts = [];
+
+      // ---------- GIFT ADD-ON (date-gated cart offer) ----------
+      // Mirrors the GIFT_ADDON constant in database.js / server.js. Kept in
+      // sync manually since it's a small, fixed business rule — if these
+      // values ever change, update them in both places.
+      const GIFT_ADDON_PRODUCT_ID = 9999;
+      const GIFT_ADDON_PRICE = 99;
+      const GIFT_ADDON_MIN_SUBTOTAL = 599;
+      const GIFT_ADDON_DAYS = [14, 15, 27, 28];
+
+      // Eligibility is date-gated in India Standard Time regardless of the
+      // visitor's own device timezone.
+      function isGiftAddonDateToday() {
+        const istDay = Number(
+          new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kolkata", day: "numeric" }).format(new Date())
+        );
+        return GIFT_ADDON_DAYS.includes(istDay);
+      }
+
+      function showGiftAddonBanner() {
+        const banner = document.getElementById("giftAddonBanner");
+        if (!banner) return;
+        banner.style.display = isGiftAddonDateToday() ? "block" : "none";
+      }
       // Cart persists on the device (localStorage) and, when signed in, on the
       // customer's account too — so it survives logout and follows them to any device.
       let cart = loadCartLocal(); // { productId, name, price, size, qty, discounts, image }
@@ -2735,7 +3532,12 @@
       };
 
       function escapeHtml(str) {
-        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
       }
 
       // ---------- Header search: toggle panel + live filter as you type ----------
@@ -2895,6 +3697,29 @@
         selectModalImage(currentGalleryIdx + delta);
       }
 
+      function renderHeroProduct() {
+        const stage = document.getElementById("dmHeroProductStage");
+        if (!stage) return;
+        const heroId = window.dmHeroProductId == null ? null : Number(window.dmHeroProductId);
+        const p = allProducts.find(x => Number(x.id) === heroId && x.active !== false && x.approved !== false);
+        if (!p || !p.image) {
+          stage.innerHTML = '<div class="dm-hero-product-empty">Your featured product will appear here.</div>';
+          return;
+        }
+        stage.innerHTML = '<img class="dm-hero-product-img" src="'+escapeHtml(p.image)+'" alt="'+escapeHtml(p.name || "Featured product")+'" onclick="openProductModal('+p.id+')" style="cursor:pointer">';
+      }
+
+      async function loadHeroProductSetting() {
+        try {
+          const res = await fetch("/api/settings");
+          const data = await res.json();
+          if (data.success) {
+            window.dmHeroProductId = data.settings.heroProductId == null ? null : Number(data.settings.heroProductId);
+            renderHeroProduct();
+          }
+        } catch (e) {}
+      }
+
       // ---------- LOAD PRODUCTS ----------
       async function loadProducts() {
         const statusEl = document.getElementById("statusMsg");
@@ -2909,6 +3734,7 @@
           }
 
           allProducts = data.products;
+          renderHeroProduct();
           renderCategories();
           renderSaleSection();
           renderPopularSection();
@@ -2927,6 +3753,7 @@
       }
 
       async function loadSaleBanner() {
+        showGiftAddonBanner();
         try {
           const res = await fetch("/api/settings");
           const data = await res.json();
@@ -2939,6 +3766,10 @@
             banner.style.display = "none";
           }
 
+          const heroId = data.success ? data.settings.heroProductId : null;
+          window.dmHeroProductId = heroId == null ? null : Number(heroId);
+          renderHeroProduct();
+
           const theme = data.success && data.settings.theme;
           document.body.classList.remove("theme-rakshabandhan", "theme-aug15");
           if (theme === "rakshabandhan" || theme === "aug15") {
@@ -2948,15 +3779,43 @@
           const heroTitle = document.getElementById("heroTitle");
           const heroSubtitle = document.getElementById("heroSubtitle");
           if (heroTitle && heroSubtitle) {
+            const seasonalQuote = document.getElementById("seasonalQuote");
+            const herTag = document.querySelector(".promo-banner.pb-rosewood .promo-banner-tag");
+            const herTitle = document.querySelector(".promo-banner.pb-rosewood h3");
+            const herText = document.querySelector(".promo-banner.pb-rosewood p");
+            const himTag = document.querySelector(".promo-banner.pb-gold .promo-banner-tag");
+            const himTitle = document.querySelector(".promo-banner.pb-gold h3");
+            const himText = document.querySelector(".promo-banner.pb-gold p");
             if (theme === "rakshabandhan") {
-              heroTitle.textContent = "Gifts That Tie a Thousand Memories";
-              heroSubtitle.textContent = "This Rakshabandhan, gift something that stays longer than the thread — mugs, frames & keychains made around your story.";
+              heroTitle.textContent = "Gifts That Celebrate the Bond of Love";
+              heroSubtitle.textContent = "This Rakshabandhan, turn your bond into a keepsake — personalised mugs, frames, keychains & more made around your story.";
+              if (seasonalQuote) seasonalQuote.textContent = "Some bonds are tied by thread. The best ones are tied by memories.";
+              if (herTag) herTag.textContent = "FOR YOUR SISTER";
+              if (herTitle) herTitle.textContent = "Gift Her a Memory";
+              if (herText) herText.textContent = "Thoughtful personalised gifts made to celebrate the sister who makes life brighter.";
+              if (himTag) himTag.textContent = "FOR YOUR BROTHER";
+              if (himTitle) himTitle.textContent = "Gift Him Something Personal";
+              if (himText) himText.textContent = "Useful, stylish keepsakes for the brother who has always had your back.";
             } else if (theme === "aug15") {
-              heroTitle.textContent = "Azaadi Ka Andaaz, Apno Ke Naam";
-              heroSubtitle.textContent = "Independence Day special — personalised gifts crafted with a little tiranga in every detail.";
+              heroTitle.textContent = "Celebrate Freedom. Gift It With Pride.";
+              heroSubtitle.textContent = "Independence Day specials crafted with subtle tricolour details — personalised gifts made around the people who matter.";
+              if (seasonalQuote) seasonalQuote.textContent = "Proud of where we come from. Grateful for the freedom we share.";
+              if (herTag) herTag.textContent = "FOR HER";
+              if (herTitle) herTitle.textContent = "A Little Tricolour, A Lot of Love";
+              if (herText) herText.textContent = "Personalised gifts with a graceful Independence Day touch, made especially for her.";
+              if (himTag) himTag.textContent = "FOR HIM";
+              if (himTitle) himTitle.textContent = "Pride, Personalised";
+              if (himText) himText.textContent = "Meaningful personalised gifts with a refined tricolour-inspired finish.";
             } else {
               heroTitle.textContent = "Design Makers — Gifts That Feel Like Royalty";
               heroSubtitle.textContent = "Mugs, frames, apparel & corporate gifting — crafted around your story.";
+              if (seasonalQuote) seasonalQuote.textContent = "Made with pride. Gifted with love.";
+              if (herTag) herTag.textContent = "For Her";
+              if (herTitle) herTitle.textContent = "Gift for Her";
+              if (herText) herText.textContent = "Mugs, frames & jewellery — made around her story.";
+              if (himTag) himTag.textContent = "For Him";
+              if (himTitle) himTitle.textContent = "Gift for Him";
+              if (himText) himText.textContent = "Keychains, mugs & accessories — made around his story.";
             }
           }
         } catch (err) {
@@ -3598,9 +4457,72 @@
         return best.percent;
       }
 
+      // Subtotal of the cart *excluding* the gift add-on line — this is
+      // what the ₹599 threshold is checked against, so adding the addon
+      // itself never counts toward unlocking it.
+      function nonAddonCartSubtotal() {
+        return cart.reduce((sum, item) => {
+          if (item.productId === GIFT_ADDON_PRODUCT_ID) return sum;
+          const discountPct = calcItemDiscount(item);
+          return sum + item.price * item.qty * (1 - discountPct / 100);
+        }, 0);
+      }
+
+      // If the cart currently holds the gift add-on but the order no longer
+      // qualifies (items were removed, or the date changed), drop it —
+      // mirrors the check server.js makes for real, so the cart the
+      // customer sees never promises something checkout would reject.
+      function syncGiftAddonEligibility() {
+        const eligible = isGiftAddonDateToday() && nonAddonCartSubtotal() >= GIFT_ADDON_MIN_SUBTOTAL;
+        const addonIdx = cart.findIndex((i) => i.productId === GIFT_ADDON_PRODUCT_ID);
+        if (addonIdx !== -1 && !eligible) {
+          cart.splice(addonIdx, 1);
+          saveCart();
+        }
+        return eligible;
+      }
+
+      function toggleGiftAddon(checked) {
+        const idx = cart.findIndex((i) => i.productId === GIFT_ADDON_PRODUCT_ID);
+        if (checked && idx === -1) {
+          cart.push({
+            productId: GIFT_ADDON_PRODUCT_ID,
+            name: "Gift Photo Mug",
+            price: GIFT_ADDON_PRICE,
+            qty: 1,
+            size: null,
+            image: "",
+            discounts: [],
+          });
+        } else if (!checked && idx !== -1) {
+          cart.splice(idx, 1);
+        }
+        updateCartCount();
+        saveCart();
+        renderCart();
+      }
+
+      function renderGiftAddonRow(eligible) {
+        if (!eligible) return "";
+        const checked = cart.some((i) => i.productId === GIFT_ADDON_PRODUCT_ID);
+        return (
+          '<div class="gift-addon-row">' +
+            '<input type="checkbox" id="giftAddonCheckbox" ' + (checked ? "checked" : "") +
+              ' onchange="toggleGiftAddon(this.checked)" />' +
+            '<label for="giftAddonCheckbox">' +
+              '<span class="gift-addon-title">🎁 Add a photo mug</span>' +
+              "Today's special add-on for orders ₹" + fmtINR(GIFT_ADDON_MIN_SUBTOTAL) + "+" +
+            "</label>" +
+            '<span class="gift-addon-price">₹' + fmtINR(GIFT_ADDON_PRICE) + "</span>" +
+          "</div>"
+        );
+      }
+
       function renderCart() {
         const container = document.getElementById("cartItems");
         const footer = document.getElementById("cartFooter");
+
+        const giftAddonEligible = syncGiftAddonEligibility();
 
         if (!cart.length) {
           container.innerHTML = '<div class="empty-cart">Your cart is empty.<br/>Browse our gifts and add something special 🎁</div>';
@@ -3613,6 +4535,8 @@
 
         container.innerHTML = cart
           .map((item, idx) => {
+            if (item.productId === GIFT_ADDON_PRODUCT_ID) return ""; // rendered separately below, with a checkbox instead of qty controls
+
             const discountPct = calcItemDiscount(item);
             const lineTotal = item.price * item.qty * (1 - discountPct / 100);
             // Resolve the photo from the live product list first (the saved
@@ -3643,7 +4567,7 @@
               "</div>"
             );
           })
-          .join("");
+          .join("") + renderGiftAddonRow(giftAddonEligible);
 
         renderCartTotals();
       }
@@ -3943,6 +4867,53 @@
           popAndRespawn(thread);
         });
       });
+    </script>
+    <script>
+      // Shared dark-mode toggle — same localStorage key as the rest of the
+      // site, so a visitor's choice carries over across pages. Flips the
+      // dmDarkOverride stylesheet on/off via its `media` attribute.
+      function applyDarkMode(on) {
+        document.body.classList.toggle("dark-mode", on);
+        var override = document.getElementById("dmDarkOverride");
+        if (override) override.media = on ? "all" : "not all";
+        document.querySelectorAll(".dm-dark-icon").forEach(function (el) {
+          el.textContent = on ? "☀️" : "🌙";
+        });
+        document.querySelectorAll(".dm-dark-btn").forEach(function (el) {
+          el.title = on ? "Switch to light mode" : "Switch to dark mode";
+        });
+        // Festival banners (Aug15 / Rakhi) have their own dark-theme
+        // artwork — swap src between the light original and the
+        // dark-mode version. data-light-src caches the original the
+        // first time this runs so we can always switch back.
+        document.querySelectorAll("img[data-dark-src]").forEach(function (img) {
+          if (!img.dataset.lightSrc) img.dataset.lightSrc = img.getAttribute("src");
+          img.src = on ? img.dataset.darkSrc : img.dataset.lightSrc;
+        });
+      }
+      function toggleDarkMode() {
+        var on = !document.body.classList.contains("dark-mode");
+        try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
+        applyDarkMode(on);
+      }
+      (function initDarkMode() {
+        var saved = null;
+        try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
+        var on;
+        if (saved === "1" || saved === "0") {
+          on = saved === "1";
+        } else {
+          on = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        }
+        applyDarkMode(on);
+        try {
+          window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+            var cur = null;
+            try { cur = localStorage.getItem("dm_dark_mode"); } catch (err) {}
+            if (cur !== "1" && cur !== "0") applyDarkMode(e.matches);
+          });
+        } catch (e) {}
+      })();
     </script>
   </body>
 </html>

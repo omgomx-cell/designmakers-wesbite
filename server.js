@@ -5,12 +5,26 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { OAuth2Client } = require("google-auth-library");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
-const { connectDB, readDatabase, writeDatabase, getNextId } = require("./database");
+const { connectDB, readDatabase, writeDatabase, getNextId, GIFT_ADDON } = require("./database");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", true);
+
+// ================================
+// SECURITY HEADERS
+// ================================
+// contentSecurityPolicy is turned off here because index.html/admin.html/
+// seller.html are single-file pages full of inline <script> blocks and
+// onclick="..." handlers — a default CSP would break them outright. Turning
+// it off keeps every other helmet protection (X-Content-Type-Options,
+// X-Frame-Options/clickjacking protection, HSTS, etc.) without breaking the
+// site. If the front-end is ever split into external .js files, turning CSP
+// back on (with a script-src allowlist) is worth doing.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 
 // ================================
 // EMAIL (seller welcome mail, approvals, rejections)
@@ -309,10 +323,44 @@ function requireCustomer(req, res, next) {
 }
 
 // ================================
+// RATE LIMITING — brute-force protection
+// ================================
+// This is IP-based and separate from the existing 3-strike sub-admin
+// account lockout above. It matters most for the boss account, which
+// (correctly) never locks out by design — one bad password can't be used
+// to lock the site's owner out of their own admin panel — but that means
+// it previously had NO brute-force protection at all. This closes that gap
+// without touching the lockout behavior itself.
+//
+// standardHeaders adds RateLimit-* response headers; legacyHeaders is off
+// since nothing here depends on the old X-RateLimit-* headers.
+function makeLimiter(windowMinutes, max, message) {
+  return rateLimit({
+    windowMs: windowMinutes * 60 * 1000,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message },
+  });
+}
+
+// Login endpoints: tight — a real user rarely needs more than a handful of
+// attempts in 15 minutes, but this still allows retyping a typo'd password.
+const loginLimiter = makeLimiter(15, 10, "Too many login attempts. Please wait a few minutes and try again.");
+
+// Signup/apply endpoints: looser, since these aren't "guess a secret" flows,
+// but still capped to blunt automated spam/abuse.
+const signupLimiter = makeLimiter(60, 20, "Too many attempts. Please try again later.");
+
+// Password-reset-request endpoints: tight, since each pending request emails
+// the admin — no reason to let one IP flood that inbox.
+const resetRequestLimiter = makeLimiter(60, 5, "Too many reset requests. Please try again later.");
+
+// ================================
 // ADMIN LOGIN
 // ================================
 
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", loginLimiter, (req, res) => {
   const { username, password } = req.body || {};
   const ip = getClientIp(req);
   const userAgent = req.headers["user-agent"] || "unknown";
@@ -440,7 +488,7 @@ function isValidMobile(mobile) {
   return /^[6-9]\d{9}$/.test(mobile); // 10-digit Indian mobile number
 }
 
-app.post("/api/customer/register", (req, res) => {
+app.post("/api/customer/register", signupLimiter, (req, res) => {
   const { name, mobile, password } = req.body || {};
   const cleanName = String(name || "").trim();
   const cleanMobile = normalizeMobile(mobile);
@@ -497,7 +545,7 @@ app.post("/api/customer/register", (req, res) => {
   });
 });
 
-app.post("/api/customer/login", (req, res) => {
+app.post("/api/customer/login", loginLimiter, (req, res) => {
   const { mobile, password } = req.body || {};
   const cleanMobile = normalizeMobile(mobile);
   if (!cleanMobile || !password) {
@@ -554,7 +602,7 @@ app.post("/api/customer/login", (req, res) => {
 // Customer signs in / signs up with Google. Existing accounts are matched
 // by email; brand-new Google users get a customer account immediately, then
 // the frontend asks them to complete their WhatsApp mobile + local password.
-app.post("/api/customer/google-login", async (req, res) => {
+app.post("/api/customer/google-login", loginLimiter, async (req, res) => {
   const { idToken } = req.body || {};
   if (!idToken) return res.status(400).json({ success: false, message: "Missing Google token." });
 
@@ -755,7 +803,7 @@ app.put("/api/customer/cart", requireCustomer, (req, res) => {
 // of the Aadhaar number are ever stored — never the full number — along
 // with a photo of the card for the admin to manually verify.
 
-app.post("/api/seller-applications", async (req, res) => {
+app.post("/api/seller-applications", signupLimiter, async (req, res) => {
   const body = req.body || {};
   const name = String(body.name || "").trim();
   const email = String(body.email || "").trim();
@@ -765,10 +813,33 @@ app.post("/api/seller-applications", async (req, res) => {
   const aadhaarPhoto = String(body.aadhaarPhoto || ""); // base64 data URL
   const personPhoto = String(body.personPhoto || ""); // base64 data URL — a photo of the applicant
 
+  // Extra profile fields shown on the admin's Seller Details page. Alternate
+  // phone, UPI ID, and GST number are optional — everything else here is
+  // required to submit an application.
+  const altPhone = String(body.altPhone || "").trim();
+  const businessType = String(body.businessType || "").trim();
+  const businessAddress = String(body.businessAddress || "").trim();
+  const city = String(body.city || "").trim();
+  const state = String(body.state || "").trim();
+  const pincode = String(body.pincode || "").trim();
+  const panNumber = String(body.panNumber || "").trim().toUpperCase();
+  const dob = String(body.dob || "").trim();
+  const gender = String(body.gender || "").trim();
+  const bankAccountNumber = String(body.bankAccountNumber || "").trim();
+  const ifscCode = String(body.ifscCode || "").trim().toUpperCase();
+  const upiId = String(body.upiId || "").trim();
+  const gstNumber = String(body.gstNumber || "").trim().toUpperCase();
+
   if (!name || !email || !phone || !shopTitle || aadhaar.length !== 12 || !personPhoto) {
     return res.status(400).json({
       success: false,
       message: "Name, email, phone, shop title, a photo of yourself, and a valid 12-digit Aadhaar number are required.",
+    });
+  }
+  if (!businessType || !businessAddress || !city || !state || !pincode || !panNumber || !dob || !gender || !bankAccountNumber || !ifscCode) {
+    return res.status(400).json({
+      success: false,
+      message: "Please fill in your business details, identity details (PAN, date of birth, gender), and bank details (account number, IFSC) — everything except alternate phone, UPI ID, and GST number is required.",
     });
   }
 
@@ -807,8 +878,22 @@ app.post("/api/seller-applications", async (req, res) => {
     name,
     email,
     phone,
+    altPhone,
     shopTitle,
+    businessType,
+    businessAddress,
+    city,
+    state,
+    pincode,
     aadhaarLast4: aadhaar.slice(-4),
+    aadhaarFull: aadhaar,
+    panNumber,
+    dob,
+    gender,
+    bankAccountNumber,
+    ifscCode,
+    upiId,
+    gstNumber,
     aadhaarPhoto,
     personPhoto,
     status: "pending",
@@ -840,7 +925,7 @@ app.post("/api/seller-applications", async (req, res) => {
 // SELLER LOGIN (ID + password, issued on approval)
 // ================================
 
-app.post("/api/seller/login", (req, res) => {
+app.post("/api/seller/login", loginLimiter, (req, res) => {
   const { sellerId, password } = req.body || {};
   if (!sellerId || !password) {
     return res.status(400).json({ success: false, message: "Seller ID and password are required." });
@@ -875,7 +960,7 @@ app.post("/api/seller/login", (req, res) => {
 // approved (their seller record's email must match the Google account) —
 // Google sign-in isn't a way to apply as a seller, applications still go
 // through the normal form on /sell.
-app.post("/api/seller/google-login", async (req, res) => {
+app.post("/api/seller/google-login", loginLimiter, async (req, res) => {
   const { idToken } = req.body || {};
   if (!idToken) return res.status(400).json({ success: false, message: "Missing Google token." });
 
@@ -920,7 +1005,7 @@ app.post("/api/seller/google-login", async (req, res) => {
 // the admin panel; the boss reviews it and clicks a button to generate a
 // fresh password and email it to the seller.
 
-app.post("/api/seller/forgot-password", async (req, res) => {
+app.post("/api/seller/forgot-password", resetRequestLimiter, async (req, res) => {
   const sellerId = String((req.body || {}).sellerId || "").trim();
   if (!sellerId) {
     return res.status(400).json({ success: false, message: "Enter your Seller ID." });
@@ -1053,12 +1138,34 @@ function requireSeller(req, res, next) {
 // password, saves its hash, and returns the plaintext ONCE so the admin can
 // pass it on to the customer.
 
+// ================================
+// PAGINATION HELPER
+// ================================
+// Applies ?page=&limit= to an already-sorted array and returns both the
+// page slice and the metadata the admin panel needs to render Prev/Next
+// controls. Defaults to page 1 / 50 per page when the params are missing
+// or invalid, so existing callers that don't pass them yet still get a
+// sane, bounded response instead of the entire table in one payload.
+function paginate(req, items, defaultLimit = 50, maxLimit = 200) {
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(maxLimit, Math.max(1, parseInt(req.query.limit, 10) || defaultLimit));
+  const total = items.length;
+  const pages = Math.max(1, Math.ceil(total / limit));
+  const start = (page - 1) * limit;
+  return {
+    slice: items.slice(start, start + limit),
+    meta: { total, page, pages, limit },
+  };
+}
+
 app.get("/api/admin/customers", requireAdmin, (req, res) => {
   const database = readDatabase();
   const orders = database.orders || [];
-  const customers = (database.customers || [])
+  const sorted = (database.customers || [])
     .slice()
-    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  const { slice, meta } = paginate(req, sorted);
+  const customers = slice
     .map((c) => {
       const theirOrders = orders.filter(
         (o) => (c.mobile && o.customer && o.customer.phone === c.mobile) || o.customerId === c.id,
@@ -1076,7 +1183,7 @@ app.get("/api/admin/customers", requireAdmin, (req, res) => {
         legacy: !c.mobile,
       };
     });
-  res.json({ success: true, customers });
+  res.json({ success: true, customers, ...meta });
 });
 
 // Full details for one customer, including their order history.
@@ -1183,6 +1290,7 @@ app.post("/api/admin/sellers/:id/login-as", requireAdmin, requireBoss, (req, res
 app.get("/api/admin/sellers", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const allProducts = database.products || [];
+  const allOrders = database.orders || [];
   const sellers = (database.sellers || [])
     .slice()
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
@@ -1190,13 +1298,45 @@ app.get("/api/admin/sellers", requireAdmin, requireBoss, (req, res) => {
       const products = allProducts.filter((p) => p.sellerId === s.id);
       const approvedCount = products.filter((p) => p.approved !== false).length;
       const pendingCount = products.filter((p) => p.approved === false).length;
+      const myProductIds = new Set(products.map((p) => p.id));
+
+      // Total Orders / Total Revenue for this seller's Activity Summary —
+      // an order "belongs" to this seller if any line item is one of their
+      // products. Cancelled orders are excluded from both, same as the
+      // main admin dashboard's revenue figure.
+      let totalOrders = 0;
+      let totalRevenue = 0;
+      allOrders.forEach((o) => {
+        if (o.status === "Cancelled") return;
+        const myItems = (o.items || []).filter((item) => myProductIds.has(item.productId));
+        if (!myItems.length) return;
+        totalOrders += 1;
+        totalRevenue += myItems.reduce((sum, item) => sum + (item.lineTotal || 0), 0);
+      });
+
       return {
         id: s.id,
         sellerId: s.sellerId,
         name: s.name,
         email: s.email,
         phone: s.phone,
+        altPhone: s.altPhone || "",
         shopTitle: s.shopTitle,
+        businessType: s.businessType || "",
+        businessAddress: s.businessAddress || "",
+        city: s.city || "",
+        state: s.state || "",
+        pincode: s.pincode || "",
+        aadhaarLast4: s.aadhaarLast4 || "",
+        aadhaarFull: s.aadhaarFull || "",
+        panNumber: s.panNumber || "",
+        dob: s.dob || "",
+        gender: s.gender || "",
+        bankAccountNumber: s.bankAccountNumber || "",
+        ifscCode: s.ifscCode || "",
+        upiId: s.upiId || "",
+        gstNumber: s.gstNumber || "",
+        notes: s.notes || "",
         createdAt: s.createdAt,
         banned: !!s.banned,
         // The actual password is never included in the list response — it's
@@ -1206,6 +1346,8 @@ app.get("/api/admin/sellers", requireAdmin, requireBoss, (req, res) => {
         productCount: products.length,
         approvedCount,
         pendingCount,
+        totalOrders,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
         products: products.map((p) => ({
           id: p.id,
           name: p.name,
@@ -1217,6 +1359,17 @@ app.get("/api/admin/sellers", requireAdmin, requireBoss, (req, res) => {
       };
     });
   res.json({ success: true, sellers });
+});
+
+// Save/update the admin-only note on a seller's profile (shown on the
+// Seller Details page — never visible to the seller themselves).
+app.put("/api/admin/sellers/:id/note", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
+  seller.notes = String((req.body && req.body.note) || "").slice(0, 2000);
+  writeDatabase(database);
+  res.json({ success: true, notes: seller.notes });
 });
 
 // ================================
@@ -1410,8 +1563,22 @@ app.get("/api/admin/seller-applications", requireAdmin, requireBoss, (req, res) 
       name: a.name,
       email: a.email,
       phone: a.phone,
+      altPhone: a.altPhone || "",
       shopTitle: a.shopTitle,
+      businessType: a.businessType || "",
+      businessAddress: a.businessAddress || "",
+      city: a.city || "",
+      state: a.state || "",
+      pincode: a.pincode || "",
       aadhaarLast4: a.aadhaarLast4,
+      aadhaarFull: a.aadhaarFull || "",
+      panNumber: a.panNumber || "",
+      dob: a.dob || "",
+      gender: a.gender || "",
+      bankAccountNumber: a.bankAccountNumber || "",
+      ifscCode: a.ifscCode || "",
+      upiId: a.upiId || "",
+      gstNumber: a.gstNumber || "",
       aadhaarPhoto: a.aadhaarPhoto,
       personPhoto: a.personPhoto,
       createdAt: a.createdAt,
@@ -1440,8 +1607,23 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
     name: application.name,
     email: application.email,
     phone: application.phone,
+    altPhone: application.altPhone || "",
     shopTitle: application.shopTitle,
+    businessType: application.businessType || "",
+    businessAddress: application.businessAddress || "",
+    city: application.city || "",
+    state: application.state || "",
+    pincode: application.pincode || "",
     aadhaarLast4: application.aadhaarLast4,
+    aadhaarFull: application.aadhaarFull || "",
+    panNumber: application.panNumber || "",
+    dob: application.dob || "",
+    gender: application.gender || "",
+    bankAccountNumber: application.bankAccountNumber || "",
+    ifscCode: application.ifscCode || "",
+    upiId: application.upiId || "",
+    gstNumber: application.gstNumber || "",
+    notes: "",
     applicationId: application.id,
     createdAt: new Date().toISOString(),
     banned: false,
@@ -1747,9 +1929,19 @@ function validateProductInput(body) {
 
   // Up to a handful of product photos. `image` (singular) is kept as the
   // first image for backward compatibility with older code/screens.
+  // Only real image data URLs or https:// image links are accepted — any
+  // other string is dropped here rather than stored, so a crafted value
+  // can never reach an <img src="..."> unescaped downstream.
+  const isSafeImageValue = (s) =>
+    /^data:image\/(png|jpe?g|webp|gif);base64,[a-zA-Z0-9+/=]+$/.test(s) ||
+    /^https:\/\/[^\s"'<>]+$/.test(s);
+
   let images = Array.isArray(body.images) ? body.images : [];
-  images = images.map((s) => String(s || "").trim()).filter(Boolean).slice(0, 6);
-  if (!images.length && body.image) images = [String(body.image).trim()];
+  images = images.map((s) => String(s || "").trim()).filter((s) => s && isSafeImageValue(s)).slice(0, 6);
+  if (!images.length && body.image) {
+    const single = String(body.image).trim();
+    if (isSafeImageValue(single)) images = [single];
+  }
 
   const onSale = Boolean(body.onSale);
   let salePercent = Number(body.salePercent);
@@ -1825,6 +2017,19 @@ function isSaleActive(product) {
 // Never trust a total sent from the browser — recompute every line from the
 // real product data on disk so a tampered request can't change what's charged.
 
+// Returns today's day-of-month in IST, regardless of the server's own
+// timezone — the gift add-on's eligible dates are meant in local (India)
+// time, not wherever the process happens to be hosted.
+function getISTDayOfMonth(date = new Date()) {
+  return Number(
+    new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kolkata", day: "numeric" }).format(date),
+  );
+}
+
+function isGiftAddonDateEligible(date = new Date()) {
+  return GIFT_ADDON.eligibleDaysOfMonth.includes(getISTDayOfMonth(date));
+}
+
 function calculateSecurePricing(items, products) {
   const errors = [];
   const pricedItems = [];
@@ -1892,6 +2097,22 @@ function calculateSecurePricing(items, products) {
       lineTotal,
     });
   });
+
+  // The gift add-on is a real product (so it prices through the same path
+  // as everything else) but it's only ever valid when: today is one of the
+  // eligible dates, the *rest* of the order is ₹599+, and only one was
+  // added. The client hides/removes it outside those conditions, but that's
+  // just UX — this is the check that actually decides what gets charged,
+  // since a client's request body is never trusted.
+  const addonLine = pricedItems.find((i) => i.productId === GIFT_ADDON.productId);
+  if (addonLine) {
+    const nonAddonSubtotal = subtotal - addonLine.price * addonLine.qty;
+    if (addonLine.qty > 1 || !isGiftAddonDateEligible() || nonAddonSubtotal < GIFT_ADDON.minSubtotal) {
+      errors.push(
+        "The gift add-on isn't available for this order right now — please remove it from your cart and try again.",
+      );
+    }
+  }
 
   const total = Math.round((subtotal - discountTotal) * 100) / 100;
 
@@ -2539,6 +2760,7 @@ app.get("/api/products", (req, res) => {
         (product) =>
           product.active &&
           product.approved !== false &&
+          !product.hidden &&
           !(product.sellerId && bannedSellerIds.has(product.sellerId)),
       )
       .map((product) => ({
@@ -2777,6 +2999,17 @@ app.post("/api/orders", (req, res) => {
       discount: Math.round(pricing.discountTotal * 100) / 100,
       total: pricing.total,
       paymentMethod: "COD",
+      // paymentStatus is separate from fulfillment `status` below — this
+      // tracks whether money has actually been confirmed, independent of
+      // where the order is in New/Processing/Shipped/etc. Right now it's
+      // flipped to "paid" manually by an admin once the WhatsApp order
+      // message is actually received (see markOrderPaid() + the
+      // /api/admin/orders/:id/mark-paid route). When an online payment
+      // gateway is added later, its webhook calls the same markOrderPaid()
+      // function instead of a human clicking the button — no other code
+      // needs to change.
+      paymentStatus: "pending",
+      paidAt: null,
       status: "New",
       createdAt: new Date().toISOString(),
     };
@@ -2811,32 +3044,89 @@ app.get("/api/admin/backup", requireAdmin, requireBoss, (req, res) => {
 // ADMIN: VIEW / UPDATE ORDERS
 // ================================
 
+// Dashboard totals (Total Orders / New / Cancelled / Revenue) computed over
+// ALL orders, independent of pagination on the list endpoint below — these
+// numbers need to stay accurate even when the admin is looking at page 3 of
+// a paginated order list.
+app.get("/api/admin/orders/stats", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const orders = database.orders || [];
+  const activeOrders = orders.filter((o) => o.status !== "Cancelled");
+  const totalRevenue = activeOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+  const newCount = orders.filter((o) => o.status === "New").length;
+  const cancelledCount = orders.filter((o) => o.status === "Cancelled").length;
+  res.json({
+    success: true,
+    total: orders.length,
+    newCount,
+    cancelledCount,
+    revenue: totalRevenue,
+  });
+});
+
 app.get("/api/admin/orders", requireAdmin, (req, res) => {
   const database = readDatabase();
-  const orders = database.orders
+  const sorted = database.orders
     .slice()
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .map((order) => ({
-      ...order,
-      // Tag each line item with who it came from — a seller's shop title,
-      // or null for products listed directly by an admin — so the admin
-      // panel can show whose products are actually being ordered.
-      items: (order.items || []).map((item) => {
-        const product = database.products.find((p) => p.id === item.productId);
-        const seller = product && product.sellerId
-          ? database.sellers.find((s) => s.id === product.sellerId)
-          : null;
-        return {
-          ...item,
-          sellerId: seller ? seller.id : null,
-          sellerName: seller ? (seller.shopTitle || seller.name) : null,
-        };
-      }),
-    }));
-  res.json({ success: true, orders });
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const { slice, meta } = paginate(req, sorted);
+  const orders = slice.map((order) => ({
+    ...order,
+    // Tag each line item with who it came from — a seller's shop title,
+    // or null for products listed directly by an admin — so the admin
+    // panel can show whose products are actually being ordered.
+    items: (order.items || []).map((item) => {
+      const product = database.products.find((p) => p.id === item.productId);
+      const seller = product && product.sellerId
+        ? database.sellers.find((s) => s.id === product.sellerId)
+        : null;
+      return {
+        ...item,
+        sellerId: seller ? seller.id : null,
+        sellerName: seller ? (seller.shopTitle || seller.name) : null,
+      };
+    }),
+  }));
+  res.json({ success: true, orders, ...meta });
 });
 
 const ORDER_STATUSES = ["New", "Processing", "Shipped", "Delivered", "Cancelled"];
+
+// ================================
+// PAYMENT STATUS — manual today, gateway-driven later
+// ================================
+// This is the one place that flips an order to "paid". Today the only
+// caller is the admin endpoint below, triggered by a human clicking
+// "Mark as Paid" after seeing the WhatsApp order confirmation. When an
+// online payment gateway (Razorpay/Cashfree/etc.) is added, its webhook
+// handler calls this same function instead — nothing else in the app
+// needs to know or care which one triggered it.
+function markOrderPaid(order) {
+  order.paymentStatus = "paid";
+  order.paidAt = new Date().toISOString();
+  return order;
+}
+
+// Admin manually confirms payment after seeing the customer's WhatsApp
+// message. This is the placeholder for what a payment gateway webhook
+// will do automatically once one is wired up.
+app.put("/api/admin/orders/:id/mark-paid", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const id = Number(req.params.id);
+  const order = database.orders.find((o) => o.id === id);
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: "Order not found." });
+  }
+  if (order.paymentStatus === "paid") {
+    return res.json({ success: true, order }); // already paid, nothing to do
+  }
+
+  markOrderPaid(order);
+  writeDatabase(database);
+
+  res.json({ success: true, order });
+});
 
 app.put("/api/admin/orders/:id/status", requireAdmin, (req, res) => {
   const database = readDatabase();
@@ -2892,6 +3182,28 @@ app.put("/api/admin/settings/sale-banner", requireAdmin, (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Unable to update the sale banner." });
+  }
+});
+
+// Admin-selectable homepage hero product.
+app.put("/api/admin/settings/hero-product", requireAdmin, (req, res) => {
+  try {
+    const rawId = req.body ? req.body.productId : null;
+    const productId = rawId === null || rawId === "" || rawId === undefined ? null : Number(rawId);
+    const database = readDatabase();
+    if (productId !== null && !Number.isFinite(productId)) {
+      return res.status(400).json({ success: false, message: "Invalid hero product." });
+    }
+    if (productId !== null) {
+      const product = (database.products || []).find(p => Number(p.id) === productId && p.approved !== false && p.active !== false);
+      if (!product) return res.status(404).json({ success: false, message: "Hero product not found or inactive." });
+    }
+    database.settings.heroProductId = productId;
+    writeDatabase(database);
+    res.json({ success: true, heroProductId: productId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to update the hero product." });
   }
 });
 

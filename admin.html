@@ -271,6 +271,78 @@
       }
       .hidden { display: none !important; }
 
+      /* ===== Seller Details (rich profile) overlay ===== */
+      .seller-detail-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(2,2,7,.76);
+        backdrop-filter: blur(5px);
+        z-index: 90;
+        overflow-y: auto;
+      }
+      .seller-detail-overlay.open { display: block; }
+      .sd-wrap { max-width: 1080px; margin: 20px auto 60px; padding: 0 16px; }
+      .sd-back {
+        color: var(--muted); font-size: 13px; cursor: pointer; margin-bottom: 12px;
+        display: inline-flex; align-items: center; gap: 4px;
+      }
+      .sd-back:hover { color: var(--ink); }
+      .sd-header {
+        display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+        align-items: flex-start; margin-bottom: 16px;
+      }
+      .sd-avatar {
+        width: 68px; height: 68px; border-radius: 50%; background: var(--field);
+        border: 1px solid var(--blush-line); display: flex; align-items: center;
+        justify-content: center; font-weight: 700; font-size: 12px; color: var(--muted);
+        text-align: center; overflow: hidden;
+      }
+      .sd-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .sd-title-row h2 { margin: 0; font-size: 22px; }
+      .sd-online-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: #63e6b1; margin-top: 6px; }
+      .sd-online-dot::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #63e6b1; display: inline-block; }
+      .sd-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+      .sd-chip {
+        background: var(--field); border: 1px solid var(--blush-line); border-radius: 10px;
+        padding: 8px 14px; min-width: 110px;
+      }
+      .sd-chip .sd-chip-label { font-size: 11px; color: var(--muted); }
+      .sd-chip .sd-chip-value { font-size: 13.5px; font-weight: 600; margin-top: 2px; }
+      .sd-about {
+        background: linear-gradient(180deg,#12121c,#101018); border: 1px solid #272738;
+        border-radius: 14px; padding: 16px; max-width: 260px; font-size: 13px; color: var(--muted); line-height: 1.5;
+      }
+      .sd-about h4 { color: var(--ink); font-size: 13.5px; margin: 0 0 8px; }
+      .sd-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; align-items: start; }
+      @media (max-width: 820px) { .sd-grid { grid-template-columns: 1fr; } }
+      .sd-section-title {
+        display: flex; align-items: center; gap: 8px; color: var(--rosewood);
+        font-weight: 700; font-size: 14px; margin: 0 0 14px;
+      }
+      .sd-fields {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 14px; margin-bottom: 22px;
+      }
+      @media (max-width: 640px) { .sd-fields { grid-template-columns: repeat(2, 1fr); } }
+      .sd-fields:last-child { margin-bottom: 0; }
+      .sd-field-label { font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+      .sd-field-value { font-size: 13.5px; font-weight: 600; word-break: break-word; }
+      .sd-field-value.mono { font-family: "SFMono-Regular", Consolas, monospace; letter-spacing: 0.4px; }
+      .sd-actions .btn { width: 100%; margin-bottom: 8px; text-align: center; justify-content: center; }
+      .sd-stat-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--blush-line); font-size: 13px; }
+      .sd-stat-row:last-child { border-bottom: none; }
+      .sd-stat-row .sd-stat-label { color: var(--muted); display: flex; align-items: center; gap: 8px; }
+      .sd-stat-row .sd-stat-value { font-weight: 700; }
+      .sd-product-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--blush-line); }
+      .sd-product-row:last-child { border-bottom: none; }
+      .sd-product-row img, .sd-product-row .ph { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: var(--field); flex-shrink: 0; }
+      .sd-product-name { font-weight: 600; font-size: 13.5px; }
+      .sd-product-price { font-size: 12.5px; color: var(--muted); }
+      .sd-notes textarea {
+        width: 100%; min-height: 90px; resize: vertical; padding: 10px 12px; border-radius: 9px;
+        font-family: inherit; font-size: 13px;
+      }
+
       /* ===== Login mascot ===== */
       #mascotWrap { text-align:center; margin-bottom:6px; position:relative; animation: mascotFloat 2.6s ease-in-out infinite; }
       @keyframes mascotFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
@@ -346,6 +418,11 @@
       .theme-card:hover { border-color: #c99; }
     
 
+    </style>
+    <!-- Toggleable dark-mode skin: disabled by default via media="not all",
+         flipped to media="all" by theme.js when dark mode is on. This was
+         previously a permanently-forced-on override; it's now opt-in. -->
+    <style id="dmDarkOverride" media="not all">
       /* =========================================================
          DESIGN MAKERS PREMIUM CONTROL CENTER — PHASE 1 UI
          Safe UI layer: preserves existing DOM IDs and JS behavior.
@@ -466,9 +543,55 @@
         .dm-order-customer,.dm-order-amount{display:none;}
       }
 
+
+      /* ===== FINAL DESIGN MAKERS GOLD GLASS SYSTEM ===== */
+      :root {
+        --dm-gold:#e8b84b; --dm-gold-soft:#f5d47a; --dm-gold-dim:#a87820;
+        --dm-black:#060607; --dm-panel:#0d0d10; --dm-line:rgba(232,184,75,.22);
+      }
+      #dashboard { background:radial-gradient(circle at 82% -12%, rgba(232,184,75,.10), transparent 32%), radial-gradient(circle at 12% 110%, rgba(232,184,75,.06), transparent 28%), #060607 !important; }
+      #dashboard > header { border-bottom-color:rgba(232,184,75,.16) !important; }
+      #dashboard > header h1 img { box-shadow:0 0 0 1px rgba(232,184,75,.35),0 0 22px rgba(232,184,75,.16) !important; }
+      .tabs { background:rgba(9,9,11,.94) !important; border-right-color:rgba(232,184,75,.14) !important; }
+      .tab-btn.active { background:linear-gradient(90deg,rgba(232,184,75,.18),rgba(232,184,75,.04)) !important; border-color:rgba(232,184,75,.32) !important; box-shadow:inset 3px 0 var(--dm-gold),0 8px 24px rgba(0,0,0,.2) !important; }
+      .btn:not(.secondary):not(.danger) { background:linear-gradient(135deg,#d99f28,#f3c85c) !important; color:#171109 !important; box-shadow:0 8px 24px rgba(232,184,75,.12); }
+      .btn:not(.secondary):not(.danger):hover { background:linear-gradient(135deg,#efb83c,#ffe08a) !important; }
+      .dm-kpi,.dm-overview-card,.card,.stat-card { border-color:rgba(232,184,75,.14) !important; background:linear-gradient(145deg,rgba(20,18,14,.92),rgba(11,11,12,.94)) !important; backdrop-filter:blur(14px); }
+      .dm-kpi::after { background:rgba(232,184,75,.08) !important; }
+      .dm-kpi .value { color:#fff !important; }
+      .dm-pill { border-color:rgba(232,184,75,.20); color:#e9c66b; background:rgba(232,184,75,.06); }
+      .dm-order-id { color:#e9c66b; }
+      #overviewPanel > div:first-child h2 { font-family:Inter,"Segoe UI",Arial,sans-serif !important; font-weight:800; }
+      .dm-hero-admin { margin:0 0 16px; padding:18px; border-radius:16px; border:1px solid rgba(232,184,75,.18); background:linear-gradient(135deg,rgba(232,184,75,.07),rgba(255,255,255,.02)); }
+      .dm-hero-admin-grid { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:16px; align-items:center; }
+      .dm-hero-admin select { margin:0; }
+      .dm-hero-admin-preview { min-height:120px; border-radius:14px; overflow:hidden; border:1px solid rgba(232,184,75,.20); background:radial-gradient(circle at 50% 30%,rgba(232,184,75,.16),transparent 45%),#090909; display:flex; align-items:center; justify-content:center; }
+      .dm-hero-admin-preview img { max-width:100%; max-height:140px; object-fit:contain; filter:drop-shadow(0 14px 25px rgba(0,0,0,.55)); }
+      #loginScreen { position:relative; overflow:hidden; background:radial-gradient(circle at 50% 30%,rgba(232,184,75,.09),transparent 28%),#050506; }
+      #loginScreen::before,#loginScreen::after { content:""; position:absolute; border-radius:50%; filter:blur(70px); pointer-events:none; }
+      #loginScreen::before { width:280px;height:280px;left:5%;top:18%;background:rgba(232,184,75,.07); }
+      #loginScreen::after { width:300px;height:300px;right:2%;bottom:4%;background:rgba(109,74,18,.09); }
+      #loginScreen .card { position:relative; z-index:1; border:1px solid rgba(232,184,75,.24) !important; background:linear-gradient(150deg,rgba(22,20,15,.82),rgba(8,8,9,.94)) !important; backdrop-filter:blur(24px); box-shadow:0 30px 90px rgba(0,0,0,.62),0 0 50px rgba(232,184,75,.06) !important; border-radius:22px !important; overflow:hidden; }
+      #loginScreen .card::before { content:""; position:absolute; inset:0; background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.035) 48%,transparent 55%); pointer-events:none; }
+      #dmLoginLogoWrap { position:relative; text-align:center; margin:0 auto 18px; height:118px; display:flex; align-items:center; justify-content:center; }
+      #dmLoginLogo { width:150px; max-height:112px; object-fit:contain; filter:drop-shadow(0 0 16px rgba(232,184,75,.25)); animation:dmLogoFloat 3.8s ease-in-out infinite; }
+      #dmLoginLogoWrap.privacy #dmLoginLogo { animation:dmLogoPrivacy .45s ease; filter:drop-shadow(0 0 6px rgba(232,184,75,.12)); }
+      #dmLoginLogoWrap.success #dmLoginLogo { animation:dmLogoSuccess .8s ease; }
+      @keyframes dmLogoFloat {0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+      @keyframes dmLogoPrivacy {0%{transform:scale(1)}50%{transform:scale(.94) translateY(3px)}100%{transform:scale(1)}}
+      @keyframes dmLogoSuccess {0%{transform:scale(1)}35%{transform:scale(1.08)}100%{transform:scale(1)}}
+      #loginScreen .dm-login-badge { width:max-content; max-width:100%; margin:0 auto 12px; padding:7px 12px; border-radius:999px; border:1px solid rgba(232,184,75,.18); color:#e7d9b6; background:rgba(232,184,75,.05); font-size:11px; }
+      #loginScreen h1 { font-family:Inter,"Segoe UI",Arial,sans-serif !important; letter-spacing:-.03em; }
+      #loginScreen .btn { border-radius:12px !important; height:48px; }
+      #loginScreen input:focus { border-color:rgba(232,184,75,.75) !important; box-shadow:0 0 0 3px rgba(232,184,75,.10) !important; }
+      .dm-secure-note { text-align:center; color:#77715f; font-size:11px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(232,184,75,.10); }
+      @media(max-width:760px){ .dm-hero-admin-grid{grid-template-columns:1fr;} .dm-hero-admin-preview{min-height:100px;} }
     </style>
   </head>
   <body>
+    <button class="dm-dark-btn" onclick="toggleDarkMode()" title="Toggle dark mode" style="position:fixed; top:16px; right:16px; z-index:999; width:40px; height:40px; border-radius:50%; border:1px solid var(--blush-line); background:var(--surface); color:var(--ink); font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(0,0,0,0.25);">
+      <span class="dm-dark-icon">🌙</span>
+    </button>
     <!-- FLOATING SOAP BUBBLE — drifts over the whole page, pops when clicked -->
     <div id="floatBubble" title="Pop me!">
       <svg viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg">
@@ -492,119 +615,19 @@
     <!-- LOGIN SCREEN -->
     <div id="loginScreen">
       <div class="card">
-        <div id="mascotWrap" class="mascot-idle">
-          <div class="mascot-speech" id="mascotSpeech">Hi! I'll help you log in 👋</div>
-          <svg id="mascotSvg" viewBox="0 0 160 170" width="110" height="117">
-            <defs>
-              <linearGradient id="mHair" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#3d3450"/>
-                <stop offset="55%" stop-color="#241b33"/>
-                <stop offset="100%" stop-color="#140e1f"/>
-              </linearGradient>
-              <linearGradient id="mHairShine" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#6f5f96" stop-opacity="0.85"/>
-                <stop offset="100%" stop-color="#6f5f96" stop-opacity="0"/>
-              </linearGradient>
-              <radialGradient id="mFace" cx="42%" cy="34%" r="72%">
-                <stop offset="0%" stop-color="#ffe9d6"/>
-                <stop offset="70%" stop-color="#ffdcbd"/>
-                <stop offset="100%" stop-color="#f0c6a3"/>
-              </radialGradient>
-              <linearGradient id="mBlouse" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#ffffff"/>
-                <stop offset="100%" stop-color="#e4e2ea"/>
-              </linearGradient>
-              <radialGradient id="mEyeGreen" cx="50%" cy="40%" r="60%">
-                <stop offset="0%" stop-color="#8fe0a0"/>
-                <stop offset="55%" stop-color="#3f9e5c"/>
-                <stop offset="100%" stop-color="#1f5c37"/>
-              </radialGradient>
-              <linearGradient id="mCheek" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#ff9f9f" stop-opacity="0.55"/>
-                <stop offset="100%" stop-color="#ff9f9f" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-
-            <!-- white blouse + black ribbon -->
-            <path d="M 38 150 Q 80 170 122 150 L 122 172 L 38 172 Z" fill="url(#mBlouse)" stroke="#d8d5de" stroke-width="0.6"/>
-            <path d="M 60 148 L 80 168 L 100 148 L 93 143 L 80 158 L 67 143 Z" fill="#ffffff" stroke="#ded9de" stroke-width="0.6"/>
-            <path d="M 80 153 L 71 160 L 80 165 L 89 160 Z" fill="#161219"/>
-            <path d="M 71 160 Q 58 158 56 168 Q 66 168 71 160 Z" fill="#161219"/>
-            <path d="M 89 160 Q 102 158 104 168 Q 94 168 89 160 Z" fill="#161219"/>
-
-            <!-- hair back (dark, soft wavy silhouette) -->
-            <path d="M 28 58 Q 18 96 26 132 Q 32 150 44 146 Q 34 112 40 76 Q 30 70 28 58 Z" fill="url(#mHair)"/>
-            <path d="M 132 58 Q 142 96 134 132 Q 128 150 116 146 Q 126 112 120 76 Q 130 70 132 58 Z" fill="url(#mHair)"/>
-            <path d="M 32 96 Q 24 112 30 128 Q 34 118 40 108 Z" fill="#160f21" opacity="0.6"/>
-            <path d="M 128 96 Q 136 112 130 128 Q 126 118 120 108 Z" fill="#160f21" opacity="0.6"/>
-            <ellipse cx="80" cy="72" rx="52" ry="54" fill="url(#mHair)"/>
-
-            <!-- face -->
-            <ellipse cx="80" cy="86" rx="40" ry="38" fill="url(#mFace)"/>
-            <ellipse cx="58" cy="98" rx="9" ry="6" fill="url(#mCheek)"/>
-            <ellipse cx="102" cy="98" rx="9" ry="6" fill="url(#mCheek)"/>
-
-            <!-- soft wavy bangs, parted -->
-            <path d="M 32 60 Q 80 26 128 60 Q 124 44 80 38 Q 36 44 32 60 Z" fill="#2a2038"/>
-            <path d="M 32 60 Q 44 70 52 62 Q 46 50 36 48 Z" fill="#241c33"/>
-            <path d="M 128 60 Q 116 70 108 62 Q 114 50 124 48 Z" fill="#241c33"/>
-            <path d="M 76 40 Q 80 50 78 62" stroke="#4a3d63" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.7"/>
-
-            <!-- hair shine overlay -->
-            <ellipse cx="66" cy="52" rx="20" ry="10" fill="url(#mHairShine)"/>
-
-            <!-- ===== eyes: normal (narrow, calm, sharp, green) ===== -->
-            <g class="mascot-eyes-normal">
-              <path class="mascot-blink" d="M 54 82 Q 64 76 74 82 Q 64 87 54 82 Z" fill="url(#mEyeGreen)"/>
-              <path class="mascot-blink" d="M 86 82 Q 96 76 106 82 Q 96 87 86 82 Z" fill="url(#mEyeGreen)"/>
-              <path d="M 54 82 Q 64 76 74 82" stroke="#1a1220" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-              <path d="M 86 82 Q 96 76 106 82" stroke="#1a1220" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-              <circle cx="67" cy="80" r="1.6" fill="#fff"/>
-              <circle cx="99" cy="80" r="1.6" fill="#fff"/>
-            </g>
-
-            <!-- ===== eyes: happy (soft closed arcs) ===== -->
-            <g class="mascot-eyes-happy" style="display:none;">
-              <path d="M 55 82 Q 64 76 73 82" stroke="#2b1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-              <path d="M 87 82 Q 96 76 105 82" stroke="#2b1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-            </g>
-
-            <!-- ===== eyes: crying (squeezed shut) ===== -->
-            <g class="mascot-eyes-cry" style="display:none;">
-              <path d="M 55 84 Q 64 90 73 84" stroke="#2b1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-              <path d="M 87 84 Q 96 90 105 84" stroke="#2b1810" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-              <!-- tears -->
-              <ellipse class="mascot-tear mascot-tear-l" cx="58" cy="96" rx="4" ry="6" fill="#6fc3ff"/>
-              <ellipse class="mascot-tear mascot-tear-r" cx="102" cy="96" rx="4" ry="6" fill="#6fc3ff"/>
-            </g>
-
-            <!-- ===== mouth: normal (calm, faint confident smirk) ===== -->
-            <path class="mascot-mouth-normal" d="M 70 106 Q 80 110 88 104" stroke="#a3465a" stroke-width="3" fill="none" stroke-linecap="round"/>
-            <!-- ===== mouth: happy (bigger smile) ===== -->
-            <path class="mascot-mouth-happy" style="display:none;" d="M 66 104 Q 80 120 94 104 Q 80 114 66 104 Z" fill="#a3465a"/>
-            <!-- ===== mouth: sad (down curve) ===== -->
-            <path class="mascot-mouth-sad" style="display:none;" d="M 68 112 Q 80 102 92 112" stroke="#a3465a" stroke-width="3" fill="none" stroke-linecap="round"/>
-
-            <!-- pointing arm (shown while guiding to a field) -->
-            <g class="mascot-arm-point">
-              <path d="M 106 118 Q 128 128 126 150" stroke="#ffdcbd" stroke-width="10" fill="none" stroke-linecap="round"/>
-              <circle cx="126" cy="152" r="6" fill="#ffdcbd"/>
-            </g>
-            <!-- raised arm (shown on success) -->
-            <g class="mascot-arm-wave" style="display:none;">
-              <path d="M 106 118 Q 130 108 128 82" stroke="#ffdcbd" stroke-width="10" fill="none" stroke-linecap="round"/>
-              <circle cx="128" cy="80" r="6" fill="#ffdcbd"/>
-            </g>
-          </svg>
+        <div id="dmLoginLogoWrap">
+          <img id="dmLoginLogo" src="Logo.png" alt="Design Makers" />
         </div>
-        <h1 style="text-align:center; color:var(--rosewood); font-size:24px;">🎁 Design Makers</h1>
-        <p style="text-align:center; color:var(--muted); margin-top:-8px; font-size:13.5px;">Admin Login</p>
+        <div class="dm-login-badge">✦ Secure Admin Access · Design Makers Control Center</div>
+        <h1 style="text-align:center; color:var(--rosewood); font-size:24px;">Design Makers</h1>
+        <p style="text-align:center; color:var(--muted); margin-top:-8px; font-size:13.5px;">Admin Login · Premium Control Center</p>
         <label>Username</label>
         <input type="text" id="loginUsername" autocomplete="username" />
         <label>Password</label>
         <input type="password" id="loginPassword" autocomplete="current-password" />
-        <button class="btn" onclick="login()">Log In</button>
+        <button class="btn" onclick="login()">Log In →</button>
         <div class="error" id="loginError"></div>
+        <div class="dm-secure-note">⌾ Your session is protected · Activity is authenticated</div>
       </div>
     </div>
 
@@ -636,7 +659,7 @@
             <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
               <div>
                 <div style="color:#77778a;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Design Makers Control Center</div>
-                <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;">Good evening, <span id="overviewUserName">Admin</span> 👋</h2>
+                <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;"><span id="overviewGreeting">Welcome back</span>, <span id="overviewUserName">Admin</span> 👋</h2>
                 <p id="overviewRoleText" style="margin:6px 0 0;color:#8f8fa1;font-size:12px;">Live business overview from your existing data.</p>
               </div>
               <button class="btn small secondary" onclick="loadAdminOverview()">↻ Refresh overview</button>
@@ -728,10 +751,24 @@
           <div class="stat-row" id="orderStats"></div>
           <div id="ordersLoading">Loading orders...</div>
           <div id="orderList"></div>
+          <div id="ordersPager" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px;"></div>
         </div>
 
         <!-- HOMEPAGE SECTIONS TAB -->
         <div class="tab-panel" id="tabHomepage">
+        <div class="dm-hero-admin">
+          <div class="dm-hero-admin-grid">
+            <div>
+              <div style="color:#e8b84b;font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;margin-bottom:6px;">Homepage Hero Product</div>
+              <h3 style="margin:0 0 6px;font-size:19px;">Choose the product customers see first.</h3>
+              <p class="phone" style="margin:0 0 12px;">Select any active product. The storefront will automatically use it as the single hero product.</p>
+              <select id="heroProductSelect" onchange="saveHeroProduct()"><option value="">No hero product selected</option></select>
+              <div id="heroProductStatus" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
+            </div>
+            <div class="dm-hero-admin-preview" id="heroProductPreview"><span style="color:#77715f;font-size:12px;">Select a product to preview</span></div>
+          </div>
+        </div>
+
           <div class="card" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
             <div class="phone" style="margin:0;">
               This is now automatic and based on real product views — "Our Most Popular Products" ranks by all-time views on your website, "Trending" by views in the last 7 days. Products with no views yet show up as newest-added until someone opens them. This preview is live — it's the same computation the storefront uses, so what you see here is already what shoppers see.
@@ -814,6 +851,7 @@
             <div class="phone" style="margin:0 0 10px;">Customers who signed up with mobile number + password. Use "Reset password" to generate a new password if a customer forgets theirs — it's shown here once, so pass it on to them right away.</div>
             <div id="customersLoading">Loading customers...</div>
             <div id="customersList"></div>
+            <div id="customersPager" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px;"></div>
           </div>
         </div>
 
@@ -1003,6 +1041,111 @@
       </div>
     </div>
 
+    <!-- SELLER DETAILS (rich profile page) -->
+    <div id="sellerDetailOverlay" class="seller-detail-overlay">
+      <div class="sd-wrap">
+        <div class="sd-back" onclick="closeSellerDetail()">← Back</div>
+
+        <div class="sd-header">
+          <div style="display:flex;gap:16px;">
+            <div class="sd-avatar" id="sdAvatar">SHOP</div>
+            <div>
+              <div class="sd-title-row">
+                <h2 id="sdShopTitle">Shop</h2>
+                <span class="badge" id="sdStatusBadge"></span>
+              </div>
+              <div style="color:var(--muted);font-size:13.5px;margin-top:2px;" id="sdSellerName"></div>
+              <div class="sd-chips">
+                <div class="sd-chip"><div class="sd-chip-label">Seller ID</div><div class="sd-chip-value" id="sdSellerId">—</div></div>
+                <div class="sd-chip"><div class="sd-chip-label">Joined On</div><div class="sd-chip-value" id="sdJoinedOn">—</div></div>
+                <div class="sd-chip"><div class="sd-chip-label">Applied On</div><div class="sd-chip-value" id="sdAppliedOn">—</div></div>
+                <div class="sd-chip"><div class="sd-chip-label">Status</div><div class="sd-chip-value" id="sdStatus">—</div></div>
+              </div>
+              <div class="sd-online-dot" id="sdOnlineDot" style="display:none;">Online</div>
+            </div>
+          </div>
+          <div class="sd-about">
+            <h4>About Store</h4>
+            <div id="sdAboutStore">—</div>
+          </div>
+        </div>
+
+        <div class="sd-grid">
+          <div>
+            <div class="card">
+              <div class="sd-section-title">👤 Personal &amp; Contact Details</div>
+              <div class="sd-fields">
+                <div><div class="sd-field-label">Seller Name</div><div class="sd-field-value" id="sdName">—</div></div>
+                <div><div class="sd-field-label">Email Address</div><div class="sd-field-value" id="sdEmail">—</div></div>
+                <div><div class="sd-field-label">Phone Number</div><div class="sd-field-value" id="sdPhone">—</div></div>
+                <div><div class="sd-field-label">Alternate Phone</div><div class="sd-field-value" id="sdAltPhone">—</div></div>
+              </div>
+
+              <div class="sd-section-title">🏪 Business / Store Information</div>
+              <div class="sd-fields">
+                <div><div class="sd-field-label">Store / Business Name</div><div class="sd-field-value" id="sdShopName">—</div></div>
+                <div><div class="sd-field-label">Business Type</div><div class="sd-field-value" id="sdBusinessType">—</div></div>
+                <div><div class="sd-field-label">Business Address</div><div class="sd-field-value" id="sdBusinessAddress">—</div></div>
+                <div><div class="sd-field-label">City / State / Pincode</div><div class="sd-field-value" id="sdCityStatePin">—</div></div>
+              </div>
+
+              <div class="sd-section-title">🪪 Identity Information</div>
+              <div class="sd-fields">
+                <div><div class="sd-field-label">Aadhaar Number</div><div class="sd-field-value mono" id="sdAadhaar" style="color:var(--gold);">—</div></div>
+                <div><div class="sd-field-label">PAN Number</div><div class="sd-field-value mono" id="sdPan">—</div></div>
+                <div><div class="sd-field-label">Date of Birth</div><div class="sd-field-value" id="sdDob">—</div></div>
+                <div><div class="sd-field-label">Gender</div><div class="sd-field-value" id="sdGender">—</div></div>
+              </div>
+
+              <div class="sd-section-title">ℹ️ Additional Information</div>
+              <div class="sd-fields">
+                <div><div class="sd-field-label">Bank Account Number</div><div class="sd-field-value mono" id="sdBank">—</div></div>
+                <div><div class="sd-field-label">IFSC Code</div><div class="sd-field-value mono" id="sdIfsc">—</div></div>
+                <div><div class="sd-field-label">UPI ID</div><div class="sd-field-value" id="sdUpi">—</div></div>
+                <div><div class="sd-field-label">GST Number (Optional)</div><div class="sd-field-value" id="sdGst">Not Provided</div></div>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top:18px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div class="sd-section-title" style="margin:0;">📦 Recent Products (<span id="sdProductCount">0</span>)</div>
+                <a href="#" onclick="switchTab('sellerlist');closeSellerDetail();return false;" style="font-size:12.5px;color:var(--rosewood);text-decoration:none;" id="sdViewAllProducts">View All Products →</a>
+              </div>
+              <div id="sdProductsList"><p class="empty-state" style="padding:16px;">No products yet.</p></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="card sd-actions" id="sdActionsCard">
+              <div class="sd-section-title">⚙️ Seller Actions</div>
+              <button class="btn" id="sdApproveBtn" style="background:#1a7a3f !important;" onclick="sdApprove()">✓ Approve Seller</button>
+              <button class="btn" id="sdRejectBtn" style="background:rgba(239,68,68,.16) !important;color:#ff8f9a !important;" onclick="sdReject()">✕ Reject Seller</button>
+              <button class="btn secondary" id="sdEditBtn" onclick="sdEditDetails()">✎ Edit Seller Details</button>
+              <button class="btn secondary" id="sdBanBtn" onclick="sdBanToggle()">Ban / Block Seller</button>
+            </div>
+
+            <div class="card" style="margin-top:14px;" id="sdSummaryCard">
+              <div class="sd-section-title">📈 Seller Activity Summary</div>
+              <div class="sd-stat-row"><div class="sd-stat-label">📦 Total Products</div><div class="sd-stat-value" id="sdTotalProducts">0</div></div>
+              <div class="sd-stat-row"><div class="sd-stat-label">✅ Approved Products</div><div class="sd-stat-value" style="color:#63e6b1;" id="sdApprovedProducts">0</div></div>
+              <div class="sd-stat-row"><div class="sd-stat-label">🕒 Pending Products</div><div class="sd-stat-value" style="color:#ffc96a;" id="sdPendingProducts">0</div></div>
+              <div class="sd-stat-row"><div class="sd-stat-label">🧾 Total Orders</div><div class="sd-stat-value" id="sdTotalOrders">0</div></div>
+              <div class="sd-stat-row"><div class="sd-stat-label">💰 Total Revenue</div><div class="sd-stat-value" style="color:#63e6b1;" id="sdTotalRevenue">₹0.00</div></div>
+            </div>
+
+            <div class="card sd-notes" style="margin-top:14px;" id="sdNotesCard">
+              <div class="sd-section-title">📝 Notes (Admin Only)</div>
+              <textarea id="sdNotesInput" placeholder="Add a note about this seller..."></textarea>
+              <button class="btn small" style="margin-top:8px;" onclick="sdSaveNote()">Save Note</button>
+              <div id="sdNotesStatus" style="font-size:12.5px;margin-top:6px;min-height:16px;color:var(--muted);"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center;color:var(--muted);font-size:11.5px;margin-top:24px;">All times are in Asia/Kolkata (IST)</div>
+      </div>
+    </div>
+
     <script>
       let token = localStorage.getItem("dm_admin_token") || null;
       let role = localStorage.getItem("dm_admin_role") || null;
@@ -1084,7 +1227,7 @@
 
           if (!data.success) {
             errorEl.textContent = data.message || "Login failed.";
-            mascotCryReaction();
+            triggerDmLoginReaction("error");
             return;
           }
 
@@ -1095,10 +1238,7 @@
           localStorage.setItem("dm_admin_role", role);
           localStorage.setItem("dm_admin_username", myUsername);
           setBubbleText(myUsername);
-          mascotSuccessReaction(() => {
-            showDashboard();
-            startSessionTimer();
-          });
+          triggerDmLoginReaction("success", () => { showDashboard(); startSessionTimer(); });
         } catch (err) {
           errorEl.textContent = "Network error. Check your connection and try again.";
         }
@@ -1245,6 +1385,7 @@
         if (tab === "homepage") {
           document.getElementById("homepageSectionsSaved").style.display = "none";
           loadHomepagePreview();
+          loadHeroProductSettings();
         }
         if (tab === "sellerlist") loadSellerList();
         if (tab === "sellers") {
@@ -1257,6 +1398,17 @@
         }
         if (tab === "customers") loadCustomers();
         if (tab === "admins") loadAdmins();
+      }
+
+      function getDmGreeting() {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) return "Good morning";
+        if (hour >= 12 && hour < 17) return "Good afternoon";
+        return "Good evening";
+      }
+      function updateOverviewGreeting() {
+        const el = document.getElementById("overviewGreeting");
+        if (el) el.textContent = getDmGreeting();
       }
 
       // ---------- EXECUTIVE OVERVIEW ----------
@@ -1291,6 +1443,7 @@
           document.getElementById("ovProductsSub").textContent = liveProducts + " approved / " + ps.length + " total";
           document.getElementById("ovPending").textContent = pendingProducts.length.toLocaleString("en-IN");
           document.getElementById("overviewUserName").textContent = myUsername || "Admin";
+          updateOverviewGreeting();
           document.getElementById("overviewRoleText").textContent = (role === "boss" ? "Super Admin · full control" : ((myDesignation || "Sub-Admin") + " · operational access"));
 
           if (role === "boss") {
@@ -1333,6 +1486,55 @@
           document.getElementById("ovRecentOrders").innerHTML = '<div class="dm-empty">Could not load overview. <button class="btn small secondary" onclick="loadAdminOverview()">Retry</button></div>';
           document.getElementById("ovQueue").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
           document.getElementById("ovTopProducts").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
+        }
+      }
+
+      async function loadHeroProductSettings() {
+        const select = document.getElementById("heroProductSelect");
+        if (!select) return;
+        try {
+          const [settingsRes, productsRes] = await Promise.all([
+            fetch("/api/settings"),
+            fetch("/api/admin/products", { headers: { Authorization: "Bearer " + token } }),
+          ]);
+          const settingsData = await settingsRes.json();
+          const productsData = await productsRes.json();
+          const ps = productsData.success ? (productsData.products || []).filter(p => p.active !== false && p.approved !== false) : [];
+          const heroId = settingsData.success ? settingsData.settings.heroProductId : null;
+          select.innerHTML = '<option value="">No hero product selected</option>' + ps.map(p => '<option value="'+p.id+'">'+escapeHtml(p.name || "Unnamed product")+' · ₹'+fmtINR(p.price || 0)+'</option>').join("");
+          select.value = heroId == null ? "" : String(heroId);
+          updateHeroProductPreview();
+        } catch (e) {
+          select.innerHTML = '<option value="">Could not load products</option>';
+        }
+      }
+
+      function updateHeroProductPreview() {
+        const select = document.getElementById("heroProductSelect");
+        const preview = document.getElementById("heroProductPreview");
+        if (!select || !preview) return;
+        const id = Number(select.value);
+        const product = products.find(p => Number(p.id) === id);
+        if (product && product.image) preview.innerHTML = '<img src="'+escapeHtml(product.image)+'" alt="'+escapeHtml(product.name || "Hero product")+'">';
+        else preview.innerHTML = '<span style="color:#77715f;font-size:12px;">Select a product to preview</span>';
+      }
+
+      async function saveHeroProduct() {
+        const select = document.getElementById("heroProductSelect");
+        const status = document.getElementById("heroProductStatus");
+        const productId = select.value ? Number(select.value) : null;
+        updateHeroProductPreview();
+        status.style.color = "#e8b84b";
+        status.textContent = "Saving…";
+        try {
+          const res = await fetch("/api/admin/settings/hero-product", { method:"PUT", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body:JSON.stringify({productId}) });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Unable to save");
+          status.style.color = "#63e6b1";
+          status.textContent = "✓ Hero product updated. Changes are live on the storefront.";
+        } catch (e) {
+          status.style.color = "#ff8f9a";
+          status.textContent = e.message || "Unable to save hero product.";
         }
       }
 
@@ -1459,18 +1661,40 @@
       // ---------- SELLERS TAB — applications + pending products ----------
 
       // ---------- CUSTOMERS (mobile + password accounts) ----------
-      async function loadCustomers() {
+      // Renders a simple "‹ Prev  page X of Y  Next ›" pager into targetEl,
+      // calling loadFn(page) on click. Shared between customers and orders
+      // since both lists are now server-paginated.
+      function renderPager(targetEl, meta, loadFn) {
+        if (!meta || meta.pages <= 1) {
+          targetEl.innerHTML = "";
+          return;
+        }
+        targetEl.innerHTML =
+          '<button class="btn small secondary" ' + (meta.page <= 1 ? "disabled" : "") + ' id="pagerPrev">‹ Prev</button>' +
+          '<span style="font-size:13px;color:#8c7d78;">Page ' + meta.page + ' of ' + meta.pages + ' (' + meta.total + ' total)</span>' +
+          '<button class="btn small secondary" ' + (meta.page >= meta.pages ? "disabled" : "") + ' id="pagerNext">Next ›</button>';
+        const prevBtn = targetEl.querySelector("#pagerPrev");
+        const nextBtn = targetEl.querySelector("#pagerNext");
+        if (prevBtn) prevBtn.onclick = () => loadFn(meta.page - 1);
+        if (nextBtn) nextBtn.onclick = () => loadFn(meta.page + 1);
+      }
+
+      async function loadCustomers(page) {
+        page = page || 1;
         const loadingEl = document.getElementById("customersLoading");
         const listEl = document.getElementById("customersList");
+        const pagerEl = document.getElementById("customersPager");
         loadingEl.classList.remove("hidden");
         try {
-          const res = await fetch("/api/admin/customers", { headers: { Authorization: "Bearer " + token } });
+          const res = await fetch("/api/admin/customers?page=" + page + "&limit=50", { headers: { Authorization: "Bearer " + token } });
           const data = await res.json();
           loadingEl.classList.add("hidden");
           if (!data.success || !data.customers.length) {
             listEl.innerHTML = '<p class="empty-state">No customer accounts yet.</p>';
+            pagerEl.innerHTML = "";
             return;
           }
+          renderPager(pagerEl, data, loadCustomers);
           listEl.innerHTML = data.customers.map((c) => {
             const mobileText = c.mobile ? escapeHtml(c.mobile) : '<span style="color:#a3002a;">no mobile (legacy)</span>';
             const orderTag = c.orderCount ? ' · ' + c.orderCount + ' order' + (c.orderCount === 1 ? '' : 's') : '';
@@ -1610,7 +1834,7 @@
             const productsHtml = approvedProducts.length
               ? approvedProducts.map((p) => (
                   '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--blush-line);">' +
-                    (p.image ? '<img src="' + p.image + '" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />' : '<div style="width:44px;height:44px;border-radius:8px;background:var(--blush);"></div>') +
+                    (p.image ? '<img src="' + escapeHtml(p.image) + '" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />' : '<div style="width:44px;height:44px;border-radius:8px;background:var(--blush);"></div>') +
                     '<div style="flex:1;min-width:0;">' +
                       '<div style="font-weight:600;">' + escapeHtml(p.name) + '</div>' +
                       '<div style="font-size:12px;color:#8c7d78;">' + escapeHtml(p.category || "Uncategorised") + ' · ' + fmtINR(p.price || 0) + '</div>' +
@@ -1647,7 +1871,7 @@
                     '<div>' + s.approvedCount + ' approved · ' + s.pendingCount + ' pending</div>' +
                     '<div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">' +
                       '<button class="btn small" onclick="toggleSellerProducts(' + s.id + ')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">▼ Products</button>' +
-                      '<button class="btn small" onclick="openSellerModal(' + s.id + ')" style="background:var(--rosewood);color:#fff;">View details</button>' +
+                      '<button class="btn small" onclick="openSellerDetailFromLive(' + s.id + ')" style="background:var(--rosewood);color:#fff;">View details</button>' +
                       (s.banned
                         ? '<button class="btn small" onclick="unbanSeller(' + s.id + ')">Unban</button>'
                         : '<button class="btn small secondary" onclick="banSeller(' + s.id + ')">Ban</button>') +
@@ -1687,6 +1911,195 @@
         const data = await res.json();
         if (!data.success) alert(data.message || "Could not unban this seller.");
         loadSellerList();
+      }
+
+      // ---------- SELLER DETAILS (rich profile) ----------
+      let sdMode = null; // 'pending' | 'live'
+      let sdId = null;
+
+      function sdInitials(name) {
+        const parts = String(name || "?").trim().split(/\s+/).slice(0, 2);
+        return parts.map((p) => p[0] || "").join("").toUpperCase() || "?";
+      }
+
+      function sdSet(id, value, fallback) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = (value === undefined || value === null || value === "") ? (fallback !== undefined ? fallback : "—") : value;
+      }
+
+      function openSellerDetailFromApplication(id) {
+        const a = sellerApplicationsData.find((x) => x.id === id);
+        if (!a) return;
+        renderSellerDetail(a, "pending");
+      }
+
+      function openSellerDetailFromLive(id) {
+        const s = sellerListData.find((x) => x.id === id);
+        if (!s) return;
+        renderSellerDetail(s, "live");
+      }
+
+      function renderSellerDetail(obj, mode) {
+        sdMode = mode;
+        sdId = obj.id;
+
+        sdSet("sdAvatar", sdInitials(obj.shopTitle || obj.name));
+        sdSet("sdShopTitle", obj.shopTitle || obj.name, "Seller");
+        sdSet("sdSellerName", obj.name);
+
+        const statusBadge = document.getElementById("sdStatusBadge");
+        if (mode === "pending") {
+          statusBadge.textContent = "Pending Approval";
+          statusBadge.className = "badge status-new";
+        } else if (obj.banned) {
+          statusBadge.textContent = "Banned";
+          statusBadge.className = "badge status-cancelled";
+        } else {
+          statusBadge.textContent = "Approved";
+          statusBadge.className = "badge status-delivered";
+        }
+
+        sdSet("sdSellerId", mode === "live" ? obj.sellerId : null, mode === "live" ? "—" : "Not yet assigned");
+        sdSet("sdJoinedOn", mode === "live" ? formatDate(obj.createdAt) : null, mode === "live" ? "—" : "Not yet approved");
+        sdSet("sdAppliedOn", formatDate(obj.createdAt));
+        sdSet("sdStatus", mode === "pending" ? "Pending" : (obj.banned ? "Banned" : "Active"));
+
+        const onlineDot = document.getElementById("sdOnlineDot");
+        onlineDot.style.display = mode === "live" && !obj.banned ? "inline-flex" : "none";
+
+        sdSet("sdAboutStore", obj.shopTitle ? ("Seller of " + obj.shopTitle + ".") : null, "No store description provided.");
+
+        sdSet("sdName", obj.name);
+        sdSet("sdEmail", obj.email);
+        sdSet("sdPhone", obj.phone);
+        sdSet("sdAltPhone", obj.altPhone);
+
+        sdSet("sdShopName", obj.shopTitle);
+        sdSet("sdBusinessType", obj.businessType);
+        sdSet("sdBusinessAddress", obj.businessAddress);
+        const cityStatePin = [obj.city, obj.state].filter(Boolean).join(", ") + (obj.pincode ? " - " + obj.pincode : "");
+        sdSet("sdCityStatePin", cityStatePin.trim().replace(/^,\s*/, "") || null);
+
+        sdSet("sdAadhaar", obj.aadhaarFull ? obj.aadhaarFull.replace(/(\d{4})(?=\d)/g, "$1 ") : null, obj.aadhaarLast4 ? "•••• •••• " + obj.aadhaarLast4 : "—");
+        sdSet("sdPan", obj.panNumber);
+        sdSet("sdDob", obj.dob);
+        sdSet("sdGender", obj.gender);
+
+        sdSet("sdBank", obj.bankAccountNumber);
+        sdSet("sdIfsc", obj.ifscCode);
+        sdSet("sdUpi", obj.upiId);
+        sdSet("sdGst", obj.gstNumber, "Not Provided");
+
+        // Recent products (up to 3) — only live sellers have a products array here.
+        const productsList = document.getElementById("sdProductsList");
+        const prods = (obj.products || []).slice(0, 3);
+        sdSet("sdProductCount", obj.productCount !== undefined ? obj.productCount : (obj.products || []).length);
+        if (!prods.length) {
+          productsList.innerHTML = '<p class="empty-state" style="padding:16px;">No products yet.</p>';
+        } else {
+          productsList.innerHTML = prods.map((p) => (
+            '<div class="sd-product-row">' +
+              (p.image ? '<img src="' + escapeHtml(p.image) + '" />' : '<div class="ph"></div>') +
+              '<div style="flex:1;min-width:0;">' +
+                '<div class="sd-product-name">' + escapeHtml(p.name) + '</div>' +
+                '<div class="sd-product-price">' + fmtINR(p.price || 0) + '</div>' +
+              '</div>' +
+              '<span class="badge ' + (p.approved ? "status-delivered" : "status-new") + '">' + (p.approved ? "Approved" : "Pending") + '</span>' +
+            '</div>'
+          )).join("");
+        }
+        document.getElementById("sdViewAllProducts").style.display = mode === "live" ? "inline" : "none";
+
+        // Activity summary — only meaningful for a live seller.
+        document.getElementById("sdSummaryCard").style.display = mode === "live" ? "block" : "none";
+        if (mode === "live") {
+          sdSet("sdTotalProducts", obj.productCount || 0);
+          sdSet("sdApprovedProducts", obj.approvedCount || 0);
+          sdSet("sdPendingProducts", obj.pendingCount || 0);
+          sdSet("sdTotalOrders", obj.totalOrders || 0);
+          sdSet("sdTotalRevenue", fmtINR(obj.totalRevenue || 0));
+        }
+
+        // Notes — admin-only, only exists once a seller is live.
+        const notesCard = document.getElementById("sdNotesCard");
+        notesCard.style.display = mode === "live" ? "block" : "none";
+        document.getElementById("sdNotesInput").value = obj.notes || "";
+        document.getElementById("sdNotesStatus").textContent = "";
+
+        // Action buttons — different set depending on pending vs live.
+        document.getElementById("sdApproveBtn").style.display = mode === "pending" ? "block" : "none";
+        document.getElementById("sdRejectBtn").style.display = mode === "pending" ? "block" : "none";
+        document.getElementById("sdEditBtn").style.display = mode === "live" ? "block" : "none";
+        const banBtn = document.getElementById("sdBanBtn");
+        banBtn.style.display = mode === "live" ? "block" : "none";
+        banBtn.textContent = obj.banned ? "Unban Seller" : "Ban / Block Seller";
+
+        document.getElementById("sellerDetailOverlay").classList.add("open");
+      }
+
+      function closeSellerDetail() {
+        document.getElementById("sellerDetailOverlay").classList.remove("open");
+        sdMode = null;
+        sdId = null;
+      }
+
+      async function sdApprove() {
+        if (sdMode !== "pending" || !sdId) return;
+        await approveSellerApplication(sdId);
+        closeSellerDetail();
+      }
+
+      async function sdReject() {
+        if (sdMode !== "pending" || !sdId) return;
+        await rejectSellerApplication(sdId);
+        closeSellerDetail();
+      }
+
+      function sdEditDetails() {
+        if (sdMode !== "live" || !sdId) return;
+        closeSellerDetail();
+        openSellerModal(sdId);
+      }
+
+      async function sdBanToggle() {
+        if (sdMode !== "live" || !sdId) return;
+        const s = sellerListData.find((x) => x.id === sdId);
+        if (!s) return;
+        if (s.banned) {
+          await unbanSeller(sdId);
+        } else {
+          if (!confirm("Ban this seller? They won't be able to log in, and their products will disappear from the storefront until you unban them.")) return;
+          const res = await fetch("/api/admin/sellers/" + sdId + "/ban", {
+            method: "PUT",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (!data.success) alert(data.message || "Could not ban this seller.");
+          await loadSellerList();
+        }
+        closeSellerDetail();
+      }
+
+      async function sdSaveNote() {
+        if (sdMode !== "live" || !sdId) return;
+        const note = document.getElementById("sdNotesInput").value;
+        const statusEl = document.getElementById("sdNotesStatus");
+        statusEl.textContent = "Saving...";
+        try {
+          const res = await fetch("/api/admin/sellers/" + sdId + "/note", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ note }),
+          });
+          const data = await res.json();
+          statusEl.textContent = data.success ? "Saved." : (data.message || "Could not save note.");
+          if (data.success) {
+            const s = sellerListData.find((x) => x.id === sdId);
+            if (s) s.notes = data.notes;
+          }
+        } catch (e) {
+          statusEl.textContent = "Network error — could not save note.";
+        }
       }
 
       // ---------- SELLER DETAILS MODAL ----------
@@ -1990,6 +2403,8 @@
         }
       }
 
+      let sellerApplicationsData = [];
+
       async function loadSellerApplications() {
         // Fill in the shareable seller-invite link (based on the live site URL).
         const inviteEl = document.getElementById("sellerInviteLink");
@@ -2002,14 +2417,16 @@
           const data = await res.json();
           loadingEl.classList.add("hidden");
           if (!data.success || !data.applications.length) {
+            sellerApplicationsData = [];
             listEl.innerHTML = '<p class="empty-state">No pending seller applications.</p>';
             return;
           }
+          sellerApplicationsData = data.applications;
           listEl.innerHTML = data.applications.map((a) => (
-            '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
+            '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer;" onclick="openSellerDetailFromApplication(' + a.id + ')">' +
               '<div><strong>' + escapeHtml(a.shopTitle) + '</strong><br>' +
                 '<span style="font-size:13px;color:#8c7d78;">' + escapeHtml(a.name) + ' — ' + escapeHtml(a.email) + '</span></div>' +
-              '<div style="display:flex;gap:8px;">' +
+              '<div style="display:flex;gap:8px;" onclick="event.stopPropagation();">' +
                 '<button class="btn small" onclick="approveSellerApplication(' + a.id + ')">Approve</button>' +
                 '<button class="btn small secondary" onclick="rejectSellerApplication(' + a.id + ')">Reject</button>' +
               '</div>' +
@@ -2157,7 +2574,7 @@
           listEl.innerHTML = data.products.map((p) => (
             '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
               '<div style="display:flex;gap:12px;align-items:center;">' +
-                (p.image ? '<img src="' + p.image + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />' : '') +
+                (p.image ? '<img src="' + escapeHtml(p.image) + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />' : '') +
                 '<div><strong>' + escapeHtml(p.name) + '</strong> — ' + fmtINR(p.price) + '<br>' +
                   '<span style="font-size:13px;color:#8c7d78;">by ' + escapeHtml(p.shopTitle || p.sellerName) + '</span></div>' +
               '</div>' +
@@ -2449,7 +2866,9 @@
         return String(str)
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
       }
 
       // Static (non-ticking) summary of a product's sale timer for the admin
@@ -2745,39 +3164,46 @@
 
       const STATUS_OPTIONS = ["New", "Processing", "Shipped", "Delivered", "Cancelled"];
 
-      async function loadOrders() {
+      async function loadOrders(page) {
+        page = page || 1;
         document.getElementById("ordersLoading").classList.remove("hidden");
         try {
-          const res = await fetch("/api/admin/orders", {
-            headers: { Authorization: "Bearer " + token },
-          });
-          const data = await res.json();
+          const [listRes, statsRes] = await Promise.all([
+            fetch("/api/admin/orders?page=" + page + "&limit=50", { headers: { Authorization: "Bearer " + token } }),
+            fetch("/api/admin/orders/stats", { headers: { Authorization: "Bearer " + token } }),
+          ]);
+          const data = await listRes.json();
+          const stats = await statsRes.json();
 
           if (!data.success) {
-            if (res.status === 401) logout();
+            if (listRes.status === 401) logout();
             return;
           }
 
           orders = data.orders;
-          renderOrderStats();
+          renderOrderStats(stats.success ? stats : null);
           renderOrders();
+          renderPager(document.getElementById("ordersPager"), data, loadOrders);
         } finally {
           document.getElementById("ordersLoading").classList.add("hidden");
         }
       }
 
-      function renderOrderStats() {
-        // Cancelled orders don't count towards revenue.
-        const activeOrders = orders.filter((o) => o.status !== "Cancelled");
-        const totalRevenue = activeOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-        const newCount = orders.filter((o) => o.status === "New").length;
-        const cancelledCount = orders.filter((o) => o.status === "Cancelled").length;
-
+      // Stats come from /api/admin/orders/stats (computed over ALL orders
+      // server-side) rather than from the `orders` array in memory, since
+      // that array is now just the current page of the paginated list —
+      // deriving totals from it would silently show numbers for one page
+      // instead of the whole store.
+      function renderOrderStats(stats) {
+        if (!stats) {
+          document.getElementById("orderStats").innerHTML = "";
+          return;
+        }
         document.getElementById("orderStats").innerHTML =
-          statCard("Total Orders", orders.length) +
-          statCard("New / Unfulfilled", newCount) +
-          statCard("Cancelled", cancelledCount) +
-          statCard("Revenue (COD)", fmtINR(totalRevenue));
+          statCard("Total Orders", stats.total) +
+          statCard("New / Unfulfilled", stats.newCount) +
+          statCard("Cancelled", stats.cancelledCount) +
+          statCard("Revenue (COD)", fmtINR(stats.revenue));
       }
 
       function statCard(label, value) {
@@ -2814,6 +3240,16 @@
                 '<span style="font-size:11px;color:#a3002a;margin-left:6px;">not counted</span>'
               : '<span class="order-total">' + fmtINR(o.total) + "</span>";
 
+            // Payment confirmation is manual for now (customer sends the
+            // WhatsApp message, admin checks it and clicks Mark as Paid).
+            // This is the same field/endpoint an online payment gateway
+            // will flip automatically once one is added later.
+            const isPaid = o.paymentStatus === "paid";
+            const paymentHtml = isPaid
+              ? '<span class="badge status-delivered" title="' + (o.paidAt ? escapeHtml(formatDate(o.paidAt)) : "") + '">✓ Paid</span>'
+              : '<span class="badge status-new">Payment pending</span>' +
+                '<button type="button" class="btn small secondary" onclick="markOrderPaid(' + o.id + ')" style="margin-left:6px;">Mark as Paid</button>';
+
             return (
               '<div class="card order-card">' +
                 '<div class="order-head">' +
@@ -2826,6 +3262,7 @@
                 '<div class="order-items">' + escapeHtml(itemsText) + "</div>" +
                 '<div class="order-foot">' +
                   '<span class="badge gold">COD</span>' +
+                  paymentHtml +
                   totalHtml +
                   '<select class="status-select ' + statusClass + '" ' +
                     (lockReactivate ? 'disabled title="Only the main admin can re-activate a cancelled order"' : "") +
@@ -2837,6 +3274,28 @@
             );
           })
           .join("");
+      }
+
+      async function markOrderPaid(id) {
+        try {
+          const res = await fetch("/api/admin/orders/" + id + "/mark-paid", {
+            method: "PUT",
+            headers: { Authorization: "Bearer " + token },
+          });
+          const data = await res.json();
+          if (data.success) {
+            const o = orders.find((x) => x.id === id);
+            if (o) {
+              o.paymentStatus = data.order.paymentStatus;
+              o.paidAt = data.order.paidAt;
+            }
+            renderOrders();
+          } else {
+            alert(data.message || "Could not update payment status.");
+          }
+        } catch (err) {
+          alert("Network error updating payment status.");
+        }
       }
 
       async function updateOrderStatus(id, status, selectEl) {
@@ -2864,7 +3323,9 @@
           const data = await res.json();
           if (data.success) {
             if (o) o.status = status;
-            renderOrderStats();
+            fetch("/api/admin/orders/stats", { headers: { Authorization: "Bearer " + token } })
+              .then((r) => r.json())
+              .then((stats) => renderOrderStats(stats.success ? stats : null));
             renderOrders();
           } else {
             alert(data.message || "Could not update this order.");
@@ -3206,88 +3667,24 @@
       }
 
       // ---------- MASCOT (login helper girl) ----------
-      function setMascotState(state, speechText) {
-        const wrap = document.getElementById("mascotWrap");
-        if (!wrap) return;
-        wrap.classList.remove("mascot-idle", "mascot-cry", "mascot-happy");
-        wrap.classList.add("mascot-" + state);
-
-        document.querySelector(".mascot-eyes-normal").style.display = state === "idle" ? "" : "none";
-        document.querySelector(".mascot-eyes-happy").style.display = state === "happy" ? "" : "none";
-        document.querySelector(".mascot-eyes-cry").style.display = state === "cry" ? "" : "none";
-        document.querySelector(".mascot-mouth-normal").style.display = state === "idle" ? "" : "none";
-        document.querySelector(".mascot-mouth-happy").style.display = state === "happy" ? "" : "none";
-        document.querySelector(".mascot-mouth-sad").style.display = state === "cry" ? "" : "none";
-        document.querySelector(".mascot-arm-point").style.display = state === "happy" ? "none" : "";
-        document.querySelector(".mascot-arm-wave").style.display = state === "happy" ? "" : "none";
-
-        if (speechText !== undefined) {
-          document.getElementById("mascotSpeech").textContent = speechText;
-        }
+      function triggerDmLoginReaction(state, afterAnimation) {
+        const wrap = document.getElementById("dmLoginLogoWrap");
+        if (!wrap) { if (afterAnimation) afterAnimation(); return; }
+        wrap.classList.remove("privacy","success");
+        void wrap.offsetWidth;
+        wrap.classList.add(state === "success" ? "success" : "privacy");
+        setTimeout(() => { wrap.classList.remove("privacy","success"); if (afterAnimation) afterAnimation(); }, state === "success" ? 650 : 450);
       }
 
-      // Girl reacts to whichever field is focused — points you to the next one.
-      function initMascotFieldGuides() {
-        const userInput = document.getElementById("loginUsername");
-        const passInput = document.getElementById("loginPassword");
-        if (!userInput || !passInput) return;
-        userInput.addEventListener("focus", () => setMascotState("idle", "Please enter your username! 👇"));
-        passInput.addEventListener("focus", () => setMascotState("idle", "Now enter your password! 🔒"));
-      }
-
-      // Sad reaction to a failed login — resets back to idle after a bit so
-      // she's ready to guide the next attempt.
-      function mascotCryReaction() {
-        setMascotState("cry", "Oops! That's not right... try again? 😢");
-        setTimeout(() => {
-          setMascotState("idle", "Please check your username & password 👇");
-        }, 2200);
-      }
-
-      // Happy reaction on a correct login, then she "pulls" the login card
-      // up and away while the dashboard slides down from behind it.
-      function mascotSuccessReaction(afterAnimation) {
-        setMascotState("happy", "Yay! Logging you in... 🎉");
-
-        const loginScreen = document.getElementById("loginScreen");
-        const dashboard = document.getElementById("dashboard");
-
-        // Guaranteed reveal — never depends on the animation below.
-        if (dashboard) dashboard.classList.remove("hidden");
-        if (loginScreen) loginScreen.classList.add("hidden");
-
-        try {
-          afterAnimation();
-        } catch (err) {
-          console.error("Dashboard init error:", err);
-        }
-
-        // Best-effort cosmetic slide only — wrapped so it can never
-        // block or break the real reveal above.
-        try {
-          if (dashboard) {
-            dashboard.classList.remove("hidden");
-            dashboard.classList.add("mascot-enter-down", "mascot-enter-start");
-            void dashboard.offsetHeight;
-            dashboard.classList.add("mascot-enter-end");
-          }
-          if (loginScreen) loginScreen.classList.add("mascot-exit-up");
-
-          setTimeout(() => {
-            try {
-              if (loginScreen) loginScreen.classList.remove("mascot-exit-up");
-              if (dashboard) dashboard.classList.remove("mascot-enter-down", "mascot-enter-start", "mascot-enter-end");
-            } catch (err) {}
-          }, 700);
-        } catch (err) {}
-      }
-
-      // Enter key submits login
       document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("loginPassword").addEventListener("keydown", (e) => {
-          if (e.key === "Enter") login();
-        });
-        initMascotFieldGuides();
+        const loginPasswordInput = document.getElementById("loginPassword");
+        if (loginPasswordInput) {
+          loginPasswordInput.addEventListener("focus", () => triggerDmLoginReaction("privacy"));
+          loginPasswordInput.addEventListener("input", () => triggerDmLoginReaction("privacy"));
+          loginPasswordInput.addEventListener("blur", () => { const w=document.getElementById("dmLoginLogoWrap"); if(w) w.classList.remove("privacy"); });
+          loginPasswordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+        }
+        updateOverviewGreeting();
         checkSession();
       });
 
@@ -3422,5 +3819,45 @@
         </div>
       </div>
     </div>
+    <script>
+      // Shared dark-mode toggle — same localStorage key as the rest of the
+      // site, so a visitor's choice carries over across pages. Flips the
+      // dmDarkOverride stylesheet on/off via its `media` attribute rather
+      // than touching individual rules.
+      function applyDarkMode(on) {
+        document.body.classList.toggle("dark-mode", on);
+        var override = document.getElementById("dmDarkOverride");
+        if (override) override.media = on ? "all" : "not all";
+        document.querySelectorAll(".dm-dark-icon").forEach(function (el) {
+          el.textContent = on ? "☀️" : "🌙";
+        });
+        document.querySelectorAll(".dm-dark-btn").forEach(function (el) {
+          el.title = on ? "Switch to light mode" : "Switch to dark mode";
+        });
+      }
+      function toggleDarkMode() {
+        var on = !document.body.classList.contains("dark-mode");
+        try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
+        applyDarkMode(on);
+      }
+      (function initDarkMode() {
+        var saved = null;
+        try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
+        var on;
+        if (saved === "1" || saved === "0") {
+          on = saved === "1";
+        } else {
+          on = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        }
+        applyDarkMode(on);
+        try {
+          window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
+            var cur = null;
+            try { cur = localStorage.getItem("dm_dark_mode"); } catch (err) {}
+            if (cur !== "1" && cur !== "0") applyDarkMode(e.matches);
+          });
+        } catch (e) {}
+      })();
+    </script>
   </body>
 </html>

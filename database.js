@@ -9,6 +9,26 @@ let mongoClient = null;
 let mongoCollection = null;
 let cachedData = null;
 
+// ================================
+// GIFT ADD-ON (date-gated cart offer)
+// ================================
+// On the 14th/15th/27th/28th of each month (IST), customers whose cart
+// (excluding this add-on) totals ₹599+ can opt in to add a printed mug
+// for ₹99. It's modeled as a normal, hidden product (see below) so it
+// prices exactly like any other item; eligibility (date + minimum
+// subtotal) is enforced server-side in server.js.
+// NOTE: a Dairy Milk chocolate is also packed with every gift mug as a
+// surprise from us — this is NOT mentioned anywhere in customer-facing
+// text (banner/cart/WhatsApp/description). Keep it that way; only the
+// packing/fulfillment side should know about the chocolate.
+const GIFT_ADDON = {
+  productId: 9999,
+  name: "Gift Photo Mug",
+  price: 99,
+  minSubtotal: 599,
+  eligibleDaysOfMonth: [14, 15, 27, 28],
+};
+
 // Default database structure
 const defaultDatabase = {
   products: [
@@ -589,6 +609,29 @@ const defaultDatabase = {
       discounts: [{ minQty: 50, percent: 5 }, { minQty: 100, percent: 10 }],
       options: {},
     },
+
+    // ===== Gift add-on (special, hidden from the normal catalog) =====
+    // Not a real product a customer browses to — it's added to the cart
+    // automatically by the site's date-gated gift offer (see GIFT_ADDON
+    // below and server.js's calculateSecurePricing). Kept as a real
+    // product so it flows through the exact same pricing/order pipeline
+    // as everything else instead of needing special-case logic.
+    {
+      id: GIFT_ADDON.productId,
+      name: GIFT_ADDON.name,
+      category: "Gift Addon",
+      description: "A printed photo mug, added to your order as a limited-time extra.",
+      price: GIFT_ADDON.price,
+      image: "",
+      active: true,
+      hidden: true,
+      isGiftAddon: true,
+      customizationEnabled: false,
+      sizes: [],
+      moq: 1,
+      discounts: [],
+      options: {},
+    },
   ],
 
   phoneBrands: [
@@ -692,6 +735,7 @@ const defaultDatabase = {
       text: "",
     },
     theme: "normal",
+    heroProductId: null,
   },
 };
 
@@ -826,6 +870,10 @@ function ensureShape(database) {
   }
 
   const VALID_THEMES = ["normal", "rakshabandhan", "aug15"];
+  if (!Object.prototype.hasOwnProperty.call(database.settings, "heroProductId")) {
+    database.settings.heroProductId = null;
+    needsUpgrade = true;
+  }
   if (!VALID_THEMES.includes(database.settings.theme)) {
     database.settings.theme = "normal";
     needsUpgrade = true;
@@ -849,6 +897,45 @@ function ensureShape(database) {
   if (!Array.isArray(database.productViews)) {
     database.productViews = [];
     needsUpgrade = true;
+  }
+
+  // Backfill the gift add-on product for databases that existed before
+  // this feature was added, so the offer works without a manual admin step.
+  if (Array.isArray(database.products) && !database.products.some((p) => p.id === GIFT_ADDON.productId)) {
+    database.products.push({
+      id: GIFT_ADDON.productId,
+      name: GIFT_ADDON.name,
+      category: "Gift Addon",
+      description: "A printed photo mug, added to your order as a limited-time extra.",
+      price: GIFT_ADDON.price,
+      image: "",
+      active: true,
+      hidden: true,
+      isGiftAddon: true,
+      customizationEnabled: false,
+      sizes: [],
+      moq: 1,
+      discounts: [],
+      options: {},
+    });
+    needsUpgrade = true;
+  }
+
+  // Orders created before paymentStatus existed — backfill so old orders
+  // don't break the admin UI or the mark-paid endpoint. Treated as
+  // "pending" since there's no reliable way to know which of them were
+  // actually confirmed on WhatsApp.
+  if (Array.isArray(database.orders)) {
+    database.orders.forEach((o) => {
+      if (!o.paymentStatus) {
+        o.paymentStatus = "pending";
+        needsUpgrade = true;
+      }
+      if (o.paidAt === undefined) {
+        o.paidAt = null;
+        needsUpgrade = true;
+      }
+    });
   }
 
   return needsUpgrade;
@@ -896,4 +983,5 @@ module.exports = {
   readDatabase,
   writeDatabase,
   getNextId,
+  GIFT_ADDON,
 };
