@@ -2656,7 +2656,7 @@
       async function loadSellerApplications() {
         // Fill in the shareable seller-invite link (based on the live site URL).
         const inviteEl = document.getElementById("sellerInviteLink");
-        if (inviteEl) inviteEl.value = window.location.origin + "/seller";
+        if (inviteEl) inviteEl.value = window.location.origin + "/sellerapplication";
         const loadingEl = document.getElementById("sellerAppsLoading");
         const listEl = document.getElementById("sellerAppsList");
         loadingEl.classList.remove("hidden");
