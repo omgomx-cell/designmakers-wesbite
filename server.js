@@ -1492,10 +1492,27 @@ app.delete("/api/admin/sellers/:id", requireAdmin, requireBoss, (req, res) => {
     });
   }
 
+  // Also remove the seller application record that created this account.
+  // Without this, the application stays behind with status "approved" —
+  // and the duplicate-application check in POST /api/seller-applications
+  // treats any non-rejected application as a block, so the same person
+  // (same email/phone/Aadhaar) would be told they're "already a seller"
+  // or "already applied" forever, even after their account was deleted
+  // and they try to apply again from scratch.
+  const emailLower = String(removedSeller.email || "").toLowerCase();
+  database.sellerApplications = (database.sellerApplications || []).filter((a) => {
+    const isThisApplication =
+      a.id === removedSeller.applicationId ||
+      (String(a.email || "").toLowerCase() === emailLower &&
+        String(a.phone || "") === String(removedSeller.phone || "") &&
+        String(a.aadhaarLast4 || "") === String(removedSeller.aadhaarLast4 || ""));
+    return !isThisApplication;
+  });
+
   writeDatabase(database);
   res.json({
     success: true,
-    message: `${removedSeller.name} (${removedSeller.sellerId}) and all their products have been permanently deleted.`,
+    message: `${removedSeller.name} (${removedSeller.sellerId}) and all their products have been permanently deleted. They can submit a fresh seller application if they want to rejoin.`,
   });
 });
 
@@ -2911,6 +2928,37 @@ app.get("/api/status", (req, res) => {
 // ================================
 // GET ALL ACTIVE PRODUCTS (public storefront)
 // ================================
+
+// Public — categories that are currently LIVE on the storefront (i.e. the
+// same active + approved + not-hidden + not-banned-seller products that
+// GET /api/products returns). Used by the seller dashboard's "Add Product"
+// form so a seller can only pick a category that's actually showing on the
+// site right now, instead of free-typing anything.
+app.get("/api/categories", (req, res) => {
+  try {
+    const database = readDatabase();
+    const bannedSellerIds = new Set(
+      (database.sellers || []).filter((s) => s.banned).map((s) => s.id),
+    );
+    const names = new Set();
+    (database.products || [])
+      .filter(
+        (product) =>
+          product.active &&
+          product.approved !== false &&
+          !product.hidden &&
+          !(product.sellerId && bannedSellerIds.has(product.sellerId)),
+      )
+      .forEach((product) => {
+        const c = String(product.category || "").trim();
+        if (c) names.add(c);
+      });
+    res.json({ success: true, categories: Array.from(names).sort((a, b) => a.localeCompare(b)) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to load categories." });
+  }
+});
 
 app.get("/api/products", (req, res) => {
   try {

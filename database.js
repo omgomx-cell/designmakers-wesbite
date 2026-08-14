@@ -1,4 +1,5 @@
 const { MongoClient } = require("mongodb");
+const bcrypt = require("bcryptjs");
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = "designmakers";
@@ -896,6 +897,44 @@ function ensureShape(database) {
 
   if (!Array.isArray(database.productViews)) {
     database.productViews = [];
+    needsUpgrade = true;
+  }
+
+  // Testing/demo seller account — logs in on the seller dashboard with
+  // Seller ID "seller" and password "seller", with the exact same access
+  // as any other approved seller (same requireSeller middleware, same
+  // dashboard). Seeded once here so it exists after any deploy, on any
+  // environment, without a manual DB step.
+  if (!(database.sellers || []).some((s) => s.sellerId === "seller")) {
+    database.sellers.push({
+      id: getNextId(database.sellers),
+      sellerId: "seller",
+      passwordHash: bcrypt.hashSync("seller", 10),
+      name: "Demo Seller",
+      email: "demo-seller@designmakers.test",
+      phone: "0000000000",
+      altPhone: "",
+      shopTitle: "Demo Shop (Testing)",
+      businessType: "",
+      businessAddress: "",
+      city: "",
+      state: "",
+      pincode: "",
+      aadhaarLast4: "",
+      aadhaarFull: "",
+      panNumber: "",
+      dob: "",
+      gender: "",
+      bankAccountNumber: "",
+      ifscCode: "",
+      upiId: "",
+      gstNumber: "",
+      notes: "Demo/testing account — not a real seller.",
+      applicationId: null,
+      createdAt: new Date().toISOString(),
+      banned: false,
+      mustChangePassword: false,
+    });
     needsUpgrade = true;
   }
 

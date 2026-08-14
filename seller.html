@@ -474,7 +474,9 @@
             </div>
 
             <label for="pCategory">Category</label>
-            <input type="text" id="pCategory" />
+            <select id="pCategory">
+              <option value="">Loading categories…</option>
+            </select>
 
             <label for="pSizes">Sizes (comma separated, optional)</label>
             <input type="text" id="pSizes" placeholder="S, M, L" />
@@ -782,7 +784,7 @@
         const shell = document.getElementById("dmShell");
         if (shell) shell.classList.remove("dm-sidebar-open");
         if (tab === "dashboard") loadSellerOverview();
-        if (tab === "products") loadProducts();
+        if (tab === "products") { loadProducts(); loadLiveCategories(); }
         if (tab === "orders") loadOrders();
         if (tab === "profile") loadProfile();
       }
@@ -821,6 +823,32 @@
       }
 
       // ---------- My Products ----------
+      let liveCategoriesLoaded = false;
+      async function loadLiveCategories() {
+        const select = document.getElementById("pCategory");
+        const currentValue = select.value;
+        try {
+          const res = await fetch("/api/categories");
+          const data = await res.json();
+          const categories = data.success ? (data.categories || []) : [];
+          liveCategoriesLoaded = true;
+          if (!categories.length) {
+            select.innerHTML = '<option value="">No live categories yet — ask admin to add one</option>';
+            return;
+          }
+          select.innerHTML =
+            '<option value="">Select a category</option>' +
+            categories.map((c) => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join("");
+          // Keep whatever the seller had picked (e.g. while editing) if it's
+          // still a live category; otherwise leave it on the placeholder.
+          if (currentValue && categories.includes(currentValue)) {
+            select.value = currentValue;
+          }
+        } catch (err) {
+          select.innerHTML = '<option value="">Could not load categories — try again</option>';
+        }
+      }
+
       async function loadProducts() {
         const { data } = await api("/api/seller/products");
         if (!data.success) return;
@@ -895,6 +923,11 @@
 
         if (!name || !price) {
           errorEl.textContent = "Product name and price are required.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!category) {
+          errorEl.textContent = "Please select a category.";
           errorEl.style.display = "block";
           return;
         }

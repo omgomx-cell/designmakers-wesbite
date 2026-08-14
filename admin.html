@@ -1149,6 +1149,38 @@
       </div>
     </div>
 
+    <!-- PENDING PRODUCT DETAIL MODAL -->
+    <div id="pendingProductModalOverlay" class="seller-modal-overlay">
+      <div class="modal-card" style="max-width:560px;">
+        <h2 id="ppmName" style="margin-bottom:2px;">Product</h2>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Submitted by <strong id="ppmShop"></strong></div>
+
+        <div id="ppmImages" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;margin-bottom:14px;">
+          <div><div style="font-size:12px;color:var(--muted);">Price</div><div id="ppmPrice" style="font-weight:600;"></div></div>
+          <div><div style="font-size:12px;color:var(--muted);">Category</div><div id="ppmCategory" style="font-weight:600;"></div></div>
+          <div><div style="font-size:12px;color:var(--muted);">MOQ</div><div id="ppmMoq" style="font-weight:600;"></div></div>
+          <div><div style="font-size:12px;color:var(--muted);">Sizes</div><div id="ppmSizes" style="font-weight:600;"></div></div>
+          <div><div style="font-size:12px;color:var(--muted);">Customization</div><div id="ppmCustomization" style="font-weight:600;"></div></div>
+          <div><div style="font-size:12px;color:var(--muted);">Bulk discounts</div><div id="ppmDiscounts" style="font-weight:600;"></div></div>
+        </div>
+
+        <div style="font-size:12px;color:var(--muted);">Description</div>
+        <div id="ppmDescription" style="margin:4px 0 16px;white-space:pre-wrap;"></div>
+
+        <div id="ppmSellerNote" style="font-size:12.5px;color:var(--muted);margin-bottom:14px;"></div>
+
+        <div style="display:flex; gap:8px; justify-content:space-between; align-items:center;">
+          <div style="display:flex;gap:8px;">
+            <button class="btn small" style="background:var(--success) !important;" onclick="approvePendingProductFromModal()">✓ Approve</button>
+            <button class="btn small secondary" onclick="rejectPendingProductFromModal()">Reject</button>
+          </div>
+          <button class="btn secondary" onclick="closePendingProductModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
     <!-- APPROVE SELLER: choose how the login credential goes out -->
     <div id="approveModeOverlay" class="seller-modal-overlay">
       <div class="modal-card">
@@ -2842,6 +2874,8 @@
         loadSellerProfileUpdateRequests();
       }
 
+      let pendingProductsData = [];
+
       async function loadPendingProducts() {
         const loadingEl = document.getElementById("pendingProductsLoading");
         const listEl = document.getElementById("pendingProductsList");
@@ -2851,9 +2885,11 @@
           const data = await res.json();
           loadingEl.classList.add("hidden");
           if (!data.success || !data.products.length) {
+            pendingProductsData = [];
             listEl.innerHTML = '<p class="empty-state">No products waiting for approval.</p>';
             return;
           }
+          pendingProductsData = data.products;
           listEl.innerHTML = data.products.map((p) => (
             '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
               '<div style="display:flex;gap:12px;align-items:center;">' +
@@ -2862,6 +2898,7 @@
                   '<span style="font-size:13px;color:var(--muted);">by ' + escapeHtml(p.shopTitle || p.sellerName) + '</span></div>' +
               '</div>' +
               '<div style="display:flex;gap:8px;">' +
+                '<button class="btn small secondary" onclick="openPendingProductModal(' + p.id + ')">View</button>' +
                 '<button class="btn small" onclick="approvePendingProduct(' + p.id + ')">Approve</button>' +
                 '<button class="btn small secondary" onclick="rejectPendingProduct(' + p.id + ')">Reject</button>' +
               '</div>' +
@@ -2871,6 +2908,53 @@
           loadingEl.classList.add("hidden");
           listEl.innerHTML = '<p class="empty-state">Network error loading pending products.</p>';
         }
+      }
+
+      // ---------- PENDING PRODUCT DETAIL MODAL ----------
+      let pendingProductModalId = null;
+
+      function openPendingProductModal(id) {
+        const p = pendingProductsData.find((x) => x.id === id);
+        if (!p) return;
+        pendingProductModalId = id;
+
+        document.getElementById("ppmName").textContent = p.name || "Product";
+        document.getElementById("ppmShop").textContent = p.shopTitle || p.sellerName || "Unknown seller";
+
+        const images = (p.images && p.images.length ? p.images : (p.image ? [p.image] : []));
+        document.getElementById("ppmImages").innerHTML = images.length
+          ? images.map((img) => '<img src="' + escapeHtml(img) + '" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--blush-line);" />').join("")
+          : '<div style="font-size:13px;color:var(--muted);">No photos uploaded.</div>';
+
+        document.getElementById("ppmPrice").textContent = fmtINR(p.price);
+        document.getElementById("ppmCategory").textContent = p.category || "Uncategorized";
+        document.getElementById("ppmMoq").textContent = p.moq || 1;
+        document.getElementById("ppmSizes").textContent = (p.sizes && p.sizes.length) ? p.sizes.join(", ") : "—";
+        document.getElementById("ppmCustomization").textContent = p.customizationEnabled ? "Enabled" : "Not enabled";
+        document.getElementById("ppmDiscounts").textContent = (p.discounts && p.discounts.length)
+          ? p.discounts.map((d) => d.minQty + "+ qty: " + d.percent + "% off").join(", ")
+          : "None";
+        document.getElementById("ppmDescription").textContent = p.description || "No description provided.";
+        document.getElementById("ppmSellerNote").textContent = p.sellerName ? ("Seller: " + p.sellerName) : "";
+
+        document.getElementById("pendingProductModalOverlay").classList.add("open");
+      }
+
+      function closePendingProductModal() {
+        document.getElementById("pendingProductModalOverlay").classList.remove("open");
+        pendingProductModalId = null;
+      }
+
+      async function approvePendingProductFromModal() {
+        if (!pendingProductModalId) return;
+        await approvePendingProduct(pendingProductModalId);
+        closePendingProductModal();
+      }
+
+      async function rejectPendingProductFromModal() {
+        if (!pendingProductModalId) return;
+        await rejectPendingProduct(pendingProductModalId);
+        closePendingProductModal();
       }
 
       async function approvePendingProduct(id) {
