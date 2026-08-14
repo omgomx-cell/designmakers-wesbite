@@ -11,14 +11,14 @@
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
       :root {
-        --rosewood: #8a1c42;
-        --rosewood-dark: #6b1433;
-        --blush: #f8ecef;
-        --blush-line: #ecd7dd;
-        --gold: #b8863f;
-        --cream: #fffdfb;
-        --ink: #2a231f;
-        --muted: #8c7d78;
+        --rosewood: #45515e;
+        --rosewood-dark: #2e3a46;
+        --blush: #eef1f4;
+        --blush-line: #d7dce1;
+        --gold: #a3813f;
+        --cream: #ffffff;
+        --ink: #232b33;
+        --muted: #66707c;
         --surface: #ffffff;
       }
       body {
@@ -63,14 +63,13 @@
         font-family: "Playfair Display", serif;
         font-weight: 700;
         font-size: 1.3em;
-        color: var(--rosewood);
+        color: var(--gold);
       }
-      .card {
         background: var(--cream);
         border: 1px solid var(--blush-line);
         border-radius: 16px;
         padding: 28px 24px;
-        box-shadow: 0 8px 30px rgba(138,28,66,0.08);
+        box-shadow: 0 8px 30px rgba(46,58,70,0.10);
       }
       @media (min-width: 700px)  { .card { padding: 40px 44px; border-radius: 20px; } }
       @media (min-width: 1000px) { .card { padding: 48px 56px; } }
@@ -123,7 +122,7 @@
         border-top: 1px solid var(--blush-line);
         font-family: "Playfair Display", serif;
         font-weight: 600;
-        color: var(--rosewood);
+        color: var(--gold);
         font-size: 1.02em;
       }
       .hint {
@@ -146,7 +145,7 @@
       }
       .success h2 {
         font-family: "Playfair Display", serif;
-        color: var(--rosewood);
+        color: var(--gold);
         margin-bottom: 8px;
       }
       .success p { color: var(--muted); font-size: 0.9em; }
@@ -154,7 +153,7 @@
         width: 100%;
         margin-top: 20px;
         padding: 13px;
-        background: var(--rosewood);
+        background: linear-gradient(135deg, var(--rosewood-dark), var(--gold));
         color: #fff;
         border: none;
         border-radius: 10px;
@@ -174,14 +173,15 @@
 
       /* ===== Dark mode ===== */
       body.dark-mode {
-        --blush: #17101a;
-        --blush-line: #3a2a3a;
-        --cream: #241922;
-        --ink: #f2e8ee;
-        --muted: #b19aae;
-        --surface: #2a1e28;
-        --rosewood: #e0759a;
-        --rosewood-dark: #c85a80;
+        --blush: #2e3a46;
+        --blush-line: rgba(161,168,179,0.18);
+        --cream: #374553;
+        --ink: #eef1f4;
+        --muted: #a1a8b3;
+        --surface: #3b4854;
+        --rosewood: #45515e;
+        --rosewood-dark: #2e3a46;
+        --gold: #c8a96b;
       }
       body.dark-mode .card { box-shadow: 0 8px 30px rgba(0,0,0,0.45); }
       body.dark-mode .dark-toggle { box-shadow: 0 2px 10px rgba(0,0,0,0.35); }

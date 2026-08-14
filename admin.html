@@ -1260,6 +1260,7 @@
               <button class="btn" id="sdRejectBtn" style="background:rgba(239,68,68,.16) !important;color:#ff8f9a !important;" onclick="sdReject()">✕ Reject Seller</button>
               <button class="btn secondary" id="sdEditBtn" onclick="sdEditDetails()">✎ Edit Seller Details</button>
               <button class="btn secondary" id="sdBanBtn" onclick="sdBanToggle()">Ban / Block Seller</button>
+              <button class="btn" id="sdDeleteBtn" style="background:var(--danger) !important;color:#fff !important;" onclick="sdDeleteSeller()">🗑 Delete Seller Permanently</button>
             </div>
 
             <div class="card" style="margin-top:14px;" id="sdSummaryCard">
@@ -2090,6 +2091,9 @@
                       (s.banned
                         ? '<button class="btn small" onclick="unbanSeller(' + s.id + ')">Unban</button>'
                         : '<button class="btn small secondary" onclick="banSeller(' + s.id + ')">Ban</button>') +
+                      (role === "boss"
+                        ? '<button class="btn small" onclick=\'deleteSeller(' + s.id + ', ' + JSON.stringify(escapedName) + ')\' style="background:var(--danger);color:#fff;">Delete</button>'
+                        : '') +
                     '</div>' +
                   '</div>' +
                 '</div>' +
@@ -2125,6 +2129,26 @@
         });
         const data = await res.json();
         if (!data.success) alert(data.message || "Could not unban this seller.");
+        loadSellerList();
+      }
+
+      async function deleteSeller(id, name) {
+        if (role !== "boss") {
+          alert("Only the Super Admin account can delete a seller.");
+          return;
+        }
+        if (!confirm("Permanently delete " + name + "? This removes their account and every product they listed — this cannot be undone.")) return;
+        if (!confirm("Are you absolutely sure? Type-check: this will erase " + name + "'s seller data for good.")) return;
+        const res = await fetch("/api/admin/sellers/" + id, {
+          method: "DELETE",
+          headers: { Authorization: "Bearer " + token },
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert(data.message || "Could not delete this seller.");
+          return;
+        }
+        alert(data.message || "Seller deleted.");
         loadSellerList();
       }
 
@@ -2248,6 +2272,7 @@
         const banBtn = document.getElementById("sdBanBtn");
         banBtn.style.display = mode === "live" ? "block" : "none";
         banBtn.textContent = obj.banned ? "Unban Seller" : "Ban / Block Seller";
+        document.getElementById("sdDeleteBtn").style.display = (mode === "live" && role === "boss") ? "block" : "none";
 
         document.getElementById("sellerDetailOverlay").classList.add("open");
       }
@@ -2292,6 +2317,14 @@
           if (!data.success) alert(data.message || "Could not ban this seller.");
           await loadSellerList();
         }
+        closeSellerDetail();
+      }
+
+      async function sdDeleteSeller() {
+        if (sdMode !== "live" || !sdId) return;
+        const s = sellerListData.find((x) => x.id === sdId);
+        if (!s) return;
+        await deleteSeller(sdId, s.name);
         closeSellerDetail();
       }
 

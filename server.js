@@ -1464,6 +1464,42 @@ app.put("/api/admin/sellers/:id/unban", requireAdmin, requireBoss, (req, res) =>
 });
 
 // ================================
+// ADMIN: DELETE A SELLER (boss-only, permanent)
+// ================================
+// Unlike Ban (which just hides the seller and keeps everything), this
+// permanently removes the seller account and every product they listed,
+// plus any reviews on those products and any of those products sitting
+// in a customer's cart. Past orders are left untouched since they're the
+// store's own financial history, not the seller's account data.
+app.delete("/api/admin/sellers/:id", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const sellerId = Number(req.params.id);
+  const idx = (database.sellers || []).findIndex((s) => s.id === sellerId);
+  if (idx === -1) return res.status(404).json({ success: false, message: "Seller not found." });
+  const [removedSeller] = database.sellers.splice(idx, 1);
+
+  const removedProductIds = new Set(
+    (database.products || []).filter((p) => p.sellerId === sellerId).map((p) => p.id),
+  );
+  database.products = (database.products || []).filter((p) => p.sellerId !== sellerId);
+
+  if (removedProductIds.size) {
+    database.reviews = (database.reviews || []).filter((r) => !removedProductIds.has(r.productId));
+    (database.customers || []).forEach((c) => {
+      if (Array.isArray(c.cart)) {
+        c.cart = c.cart.filter((item) => !removedProductIds.has(item.productId));
+      }
+    });
+  }
+
+  writeDatabase(database);
+  res.json({
+    success: true,
+    message: `${removedSeller.name} (${removedSeller.sellerId}) and all their products have been permanently deleted.`,
+  });
+});
+
+// ================================
 // ADMIN: EDIT SELLER DETAILS (name / email / phone / shop title)
 // ================================
 // Direct edit by the boss — separate from the seller-initiated
