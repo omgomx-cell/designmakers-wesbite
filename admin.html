@@ -11,16 +11,27 @@
     <style>
       * { box-sizing: border-box; }
       :root {
-        --rosewood: #c33a68;
-        --rosewood-dark: #8a1c42;
-        --blush: #2a1c22;
-        --blush-line: #3d2b32;
+        --rosewood: #c9436c;
+        --rosewood-dark: #8f2249;
+        --blush: #241820;
+        --blush-line: #382733;
         --gold: #d9a752;
-        --cream: #120e0d;
-        --ink: #f3e8e2;
-        --muted: #b3a099;
-        --surface: #1c1512;
-        --field: #241b17;
+        --gold-soft: #ecca86;
+        --cream: #0e0b0d;
+        --ink: #f5ece7;
+        --muted: #af9d9c;
+        --surface: #1a1315;
+        --field: #221a1c;
+        --line: #33272b;
+        --success: #6fd99a;
+        --success-bg: rgba(111,217,154,0.14);
+        --danger: #ff8a97;
+        --danger-bg: rgba(255,90,105,0.14);
+        --warn: #f0c274;
+        --warn-bg: rgba(240,194,116,0.14);
+        --info: #8ab4ff;
+        --info-bg: rgba(85,140,255,0.14);
+        --gold-bg: rgba(217,167,82,0.14);
       }
       body {
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
@@ -75,7 +86,7 @@
         border-bottom: 2.5px solid transparent;
         white-space: nowrap;
       }
-      .tab-btn.active { color: var(--rosewood); border-bottom-color: var(--rosewood); }
+      .tab-btn.active { color: var(--gold-soft); border-bottom-color: var(--gold); }
       .tab-panel { display: none; }
       .tab-panel.active { display: block; }
 
@@ -146,11 +157,11 @@
         margin-top: 14px;
       }
       .btn:hover { background: var(--rosewood-dark); }
-      .btn.secondary { background: var(--blush); color: var(--rosewood); }
-      .btn.danger { background: #fdeaea; color: #a3002a; }
+      .btn.secondary { background: var(--blush); color: var(--gold-soft); }
+      .btn.danger { background: var(--danger-bg); color: var(--danger); }
       .btn.small { width: auto; padding: 8px 14px; font-size: 12.5px; margin: 4px 4px 0 0; }
-      .error { color: #a3002a; font-size: 13.5px; margin-top: 10px; }
-      .msg { color: #1a7a3f; font-size: 13.5px; margin-top: 10px; }
+      .error { color: var(--danger); font-size: 13.5px; margin-top: 10px; }
+      .msg { color: var(--success); font-size: 13.5px; margin-top: 10px; }
 
       /* Stat cards */
       .stat-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
@@ -163,7 +174,7 @@
         padding: 14px 16px;
       }
       .stat-card .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-      .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--rosewood); font-family: "Playfair Display", serif; margin-top: 4px; }
+      .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--gold-soft); font-family: "Playfair Display", serif; margin-top: 4px; }
 
       /* Product list */
       .product-card {
@@ -178,20 +189,20 @@
       .badge {
         display: inline-block;
         background: var(--blush);
-        color: var(--rosewood);
+        color: var(--gold-soft);
         font-size: 11.5px;
         font-weight: 600;
         padding: 2px 9px;
         border-radius: 20px;
         margin-right: 4px;
       }
-      .badge.gold { background: #f6ecd9; color: var(--gold); }
+      .badge.gold { background: var(--gold-bg); color: var(--gold-soft); }
       .badge.status { text-transform: uppercase; letter-spacing: 0.3px; font-size: 10.5px; }
-      .badge.status-new { background: #e8f0fe; color: #1a56db; }
-      .badge.status-processing { background: #fef3d9; color: #92600a; }
-      .badge.status-shipped { background: #e6f4ea; color: #1a7a3f; }
-      .badge.status-delivered { background: #e6f4ea; color: #1a7a3f; }
-      .badge.status-cancelled { background: #fdeaea; color: #a3002a; }
+      .badge.status-new { background: var(--info-bg); color: var(--info); }
+      .badge.status-processing { background: var(--warn-bg); color: var(--warn); }
+      .badge.status-shipped { background: var(--success-bg); color: var(--success); }
+      .badge.status-delivered { background: var(--success-bg); color: var(--success); }
+      .badge.status-cancelled { background: var(--danger-bg); color: var(--danger); }
       .inactive { opacity: 0.5; }
       .fab {
         position: fixed;
@@ -211,7 +222,7 @@
       /* Orders */
       .order-card { border-left: 3px solid var(--gold); }
       .order-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
-      .order-num { font-weight: 700; color: var(--rosewood); font-family: "Playfair Display", serif; font-size: 15px; }
+      .order-num { font-weight: 700; color: var(--gold-soft); font-family: "Playfair Display", serif; font-size: 15px; }
       .order-date { font-size: 11.5px; color: var(--muted); }
       .order-items { font-size: 12.5px; color: var(--ink); margin: 6px 0; line-height: 1.6; }
       .order-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
@@ -253,7 +264,7 @@
         border-radius: 14px;
         padding: 20px;
       }
-      .modal-card h2 { margin-top: 0; color: var(--rosewood); font-size: 19px; }
+      .modal-card h2 { margin-top: 0; color: var(--gold-soft); font-size: 19px; }
       .discount-row {
         display: flex;
         gap: 8px;
@@ -262,8 +273,8 @@
       }
       .discount-row input { flex: 1; }
       .discount-row button {
-        background: #fdeaea;
-        color: #a3002a;
+        background: var(--danger-bg);
+        color: var(--danger);
         border: none;
         border-radius: 6px;
         padding: 10px 12px;
@@ -317,7 +328,7 @@
       .sd-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; align-items: start; }
       @media (max-width: 820px) { .sd-grid { grid-template-columns: 1fr; } }
       .sd-section-title {
-        display: flex; align-items: center; gap: 8px; color: var(--rosewood);
+        display: flex; align-items: center; gap: 8px; color: var(--gold-soft);
         font-weight: 700; font-size: 14px; margin: 0 0 14px;
       }
       .sd-fields {
@@ -414,184 +425,226 @@
       @media (max-width: 480px) {
         #floatBubble { width: 80px; height: 70px; }
       }
-      .theme-card.active { border-color: #8a1c42 !important; background: #fff0f5; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(138, 28, 66, 0.2); }
-      .theme-card:hover { border-color: #c99; }
+      .theme-card.active { border-color: var(--rosewood) !important; background: var(--gold-bg); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.35); }
+      .theme-card:hover { border-color: var(--rosewood); }
     
 
     </style>
-    <!-- Toggleable dark-mode skin: disabled by default via media="not all",
-         flipped to media="all" by theme.js when dark mode is on. This was
-         previously a permanently-forced-on override; it's now opt-in. -->
-    <style id="dmDarkOverride" media="not all">
-      /* =========================================================
-         DESIGN MAKERS PREMIUM CONTROL CENTER — PHASE 1 UI
-         Safe UI layer: preserves existing DOM IDs and JS behavior.
-         ========================================================= */
-      :root {
-        --rosewood: #8b5cf6;
-        --rosewood-dark: #6d28d9;
-        --blush: #171722;
-        --blush-line: #2b2b3a;
-        --gold: #f59e0b;
-        --cream: #0a0a0f;
-        --ink: #f7f7fb;
-        --muted: #9b9bad;
-        --surface: #11111a;
-        --field: #151520;
-      }
-      html, body { background:#09090f !important; color:#f7f7fb !important; }
-      body { min-height:100vh; }
-      #dashboard { min-height:100vh; background:radial-gradient(circle at 80% -10%, rgba(139,92,246,.12), transparent 34%), #09090f; }
-      #dashboard > header {
-        background:rgba(10,10,15,.88) !important;
-        border-bottom:1px solid #252536;
-        backdrop-filter:blur(16px);
-        padding:14px 22px !important;
-        min-height:64px;
-      }
-      #dashboard > header h1 { font-family:Inter,"Segoe UI",Arial,sans-serif !important; font-size:16px !important; letter-spacing:-.02em; }
-      #dashboard > header h1 img { box-shadow:0 0 0 1px #343449,0 8px 24px rgba(139,92,246,.2); }
-      #dashboard > header button { background:#151522 !important; border:1px solid #303044 !important; color:#e9e9f2 !important; border-radius:9px !important; transition:.18s ease; }
-      #dashboard > header button:hover { background:#1d1d2b !important; border-color:#514a75 !important; transform:translateY(-1px); }
-      .tabs {
-        position:fixed !important; left:0; top:64px !important; bottom:0; width:232px;
-        display:flex !important; flex-direction:column; align-items:stretch; gap:3px !important;
-        background:rgba(14,14,22,.96) !important; border-right:1px solid #252536 !important; border-bottom:0 !important;
-        padding:16px 10px !important; overflow-y:auto !important; overflow-x:hidden !important; z-index:55;
-      }
-      .tabs::before { content:"CONTROL CENTER"; color:#6f6f82; font-size:10px; font-weight:800; letter-spacing:.12em; padding:4px 10px 10px; }
-      .tab-btn {
-        text-align:left !important; border:1px solid transparent !important; border-radius:9px !important;
-        padding:10px 12px !important; color:#9999aa !important; font-size:13px !important; font-weight:600 !important;
-        transition:.18s ease !important; width:100%;
-      }
-      .tab-btn:hover { color:#fff !important; background:#171722 !important; border-color:#252536 !important; }
-      .tab-btn.active { color:#fff !important; background:linear-gradient(90deg,rgba(139,92,246,.20),rgba(139,92,246,.06)) !important; border-color:rgba(139,92,246,.35) !important; box-shadow:inset 3px 0 #8b5cf6,0 6px 20px rgba(0,0,0,.16) !important; }
-      .wrap { max-width:none !important; margin:0 0 0 232px !important; padding:26px 28px 70px !important; }
-      .card, .stat-card {
-        background:linear-gradient(180deg,#12121c,#101018) !important;
-        border:1px solid #272738 !important; box-shadow:0 10px 30px rgba(0,0,0,.16) !important;
-      }
-      .card { border-radius:14px !important; }
-      .stat-card { border-radius:12px !important; }
-      .stat-card .stat-value { color:#fff !important; font-family:Inter,"Segoe UI",Arial,sans-serif !important; }
-      .stat-card .stat-label, .phone, .customer-card .phone { color:#8f8fa1 !important; }
-      label { color:#a8a8b8 !important; }
-      input[type=text], input[type=password], input[type=number], input[type=tel], textarea, select {
-        background:#0d0d15 !important; color:#f5f5fa !important; border-color:#2d2d40 !important; border-radius:9px !important;
-      }
-      input:focus, textarea:focus, select:focus { border-color:#8b5cf6 !important; box-shadow:0 0 0 3px rgba(139,92,246,.12); }
-      .btn { border-radius:9px !important; transition:.18s ease !important; }
-      .btn:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(0,0,0,.2); }
-      .btn:not(.secondary):not(.danger) { background:#7c3aed !important; }
-      .btn.secondary { background:#181824 !important; color:#c9c9d8 !important; border:1px solid #303044 !important; }
-      .btn.danger { background:rgba(239,68,68,.10) !important; color:#ff8f9a !important; border:1px solid rgba(239,68,68,.22) !important; }
-      .badge { background:#1b1b29 !important; color:#b9b9cc !important; border:1px solid #303044; }
-      .badge.gold { background:rgba(245,158,11,.10) !important; color:#f5b94d !important; }
-      .badge.status-new { background:rgba(59,130,246,.12) !important; color:#7db3ff !important; }
-      .badge.status-processing { background:rgba(245,158,11,.12) !important; color:#ffc96a !important; }
-      .badge.status-shipped,.badge.status-delivered { background:rgba(16,185,129,.12) !important; color:#63e6b1 !important; }
-      .badge.status-cancelled { background:rgba(239,68,68,.12) !important; color:#ff8b96 !important; }
-      .product-card, .order-card, .customer-card { transition:.18s ease; }
-      .product-card:hover, .order-card:hover, .customer-card:hover { border-color:#464663 !important; transform:translateY(-1px); }
-      .product-card h3, .order-num, .customer-card .name { color:#f7f7fb !important; }
-      .order-num { font-family:Inter,"Segoe UI",Arial,sans-serif !important; }
-      .fab { background:#7c3aed !important; box-shadow:0 12px 32px rgba(124,58,237,.35) !important; }
-      #modalOverlay, .seller-modal-overlay { background:rgba(2,2,7,.76) !important; backdrop-filter:blur(5px); }
-      .modal-card { background:#11111a !important; border:1px solid #303044 !important; box-shadow:0 24px 80px rgba(0,0,0,.55) !important; }
-      .modal-card h2, h3 { color:#f7f7fb !important; }
-      .error { color:#ff8f9a !important; }
-      .msg { color:#63e6b1 !important; }
-      #loginScreen { min-height:100vh; display:flex; align-items:center; justify-content:center; margin:0 auto !important; max-width:440px !important; }
-      #loginScreen .card { width:100%; padding:30px !important; background:linear-gradient(180deg,#141420,#0f0f17) !important; }
-      #loginScreen h1 { color:#fff !important; }
-      #loginScreen .btn { margin-top:18px; }
-      #loginScreen .mascot-speech { background:#151522 !important; border-color:#303044 !important; color:#bdbdce !important; }
-      #overviewPanel { animation:dmFade .22s ease both; }
-      .dm-overview-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
-      .dm-kpi { position:relative; overflow:hidden; min-height:118px; padding:16px; border-radius:14px; background:linear-gradient(145deg,#151521,#101018); border:1px solid #29293b; }
-      .dm-kpi::after { content:""; position:absolute; width:90px; height:90px; border-radius:50%; right:-35px; top:-35px; background:rgba(139,92,246,.10); }
-      .dm-kpi .label { color:#8f8fa1; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
-      .dm-kpi .value { font-size:25px; font-weight:800; letter-spacing:-.03em; margin-top:10px; color:#fff; }
-      .dm-kpi .sub { color:#737387; font-size:11px; margin-top:5px; }
-      .dm-overview-cols { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr); gap:16px; }
-      .dm-overview-card { padding:18px; border-radius:14px; background:linear-gradient(180deg,#12121c,#101018); border:1px solid #272738; }
-      .dm-card-title { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; }
-      .dm-card-title h3 { margin:0; font-size:14px; font-weight:750; }
-      .dm-card-title span { color:#77778a; font-size:11px; }
-      .dm-order-row { display:grid; grid-template-columns:100px minmax(0,1fr) 100px 105px; gap:10px; align-items:center; padding:12px 0; border-top:1px solid #242436; font-size:12px; }
-      .dm-order-row:first-child { border-top:0; }
-      .dm-order-id { color:#d8d8e6; font-weight:700; }
-      .dm-order-customer { color:#9c9cad; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-      .dm-order-amount { color:#fff; font-weight:700; text-align:right; }
-      .dm-queue-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 0; border-top:1px solid #242436; }
-      .dm-queue-item:first-child { border-top:0; }
-      .dm-queue-main strong { display:block; font-size:12px; color:#eeeef5; }
-      .dm-queue-main span { display:block; color:#77778a; font-size:11px; margin-top:3px; }
-      .dm-pill { border:1px solid #35354a; background:#191925; color:#bdbdce; padding:5px 8px; border-radius:999px; font-size:10px; white-space:nowrap; }
-      .dm-empty { padding:25px 8px; text-align:center; color:#737387; font-size:12px; }
-      @keyframes dmFade { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
-      @media (max-width: 1100px) { .dm-overview-grid{grid-template-columns:repeat(3,minmax(0,1fr));} .dm-overview-cols{grid-template-columns:1fr;} }
-      @media (max-width: 760px) {
-        #dashboard > header { padding:12px 14px !important; }
-        .tabs { position:sticky !important; top:0 !important; left:auto; width:auto; bottom:auto; height:auto; flex-direction:row; border-right:0 !important; border-bottom:1px solid #252536 !important; padding:8px !important; overflow-x:auto !important; }
-        .tabs::before { display:none; }
-        .tab-btn { width:auto; flex:0 0 auto; text-align:center !important; }
-        .wrap { margin-left:0 !important; padding:16px 12px 60px !important; }
-        .dm-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-        .dm-order-row{grid-template-columns:1fr auto;}
-        .dm-order-customer,.dm-order-amount{display:none;}
-      }
-
-
-      /* ===== FINAL DESIGN MAKERS GOLD GLASS SYSTEM ===== */
-      :root {
-        --dm-gold:#e8b84b; --dm-gold-soft:#f5d47a; --dm-gold-dim:#a87820;
-        --dm-black:#060607; --dm-panel:#0d0d10; --dm-line:rgba(232,184,75,.22);
-      }
-      #dashboard { background:radial-gradient(circle at 82% -12%, rgba(232,184,75,.10), transparent 32%), radial-gradient(circle at 12% 110%, rgba(232,184,75,.06), transparent 28%), #060607 !important; }
-      #dashboard > header { border-bottom-color:rgba(232,184,75,.16) !important; }
-      #dashboard > header h1 img { box-shadow:0 0 0 1px rgba(232,184,75,.35),0 0 22px rgba(232,184,75,.16) !important; }
-      .tabs { background:rgba(9,9,11,.94) !important; border-right-color:rgba(232,184,75,.14) !important; }
-      .tab-btn.active { background:linear-gradient(90deg,rgba(232,184,75,.18),rgba(232,184,75,.04)) !important; border-color:rgba(232,184,75,.32) !important; box-shadow:inset 3px 0 var(--dm-gold),0 8px 24px rgba(0,0,0,.2) !important; }
-      .btn:not(.secondary):not(.danger) { background:linear-gradient(135deg,#d99f28,#f3c85c) !important; color:#171109 !important; box-shadow:0 8px 24px rgba(232,184,75,.12); }
-      .btn:not(.secondary):not(.danger):hover { background:linear-gradient(135deg,#efb83c,#ffe08a) !important; }
-      .dm-kpi,.dm-overview-card,.card,.stat-card { border-color:rgba(232,184,75,.14) !important; background:linear-gradient(145deg,rgba(20,18,14,.92),rgba(11,11,12,.94)) !important; backdrop-filter:blur(14px); }
-      .dm-kpi::after { background:rgba(232,184,75,.08) !important; }
-      .dm-kpi .value { color:#fff !important; }
-      .dm-pill { border-color:rgba(232,184,75,.20); color:#e9c66b; background:rgba(232,184,75,.06); }
-      .dm-order-id { color:#e9c66b; }
-      #overviewPanel > div:first-child h2 { font-family:Inter,"Segoe UI",Arial,sans-serif !important; font-weight:800; }
-      .dm-hero-admin { margin:0 0 16px; padding:18px; border-radius:16px; border:1px solid rgba(232,184,75,.18); background:linear-gradient(135deg,rgba(232,184,75,.07),rgba(255,255,255,.02)); }
-      .dm-hero-admin-grid { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:16px; align-items:center; }
-      .dm-hero-admin select { margin:0; }
-      .dm-hero-admin-preview { min-height:120px; border-radius:14px; overflow:hidden; border:1px solid rgba(232,184,75,.20); background:radial-gradient(circle at 50% 30%,rgba(232,184,75,.16),transparent 45%),#090909; display:flex; align-items:center; justify-content:center; }
-      .dm-hero-admin-preview img { max-width:100%; max-height:140px; object-fit:contain; filter:drop-shadow(0 14px 25px rgba(0,0,0,.55)); }
-      #loginScreen { position:relative; overflow:hidden; background:radial-gradient(circle at 50% 30%,rgba(232,184,75,.09),transparent 28%),#050506; }
+    <style>
+      /* ===== Login screen polish + dashboard overview widgets =====
+         Single theme, no toggle — everything below always applies. */
+      #loginScreen { position:relative; overflow:hidden; }
       #loginScreen::before,#loginScreen::after { content:""; position:absolute; border-radius:50%; filter:blur(70px); pointer-events:none; }
-      #loginScreen::before { width:280px;height:280px;left:5%;top:18%;background:rgba(232,184,75,.07); }
-      #loginScreen::after { width:300px;height:300px;right:2%;bottom:4%;background:rgba(109,74,18,.09); }
-      #loginScreen .card { position:relative; z-index:1; border:1px solid rgba(232,184,75,.24) !important; background:linear-gradient(150deg,rgba(22,20,15,.82),rgba(8,8,9,.94)) !important; backdrop-filter:blur(24px); box-shadow:0 30px 90px rgba(0,0,0,.62),0 0 50px rgba(232,184,75,.06) !important; border-radius:22px !important; overflow:hidden; }
-      #loginScreen .card::before { content:""; position:absolute; inset:0; background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.035) 48%,transparent 55%); pointer-events:none; }
+      #loginScreen::before { width:280px;height:280px;left:5%;top:18%;background:rgba(217,167,82,.07); }
+      #loginScreen::after { width:300px;height:300px;right:2%;bottom:4%;background:rgba(217,167,82,.06); }
+      #loginScreen .card { position:relative; z-index:1; border:1px solid rgba(217,167,82,.24) !important; box-shadow:0 30px 90px rgba(0,0,0,.5),0 0 50px rgba(217,167,82,.05) !important; border-radius:22px !important; overflow:hidden; }
+      #loginScreen h1 { font-family:Inter,"Segoe UI",Arial,sans-serif !important; letter-spacing:-.03em; }
+      #loginScreen .btn { border-radius:12px !important; height:48px; }
+      #loginScreen input:focus { border-color:rgba(217,167,82,.75) !important; box-shadow:0 0 0 3px rgba(217,167,82,.10) !important; }
       #dmLoginLogoWrap { position:relative; text-align:center; margin:0 auto 18px; height:118px; display:flex; align-items:center; justify-content:center; }
-      #dmLoginLogo { width:150px; max-height:112px; object-fit:contain; filter:drop-shadow(0 0 16px rgba(232,184,75,.25)); animation:dmLogoFloat 3.8s ease-in-out infinite; }
-      #dmLoginLogoWrap.privacy #dmLoginLogo { animation:dmLogoPrivacy .45s ease; filter:drop-shadow(0 0 6px rgba(232,184,75,.12)); }
+      #dmLoginLogo { width:150px; max-height:112px; object-fit:contain; filter:drop-shadow(0 0 16px rgba(217,167,82,.25)); animation:dmLogoFloat 3.8s ease-in-out infinite; }
+      #dmLoginLogoWrap.privacy #dmLoginLogo { animation:dmLogoPrivacy .45s ease; filter:drop-shadow(0 0 6px rgba(217,167,82,.12)); }
       #dmLoginLogoWrap.success #dmLoginLogo { animation:dmLogoSuccess .8s ease; }
       @keyframes dmLogoFloat {0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
       @keyframes dmLogoPrivacy {0%{transform:scale(1)}50%{transform:scale(.94) translateY(3px)}100%{transform:scale(1)}}
       @keyframes dmLogoSuccess {0%{transform:scale(1)}35%{transform:scale(1.08)}100%{transform:scale(1)}}
-      #loginScreen .dm-login-badge { width:max-content; max-width:100%; margin:0 auto 12px; padding:7px 12px; border-radius:999px; border:1px solid rgba(232,184,75,.18); color:#e7d9b6; background:rgba(232,184,75,.05); font-size:11px; }
-      #loginScreen h1 { font-family:Inter,"Segoe UI",Arial,sans-serif !important; letter-spacing:-.03em; }
-      #loginScreen .btn { border-radius:12px !important; height:48px; }
-      #loginScreen input:focus { border-color:rgba(232,184,75,.75) !important; box-shadow:0 0 0 3px rgba(232,184,75,.10) !important; }
-      .dm-secure-note { text-align:center; color:#77715f; font-size:11px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(232,184,75,.10); }
+      #loginScreen .dm-login-badge { width:max-content; max-width:100%; margin:0 auto 12px; padding:7px 12px; border-radius:999px; border:1px solid rgba(217,167,82,.22); color:var(--gold-soft); background:rgba(217,167,82,.06); font-size:11px; }
+      .dm-secure-note { text-align:center; color:var(--muted); font-size:11px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(217,167,82,.10); }
+
+      .btn:not(.secondary):not(.danger) { background:linear-gradient(135deg,var(--rosewood-dark),var(--gold)) !important; color:#fff !important; }
+      .btn:not(.secondary):not(.danger):hover { background:linear-gradient(135deg,var(--rosewood),var(--gold-soft)) !important; }
+
+      #overviewPanel { animation:dmFade .22s ease both; }
+      .dm-overview-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
+      .dm-kpi { position:relative; overflow:hidden; min-height:118px; padding:16px; border-radius:14px; background:var(--surface); border:1px solid var(--line); }
+      .dm-kpi::after { content:""; position:absolute; width:90px; height:90px; border-radius:50%; right:-35px; top:-35px; background:var(--gold-bg); }
+      .dm-kpi .label { color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
+      .dm-kpi .value { font-size:25px; font-weight:800; letter-spacing:-.03em; margin-top:10px; color:var(--ink); }
+      .dm-kpi .sub { color:var(--muted); font-size:11px; margin-top:5px; }
+      .dm-overview-cols { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr); gap:16px; }
+      .dm-overview-card { padding:18px; border-radius:14px; background:var(--surface); border:1px solid var(--line); }
+      .dm-card-title { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; }
+      .dm-card-title h3 { margin:0; font-size:14px; font-weight:750; }
+      .dm-card-title span { color:var(--muted); font-size:11px; }
+      .dm-order-row { display:grid; grid-template-columns:100px minmax(0,1fr) 100px 105px; gap:10px; align-items:center; padding:12px 0; border-top:1px solid var(--line); font-size:12px; }
+      .dm-order-row:first-child { border-top:0; }
+      .dm-order-id { color:var(--gold-soft); font-weight:700; }
+      .dm-order-customer { color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .dm-order-amount { color:var(--ink); font-weight:700; text-align:right; }
+      .dm-queue-item { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 0; border-top:1px solid var(--line); }
+      .dm-queue-item:first-child { border-top:0; }
+      .dm-queue-main strong { display:block; font-size:12px; color:var(--ink); }
+      .dm-queue-main span { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+      .dm-pill { border:1px solid var(--line); background:var(--field); color:var(--muted); padding:5px 8px; border-radius:999px; font-size:10px; white-space:nowrap; }
+      .dm-empty { padding:25px 8px; text-align:center; color:var(--muted); font-size:12px; }
+      @keyframes dmFade { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+      @media (max-width: 1100px) { .dm-overview-grid{grid-template-columns:repeat(3,minmax(0,1fr));} .dm-overview-cols{grid-template-columns:1fr;} }
+      .dm-hero-admin { margin:0 0 16px; padding:18px; border-radius:16px; border:1px solid var(--line); background:var(--surface); }
+      .dm-hero-admin-grid { display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:16px; align-items:center; }
+      .dm-hero-admin select { margin:0; }
+      .dm-hero-admin-preview { min-height:120px; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:var(--field); display:flex; align-items:center; justify-content:center; }
+      .dm-hero-admin-preview img { max-width:100%; max-height:140px; object-fit:contain; filter:drop-shadow(0 14px 25px rgba(0,0,0,.55)); }
       @media(max-width:760px){ .dm-hero-admin-grid{grid-template-columns:1fr;} .dm-hero-admin-preview{min-height:100px;} }
+      @media (max-width: 760px) {
+        .dm-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+        .dm-order-row{grid-template-columns:1fr auto;}
+        .dm-order-customer,.dm-order-amount{display:none;}
+      }
+    </style>
+
+    <!-- ===== MISTY + GOLD GLASS THEME (redesigned admin look, single source of truth) ===== -->
+    <style>
+      :root{
+        --rosewood:#c9436c;
+        --rosewood-dark:#8f2249;
+        --blush:rgba(201,163,74,.09);
+        --blush-line:rgba(30,41,59,.09);
+        --gold:#d4a24c;
+        --gold-soft:#9c6b18;
+        --cream:#eef1f6;
+        --ink:#1c2333;
+        --muted:#6b7280;
+        --surface:rgba(255,255,255,.72);
+        --field:rgba(255,255,255,.58);
+        --line:rgba(30,41,59,.09);
+        --success:#1f9d55;
+        --success-bg:rgba(31,157,85,.13);
+        --danger:#d6455a;
+        --danger-bg:rgba(214,69,90,.13);
+        --warn:#b8790a;
+        --warn-bg:rgba(184,121,10,.15);
+        --info:#2f6fed;
+        --info-bg:rgba(47,111,237,.13);
+        --gold-bg:rgba(212,162,76,.16);
+      }
+      html{ background:#e6eaf1; }
+      body{
+        background:
+          radial-gradient(1100px 560px at 8% -10%, rgba(178,190,214,.5), transparent 60%),
+          radial-gradient(950px 620px at 98% 4%, rgba(198,206,226,.45), transparent 55%),
+          radial-gradient(800px 520px at 45% 105%, rgba(214,199,172,.28), transparent 60%),
+          linear-gradient(180deg,#dde3ec 0%, #eef1f6 45%, #e6eaf1 100%);
+        background-attachment: fixed;
+      }
+
+      /* Glass treatment for every existing card-like surface */
+      .card,.stat-card,.dm-overview-card,.dm-kpi,.modal-card,.dm-hero-admin,.sd-about,.sd-chip{
+        background: var(--surface) !important;
+        border: 1px solid var(--line) !important;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: 0 10px 32px rgba(30,41,59,.08), 0 1px 2px rgba(30,41,59,.04) !important;
+      }
+      .card,.dm-overview-card,.dm-kpi,.dm-hero-admin,.modal-card{ border-radius:18px !important; }
+      input[type=text],input[type=password],input[type=number],input[type=tel],textarea,select{
+        background: var(--field) !important;
+        backdrop-filter: blur(6px);
+      }
+      .theme-card{ background: var(--field) !important; }
+      #modalOverlay,.seller-modal-overlay,.seller-detail-overlay{ background: rgba(20,24,36,.45) !important; backdrop-filter: blur(3px); }
+
+      /* ===== Sidebar + topbar shell ===== */
+      .dm-shell{ display:flex; align-items:flex-start; min-height:100vh; }
+      .dm-sidebar{
+        width:252px; flex:0 0 252px; position:sticky; top:0; height:100vh;
+        display:flex; flex-direction:column;
+        background:rgba(255,255,255,.62);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border-right:1px solid var(--line);
+        padding:22px 16px; z-index:70;
+      }
+      .dm-sidebar-logo{ display:flex; flex-direction:column; align-items:center; gap:3px; margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+      .dm-sidebar-logo img{ width:52px; height:52px; object-fit:contain; margin-bottom:4px; }
+      .dm-sidebar-logo .dm-brand-name{ font-family:"Playfair Display",Georgia,serif; font-weight:800; font-size:14.5px; letter-spacing:.05em; color:var(--ink); }
+      .dm-sidebar-logo .dm-brand-sub{ font-size:10px; color:var(--muted); letter-spacing:.03em; }
+      .dm-nav{ display:flex; flex-direction:column; gap:3px; flex:1; overflow-y:auto; }
+      .dm-nav-item{
+        display:flex; align-items:center; gap:10px;
+        background:none; border:none; text-align:left;
+        padding:10px 12px; border-radius:10px;
+        font-size:12.8px; font-weight:650; color:var(--muted);
+        cursor:pointer; width:100%; font-family:inherit;
+      }
+      .dm-nav-item svg{ width:17px; height:17px; flex:0 0 17px; }
+      .dm-nav-item:hover{ background:rgba(30,41,59,.05); color:var(--ink); }
+      .dm-nav-item.active{
+        background:linear-gradient(135deg,rgba(212,162,76,.24),rgba(212,162,76,.09));
+        color:var(--gold-soft);
+        border:1px solid rgba(212,162,76,.32);
+        box-shadow:0 2px 10px rgba(212,162,76,.12);
+      }
+      .dm-sidebar-bottom{ border-top:1px solid var(--line); padding-top:14px; margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+      .dm-view-store{ display:flex; align-items:center; gap:9px; font-size:12.3px; font-weight:650; color:var(--muted); text-decoration:none; padding:9px 10px; border-radius:9px; }
+      .dm-view-store svg{ width:15px; height:15px; }
+      .dm-view-store:hover{ background:rgba(30,41,59,.05); color:var(--ink); }
+      .dm-sidebar-profile{ display:flex; align-items:center; gap:9px; padding:8px; border-radius:12px; background:rgba(255,255,255,.55); border:1px solid var(--line); }
+      .dm-sidebar-avatar{ width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--rosewood-dark),var(--gold)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; flex:0 0 32px; }
+      .dm-sidebar-name{ font-size:12px; font-weight:750; color:var(--ink); line-height:1.3; }
+      .dm-sidebar-role{ font-size:10.3px; color:var(--muted); }
+      .dm-sidebar-logout{ margin-left:auto; background:none; border:none; color:var(--muted); cursor:pointer; padding:4px; }
+      .dm-sidebar-logout:hover{ color:var(--danger); }
+
+      .dm-main{ flex:1; min-width:0; }
+      .dm-topbar{
+        position:sticky; top:0; z-index:60;
+        display:flex; align-items:center; gap:14px;
+        padding:14px 26px;
+        background:rgba(255,255,255,.55);
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        border-bottom:1px solid var(--line);
+      }
+      .dm-topbar-menu{ display:none; background:none; border:none; color:var(--ink); cursor:pointer; padding:4px; }
+      .dm-topbar-title h1{ margin:0; font-size:16.5px; color:var(--ink); font-family:"Playfair Display",Georgia,serif; }
+      .dm-topbar-title p{ margin:1px 0 0; font-size:11.3px; color:var(--muted); }
+      .dm-topbar-search{ flex:1; max-width:340px; margin-left:8px; display:flex; align-items:center; gap:8px; padding:9px 13px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,.6); color:var(--muted); }
+      .dm-topbar-search svg{ flex:0 0 15px; }
+      .dm-topbar-search input{ border:none !important; background:none !important; padding:0 !important; margin:0 !important; font-size:12.8px; flex:1; backdrop-filter:none; }
+      .dm-topbar-search input:focus{ outline:none; }
+      .dm-topbar-search input:disabled{ cursor:not-allowed; opacity:.75; }
+      .dm-topbar-actions{ display:flex; align-items:center; gap:14px; margin-left:auto; }
+      .dm-bell{ position:relative; background:none; border:none; cursor:pointer; color:var(--muted); padding:6px; }
+      .dm-bell:hover{ color:var(--ink); }
+      .dm-bell-badge{ position:absolute; top:-1px; right:-1px; background:var(--rosewood); color:#fff; font-size:9px; font-weight:800; border-radius:999px; padding:1px 5px; min-width:15px; text-align:center; line-height:1.4; }
+      .dm-topbar-profile{ display:flex; align-items:center; gap:8px; }
+      .dm-topbar-profile .dm-sidebar-avatar{ width:30px; height:30px; flex:0 0 30px; }
+      .dm-topbar-profile .dm-sidebar-name{ font-size:12px; }
+      .dm-topbar-profile .dm-sidebar-role{ font-size:10px; }
+      #dashboard > .dm-shell > .dm-main > .wrap{ max-width:1180px; padding:22px 26px 60px; }
+
+      @media (max-width: 980px){
+        .dm-sidebar{ position:fixed; left:0; top:0; transform:translateX(-100%); transition:transform .25s ease; box-shadow:0 0 40px rgba(0,0,0,.2); }
+        .dm-shell.dm-sidebar-open .dm-sidebar{ transform:translateX(0); }
+        .dm-topbar-menu{ display:block; }
+        .dm-topbar-search{ display:none; }
+      }
+
+      /* ===== Dashboard stat card icons ===== */
+      .dm-kpi{ display:flex; flex-direction:column; gap:9px; }
+      .dm-kpi-icon{ width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+      .dm-kpi-icon.gold{ background:rgba(212,162,76,.18); }
+      .dm-kpi-icon.green{ background:rgba(31,157,85,.15); }
+      .dm-kpi-icon.blue{ background:rgba(47,111,237,.15); }
+      .dm-kpi-icon.purple{ background:rgba(139,92,246,.15); }
+      .dm-kpi-icon.orange{ background:rgba(194,102,10,.15); }
+      .dm-kpi-icon.teal{ background:rgba(15,138,138,.15); }
+
+      /* ===== Donut widgets (real data, pure CSS conic-gradient) ===== */
+      .dm-donut-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px; }
+      @media (max-width:1100px){ .dm-donut-row{ grid-template-columns:1fr; } }
+      .dm-donut-card{ display:flex; gap:20px; align-items:center; }
+      .dm-donut{ width:112px; height:112px; border-radius:50%; flex:0 0 112px; display:flex; align-items:center; justify-content:center; transition:background .3s ease; }
+      .dm-donut-hole{ width:72px; height:72px; border-radius:50%; background:var(--surface); display:flex; flex-direction:column; align-items:center; justify-content:center; }
+      .dm-donut-hole span{ font-size:17px; font-weight:800; color:var(--ink); line-height:1.1; }
+      .dm-donut-hole small{ font-size:8.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+      .dm-legend-row{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink); padding:5px 0; }
+      .dm-legend-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 9px; }
+      .dm-legend-row .dm-legend-label{ flex:1; color:var(--muted); }
+      .dm-legend-row .dm-legend-value{ font-weight:750; }
     </style>
   </head>
   <body>
-    <button class="dm-dark-btn" onclick="toggleDarkMode()" title="Toggle dark mode" style="position:fixed; top:16px; right:16px; z-index:999; width:40px; height:40px; border-radius:50%; border:1px solid var(--blush-line); background:var(--surface); color:var(--ink); font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(0,0,0,0.25);">
-      <span class="dm-dark-icon">🌙</span>
-    </button>
     <!-- FLOATING SOAP BUBBLE — drifts over the whole page, pops when clicked -->
     <div id="floatBubble" title="Pop me!">
       <svg viewBox="0 0 130 110" xmlns="http://www.w3.org/2000/svg">
@@ -619,7 +672,7 @@
           <img id="dmLoginLogo" src="Logo.png" alt="Design Makers" />
         </div>
         <div class="dm-login-badge">✦ Secure Admin Access · Design Makers Control Center</div>
-        <h1 style="text-align:center; color:var(--rosewood); font-size:24px;">Design Makers</h1>
+        <h1 style="text-align:center; color: var(--gold-soft); font-size:24px;">Design Makers</h1>
         <p style="text-align:center; color:var(--muted); margin-top:-8px; font-size:13.5px;">Admin Login · Premium Control Center</p>
         <label>Username</label>
         <input type="text" id="loginUsername" autocomplete="username" />
@@ -633,24 +686,62 @@
 
     <!-- DASHBOARD -->
     <div id="dashboard" class="hidden">
-      <header>
-        <h1><img src="Logo.png" alt="Design Makers" style="height:32px;width:32px;object-fit:contain;vertical-align:middle;margin-right:8px;border-radius:6px;">Design Makers Admin</h1>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button class="hidden" id="backupBtn" onclick="downloadBackup()">Download Backup</button>
-          <button onclick="logout()">Log Out</button>
+    <div class="dm-shell" id="dmShell">
+      <aside class="dm-sidebar">
+        <div class="dm-sidebar-logo">
+          <img src="Logo.png" alt="Design Makers" />
+          <div class="dm-brand-name">DESIGN MAKERS</div>
+          <div class="dm-brand-sub">Customized Gifts</div>
         </div>
-      </header>
+        <nav class="dm-nav">
+          <button class="dm-nav-item active" id="tabBtnOverview" onclick="switchTab('overview')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</button>
+          <button class="dm-nav-item" id="tabBtnProducts" onclick="switchTab('products')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>Products</button>
+          <button class="dm-nav-item" id="tabBtnOrders" onclick="switchTab('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Orders</button>
+          <button class="dm-nav-item" id="tabBtnHomepage" onclick="switchTab('homepage')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M9 9v11"/></svg>Homepage Sections</button>
+          <button class="dm-nav-item" id="tabBtnSellerlist" onclick="switchTab('sellerlist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v10h16V9"/><path d="M9 19v-6h6v6"/></svg>Live Sellers</button>
+          <button class="dm-nav-item" id="tabBtnSellers" onclick="switchTab('sellers')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>Approval for Seller</button>
+          <button class="dm-nav-item" id="tabBtnCustomers" onclick="switchTab('customers')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>Customers</button>
+          <button class="dm-nav-item hidden" id="tabBtnAdmins" onclick="switchTab('admins')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>Admins</button>
+        </nav>
+        <div class="dm-sidebar-bottom">
+          <a class="dm-view-store" href="index.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>View Store</a>
+          <div class="dm-sidebar-profile">
+            <div class="dm-sidebar-avatar" id="sidebarAvatar">DM</div>
+            <div style="min-width:0;">
+              <div class="dm-sidebar-name" id="sidebarUserName">Admin</div>
+              <div class="dm-sidebar-role" id="sidebarUserRole">—</div>
+            </div>
+            <button class="dm-sidebar-logout" onclick="logout()" title="Log out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg></button>
+          </div>
+        </div>
+      </aside>
 
-      <div class="tabs">
-        <button class="tab-btn active" id="tabBtnOverview" onclick="switchTab('overview')">Overview</button>
-        <button class="tab-btn" id="tabBtnProducts" onclick="switchTab('products')">Products</button>
-        <button class="tab-btn" id="tabBtnOrders" onclick="switchTab('orders')">Orders</button>
-        <button class="tab-btn" id="tabBtnHomepage" onclick="switchTab('homepage')">Homepage Sections</button>
-        <button class="tab-btn" id="tabBtnSellerlist" onclick="switchTab('sellerlist')">Live Sellers</button>
-        <button class="tab-btn" id="tabBtnSellers" onclick="switchTab('sellers')">Approval for Seller</button>
-        <button class="tab-btn" id="tabBtnCustomers" onclick="switchTab('customers')">Customers</button>
-        <button class="tab-btn hidden" id="tabBtnAdmins" onclick="switchTab('admins')">Admins</button>
-      </div>
+      <div class="dm-main">
+        <div class="dm-topbar">
+          <button class="dm-topbar-menu" onclick="dmToggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></button>
+          <div class="dm-topbar-title">
+            <h1 id="dmTopbarTitle">Dashboard</h1>
+            <p id="dmTopbarSub">Overview &amp; Stats</p>
+          </div>
+          <div class="dm-topbar-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" placeholder="Search anything..." disabled />
+          </div>
+          <div class="dm-topbar-actions">
+            <button class="hidden" id="backupBtn" onclick="downloadBackup()">Download Backup</button>
+            <button class="dm-bell" id="dmBellBtn" onclick="switchTab('sellers')" title="Pending approvals">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+              <span class="dm-bell-badge hidden" id="dmBellCount">0</span>
+            </button>
+            <div class="dm-topbar-profile">
+              <div class="dm-sidebar-avatar" id="topbarAvatar">DM</div>
+              <div style="min-width:0;">
+                <div class="dm-sidebar-name" id="topbarUserName">Admin</div>
+                <div class="dm-sidebar-role" id="topbarUserRole">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
       <div class="wrap">
         <!-- EXECUTIVE OVERVIEW -->
@@ -665,12 +756,12 @@
               <button class="btn small secondary" onclick="loadAdminOverview()">↻ Refresh overview</button>
             </div>
             <div class="dm-overview-grid">
-              <div class="dm-kpi"><div class="label">Revenue</div><div class="value" id="ovRevenue">—</div><div class="sub">Excludes cancelled orders</div></div>
-              <div class="dm-kpi"><div class="label">Orders</div><div class="value" id="ovOrders">—</div><div class="sub">All recorded orders</div></div>
-              <div class="dm-kpi"><div class="label">Customers</div><div class="value" id="ovCustomers">—</div><div class="sub">Registered accounts</div></div>
-              <div class="dm-kpi"><div class="label">Products</div><div class="value" id="ovProducts">—</div><div class="sub" id="ovProductsSub">Approved / live</div></div>
-              <div class="dm-kpi"><div class="label">Pending</div><div class="value" id="ovPending">—</div><div class="sub">Seller products awaiting review</div></div>
-              <div class="dm-kpi"><div class="label">Sellers</div><div class="value" id="ovSellers">—</div><div class="sub" id="ovSellersSub">Boss-only identity data</div></div>
+              <div class="dm-kpi"><div class="dm-kpi-icon green">💰</div><div class="label">Revenue</div><div class="value" id="ovRevenue">—</div><div class="sub">Excludes cancelled orders</div></div>
+              <div class="dm-kpi"><div class="dm-kpi-icon gold">🛍️</div><div class="label">Orders</div><div class="value" id="ovOrders">—</div><div class="sub">All recorded orders</div></div>
+              <div class="dm-kpi"><div class="dm-kpi-icon blue">👥</div><div class="label">Customers</div><div class="value" id="ovCustomers">—</div><div class="sub">Registered accounts</div></div>
+              <div class="dm-kpi"><div class="dm-kpi-icon purple">📦</div><div class="label">Products</div><div class="value" id="ovProducts">—</div><div class="sub" id="ovProductsSub">Approved / live</div></div>
+              <div class="dm-kpi"><div class="dm-kpi-icon orange">⏳</div><div class="label">Pending</div><div class="value" id="ovPending">—</div><div class="sub">Seller products awaiting review</div></div>
+              <div class="dm-kpi"><div class="dm-kpi-icon teal">🏪</div><div class="label">Sellers</div><div class="value" id="ovSellers">—</div><div class="sub" id="ovSellersSub">Boss-only identity data</div></div>
             </div>
             <div class="dm-overview-cols">
               <section class="dm-overview-card">
@@ -686,6 +777,22 @@
               <div class="dm-card-title"><h3>Top Products by Units Ordered</h3><span>Based on recorded orders</span></div>
               <div id="ovTopProducts"><div class="dm-empty">Loading…</div></div>
             </section>
+            <div class="dm-donut-row">
+              <section class="dm-overview-card dm-donut-card">
+                <div class="dm-donut" id="ovOrderDonut"><div class="dm-donut-hole"><span id="ovOrderDonutTotal">0</span><small>Orders</small></div></div>
+                <div style="flex:1;min-width:0;">
+                  <div class="dm-card-title" style="margin-bottom:8px;"><h3>Order Status</h3><span>Live</span></div>
+                  <div id="ovOrderLegend"><div class="dm-empty">Loading…</div></div>
+                </div>
+              </section>
+              <section class="dm-overview-card dm-donut-card">
+                <div class="dm-donut" id="ovCatalogDonut"><div class="dm-donut-hole"><span id="ovCatalogDonutTotal">0</span><small>Products</small></div></div>
+                <div style="flex:1;min-width:0;">
+                  <div class="dm-card-title" style="margin-bottom:8px;"><h3>Catalog Health</h3><span>Live</span></div>
+                  <div id="ovCatalogLegend"><div class="dm-empty">Loading…</div></div>
+                </div>
+              </section>
+            </div>
           </div>
         </div>
 
@@ -703,22 +810,22 @@
 
           <div class="card" style="margin-bottom:16px;">
             <label style="margin:0 0 10px; display:block; font-weight:600;">Website Theme Switcher</label>
-            <p style="font-size:13px; color:#8c7d78; margin-bottom:14px;">Change the entire website look for festivals. Click a theme, then apply.</p>
+            <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">Change the entire website look for festivals. Click a theme, then apply.</p>
             <div id="themeGrid" style="display:flex; gap:15px; flex-wrap:wrap;">
-              <div class="theme-card" data-theme="normal" style="flex:1; min-width:150px; padding:15px; border:2px solid #ddd; border-radius:8px; cursor:pointer; text-align:center; transition:0.3s;">
+              <div class="theme-card" data-theme="normal" style="flex:1; min-width:150px; padding:15px; border:2px solid var(--line); border-radius:8px; cursor:pointer; text-align:center; transition:0.3s; background:var(--field);">
                 <div style="height:40px; background:linear-gradient(to right, #8a1c42, #f8ecef); border-radius:4px; margin-bottom:10px;"></div>
-                <div style="font-weight:600; font-size:14px;">Normal</div>
-                <div style="font-size:12px; color:#666;">Design Makers</div>
+                <div style="font-weight:600; font-size:14px; color:var(--ink);">Normal</div>
+                <div style="font-size:12px; color:var(--muted);">Design Makers</div>
               </div>
-              <div class="theme-card" data-theme="rakshabandhan" style="flex:1; min-width:150px; padding:15px; border:2px solid #ddd; border-radius:8px; cursor:pointer; text-align:center; transition:0.3s;">
+              <div class="theme-card" data-theme="rakshabandhan" style="flex:1; min-width:150px; padding:15px; border:2px solid var(--line); border-radius:8px; cursor:pointer; text-align:center; transition:0.3s; background:var(--field);">
                 <div style="height:40px; background:linear-gradient(to right, #d4af37, #1a0505, #ff3b3b); border-radius:4px; margin-bottom:10px;"></div>
-                <div style="font-weight:600; font-size:14px;">Rakshabandhan</div>
-                <div style="font-size:12px; color:#666;">Red &amp; Gold</div>
+                <div style="font-weight:600; font-size:14px; color:var(--ink);">Rakshabandhan</div>
+                <div style="font-size:12px; color:var(--muted);">Red &amp; Gold</div>
               </div>
-              <div class="theme-card" data-theme="aug15" style="flex:1; min-width:150px; padding:15px; border:2px solid #ddd; border-radius:8px; cursor:pointer; text-align:center; transition:0.3s;">
-                <div style="height:40px; background:linear-gradient(to right, #FF9933, #ffffff, #138808); border-radius:4px; margin-bottom:10px; border:1px solid #eee;"></div>
-                <div style="font-weight:600; font-size:14px;">15th August</div>
-                <div style="font-size:12px; color:#666;">Tricolor</div>
+              <div class="theme-card" data-theme="aug15" style="flex:1; min-width:150px; padding:15px; border:2px solid var(--line); border-radius:8px; cursor:pointer; text-align:center; transition:0.3s; background:var(--field);">
+                <div style="height:40px; background:linear-gradient(to right, #FF9933, #ffffff, #138808); border-radius:4px; margin-bottom:10px; border:1px solid var(--line);"></div>
+                <div style="font-weight:600; font-size:14px; color:var(--ink);">15th August</div>
+                <div style="font-size:12px; color:var(--muted);">Tricolor</div>
               </div>
             </div>
             <button class="btn small" id="applyThemeBtn" style="margin-top:14px; display:none;" onclick="applyTheme()">Apply Selected Theme</button>
@@ -738,7 +845,7 @@
             </select>
             <button class="btn small hidden" id="newCategoryBtn" onclick="createCategory()" style="white-space:nowrap;">+ New Category</button>
             <button class="btn small secondary hidden" id="seedCategoryProductsBtn" onclick="seedCategoryProducts()" style="white-space:nowrap;">Add 10 sample products/category</button>
-            <span id="productFilterCount" style="font-size:13px; color:#8c7d78; white-space:nowrap;"></span>
+            <span id="productFilterCount" style="font-size:13px; color:var(--muted); white-space:nowrap;"></span>
           </div>
           <div class="error" id="categoryActionError"></div>
 
@@ -765,7 +872,7 @@
               <select id="heroProductSelect" onchange="saveHeroProduct()"><option value="">No hero product selected</option></select>
               <div id="heroProductStatus" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
             </div>
-            <div class="dm-hero-admin-preview" id="heroProductPreview"><span style="color:#77715f;font-size:12px;">Select a product to preview</span></div>
+            <div class="dm-hero-admin-preview" id="heroProductPreview"><span style="color:var(--muted);font-size:12px;">Select a product to preview</span></div>
           </div>
         </div>
 
@@ -777,26 +884,26 @@
           </div>
 
           <div class="card" style="margin-bottom:16px;">
-            <h3 style="margin:0 0 10px;color:var(--rosewood);">⭐ Our Most Popular Products</h3>
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">⭐ Our Most Popular Products</h3>
             <div class="phone" style="margin:0 0 10px;">Most-viewed products of all time.</div>
             <div id="popularPreview" style="display:flex;flex-direction:column;gap:8px;"></div>
           </div>
 
           <div class="card" style="margin-bottom:16px;">
-            <h3 style="margin:0 0 10px;color:var(--rosewood);">🔥 Trending</h3>
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">🔥 Trending</h3>
             <div class="phone" style="margin:0 0 10px;">Most-viewed products in the last 7 days.</div>
             <div id="trendingPreview" style="display:flex;flex-direction:column;gap:8px;"></div>
           </div>
 
           <button class="btn" onclick="saveHomepageSections()">Save MOQ / Discount changes</button>
           <div class="error" id="homepageSectionsError"></div>
-          <div id="homepageSectionsSaved" style="display:none;color:#1c7a34;font-size:13px;margin-top:8px;">✓ Saved.</div>
+          <div id="homepageSectionsSaved" style="display:none;color:var(--success);font-size:13px;margin-top:8px;">✓ Saved.</div>
         </div>
 
         <!-- SELLER LIST TAB (approved sellers + their products) -->
         <div class="tab-panel" id="tabSellerlist">
           <div class="card" style="margin-bottom:16px;">
-            <h3 style="margin:0 0 6px;color:var(--rosewood);">Live Sellers</h3>
+            <h3 style="margin:0 0 6px;color: var(--gold-soft);">Live Sellers</h3>
             <div class="phone" style="margin:0;">All approved (live) sellers. Click a seller to see their details and every approved product they've listed — edit any product inline. New applications and products awaiting approval are in the "Approval for Seller" tab.</div>
           </div>
           <div id="sellerListLoading">Loading sellers...</div>
@@ -806,38 +913,38 @@
         <!-- SELLERS TAB -->
         <div class="tab-panel" id="tabSellers">
           <div class="card" style="margin-bottom:16px;" id="sellerInviteCard">
-            <h3 style="margin:0 0 8px;color:var(--rosewood);">Invite a seller</h3>
+            <h3 style="margin:0 0 8px;color: var(--gold-soft);">Invite a seller</h3>
             <div class="phone" style="margin:0 0 10px;">Share this link with anyone you want to let apply as a seller. It opens the application page directly and stays hidden from normal shoppers.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
               <input type="text" id="sellerInviteLink" readonly style="flex:1;min-width:220px;margin:0;" />
               <button class="btn small" onclick="copySellerInviteLink()" style="white-space:nowrap;">Copy link</button>
-              <span id="sellerInviteCopied" style="color:#1c7a34;font-size:13px;display:none;">Copied!</span>
+              <span id="sellerInviteCopied" style="color:var(--success);font-size:13px;display:none;">Copied!</span>
             </div>
           </div>
 
           <div class="card" style="margin-bottom:16px;" id="sellerAppsCard">
-            <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Applications</h3>
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">Seller Applications</h3>
             <div class="phone" style="margin:0 0 10px;">Customers who applied to become sellers, awaiting your approval.</div>
             <div id="sellerAppsLoading">Loading applications...</div>
             <div id="sellerAppsList"></div>
           </div>
 
           <div class="card" style="margin-bottom:16px;" id="sellerPwCard">
-            <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Password Reset Requests</h3>
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">Seller Password Reset Requests</h3>
             <div class="phone" style="margin:0 0 10px;">A seller who forgot their password requests a reset from the seller login screen — resolve it here to generate and send a new one.</div>
             <div id="sellerPwLoading">Loading requests...</div>
             <div id="sellerPwList"></div>
           </div>
 
           <div class="card" style="margin-bottom:16px;" id="sellerProfileReqCard">
-            <h3 style="margin:0 0 10px;color:var(--rosewood);">Seller Profile Update Requests</h3>
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">Seller Profile Update Requests</h3>
             <div class="phone" style="margin:0 0 10px;">Sellers can't edit their phone, shop title, or photo directly — they raise a request here for you to approve or reject.</div>
             <div id="sellerProfileReqLoading">Loading requests...</div>
             <div id="sellerProfileReqList"></div>
           </div>
 
           <div class="card">
-            <h3 style="margin:0 0 10px;color:var(--rosewood);">Pending Seller Products</h3>
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">Pending Seller Products</h3>
             <div class="phone" style="margin:0 0 10px;">New products submitted by sellers — they won't appear on the storefront until approved. Only the shop's public name is shown here; the seller's real identity is visible to the boss account only.</div>
             <div id="pendingProductsLoading">Loading pending products...</div>
             <div id="pendingProductsList"></div>
@@ -847,7 +954,7 @@
                 <!-- CUSTOMERS TAB -->
         <div class="tab-panel" id="tabCustomers">
           <div class="card">
-            <h3 style="margin:0 0 10px;color:var(--rosewood);">Customer Accounts</h3>
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">Customer Accounts</h3>
             <div class="phone" style="margin:0 0 10px;">Customers who signed up with mobile number + password. Use "Reset password" to generate a new password if a customer forgets theirs — it's shown here once, so pass it on to them right away.</div>
             <div id="customersLoading">Loading customers...</div>
             <div id="customersList"></div>
@@ -880,14 +987,15 @@
           <div id="adminList"></div>
 
           <div class="card" style="margin-top:20px;">
-            <h3 style="margin:0 0 10px;font-size:15px;color:var(--rosewood);">Recent Logins</h3>
+            <h3 style="margin:0 0 10px;font-size:15px;color: var(--gold-soft);">Recent Logins</h3>
             <div id="loginHistoryList" style="font-size:13px;"></div>
           </div>
         </div>
-      </div>
-
+      </div><!-- /.wrap -->
+      </div><!-- /.dm-main -->
       <button class="fab hidden" id="addProductFab" onclick="openModal()">+</button>
-    </div>
+    </div><!-- /.dm-shell -->
+    </div><!-- /#dashboard -->
 
     <!-- ADD/EDIT PRODUCT MODAL -->
     <div id="modalOverlay">
@@ -956,7 +1064,7 @@
             </div>
             <label style="font-weight:normal;">Or pick a custom end date &amp; time</label>
             <input type="datetime-local" id="fSaleEndsAt" onchange="onSaleEndsAtChange()" />
-            <div id="saleEndsAtNote" style="font-size:0.8em;color:#8a1c42;margin-top:4px;"></div>
+            <div id="saleEndsAtNote" style="font-size:0.8em;color:var(--gold-soft);margin-top:4px;"></div>
           </div>
         </div>
 
@@ -996,11 +1104,11 @@
     <div id="sellerModalOverlay" class="seller-modal-overlay">
       <div class="modal-card">
         <h2 id="sellerModalShopTitle" style="margin-bottom:2px;">Seller</h2>
-        <div style="font-size:13px;color:#8c7d78;margin-bottom:16px;">Seller ID: <strong id="sellerModalSellerId"></strong></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Seller ID: <strong id="sellerModalSellerId"></strong></div>
 
         <div id="sellerModalPendingBox"></div>
 
-        <h3 style="font-size:14px;color:var(--rosewood);margin:0 0 8px;">Details</h3>
+        <h3 style="font-size:14px;color: var(--gold-soft);margin:0 0 8px;">Details</h3>
         <label>Name</label>
         <input type="text" id="sellerModalName" />
         <label>Email</label>
@@ -1014,8 +1122,8 @@
 
         <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
 
-        <h3 style="font-size:14px;color:var(--rosewood);margin:0 0 8px;">Password</h3>
-        <div style="font-size:12.5px;color:#8c7d78;margin-bottom:10px;">Only a hashed copy of the password is ever stored — there's no way to "view" the seller's current password, only to set a new one.</div>
+        <h3 style="font-size:14px;color: var(--gold-soft);margin:0 0 8px;">Password</h3>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Only a hashed copy of the password is ever stored — there's no way to "view" the seller's current password, only to set a new one.</div>
 
         <button class="btn small secondary" onclick="generateRandomPasswordModal()">Generate &amp; email a random password</button>
 
@@ -1027,8 +1135,8 @@
 
         <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
 
-        <h3 style="font-size:14px;color:var(--rosewood);margin:0 0 8px;">Skip the password entirely</h3>
-        <div style="font-size:12.5px;color:#8c7d78;margin-bottom:10px;">Opens this seller's dashboard in a new tab, already logged in as them — no password needed. Good for checking or fixing something in their account directly.</div>
+        <h3 style="font-size:14px;color: var(--gold-soft);margin:0 0 8px;">Skip the password entirely</h3>
+        <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Opens this seller's dashboard in a new tab, already logged in as them — no password needed. Good for checking or fixing something in their account directly.</div>
         <button class="btn small" onclick="loginAsSellerModal()">Log in as this seller</button>
         <div id="sellerModalLoginAsStatus" style="font-size:13px;margin-top:8px;min-height:18px;font-weight:600;"></div>
 
@@ -1043,22 +1151,22 @@
 
     <!-- APPROVE SELLER: choose how the login credential goes out -->
     <div id="approveModeOverlay" class="seller-modal-overlay">
-      <div class="seller-modal">
+      <div class="modal-card">
         <h2 style="margin-bottom:2px;">Send login details</h2>
-        <div style="font-size:13px;color:#8c7d78;margin-bottom:18px;">How should <strong id="approveModeShopTitle"></strong> get their password?</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:18px;">How should <strong id="approveModeShopTitle"></strong> get their password?</div>
 
         <label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--blush-line);border-radius:10px;margin-bottom:10px;cursor:pointer;">
-          <input type="radio" name="approvePwMode" value="password" checked style="margin-top:3px;" />
+          <input type="radio" name="approvePwMode" value="password" checked style="margin-top:3px;width:auto;" />
           <span>
             <strong style="display:block;">Send Password</strong>
-            <span style="font-size:12.5px;color:#8c7d78;">A normal password — works every time, seller isn't asked to change it.</span>
+            <span style="font-size:12.5px;color:var(--muted);">A normal password — works every time, seller isn't asked to change it.</span>
           </span>
         </label>
         <label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--blush-line);border-radius:10px;margin-bottom:16px;cursor:pointer;">
-          <input type="radio" name="approvePwMode" value="otp" style="margin-top:3px;" />
+          <input type="radio" name="approvePwMode" value="otp" style="margin-top:3px;width:auto;" />
           <span>
             <strong style="display:block;">Send OTP (one-time use)</strong>
-            <span style="font-size:12.5px;color:#8c7d78;">Works once — after logging in the first time, the seller must set their own new password before continuing.</span>
+            <span style="font-size:12.5px;color:var(--muted);">Works once — after logging in the first time, the seller must set their own new password before continuing.</span>
           </span>
         </label>
 
@@ -1066,7 +1174,7 @@
 
         <div style="display:flex;gap:8px;justify-content:flex-end;">
           <button class="btn secondary" onclick="closeApproveModeModal()">Cancel</button>
-          <button class="btn" id="approveModeConfirmBtn" style="background:#1a7a3f !important;" onclick="confirmApproveSeller()">✓ Approve &amp; Send</button>
+          <button class="btn" id="approveModeConfirmBtn" style="background:var(--success) !important;" onclick="confirmApproveSeller()">✓ Approve &amp; Send</button>
         </div>
       </div>
     </div>
@@ -1139,7 +1247,7 @@
             <div class="card" style="margin-top:18px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
                 <div class="sd-section-title" style="margin:0;">📦 Recent Products (<span id="sdProductCount">0</span>)</div>
-                <a href="#" onclick="switchTab('sellerlist');closeSellerDetail();return false;" style="font-size:12.5px;color:var(--rosewood);text-decoration:none;" id="sdViewAllProducts">View All Products →</a>
+                <a href="#" onclick="switchTab('sellerlist');closeSellerDetail();return false;" style="font-size:12.5px;color: var(--gold-soft);text-decoration:none;" id="sdViewAllProducts">View All Products →</a>
               </div>
               <div id="sdProductsList"><p class="empty-state" style="padding:16px;">No products yet.</p></div>
             </div>
@@ -1148,7 +1256,7 @@
           <div>
             <div class="card sd-actions" id="sdActionsCard">
               <div class="sd-section-title">⚙️ Seller Actions</div>
-              <button class="btn" id="sdApproveBtn" style="background:#1a7a3f !important;" onclick="sdApprove()">✓ Approve Seller</button>
+              <button class="btn" id="sdApproveBtn" style="background:#1f9d5c !important;" onclick="sdApprove()">✓ Approve Seller</button>
               <button class="btn" id="sdRejectBtn" style="background:rgba(239,68,68,.16) !important;color:#ff8f9a !important;" onclick="sdReject()">✕ Reject Seller</button>
               <button class="btn secondary" id="sdEditBtn" onclick="sdEditDetails()">✎ Edit Seller Details</button>
               <button class="btn secondary" id="sdBanBtn" onclick="sdBanToggle()">Ban / Block Seller</button>
@@ -1274,13 +1382,13 @@
         }
       }
 
-      // ---------- SESSION KEEP-ALIVE (1 hr prompt, 10s to respond) ----------
+      // ---------- SESSION KEEP-ALIVE (10 min prompt, 10s to respond) ----------
       let sessionTimerId = null;
       let sessionCountdownId = null;
 
       function startSessionTimer() {
         clearTimeout(sessionTimerId);
-        sessionTimerId = setTimeout(showSessionPrompt, 60 * 60 * 1000);
+        sessionTimerId = setTimeout(showSessionPrompt, 10 * 60 * 1000);
       }
 
       function showSessionPrompt() {
@@ -1302,7 +1410,7 @@
       }
 
       // Called when the admin clicks "Yes, stay logged in" — hides the
-      // prompt and restarts the 1-hour cycle.
+      // prompt and restarts the 10-minute cycle.
       function staySessionAlive() {
         clearInterval(sessionCountdownId);
         document.getElementById("sessionPromptOverlay").style.display = "none";
@@ -1400,6 +1508,20 @@
 
       // ---------- TABS ----------
 
+      const DM_TAB_TITLES = {
+        overview: ["Dashboard", "Overview & Stats"],
+        products: ["Products", "Catalog & pricing"],
+        orders: ["Orders", "Track & fulfil orders"],
+        homepage: ["Homepage Sections", "Storefront highlights"],
+        sellerlist: ["Live Sellers", "Approved sellers & their products"],
+        sellers: ["Approval for Seller", "Review sellers & products"],
+        customers: ["Customers", "Registered accounts"],
+        admins: ["Admins", "Team access & roles"],
+      };
+      function dmToggleSidebar() {
+        const shell = document.getElementById("dmShell");
+        if (shell) shell.classList.toggle("dm-sidebar-open");
+      }
       function switchTab(tab) {
         currentTab = tab;
 
@@ -1407,6 +1529,16 @@
           document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
           document.getElementById("tabBtn" + capitalize(t)).classList.toggle("active", t === tab);
         });
+
+        const titleInfo = DM_TAB_TITLES[tab];
+        if (titleInfo) {
+          const titleEl = document.getElementById("dmTopbarTitle");
+          const subEl = document.getElementById("dmTopbarSub");
+          if (titleEl) titleEl.textContent = titleInfo[0];
+          if (subEl) subEl.textContent = titleInfo[1];
+        }
+        const shell = document.getElementById("dmShell");
+        if (shell) shell.classList.remove("dm-sidebar-open");
 
         document.getElementById("addProductFab").classList.toggle("hidden", tab !== "products");
 
@@ -1474,7 +1606,15 @@
           document.getElementById("ovPending").textContent = pendingProducts.length.toLocaleString("en-IN");
           document.getElementById("overviewUserName").textContent = myUsername || "Admin";
           updateOverviewGreeting();
-          document.getElementById("overviewRoleText").textContent = (role === "boss" ? "Super Admin · full control" : ((myDesignation || "Sub-Admin") + " · operational access"));
+          const roleLabel = role === "boss" ? "Super Admin" : (myDesignation || "Sub-Admin");
+          document.getElementById("overviewRoleText").textContent = (role === "boss" ? "Super Admin · full control" : (roleLabel + " · operational access"));
+
+          // Sidebar + topbar profile mini-cards (same real data as the greeting above)
+          const dmDisplayName = myUsername || "Admin";
+          const dmInitials = dmDisplayName.trim().slice(0, 2).toUpperCase() || "DM";
+          ["sidebarUserName","topbarUserName"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = dmDisplayName; });
+          ["sidebarUserRole","topbarUserRole"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = roleLabel; });
+          ["sidebarAvatar","topbarAvatar"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = dmInitials; });
 
           if (role === "boss") {
             try {
@@ -1496,27 +1636,72 @@
           }).join("") : '<div class="dm-empty">No orders recorded yet.</div>';
 
           const queue = [];
+          let dmBellTotal = pendingProducts.length;
           if (pendingProducts.length) queue.push({title:"Seller products",desc:pendingProducts.length+" product(s) waiting for approval",action:"Review in Seller Approvals",tab:"sellers"});
           if (role === "boss") {
             try {
               const appRes = await fetch("/api/admin/seller-applications", { headers: auth });
               const appData = await appRes.json();
               const pendingApps = appData.success ? (appData.applications||[]).filter(a => a.status === "pending") : [];
-              if (pendingApps.length) queue.push({title:"Seller applications",desc:pendingApps.length+" application(s) waiting for approval",action:"Review applications",tab:"sellers"});
+              if (pendingApps.length) { queue.push({title:"Seller applications",desc:pendingApps.length+" application(s) waiting for approval",action:"Review applications",tab:"sellers"}); dmBellTotal += pendingApps.length; }
             } catch(e) {}
           }
           document.getElementById("ovQueue").innerHTML = queue.length ? queue.map(q => `<div class="dm-queue-item"><div class="dm-queue-main"><strong>${escapeHtml(q.title)}</strong><span>${escapeHtml(q.desc)}</span></div><button class="dm-pill" onclick="switchTab('${q.tab}')">${escapeHtml(q.action)}</button></div>`).join("") : '<div class="dm-empty">Nothing urgent. You are all caught up. ✓</div>';
+
+          const bellCountEl = document.getElementById("dmBellCount");
+          if (bellCountEl) {
+            bellCountEl.textContent = dmBellTotal > 99 ? "99+" : String(dmBellTotal);
+            bellCountEl.classList.toggle("hidden", dmBellTotal === 0);
+          }
 
           const productMap = new Map(ps.map(p => [p.id, p.name || "Unnamed product"]));
           const totals = {};
           os.forEach(o => (o.items||[]).forEach(it => { const key = it.productId; if (!totals[key]) totals[key] = {name: productMap.get(key) || it.name || "Product", qty:0, revenue:0}; totals[key].qty += Number(it.qty)||0; totals[key].revenue += Number(it.lineTotal)||0; }));
           const top = Object.values(totals).sort((a,b)=>b.qty-a.qty).slice(0,6);
           document.getElementById("ovTopProducts").innerHTML = top.length ? top.map((p,i) => `<div class="dm-queue-item"><div class="dm-queue-main"><strong>#${i+1} · ${escapeHtml(p.name)}</strong><span>${p.qty} unit(s) ordered</span></div><span class="dm-pill">${fmtINR(p.revenue)}</span></div>`).join("") : '<div class="dm-empty">No product sales data yet.</div>';
+
+          // Order status + catalog health donuts — computed from the same real os/ps arrays above.
+          const statusCounts = {};
+          os.forEach(o => { const k = o.status || "New"; statusCounts[k] = (statusCounts[k] || 0) + 1; });
+          dmRenderDonut("ovOrderDonut", "ovOrderDonutTotal", "ovOrderLegend", [
+            { label: "Delivered", value: statusCounts["Delivered"] || 0, color: "#1f9d55" },
+            { label: "Shipped", value: statusCounts["Shipped"] || 0, color: "#2f6fed" },
+            { label: "Processing", value: statusCounts["Processing"] || 0, color: "#b8790a" },
+            { label: "New", value: statusCounts["New"] || 0, color: "#8ab4ff" },
+            { label: "Cancelled", value: statusCounts["Cancelled"] || 0, color: "#d6455a" },
+          ]);
+          dmRenderDonut("ovCatalogDonut", "ovCatalogDonutTotal", "ovCatalogLegend", [
+            { label: "Approved", value: liveProducts, color: "#d4a24c" },
+            { label: "Pending review", value: pendingProducts.length, color: "#c2660a" },
+          ]);
         } catch (err) {
           document.getElementById("ovRecentOrders").innerHTML = '<div class="dm-empty">Could not load overview. <button class="btn small secondary" onclick="loadAdminOverview()">Retry</button></div>';
           document.getElementById("ovQueue").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
           document.getElementById("ovTopProducts").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
         }
+      }
+
+      // Pure-CSS conic-gradient donut, fed only by real counts — no fabricated data.
+      function dmRenderDonut(wrapId, totalId, legendId, segments) {
+        const wrap = document.getElementById(wrapId);
+        const legend = document.getElementById(legendId);
+        if (!wrap || !legend) return;
+        const total = segments.reduce((s, x) => s + x.value, 0);
+        const totalEl = document.getElementById(totalId);
+        if (totalEl) totalEl.textContent = total.toLocaleString("en-IN");
+        if (!total) {
+          wrap.style.background = "conic-gradient(var(--line) 0deg 360deg)";
+          legend.innerHTML = '<div class="dm-empty" style="padding:6px 0;">No data yet.</div>';
+          return;
+        }
+        let angle = 0;
+        const stops = segments.filter(s => s.value > 0).map((s) => {
+          const start = angle;
+          angle += (s.value / total) * 360;
+          return s.color + " " + start.toFixed(1) + "deg " + angle.toFixed(1) + "deg";
+        }).join(", ");
+        wrap.style.background = "conic-gradient(" + stops + ")";
+        legend.innerHTML = segments.map((s) => `<div class="dm-legend-row"><span class="dm-legend-dot" style="background:${s.color}"></span><span class="dm-legend-label">${escapeHtml(s.label)}</span><span class="dm-legend-value">${s.value}</span></div>`).join("");
       }
 
       async function loadHeroProductSettings() {
@@ -1546,7 +1731,7 @@
         const id = Number(select.value);
         const product = products.find(p => Number(p.id) === id);
         if (product && product.image) preview.innerHTML = '<img src="'+escapeHtml(product.image)+'" alt="'+escapeHtml(product.name || "Hero product")+'">';
-        else preview.innerHTML = '<span style="color:#77715f;font-size:12px;">Select a product to preview</span>';
+        else preview.innerHTML = '<span style="color:var(--muted);font-size:12px;">Select a product to preview</span>';
       }
 
       async function saveHeroProduct() {
@@ -1610,8 +1795,8 @@
               ? '<img src="' + escapeHtml(p.image) + '" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;" />'
               : '<div style="width:40px;height:40px;border-radius:8px;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎁</div>';
             const pill = p.isNewest
-              ? '<span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;background:#eee;color:#666;">🆕 Newest</span>'
-              : '<span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;background:#fff3d6;color:#8a5a10;">👁 ' + p.viewCount + ' view' + (p.viewCount === 1 ? '' : 's') + '</span>';
+              ? '<span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;background:#eee;color:var(--muted);">🆕 Newest</span>'
+              : '<span style="flex-shrink:0;font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;background:var(--warn-bg);color:var(--warn);">👁 ' + p.viewCount + ' view' + (p.viewCount === 1 ? '' : 's') + '</span>';
             return (
               '<div style="display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--border);">' +
                 thumb +
@@ -1701,7 +1886,7 @@
         }
         targetEl.innerHTML =
           '<button class="btn small secondary" ' + (meta.page <= 1 ? "disabled" : "") + ' id="pagerPrev">‹ Prev</button>' +
-          '<span style="font-size:13px;color:#8c7d78;">Page ' + meta.page + ' of ' + meta.pages + ' (' + meta.total + ' total)</span>' +
+          '<span style="font-size:13px;color:var(--muted);">Page ' + meta.page + ' of ' + meta.pages + ' (' + meta.total + ' total)</span>' +
           '<button class="btn small secondary" ' + (meta.page >= meta.pages ? "disabled" : "") + ' id="pagerNext">Next ›</button>';
         const prevBtn = targetEl.querySelector("#pagerPrev");
         const nextBtn = targetEl.querySelector("#pagerNext");
@@ -1726,14 +1911,14 @@
           }
           renderPager(pagerEl, data, loadCustomers);
           listEl.innerHTML = data.customers.map((c) => {
-            const mobileText = c.mobile ? escapeHtml(c.mobile) : '<span style="color:#a3002a;">no mobile (legacy)</span>';
+            const mobileText = c.mobile ? escapeHtml(c.mobile) : '<span style="color:var(--danger);">no mobile (legacy)</span>';
             const orderTag = c.orderCount ? ' · ' + c.orderCount + ' order' + (c.orderCount === 1 ? '' : 's') : '';
             return (
             '<div class="card" id="customerRow' + c.id + '" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;">' +
               '<div><strong>' + escapeHtml(c.name || "—") + '</strong><br>' +
-                '<span style="font-size:13px;color:#8c7d78;">' + mobileText + orderTag + '</span></div>' +
+                '<span style="font-size:13px;color:var(--muted);">' + mobileText + orderTag + '</span></div>' +
               '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
-                '<span id="customerNewPw' + c.id + '" style="font-size:13px;color:#1c7a34;"></span>' +
+                '<span id="customerNewPw' + c.id + '" style="font-size:13px;color:var(--success);"></span>' +
                 '<button class="btn small" onclick="openCustomerDetails(' + c.id + ')">View details</button>' +
                 '<button class="btn small secondary" onclick="resetCustomerPassword(' + c.id + ')">Reset password</button>' +
                 '<button class="btn small danger" onclick="deleteCustomer(' + c.id + ', \'' + escapeHtml(c.name || "").replace(/'/g, "\\'") + '\')">Delete</button>' +
@@ -1769,25 +1954,25 @@
                   '<div style="border-bottom:1px solid #3d2b32;padding:8px 0;">' +
                     '<div style="display:flex;justify-content:space-between;gap:10px;">' +
                       '<strong>' + escapeHtml(o.orderNumber) + '</strong>' +
-                      '<span style="' + (cancelled ? "text-decoration:line-through;color:#8c7d78;" : "") + '">' + fmtINR(o.total || 0) + '</span>' +
+                      '<span style="' + (cancelled ? "text-decoration:line-through;color:var(--muted);" : "") + '">' + fmtINR(o.total || 0) + '</span>' +
                     '</div>' +
-                    '<div style="font-size:12px;color:#8c7d78;">' + escapeHtml(o.status || "") + ' · ' + items + '</div>' +
+                    '<div style="font-size:12px;color:var(--muted);">' + escapeHtml(o.status || "") + ' · ' + items + '</div>' +
                   '</div>'
                 );
               }).join("")
-            : '<p style="color:#8c7d78;font-size:13px;margin:0;">No orders yet.</p>';
+            : '<p style="color:var(--muted);font-size:13px;margin:0;">No orders yet.</p>';
 
           body.innerHTML =
             '<div style="margin-bottom:14px;">' +
               '<div style="font-size:20px;font-weight:700;">' + escapeHtml(c.name || "—") + '</div>' +
-              '<div style="color:#8c7d78;">' + (c.mobile ? escapeHtml(c.mobile) : '<span style="color:#a3002a;">no mobile (legacy account)</span>') + '</div>' +
+              '<div style="color:var(--muted);">' + (c.mobile ? escapeHtml(c.mobile) : '<span style="color:var(--danger);">no mobile (legacy account)</span>') + '</div>' +
             '</div>' +
             '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">' +
               '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Orders</div><div class="stat-value">' + (c.orders ? c.orders.length : 0) + '</div></div>' +
               '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Spent (excl. cancelled)</div><div class="stat-value">' + fmtINR(c.totalSpent || 0) + '</div></div>' +
               '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Joined</div><div class="stat-value" style="font-size:15px;">' + joined + '</div></div>' +
             '</div>' +
-            '<h4 style="margin:0 0 8px;color:var(--rosewood);">Order history</h4>' +
+            '<h4 style="margin:0 0 8px;color: var(--gold-soft);">Order history</h4>' +
             '<div>' + ordersHtml + '</div>';
         } catch (err) {
           body.innerHTML = '<p class="empty-state">Network error loading customer.</p>';
@@ -1867,40 +2052,40 @@
                     (p.image ? '<img src="' + escapeHtml(p.image) + '" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />' : '<div style="width:44px;height:44px;border-radius:8px;background:var(--blush);"></div>') +
                     '<div style="flex:1;min-width:0;">' +
                       '<div style="font-weight:600;">' + escapeHtml(p.name) + '</div>' +
-                      '<div style="font-size:12px;color:#8c7d78;">' + escapeHtml(p.category || "Uncategorised") + ' · ' + fmtINR(p.price || 0) + '</div>' +
+                      '<div style="font-size:12px;color:var(--muted);">' + escapeHtml(p.category || "Uncategorised") + ' · ' + fmtINR(p.price || 0) + '</div>' +
                     '</div>' +
                     '<span class="badge status-delivered">Approved</span>' +
                     '<button class="btn small" onclick="editProduct(' + p.id + ')">Edit</button>' +
                   '</div>'
                 )).join("")
-              : '<p style="color:#8c7d78;font-size:13px;margin:8px 0 0;">No approved products yet.</p>';
+              : '<p style="color:var(--muted);font-size:13px;margin:8px 0 0;">No approved products yet.</p>';
 
             const pendingNote = s.pendingCount
-              ? '<div style="font-size:12px;color:#a3002a;margin-top:8px;">' + s.pendingCount + ' product' + (s.pendingCount === 1 ? '' : 's') + ' awaiting approval — review in the "Approval for Seller" tab.</div>'
+              ? '<div style="font-size:12px;color:var(--danger);margin-top:8px;">' + s.pendingCount + ' product' + (s.pendingCount === 1 ? '' : 's') + ' awaiting approval — review in the "Approval for Seller" tab.</div>'
               : '';
 
             const escapedName = escapeHtml(s.name).replace(/'/g, "\\'");
             const pendingPasswordBanner = s.hasPendingPassword
-              ? '<div style="margin-top:10px;padding:8px 10px;background:#fff4e5;border:1px solid #e0a336;border-radius:8px;font-size:13px;color:#7a4a00;">' +
+              ? '<div style="margin-top:10px;padding:8px 10px;background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;font-size:13px;color:var(--warn);">' +
                   '⚠️ This seller\'s password email never went through — open View details to share it manually.' +
                 '</div>'
               : '';
 
             return (
-              '<div class="card" style="margin-bottom:12px;' + (s.banned ? 'opacity:0.7;border-color:#a3002a;' : '') + '">' +
+              '<div class="card" style="margin-bottom:12px;' + (s.banned ? 'opacity:0.7;border-color:var(--danger);' : '') + '">' +
                 '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">' +
                   '<div style="cursor:pointer;" onclick="toggleSellerProducts(' + s.id + ')">' +
-                    '<div style="font-weight:700;font-size:16px;color:var(--rosewood);">' + escapeHtml(s.shopTitle || s.name) +
-                      (s.banned ? ' <span class="badge" style="background:#a3002a;color:#fff;">Banned</span>' : '') +
+                    '<div style="font-weight:700;font-size:16px;color: var(--gold-soft);">' + escapeHtml(s.shopTitle || s.name) +
+                      (s.banned ? ' <span class="badge" style="background:var(--danger);color:#fff;">Banned</span>' : '') +
                     '</div>' +
-                    '<div style="font-size:13px;color:#8c7d78;">' + escapeHtml(s.name) + ' · ' + escapeHtml(s.sellerId) + '</div>' +
-                    '<div style="font-size:13px;color:#8c7d78;">' + escapeHtml(s.phone || "—") + ' · ' + escapeHtml(s.email || "—") + '</div>' +
+                    '<div style="font-size:13px;color:var(--muted);">' + escapeHtml(s.name) + ' · ' + escapeHtml(s.sellerId) + '</div>' +
+                    '<div style="font-size:13px;color:var(--muted);">' + escapeHtml(s.phone || "—") + ' · ' + escapeHtml(s.email || "—") + '</div>' +
                   '</div>' +
-                  '<div style="text-align:right;font-size:12px;color:#8c7d78;">' +
+                  '<div style="text-align:right;font-size:12px;color:var(--muted);">' +
                     '<div><strong style="color:var(--ink);font-size:15px;">' + s.productCount + '</strong> products</div>' +
                     '<div>' + s.approvedCount + ' approved · ' + s.pendingCount + ' pending</div>' +
                     '<div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">' +
-                      '<button class="btn small" onclick="toggleSellerProducts(' + s.id + ')" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);">▼ Products</button>' +
+                      '<button class="btn small" onclick="toggleSellerProducts(' + s.id + ')" style="background:transparent;color: var(--gold-soft);border:1px solid var(--rosewood);">▼ Products</button>' +
                       '<button class="btn small" onclick="openSellerDetailFromLive(' + s.id + ')" style="background:var(--rosewood);color:#fff;">View details</button>' +
                       (s.banned
                         ? '<button class="btn small" onclick="unbanSeller(' + s.id + ')">Unban</button>'
@@ -2073,9 +2258,10 @@
         sdId = null;
       }
 
-      function sdApprove() {
+      async function sdApprove() {
         if (sdMode !== "pending" || !sdId) return;
-        approveSellerApplication(sdId);
+        await approveSellerApplication(sdId);
+        closeSellerDetail();
       }
 
       async function sdReject() {
@@ -2185,7 +2371,7 @@
         }
         box.style.display = "block";
         box.innerHTML =
-          '<div style="padding:10px;background:#fff4e5;border:1px solid #e0a336;border-radius:8px;font-size:13px;color:#7a4a00;margin-bottom:12px;">' +
+          '<div style="padding:10px;background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;font-size:13px;color:var(--warn);margin-bottom:12px;">' +
             '⚠️ The last password generated for this seller never got emailed to them successfully.' +
             '<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">' +
               '<button class="btn small" onclick="modalViewPendingPassword(' + s.id + ')">View password</button>' +
@@ -2205,7 +2391,7 @@
         const shopTitle = document.getElementById("sellerModalShopTitleInput").value.trim();
 
         if (!name || !email || !shopTitle) {
-          statusEl.style.color = "#a3002a";
+          statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Name, email, and shop title cannot be empty.";
           return;
         }
@@ -2221,16 +2407,16 @@
           const data = await res.json();
           if (res.status === 401) { closeSellerModal(); logout(); return; }
           if (!data.success) {
-            statusEl.style.color = "#a3002a";
+            statusEl.style.color = "var(--danger)";
             statusEl.textContent = data.message || "Could not update seller.";
             return;
           }
-          statusEl.style.color = "#1c7a34";
+          statusEl.style.color = "var(--success)";
           statusEl.textContent = "✓ Saved.";
           document.getElementById("sellerModalShopTitle").textContent = shopTitle;
           await loadSellerList();
         } catch (err) {
-          statusEl.style.color = "#a3002a";
+          statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Network error — check your connection and try again.";
         }
       }
@@ -2250,19 +2436,19 @@
           const data = await res.json();
           if (res.status === 401) { closeSellerModal(); logout(); return; }
           if (!data.success) {
-            statusEl.style.color = "#a3002a";
+            statusEl.style.color = "var(--danger)";
             statusEl.textContent = data.message || "Could not generate a password.";
             return;
           }
-          statusEl.style.color = "#1c7a34";
+          statusEl.style.color = "var(--success)";
           statusEl.textContent = data.newPassword
-            ? "One-time password: " + data.newPassword + " (copy it now — it won't be shown again after you close this; the seller must set their own password after using it)"
+            ? "New password: " + data.newPassword + " (copy it now — it won't be shown again after you close this)"
             : "✓ " + data.message;
           await loadSellerList();
           const s = sellerListData.find((x) => x.id === sellerModalId);
           if (s) renderSellerModalPendingPassword(s);
         } catch (err) {
-          statusEl.style.color = "#a3002a";
+          statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Network error — check your connection and try again.";
         }
       }
@@ -2275,7 +2461,7 @@
         const pw = document.getElementById("sellerModalCustomPassword").value;
 
         if (pw.length < 6) {
-          statusEl.style.color = "#a3002a";
+          statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Password must be at least 6 characters.";
           return;
         }
@@ -2291,18 +2477,18 @@
           const data = await res.json();
           if (res.status === 401) { closeSellerModal(); logout(); return; }
           if (!data.success) {
-            statusEl.style.color = "#a3002a";
+            statusEl.style.color = "var(--danger)";
             statusEl.textContent = data.message || "Could not set password.";
             return;
           }
-          statusEl.style.color = "#1c7a34";
+          statusEl.style.color = "var(--success)";
           statusEl.textContent = "✓ Password set. Share it with the seller directly.";
           document.getElementById("sellerModalCustomPassword").value = "";
           await loadSellerList();
           const s = sellerListData.find((x) => x.id === sellerModalId);
           if (s) renderSellerModalPendingPassword(s);
         } catch (err) {
-          statusEl.style.color = "#a3002a";
+          statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Network error — check your connection and try again.";
         }
       }
@@ -2381,15 +2567,15 @@
           const data = await res.json();
           if (res.status === 401) { closeSellerModal(); logout(); return; }
           if (!data.success) {
-            statusEl.style.color = "#a3002a";
+            statusEl.style.color = "var(--danger)";
             statusEl.textContent = data.message || "Could not log in as this seller.";
             return;
           }
-          statusEl.style.color = "#1c7a34";
+          statusEl.style.color = "var(--success)";
           statusEl.textContent = "✓ Opened in a new tab.";
-          window.open("/seller?impersonate=" + encodeURIComponent(data.token), "_blank");
+          window.open("/sell?impersonate=" + encodeURIComponent(data.token), "_blank");
         } catch (err) {
-          statusEl.style.color = "#a3002a";
+          statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Network error — check your connection and try again.";
         }
       }
@@ -2437,7 +2623,7 @@
       async function loadSellerApplications() {
         // Fill in the shareable seller-invite link (based on the live site URL).
         const inviteEl = document.getElementById("sellerInviteLink");
-        if (inviteEl) inviteEl.value = window.location.origin + "/sellerapplication";
+        if (inviteEl) inviteEl.value = window.location.origin + "/seller";
         const loadingEl = document.getElementById("sellerAppsLoading");
         const listEl = document.getElementById("sellerAppsList");
         loadingEl.classList.remove("hidden");
@@ -2454,7 +2640,7 @@
           listEl.innerHTML = data.applications.map((a) => (
             '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer;" onclick="openSellerDetailFromApplication(' + a.id + ')">' +
               '<div><strong>' + escapeHtml(a.shopTitle) + '</strong><br>' +
-                '<span style="font-size:13px;color:#8c7d78;">' + escapeHtml(a.name) + ' — ' + escapeHtml(a.email) + '</span></div>' +
+                '<span style="font-size:13px;color:var(--muted);">' + escapeHtml(a.name) + ' — ' + escapeHtml(a.email) + '</span></div>' +
               '<div style="display:flex;gap:8px;" onclick="event.stopPropagation();">' +
                 '<button class="btn small" onclick="approveSellerApplication(' + a.id + ')">Approve</button>' +
                 '<button class="btn small secondary" onclick="rejectSellerApplication(' + a.id + ')">Reject</button>' +
@@ -2512,10 +2698,10 @@
             alert(data.message || "Could not approve this application.");
           }
           closeApproveModeModal();
-          closeSellerDetail();
+          if (typeof closeSellerDetail === "function") closeSellerDetail();
           loadSellerApplications();
         } catch (err) {
-          statusEl.style.color = "#a3002a";
+          statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Network error — try again.";
         } finally {
           btn.disabled = false;
@@ -2546,7 +2732,7 @@
           listEl.innerHTML = data.requests.map((r) => (
             '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
               '<div><strong>' + escapeHtml(r.shopTitle) + '</strong><br>' +
-                '<span style="font-size:13px;color:#8c7d78;">' + escapeHtml(r.name) + ' — ' + escapeHtml(r.sellerId) + '</span></div>' +
+                '<span style="font-size:13px;color:var(--muted);">' + escapeHtml(r.name) + ' — ' + escapeHtml(r.sellerId) + '</span></div>' +
               '<button class="btn small" onclick="resolveSellerPasswordRequest(' + r.id + ')">Generate & send new password</button>' +
             '</div>'
           )).join("");
@@ -2566,7 +2752,7 @@
           alert(
             "⚠️ " + data.message + "\n\n" +
             "Seller ID: " + data.sellerId + "\n" +
-            "One-Time Password: " + data.newPassword + "\n\n" +
+            "New Password: " + data.newPassword + "\n\n" +
             "Send these to them yourself (WhatsApp/SMS) — the automatic email did not go through. " +
             "This usually means GMAIL_USER / GMAIL_APP_PASSWORD aren't set correctly in Render's Environment tab.",
           );
@@ -2596,8 +2782,8 @@
             }).join("");
             return (
               '<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;">' +
-                '<div><strong>' + escapeHtml(r.name) + '</strong> — <span style="font-size:13px;color:#8c7d78;">' + escapeHtml(r.sellerId) + '</span>' +
-                  '<div style="font-size:13px;color:#8c7d78;margin-top:4px;">' + changeLines + '</div></div>' +
+                '<div><strong>' + escapeHtml(r.name) + '</strong> — <span style="font-size:13px;color:var(--muted);">' + escapeHtml(r.sellerId) + '</span>' +
+                  '<div style="font-size:13px;color:var(--muted);margin-top:4px;">' + changeLines + '</div></div>' +
                 '<div style="display:flex;gap:8px;">' +
                   '<button class="btn small" onclick="resolveSellerProfileUpdateRequest(' + r.id + ', \'approve\')">Approve</button>' +
                   '<button class="btn small secondary" onclick="resolveSellerProfileUpdateRequest(' + r.id + ', \'reject\')">Reject</button>' +
@@ -2640,7 +2826,7 @@
               '<div style="display:flex;gap:12px;align-items:center;">' +
                 (p.image ? '<img src="' + escapeHtml(p.image) + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;" />' : '') +
                 '<div><strong>' + escapeHtml(p.name) + '</strong> — ' + fmtINR(p.price) + '<br>' +
-                  '<span style="font-size:13px;color:#8c7d78;">by ' + escapeHtml(p.shopTitle || p.sellerName) + '</span></div>' +
+                  '<span style="font-size:13px;color:var(--muted);">by ' + escapeHtml(p.shopTitle || p.sellerName) + '</span></div>' +
               '</div>' +
               '<div style="display:flex;gap:8px;">' +
                 '<button class="btn small" onclick="approvePendingProduct(' + p.id + ')">Approve</button>' +
@@ -2904,14 +3090,14 @@
                   '<div class="meta">' +
                     '<span class="badge">' + fmtINR(p.price) + "</span>" +
                     '<span class="badge">MOQ ' + (p.moq || 1) + "</span>" +
-                    (p.onSale ? '<span class="badge" style="background:#e8f7ea;color:#1c7a34;">🔥 ' + p.salePercent + "% off" + saleTimerLabel(p) + '</span>' : "") +
-                    (p.giftFor === "her" ? '<span class="badge" style="background:#f3dbe2;color:#8a1c42;">👧 Gift for Her</span>' : "") +
-                    (p.giftFor === "him" ? '<span class="badge" style="background:#f6e3bf;color:#8a5a10;">👦 Gift for Him</span>' : "") +
-                    (p.giftFor === "both" ? '<span class="badge" style="background:#e6d9f3;color:#5a2f8a;">👫 Gift for Both</span>' : "") +
-                    (p.hotProduct ? '<span class="badge" style="background:#fde3e3;color:#a11c1c;">🔥 Hot Product</span>' : "") +
-                    (p.popular ? '<span class="badge" style="background:#e0f0ff;color:#0a5aa8;">⭐ Most Popular</span>' : "") +
-                    (p.trending ? '<span class="badge" style="background:#fff3d6;color:#8a5a10;">📈 Trending</span>' : "") +
-                    (p.active ? "" : '<span class="badge" style="background:#fdeaea;color:#a3002a;">Inactive</span>') +
+                    (p.onSale ? '<span class="badge" style="background:var(--success-bg);color:var(--success);">🔥 ' + p.salePercent + "% off" + saleTimerLabel(p) + '</span>' : "") +
+                    (p.giftFor === "her" ? '<span class="badge" style="background:var(--gold-bg);color: var(--gold-soft);">👧 Gift for Her</span>' : "") +
+                    (p.giftFor === "him" ? '<span class="badge" style="background:var(--warn-bg);color:var(--warn);">👦 Gift for Him</span>' : "") +
+                    (p.giftFor === "both" ? '<span class="badge" style="background:rgba(167,120,255,0.14);color:#c4a8ff;">👫 Gift for Both</span>' : "") +
+                    (p.hotProduct ? '<span class="badge" style="background:var(--danger-bg);color:var(--danger);">🔥 Hot Product</span>' : "") +
+                    (p.popular ? '<span class="badge" style="background:var(--info-bg);color:var(--info);">⭐ Most Popular</span>' : "") +
+                    (p.trending ? '<span class="badge" style="background:var(--warn-bg);color:var(--warn);">📈 Trending</span>' : "") +
+                    (p.active ? "" : '<span class="badge" style="background:var(--danger-bg);color:var(--danger);">Inactive</span>') +
                     "<br/>Sizes: " + escapeHtml(sizeText) + "<br/>" +
                     escapeHtml(discountText) +
                   "</div>" +
@@ -3009,7 +3195,7 @@
               Math.round(total).toLocaleString("en-IN") + ' for ' + t.minQty + ')</div>';
           });
         } else {
-          html += '<div style="margin-top:6px; color:var(--rosewood);">No bulk discount tiers set \u2014 add one above to preview its pricing.</div>';
+          html += '<div style="margin-top:6px; color: var(--gold-soft);">No bulk discount tiers set \u2014 add one above to preview its pricing.</div>';
         }
 
         preview.innerHTML = html;
@@ -3300,8 +3486,8 @@
               .join("");
 
             const totalHtml = isCancelled
-              ? '<span class="order-total" style="text-decoration:line-through;color:#8c7d78;">' + fmtINR(o.total) + '</span>' +
-                '<span style="font-size:11px;color:#a3002a;margin-left:6px;">not counted</span>'
+              ? '<span class="order-total" style="text-decoration:line-through;color:var(--muted);">' + fmtINR(o.total) + '</span>' +
+                '<span style="font-size:11px;color:var(--danger);margin-left:6px;">not counted</span>'
               : '<span class="order-total">' + fmtINR(o.total) + "</span>";
 
             // Payment confirmation is manual for now (customer sends the
@@ -3863,18 +4049,18 @@
     <div id="customerDetailOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9998; align-items:center; justify-content:center; padding:16px;">
       <div style="background:var(--cream); border:1px solid var(--blush-line); border-radius:12px; padding:24px; max-width:520px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
         <button class="btn small secondary" onclick="closeCustomerDetails()" style="position:absolute; top:14px; right:14px;">✕</button>
-        <h3 style="margin:0 0 16px; color:var(--rosewood);">Customer details</h3>
+        <h3 style="margin:0 0 16px; color: var(--gold-soft);">Customer details</h3>
         <div id="customerDetailBody"></div>
       </div>
     </div>
 
-    <!-- SESSION KEEP-ALIVE PROMPT — shown every 1 hour; auto-logout if
+    <!-- SESSION KEEP-ALIVE PROMPT — shown every 10 minutes; auto-logout if
          no response within 10 seconds. -->
     <div id="sessionPromptOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
-      <div style="background:#fff; border-radius:12px; padding:24px; max-width:340px; width:90%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
-        <h3 style="margin:0 0 10px; color:#8a1c42;">Still there?</h3>
-        <p style="margin:0 0 16px; font-size:14px; color:#555;">Do you want to stay logged in?</p>
-        <p style="margin:0 0 16px; font-size:13px; color:#a3002a;">
+      <div style="background:var(--surface); border:1px solid var(--blush-line); border-radius:12px; padding:24px; max-width:340px; width:90%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.45);">
+        <h3 style="margin:0 0 10px; color: var(--gold-soft);">Still there?</h3>
+        <p style="margin:0 0 16px; font-size:14px; color:var(--ink);">Do you want to stay logged in?</p>
+        <p style="margin:0 0 16px; font-size:13px; color:var(--danger);">
           Auto logout in <span id="sessionPromptCountdown">10</span>s
         </p>
         <div style="display:flex; gap:10px; justify-content:center;">
@@ -3883,45 +4069,5 @@
         </div>
       </div>
     </div>
-    <script>
-      // Shared dark-mode toggle — same localStorage key as the rest of the
-      // site, so a visitor's choice carries over across pages. Flips the
-      // dmDarkOverride stylesheet on/off via its `media` attribute rather
-      // than touching individual rules.
-      function applyDarkMode(on) {
-        document.body.classList.toggle("dark-mode", on);
-        var override = document.getElementById("dmDarkOverride");
-        if (override) override.media = on ? "all" : "not all";
-        document.querySelectorAll(".dm-dark-icon").forEach(function (el) {
-          el.textContent = on ? "☀️" : "🌙";
-        });
-        document.querySelectorAll(".dm-dark-btn").forEach(function (el) {
-          el.title = on ? "Switch to light mode" : "Switch to dark mode";
-        });
-      }
-      function toggleDarkMode() {
-        var on = !document.body.classList.contains("dark-mode");
-        try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
-        applyDarkMode(on);
-      }
-      (function initDarkMode() {
-        var saved = null;
-        try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
-        var on;
-        if (saved === "1" || saved === "0") {
-          on = saved === "1";
-        } else {
-          on = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        }
-        applyDarkMode(on);
-        try {
-          window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
-            var cur = null;
-            try { cur = localStorage.getItem("dm_dark_mode"); } catch (err) {}
-            if (cur !== "1" && cur !== "0") applyDarkMode(e.matches);
-          });
-        } catch (e) {}
-      })();
-    </script>
   </body>
 </html>
