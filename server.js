@@ -3223,7 +3223,7 @@ app.post("/api/products/:id/reviews", requireCustomer, (req, res) => {
 // route decodes the stored image and serves it as an actual image response,
 // so a URL like /product-image/12 opens (and link-previews) like any normal
 // photo — used by the "Checkout on WhatsApp" message.
-app.get("/product-image/:id/:index?", (req, res) => {
+app.get("/product-image/:id{/:index}", (req, res) => {
   try {
     const database = readDatabase();
     const productId = Number(req.params.id);
