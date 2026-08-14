@@ -475,7 +475,17 @@
 
             <label for="pCategory">Category</label>
             <select id="pCategory">
-              <option value="">Loading categories…</option>
+              <option value="">Select a category</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Bottles">Bottles</option>
+              <option value="Corporate Gifts">Corporate Gifts</option>
+              <option value="Cushions">Cushions</option>
+              <option value="Engraving">Engraving</option>
+              <option value="Frames">Frames</option>
+              <option value="Home Decor">Home Decor</option>
+              <option value="Keychains">Keychains</option>
+              <option value="Mugs">Mugs</option>
+              <option value="T-Shirts">T-Shirts</option>
             </select>
 
             <label for="pSizes">Sizes (comma separated, optional)</label>
@@ -768,6 +778,10 @@
         }
         window.__dmSeller = seller;
         switchTab("dashboard");
+        // Preload live categories right away (in the background) so the
+        // "Add Product" dropdown is already filled the instant the seller
+        // opens that tab — no "Loading categories…" wait.
+        loadLiveCategories();
       }
 
       function switchTab(tab) {
@@ -784,7 +798,8 @@
         const shell = document.getElementById("dmShell");
         if (shell) shell.classList.remove("dm-sidebar-open");
         if (tab === "dashboard") loadSellerOverview();
-        if (tab === "products") { loadProducts(); loadLiveCategories(); }
+        if (tab === "products") loadProducts();
+        if (tab === "add") loadLiveCategories();
         if (tab === "orders") loadOrders();
         if (tab === "profile") loadProfile();
       }
@@ -823,6 +838,13 @@
       }
 
       // ---------- My Products ----------
+      // The <select> already ships with the 10 known categories hardcoded
+      // in the HTML, so the seller NEVER sees a "Loading…" or empty state —
+      // it works instantly even if this fetch is slow or fails. This
+      // function only runs quietly in the background to pull in any NEW
+      // category the admin adds later (or drop one that's been removed),
+      // updating the same dropdown in place without disturbing what's
+      // already there if the fetch doesn't succeed.
       let liveCategoriesLoaded = false;
       async function loadLiveCategories() {
         const select = document.getElementById("pCategory");
@@ -836,7 +858,9 @@
           const categories = data.success ? (data.categories || []) : [];
           liveCategoriesLoaded = true;
           if (!categories.length) {
-            select.innerHTML = '<option value="">No categories yet — ask admin to add one</option>';
+            // No live categories from the server for some reason — leave the
+            // hardcoded fallback list in the dropdown as-is rather than
+            // wiping it out to an empty/error state.
             return;
           }
           select.innerHTML =
@@ -848,9 +872,9 @@
             select.value = currentValue;
           }
         } catch (err) {
-          console.error("Failed to load categories:", err);
-          select.innerHTML = '<option value="">Could not load categories — tap to retry</option>';
-          select.onclick = () => { select.onclick = null; loadLiveCategories(); };
+          // Fetch failed entirely — no problem, the hardcoded 10 categories
+          // already in the dropdown keep working; just log it and move on.
+          console.error("Failed to load live categories, keeping fallback list:", err);
         }
       }
 
