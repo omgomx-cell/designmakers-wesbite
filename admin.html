@@ -3626,6 +3626,9 @@
                 '<div class="meta">' +
                   escapeHtml(o.customer ? o.customer.name : "—") + " · " + escapeHtml(o.customer ? o.customer.phone : "—") +
                 "</div>" +
+                (o.customer && o.customer.address
+                  ? '<div class="meta" style="font-size:12px;">📍 ' + escapeHtml(o.customer.address) + "</div>"
+                  : "") +
                 '<div class="order-items">' + escapeHtml(itemsText) + "</div>" +
                 '<div class="order-foot">' +
                   '<span class="badge gold">COD</span>' +

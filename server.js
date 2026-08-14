@@ -1519,12 +1519,16 @@ app.delete("/api/admin/sellers/:id", requireAdmin, requireBoss, (req, res) => {
 // ================================
 // ADMIN: EDIT SELLER DETAILS (name / email / phone / shop title)
 // ================================
-// Direct edit by the boss — separate from the seller-initiated
+// Direct edit by any admin — separate from the seller-initiated
 // profile-update-request flow above, which still exists for sellers
-// asking to change their own phone/shopTitle/photo. This lets the boss
+// asking to change their own phone/shopTitle/photo. This lets an admin
 // fix a typo or update a seller's details immediately, no request needed.
+// Same permission level as editing a product (requireAdmin only, no
+// requireBoss) — this was previously boss-only, which meant a regular
+// admin would see the Edit button but every save silently failed with a
+// 403 "only the boss" error.
 
-app.put("/api/admin/sellers/:id", requireAdmin, requireBoss, (req, res) => {
+app.put("/api/admin/sellers/:id", requireAdmin, (req, res) => {
   const database = readDatabase();
   const seller = database.sellers.find((s) => s.id === Number(req.params.id));
   if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
@@ -2370,6 +2374,51 @@ app.get("/api/seller/products", requireSeller, (req, res) => {
   res.json({ success: true, products });
 });
 
+// Edit one of the seller's own products. Like a brand-new listing, an
+// edited product goes back to `approved: false` and waits for an admin to
+// re-review it — otherwise a seller could get a product approved once and
+// then silently change it into something an admin never actually saw.
+app.put("/api/seller/products/:id", requireSeller, (req, res) => {
+  const { errors, product } = validateProductInput(req.body || {});
+
+  if (errors.length) {
+    return res.status(400).json({ success: false, message: errors.join(" ") });
+  }
+
+  const database = readDatabase();
+  const id = Number(req.params.id);
+  const index = database.products.findIndex((p) => p.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({ success: false, message: "Product not found." });
+  }
+  if (database.products[index].sellerId !== req.seller.id) {
+    return res.status(403).json({ success: false, message: "You can only edit your own products." });
+  }
+
+  // The seller's edit form doesn't have a buyBadgePercent field — only the
+  // admin's Homepage Sections tab sets that. Don't let a normal edit reset
+  // it back to the default.
+  if (req.body.buyBadgePercent === undefined) {
+    product.buyBadgePercent = database.products[index].buyBadgePercent ?? 10;
+  }
+
+  database.products[index] = {
+    ...database.products[index],
+    ...product,
+    id,
+    sellerId: database.products[index].sellerId,
+    approved: false,
+  };
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    message: "Product updated — it will appear on the storefront once an admin re-approves it.",
+    product: database.products[index],
+  });
+});
+
 // Orders that include at least one of this seller's products. Each order
 // keeps its normal shape, but `items` is filtered down to just this
 // seller's lines so a seller never sees another seller's line items.
@@ -3178,19 +3227,26 @@ function getOptionalCustomerId(req) {
   }
 }
 
-app.post("/api/orders", (req, res) => {
+app.post("/api/orders", async (req, res) => {
   try {
     const database = readDatabase();
     const { customer, items } = req.body || {};
 
     const phone = normalizePhone(customer && customer.phone);
     const name = customer && String(customer.name || "").trim();
+    // Delivery address — free-text, shown to the admin and (for a
+    // single-seller order) emailed straight to the seller, since this is a
+    // COD business and someone needs to know where to actually deliver.
+    const address = customer && String(customer.address || "").trim();
 
     if (!phone || phone.length < 10) {
       return res.status(400).json({ success: false, message: "A valid 10-digit phone number is required." });
     }
     if (!name) {
       return res.status(400).json({ success: false, message: "Name is required." });
+    }
+    if (!address) {
+      return res.status(400).json({ success: false, message: "Delivery address is required." });
     }
 
     // Price the order from the real product data — the client's numbers are never trusted.
@@ -3202,7 +3258,7 @@ app.post("/api/orders", (req, res) => {
     const newOrder = {
       id: getNextId(database.orders),
       orderNumber: "DM-" + Date.now().toString().slice(-8),
-      customer: { name, phone },
+      customer: { name, phone, address },
       customerId: getOptionalCustomerId(req),
       items: pricing.pricedItems,
       subtotal: Math.round(pricing.subtotal * 100) / 100,
@@ -3227,6 +3283,15 @@ app.post("/api/orders", (req, res) => {
     database.orders.push(newOrder);
     writeDatabase(database);
 
+    // Notify the seller by email, but only when every item in the order
+    // belongs to the SAME seller — a mixed cart (their product alongside
+    // someone else's, or an admin-listed product with no seller) still
+    // routes through the shop's own WhatsApp/admin flow as before, since
+    // there's no single seller to hand the whole order to.
+    notifySellerOfOrder(database, newOrder).catch((err) => {
+      console.error("Seller order-notification email failed:", err.message);
+    });
+
     res.status(201).json({
       success: true,
       message: "Order created successfully.",
@@ -3237,6 +3302,58 @@ app.post("/api/orders", (req, res) => {
     res.status(500).json({ success: false, message: "Unable to create order." });
   }
 });
+
+// Emails the seller when a freshly-placed order is made up entirely of
+// their own products, so they find out about a sale — and where to ship
+// it — without waiting on the admin to relay it from WhatsApp.
+async function notifySellerOfOrder(database, order) {
+  const sellerIds = new Set();
+  let hasNonSellerItem = false;
+
+  (order.items || []).forEach((item) => {
+    const product = database.products.find((p) => p.id === item.productId);
+    if (product && product.sellerId) {
+      sellerIds.add(product.sellerId);
+    } else {
+      hasNonSellerItem = true;
+    }
+  });
+
+  if (hasNonSellerItem || sellerIds.size !== 1) return;
+
+  const seller = database.sellers.find((s) => s.id === [...sellerIds][0]);
+  if (!seller || !seller.email) return;
+
+  await sendMail(
+    seller.email,
+    `New order for ${seller.shopTitle} — ${order.orderNumber}`,
+    buildSellerNewOrderEmail({ seller, order }),
+  );
+}
+
+function buildSellerNewOrderEmail({ seller, order }) {
+  const itemsHtml = (order.items || [])
+    .map(
+      (item) =>
+        `<li>${item.name}${item.size ? " (" + item.size + ")" : ""} × ${item.qty} — ₹${item.lineTotal}</li>`,
+    )
+    .join("");
+
+  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+       <h2 style="color:#8a1c42;margin-bottom:4px;">You've got a new order! 🎉</h2>
+       <p>Hi ${seller.name},</p>
+       <p><b>${order.orderNumber}</b> just came in for <b>${seller.shopTitle}</b>. Here's what to pack and where it's headed:</p>
+       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
+         <p style="margin:0 0 8px;"><b>Items:</b></p>
+         <ul style="margin:0 0 12px;padding-left:20px;">${itemsHtml}</ul>
+         <p style="margin:0 0 8px;"><b>Your total:</b> ₹${order.sellerTotal !== undefined ? order.sellerTotal : order.total}</p>
+         <p style="margin:0 0 8px;"><b>Customer:</b> ${order.customer.name} · ${order.customer.phone}</p>
+         <p style="margin:0;"><b>Delivery address:</b> ${order.customer.address || "Not provided — contact the customer directly."}</p>
+       </div>
+       <p style="font-size:0.85em;color:#8c7d78;">Payment is Cash on Delivery. You can see this order any time in the Orders tab of your Seller Dashboard.</p>
+       <p style="margin-top:18px;">— Team Design Makers</p>
+     </div>`;
+}
 
 // ================================
 // ADMIN: DOWNLOAD DATA BACKUP

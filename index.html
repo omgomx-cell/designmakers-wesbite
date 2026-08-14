@@ -2597,6 +2597,9 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           <input type="text" id="custName" class="checkout-input" placeholder="Your name" oninput="renderCartTotals()" />
           <input type="tel" id="custPhone" class="checkout-input" placeholder="10-digit phone number" maxlength="10" />
         </div>
+        <div class="checkout-fields" id="addressFields" style="display:none;margin-bottom:12px;">
+          <textarea id="custAddress" class="checkout-input" rows="3" placeholder="Full delivery address — house/flat no., street, area, city, state, PIN code" style="width:100%;resize:vertical;font-family:inherit;"></textarea>
+        </div>
         <div class="cart-total-row"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
         <div class="cart-total-row"><span>Bulk discount</span><span id="cartDiscount">−₹0</span></div>
         <div class="cart-total-row grand"><span>Total</span><span id="cartTotal">₹0</span></div>
@@ -4775,6 +4778,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       function updateCheckoutIdentity() {
         const guestFields = document.getElementById("guestFields");
         const identity = document.getElementById("checkoutIdentity");
+        const addressFields = document.getElementById("addressFields");
         const btnLabel = document.getElementById("checkoutBtnLabel");
         if (!guestFields || !identity) return;
         guestFields.style.display = "none"; // guest typing removed — sign-in required
@@ -4784,9 +4788,19 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           identity.textContent = "Ordering as " + (currentCustomer.name || "") + " · " + (currentCustomer.mobile || "");
           document.getElementById("custName").value = currentCustomer.name || "";
           document.getElementById("custPhone").value = currentCustomer.mobile || "";
+          if (addressFields) {
+            addressFields.style.display = "block";
+            const addrInput = document.getElementById("custAddress");
+            // Remember the last address used on this device so returning
+            // customers don't have to retype it every order.
+            if (addrInput && !addrInput.value) {
+              try { addrInput.value = localStorage.getItem("dm_last_address") || ""; } catch (e) {}
+            }
+          }
           if (btnLabel) btnLabel.textContent = "Checkout on WhatsApp";
         } else {
           identity.textContent = "Please sign in to place your order.";
+          if (addressFields) addressFields.style.display = "none";
           if (btnLabel) btnLabel.textContent = "Sign in to checkout";
         }
       }
@@ -4807,6 +4821,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
         // Logged-in customers order with their account name + mobile automatically.
         const name = String(currentCustomer.name || "").trim();
         const phone = String(currentCustomer.mobile || "").replace(/\D/g, "");
+        const address = String((document.getElementById("custAddress") || {}).value || "").trim();
 
         if (!name) {
           errorEl.textContent = "Please enter your name.";
@@ -4815,6 +4830,11 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
         }
         if (phone.length !== 10) {
           errorEl.textContent = "Please enter a valid 10-digit phone number.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!address) {
+          errorEl.textContent = "Please enter your delivery address.";
           errorEl.style.display = "block";
           return;
         }
@@ -4829,7 +4849,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
             method: "POST",
             headers: { "Content-Type": "application/json", ...authHeaders() },
             body: JSON.stringify({
-              customer: { name, phone },
+              customer: { name, phone, address },
               items: cart.map((item) => ({ productId: item.productId, size: item.size, qty: item.qty })),
             }),
           });
@@ -4848,6 +4868,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           lines.push("");
           lines.push("*Order:* " + order.orderNumber);
           lines.push("*Name:* " + name);
+          lines.push("*Delivery address:* " + address);
           lines.push("");
           lines.push("*Items:*");
 
@@ -4874,6 +4895,8 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           lines.push("Please confirm my order. Thank you!");
 
           const message = lines.join("\n");
+
+          try { localStorage.setItem("dm_last_address", address); } catch (e) {}
 
           cart = [];
           updateCartCount();

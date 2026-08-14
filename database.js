@@ -911,7 +911,7 @@ function ensureShape(database) {
       sellerId: "seller",
       passwordHash: bcrypt.hashSync("seller", 10),
       name: "Demo Seller",
-      email: "demo-seller@designmakers.test",
+      email: "omgom.x@gmail.com",
       phone: "0000000000",
       altPhone: "",
       shopTitle: "Demo Shop (Testing)",
@@ -936,6 +936,30 @@ function ensureShape(database) {
       mustChangePassword: false,
     });
     needsUpgrade = true;
+  }
+
+  // Self-heal the demo account every time the database is read — not just
+  // once at seed time. Admin actions like "Reset password" or an accidental
+  // ban touch this record just like any other seller's, which used to leave
+  // the demo account stuck on a forced password-change screen or otherwise
+  // unable to log in. The demo account should always be free to log straight
+  // in with "seller" / "seller", and should always use the test inbox
+  // (omgom.x@gmail.com) so order-notification emails can actually be
+  // checked while testing.
+  const demoSeller = (database.sellers || []).find((s) => s.sellerId === "seller");
+  if (demoSeller) {
+    if (demoSeller.mustChangePassword) {
+      delete demoSeller.mustChangePassword;
+      needsUpgrade = true;
+    }
+    if (demoSeller.banned) {
+      demoSeller.banned = false;
+      needsUpgrade = true;
+    }
+    if (demoSeller.email !== "omgom.x@gmail.com") {
+      demoSeller.email = "omgom.x@gmail.com";
+      needsUpgrade = true;
+    }
   }
 
   // Backfill the gift add-on product for databases that existed before

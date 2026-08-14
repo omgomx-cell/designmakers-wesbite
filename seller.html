@@ -230,6 +230,37 @@
       }
       .badge.pending { background: var(--warn-bg); color: var(--warn); }
       .badge.live { background: var(--success-bg); color: var(--success); }
+      .p-card .actions { padding: 0 12px 12px; }
+      .p-card .actions .btn.small { margin: 0; width: 100%; }
+
+      /* ---------- EDIT PRODUCT MODAL ---------- */
+      #editModalOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(5,6,9,.62);
+        backdrop-filter: blur(3px);
+        z-index: 200;
+        align-items: flex-start;
+        justify-content: center;
+        overflow-y: auto;
+        padding: 40px 16px;
+      }
+      #editModalOverlay.open { display: flex; }
+      #editModalOverlay .modal-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 24px;
+        max-width: 520px;
+        width: 100%;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: 0 10px 32px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
+      }
+      #editModalOverlay h2 { font-family: "Playfair Display", serif; font-size: 1.15em; margin-bottom: 16px; color: var(--gold-soft); }
+      #editModalOverlay .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+      #editModalOverlay .modal-actions .btn.small { margin: 0; width: auto; flex: 1; text-align: center; }
 
       .order-row {
         background: var(--surface);
@@ -547,6 +578,60 @@
     </div>
     </div>
 
+    <!-- Edit Product Modal -->
+    <div id="editModalOverlay">
+      <div class="modal-card">
+        <h2>Edit Product</h2>
+
+        <label for="eName">Product name</label>
+        <input type="text" id="eName" />
+
+        <div class="two-col">
+          <div>
+            <label for="ePrice">Price (₹)</label>
+            <input type="text" id="ePrice" />
+          </div>
+          <div>
+            <label for="eMoq">MOQ</label>
+            <input type="text" id="eMoq" placeholder="1" />
+          </div>
+        </div>
+
+        <label for="eCategory">Category</label>
+        <select id="eCategory">
+          <option value="">Select a category</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Bottles">Bottles</option>
+          <option value="Corporate Gifts">Corporate Gifts</option>
+          <option value="Cushions">Cushions</option>
+          <option value="Engraving">Engraving</option>
+          <option value="Frames">Frames</option>
+          <option value="Home Decor">Home Decor</option>
+          <option value="Keychains">Keychains</option>
+          <option value="Mugs">Mugs</option>
+          <option value="T-Shirts">T-Shirts</option>
+        </select>
+
+        <label for="eSizes">Sizes (comma separated, optional)</label>
+        <input type="text" id="eSizes" placeholder="S, M, L" />
+
+        <label for="eDescription">Description</label>
+        <textarea id="eDescription" rows="3"></textarea>
+
+        <label for="eImage">Replace product photo (optional)</label>
+        <input type="file" id="eImage" accept="image/*" />
+        <div id="eImagePreview" style="display:flex;flex-wrap:wrap;margin-top:8px;"></div>
+
+        <div class="error" id="editProductError"></div>
+        <div class="success-msg" id="editProductSuccess"></div>
+
+        <div class="modal-actions">
+          <button class="btn small secondary" type="button" onclick="closeEditModal()">Cancel</button>
+          <button class="btn small" id="editProductBtn" type="button" onclick="submitEditProduct()">Save changes</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       const TOKEN_KEY = "dm_seller_token";
 
@@ -847,8 +932,10 @@
       // already there if the fetch doesn't succeed.
       let liveCategoriesLoaded = false;
       async function loadLiveCategories() {
-        const select = document.getElementById("pCategory");
-        const currentValue = select.value;
+        // Both the "Add Product" form and the "Edit Product" modal have
+        // their own category <select> — keep them in sync.
+        const selects = [document.getElementById("pCategory"), document.getElementById("eCategory")].filter(Boolean);
+        const currentValues = selects.map((s) => s.value);
         try {
           const res = await fetch("/api/categories");
           if (!res.ok) {
@@ -863,14 +950,18 @@
             // wiping it out to an empty/error state.
             return;
           }
-          select.innerHTML =
+          const optionsHtml =
             '<option value="">Select a category</option>' +
             categories.map((c) => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join("");
-          // Keep whatever the seller had picked (e.g. while editing) if it's
-          // still a valid category; otherwise leave it on the placeholder.
-          if (currentValue && categories.includes(currentValue)) {
-            select.value = currentValue;
-          }
+          selects.forEach((select, i) => {
+            select.innerHTML = optionsHtml;
+            // Keep whatever the seller had picked (e.g. while editing) if
+            // it's still a valid category; otherwise leave it on the
+            // placeholder.
+            if (currentValues[i] && categories.includes(currentValues[i])) {
+              select.value = currentValues[i];
+            }
+          });
         } catch (err) {
           // Fetch failed entirely — no problem, the hardcoded 10 categories
           // already in the dropdown keep working; just log it and move on.
@@ -878,9 +969,14 @@
         }
       }
 
+      // Cached so the Edit modal can look a product up by id without an
+      // extra round-trip when the seller clicks "Edit".
+      let sellerProductsCache = [];
+
       async function loadProducts() {
         const { data } = await api("/api/seller/products");
         if (!data.success) return;
+        sellerProductsCache = data.products;
         const grid = document.getElementById("productsGrid");
         const empty = document.getElementById("productsEmpty");
         grid.innerHTML = "";
@@ -899,9 +995,124 @@
               <div class="name">${escapeHtml(p.name)}</div>
               <div class="meta">₹${p.price} · ${escapeHtml(p.category || "Uncategorized")}</div>
               <span class="badge ${p.approved !== false ? "live" : "pending"}">${p.approved !== false ? "Live" : "Pending approval"}</span>
-            </div>`;
+            </div>
+            <div class="actions"><button class="btn small secondary" onclick="openEditModal(${p.id})">Edit</button></div>`;
           grid.appendChild(card);
         });
+      }
+
+      // ---------- Edit Product ----------
+      let editingProductId = null;
+      let editCurrentImages = [];
+
+      function openEditModal(id) {
+        const p = sellerProductsCache.find((x) => x.id === id);
+        if (!p) return;
+
+        editingProductId = id;
+        editCurrentImages = (Array.isArray(p.images) && p.images.length) ? p.images.slice() : (p.image ? [p.image] : []);
+
+        document.getElementById("eName").value = p.name || "";
+        document.getElementById("ePrice").value = p.price || "";
+        document.getElementById("eMoq").value = p.moq || 1;
+        document.getElementById("eSizes").value = (p.sizes || []).join(", ");
+        document.getElementById("eDescription").value = p.description || "";
+        document.getElementById("eImage").value = "";
+
+        const catSelect = document.getElementById("eCategory");
+        if (p.category && !Array.from(catSelect.options).some((o) => o.value === p.category)) {
+          const opt = document.createElement("option");
+          opt.value = p.category;
+          opt.textContent = p.category;
+          catSelect.appendChild(opt);
+        }
+        catSelect.value = p.category || "";
+
+        document.getElementById("editProductError").style.display = "none";
+        document.getElementById("editProductSuccess").style.display = "none";
+        renderEditImagePreview();
+
+        document.getElementById("editModalOverlay").classList.add("open");
+      }
+
+      function closeEditModal() {
+        document.getElementById("editModalOverlay").classList.remove("open");
+      }
+
+      function renderEditImagePreview() {
+        const row = document.getElementById("eImagePreview");
+        row.innerHTML = editCurrentImages
+          .map((src) => `<img src="${src}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin:0 6px 6px 0;" />`)
+          .join("");
+      }
+
+      document.getElementById("eImage").addEventListener("change", async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await downscaleImage(file, 1000, 0.82);
+          editCurrentImages = [dataUrl];
+          renderEditImagePreview();
+        } catch (err) {
+          document.getElementById("editProductError").textContent = "Could not process the photo. Try a different image.";
+          document.getElementById("editProductError").style.display = "block";
+        }
+      });
+
+      async function submitEditProduct() {
+        const errorEl = document.getElementById("editProductError");
+        const successEl = document.getElementById("editProductSuccess");
+        errorEl.style.display = "none";
+        successEl.style.display = "none";
+
+        const name = document.getElementById("eName").value.trim();
+        const price = document.getElementById("ePrice").value.trim();
+        const moq = document.getElementById("eMoq").value.trim();
+        const category = document.getElementById("eCategory").value.trim();
+        const sizes = document.getElementById("eSizes").value.trim();
+        const description = document.getElementById("eDescription").value.trim();
+
+        if (!name || !price) {
+          errorEl.textContent = "Product name and price are required.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!category) {
+          errorEl.textContent = "Please select a category.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        const btn = document.getElementById("editProductBtn");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+
+        const { data } = await api("/api/seller/products/" + editingProductId, {
+          method: "PUT",
+          body: JSON.stringify({
+            name,
+            price,
+            moq: moq || 1,
+            category,
+            sizes,
+            description,
+            images: editCurrentImages,
+          }),
+        });
+
+        btn.disabled = false;
+        btn.textContent = "Save changes";
+
+        if (!data.success) {
+          errorEl.textContent = data.message || "Could not update product.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        successEl.textContent = data.message || "Product updated.";
+        successEl.style.display = "block";
+        loadProducts();
+        setTimeout(closeEditModal, 900);
       }
 
       // ---------- Add Product ----------
@@ -1027,8 +1238,11 @@
           const row = document.createElement("div");
           row.className = "order-row";
           const itemsText = (o.items || [])
-            .map((it) => `${escapeHtml(it.name)}${it.size ? " (" + escapeHtml(it.size) + ")" : ""} × ${it.qty}`)
-            .join(", ");
+            .map((it) => `${escapeHtml(it.name)}${it.size ? " (" + escapeHtml(it.size) + ")" : ""} × ${it.qty} — ₹${it.lineTotal}`)
+            .join("<br>");
+          const customerName = o.customer && o.customer.name ? o.customer.name : "—";
+          const customerPhone = o.customer && o.customer.phone ? o.customer.phone : "—";
+          const address = o.customer && o.customer.address ? o.customer.address : "";
           row.innerHTML = `
             <div class="top-line">
               <span>${escapeHtml(o.orderNumber || "")}</span>
@@ -1036,6 +1250,8 @@
             </div>
             <div class="item-line">${itemsText}</div>
             <div class="item-line">Your total: ₹${o.sellerTotal}</div>
+            <div class="item-line" style="margin-top:6px;color:#8f8fa1;">👤 ${escapeHtml(customerName)} · ${escapeHtml(customerPhone)}</div>
+            ${address ? `<div class="item-line" style="color:#8f8fa1;">📍 ${escapeHtml(address)}</div>` : ""}
           `;
           list.appendChild(row);
         });
