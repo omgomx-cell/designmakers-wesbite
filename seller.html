@@ -11,26 +11,42 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
+      /* ===== SLATE + GOLD GLASS THEME — same palette as the admin panel,
+         single source of truth, no dark/light toggle ===== */
       :root {
-        --rosewood: #8a1c42;
-        --rosewood-dark: #6b1433;
-        --blush: #f8ecef;
-        --blush-line: #ecd7dd;
-        --gold: #b8863f;
-        --cream: #fffdfb;
-        --ink: #2a231f;
-        --muted: #8c7d78;
-        --surface: #ffffff;
-        --danger: #a5133a;
-        --danger-bg: #fde8ec;
-        --success: #1e7a4c;
-        --success-bg: #e7f6ee;
+        --rosewood: #45515e;
+        --rosewood-dark: #2e3a46;
+        --blush: rgba(200,169,107,.10);
+        --blush-line: rgba(161,168,179,.16);
+        --gold: #c8a96b;
+        --gold-soft: #dcc191;
+        --cream: #2e3a46;
+        --ink: #eef1f4;
+        --muted: #a1a8b3;
+        --surface: rgba(69,81,94,.58);
+        --field: rgba(161,168,179,.08);
+        --line: rgba(161,168,179,.18);
+        --success: #4fce88;
+        --success-bg: rgba(79,206,136,.15);
+        --danger: #e8798a;
+        --danger-bg: rgba(232,121,138,.15);
+        --warn: #c8a96b;
+        --warn-bg: rgba(200,169,107,.15);
+        --info: #8fa8c2;
+        --info-bg: rgba(143,168,194,.15);
+        --gold-bg: rgba(200,169,107,.16);
       }
+      html { background:#242d37; }
       body {
         font-family: "Inter", sans-serif;
-        background: var(--blush);
         color: var(--ink);
         min-height: 100vh;
+        background:
+          radial-gradient(1100px 560px at 8% -10%, rgba(69,81,94,.5), transparent 60%),
+          radial-gradient(950px 620px at 98% 4%, rgba(161,168,179,.18), transparent 55%),
+          radial-gradient(800px 520px at 45% 105%, rgba(200,169,107,.16), transparent 60%),
+          linear-gradient(180deg,#374553 0%, #2e3a46 45%, #242d37 100%);
+        background-attachment: fixed;
       }
       h1, h2, .brand .name { font-family: "Playfair Display", serif; }
 
@@ -45,13 +61,13 @@
       .login-page { width: 100%; max-width: 420px; }
       .brand { text-align: center; margin-bottom: 20px; }
       .brand img { height: 44px; margin-bottom: 8px; }
-      .brand .name { font-weight: 700; font-size: 1.3em; color: var(--rosewood); }
+      .brand .name { font-weight: 700; font-size: 1.3em; color: var(--gold-soft); letter-spacing: 0.04em; }
       .card {
         background: var(--cream);
         border: 1px solid var(--blush-line);
         border-radius: 16px;
         padding: 28px 24px;
-        box-shadow: 0 8px 30px rgba(138,28,66,0.08);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.35);
       }
       .card h1 { font-size: 1.4em; margin-bottom: 6px; }
       .desc { font-size: 0.9em; color: var(--muted); margin-bottom: 20px; line-height: 1.4; }
@@ -78,18 +94,19 @@
         width: 100%;
         margin-top: 20px;
         padding: 13px;
-        background: var(--rosewood);
+        background: linear-gradient(135deg,var(--rosewood-dark),var(--gold));
         color: #fff;
         border: none;
         border-radius: 10px;
         font-size: 1em;
         font-weight: 600;
       }
+      button.submit:hover { background: linear-gradient(135deg,var(--rosewood),var(--gold-soft)); }
       button.submit:disabled { opacity: 0.6; cursor: default; }
       button.link-btn {
         background: none;
         border: none;
-        color: var(--rosewood);
+        color: var(--gold-soft);
         font-size: 0.82em;
         margin-top: 14px;
         display: block;
@@ -98,52 +115,94 @@
       }
       .back-link { display: block; text-align: center; margin-top: 18px; font-size: 0.85em; color: var(--muted); text-decoration: none; }
 
-      /* ---------- DASHBOARD ---------- */
-      #dashboard { display: none; }
-      header.dash-header {
-        background: var(--rosewood);
+      /* ---------- Buttons (same as admin panel) ---------- */
+      .btn {
+        display: inline-block;
+        background: linear-gradient(135deg,var(--rosewood-dark),var(--gold));
         color: #fff;
-        padding: 16px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-      }
-      header.dash-header .who { font-size: 13px; opacity: 0.9; }
-      header.dash-header h1 { font-size: 17px; margin: 0; }
-      header.dash-header button {
-        background: rgba(255,255,255,0.18);
         border: none;
-        color: #fff;
-        padding: 8px 14px;
+        padding: 12px 18px;
         border-radius: 8px;
-        font-size: 13px;
-      }
-      .tabs {
-        display: flex;
-        gap: 4px;
-        background: var(--surface);
-        border-bottom: 1px solid var(--blush-line);
-        padding: 0 12px;
-        overflow-x: auto;
-        position: sticky;
-        top: 56px;
-        z-index: 19;
-      }
-      .tabs button {
-        background: none;
-        border: none;
-        padding: 13px 14px;
-        font-size: 13.5px;
-        color: var(--muted);
-        border-bottom: 2px solid transparent;
-        white-space: nowrap;
+        font-size: 14.5px;
         font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 14px;
       }
-      .tabs button.active { color: var(--rosewood); border-bottom-color: var(--rosewood); }
-      main { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+      .btn:hover { background: linear-gradient(135deg,var(--rosewood),var(--gold-soft)); }
+      .btn.secondary { background: var(--blush); color: var(--gold-soft); }
+      .btn.danger { background: var(--danger-bg); color: var(--danger); }
+      .btn.small { width: auto; padding: 8px 14px; font-size: 12.5px; margin: 4px 4px 0 0; }
+
+      /* ---------- DASHBOARD SHELL (identical to admin panel) ---------- */
+      #dashboard { display: none; }
+      .dm-shell { display:flex; align-items:flex-start; min-height:100vh; }
+      .dm-sidebar{
+        width:252px; flex:0 0 252px; position:sticky; top:0; height:100vh;
+        display:flex; flex-direction:column;
+        background:rgba(35,44,53,.62);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border-right:1px solid var(--line);
+        padding:22px 16px; z-index:70;
+      }
+      .dm-sidebar-logo{ display:flex; flex-direction:column; align-items:center; gap:3px; margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+      .dm-sidebar-logo img{ width:52px; height:52px; object-fit:contain; margin-bottom:4px; }
+      .dm-sidebar-logo .dm-brand-name{ font-family:"Playfair Display",Georgia,serif; font-weight:800; font-size:14.5px; letter-spacing:.05em; color:var(--ink); }
+      .dm-sidebar-logo .dm-brand-sub{ font-size:10px; color:var(--muted); letter-spacing:.03em; }
+      .dm-nav{ display:flex; flex-direction:column; gap:3px; flex:1; overflow-y:auto; }
+      .dm-nav-item{
+        display:flex; align-items:center; gap:10px;
+        background:none; border:none; text-align:left;
+        padding:10px 12px; border-radius:10px;
+        font-size:12.8px; font-weight:650; color:var(--muted);
+        cursor:pointer; width:100%; font-family:inherit;
+      }
+      .dm-nav-item svg{ width:17px; height:17px; flex:0 0 17px; }
+      .dm-nav-item:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
+      .dm-nav-item.active{
+        background:linear-gradient(135deg,rgba(212,162,76,.24),rgba(212,162,76,.09));
+        color:var(--gold-soft);
+        border:1px solid rgba(212,162,76,.32);
+        box-shadow:0 2px 10px rgba(212,162,76,.12);
+      }
+      .dm-sidebar-bottom{ border-top:1px solid var(--line); padding-top:14px; margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+      .dm-view-store{ display:flex; align-items:center; gap:9px; font-size:12.3px; font-weight:650; color:var(--muted); text-decoration:none; padding:9px 10px; border-radius:9px; }
+      .dm-view-store svg{ width:15px; height:15px; }
+      .dm-view-store:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
+      .dm-sidebar-profile{ display:flex; align-items:center; gap:9px; padding:8px; border-radius:12px; background:rgba(255,255,255,.045); border:1px solid var(--line); }
+      .dm-sidebar-avatar{ width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--rosewood-dark),var(--gold)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; flex:0 0 32px; }
+      .dm-sidebar-name{ font-size:12px; font-weight:750; color:var(--ink); line-height:1.3; }
+      .dm-sidebar-role{ font-size:10.3px; color:var(--muted); }
+      .dm-sidebar-logout{ margin-left:auto; background:none; border:none; color:var(--muted); cursor:pointer; padding:4px; }
+      .dm-sidebar-logout:hover{ color:var(--danger); }
+
+      .dm-main{ flex:1; min-width:0; }
+      .dm-topbar{
+        position:sticky; top:0; z-index:60;
+        display:flex; align-items:center; gap:14px;
+        padding:14px 26px;
+        background:rgba(35,44,53,.55);
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        border-bottom:1px solid var(--line);
+      }
+      .dm-topbar-menu{ display:none; background:none; border:none; color:var(--ink); cursor:pointer; padding:4px; }
+      .dm-topbar-title h1{ margin:0; font-size:16.5px; color:var(--ink); font-family:"Playfair Display",Georgia,serif; }
+      .dm-topbar-title p{ margin:1px 0 0; font-size:11.3px; color:var(--muted); }
+      .dm-topbar-actions{ display:flex; align-items:center; gap:14px; margin-left:auto; }
+      .dm-topbar-profile{ display:flex; align-items:center; gap:8px; }
+      .dm-topbar-profile .dm-sidebar-avatar{ width:30px; height:30px; flex:0 0 30px; }
+      .dm-topbar-profile .dm-sidebar-name{ font-size:12px; }
+      .dm-topbar-profile .dm-sidebar-role{ font-size:10px; }
+
+      @media (max-width: 980px){
+        .dm-sidebar{ position:fixed; left:0; top:0; transform:translateX(-100%); transition:transform .25s ease; box-shadow:0 0 40px rgba(0,0,0,.2); }
+        .dm-shell.dm-sidebar-open .dm-sidebar{ transform:translateX(0); }
+        .dm-topbar-menu{ display:block; }
+      }
+
+      main { max-width:1180px; margin: 0 auto; padding: 22px 26px 60px; }
       .panel { display: none; }
       .panel.active { display: block; }
       .section-title { font-family: "Playfair Display", serif; font-size: 1.15em; margin-bottom: 14px; }
@@ -169,7 +228,7 @@
         border-radius: 20px;
         margin-top: 6px;
       }
-      .badge.pending { background: #fff4de; color: #a06a10; }
+      .badge.pending { background: var(--warn-bg); color: var(--warn); }
       .badge.live { background: var(--success-bg); color: var(--success); }
 
       .order-row {
@@ -188,7 +247,7 @@
         padding: 2px 8px;
         border-radius: 20px;
         background: var(--blush);
-        color: var(--rosewood);
+        color: var(--gold-soft);
       }
 
       .form-card {
@@ -198,10 +257,45 @@
         padding: 20px;
         max-width: 520px;
       }
+      /* Glass treatment for every card-like surface — same as admin panel */
+      .card,.p-card,.order-row,.form-card,.seller-kpi,.seller-panel-card {
+        background: var(--surface) !important;
+        border: 1px solid var(--line) !important;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: 0 10px 32px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2) !important;
+      }
+      .card,.form-card { border-radius:18px !important; }
+      input[type=text],input[type=password],input[type=tel],input[type=number],textarea,select {
+        background: var(--field) !important;
+        color: var(--ink) !important;
+        border-color: var(--line) !important;
+        backdrop-filter: blur(6px);
+      }
+      input:focus, textarea:focus, select:focus { outline: none; border-color: var(--gold) !important; }
       .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+      /* Executive dashboard widgets — always on, same look as admin panel's KPIs */
+      #sellerOverview { animation: dmSellerFade .22s ease both; }
+      .seller-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
+      .seller-kpi { padding:16px; border-radius:14px; min-height:112px; position:relative; overflow:hidden; }
+      .seller-kpi::after { content:""; position:absolute; width:85px; height:85px; right:-35px; top:-35px; border-radius:50%; background:var(--gold-bg); }
+      .seller-kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.07em; font-weight:800; }
+      .seller-kpi .value { font-size:24px; font-weight:800; letter-spacing:-.03em; margin-top:10px; color:var(--gold-soft); }
+      .seller-grid-2 { display:grid; grid-template-columns:1.35fr .65fr; gap:16px; }
+      .seller-panel-card { padding:18px; }
+      .seller-panel-card h3 { margin:0 0 14px; font-size:14px; color:var(--ink); }
+      .seller-recent-row { display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-top:1px solid var(--line); font-size:12px; }
+      .seller-recent-row:first-child { border-top:0; }
+      .seller-recent-row strong { color:var(--ink); display:block; }
+      .seller-recent-row span { color:var(--muted); display:block; margin-top:3px; }
+      .seller-pill { padding:5px 8px; border-radius:999px; border:1px solid var(--line); background:var(--field); color:var(--muted); font-size:10px; white-space:nowrap; }
+      @keyframes dmSellerFade { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+      @media (max-width:1000px) { .seller-kpis{grid-template-columns:repeat(3,minmax(0,1fr));} .seller-grid-2{grid-template-columns:1fr;} }
+      @media (max-width:700px) { .seller-kpis{grid-template-columns:repeat(2,minmax(0,1fr));} }
+
       .pending-note {
-        background: #fff4de;
-        color: #a06a10;
+        background: var(--warn-bg);
+        color: var(--warn);
         border-radius: 8px;
         padding: 10px 12px;
         font-size: 0.85em;
@@ -210,82 +304,8 @@
     
 
     </style>
-    <!-- Toggleable dark-mode skin: disabled by default via media="not all",
-         flipped to media="all" by the shared theme JS when dark mode is on. -->
-    <style id="dmDarkOverride" media="not all">
-      /* =========================================================
-         DESIGN MAKERS PREMIUM SELLER CENTER — PHASE 1 UI
-         ========================================================= */
-      :root {
-        --rosewood:#8b5cf6; --rosewood-dark:#6d28d9; --blush:#171722; --blush-line:#2b2b3a;
-        --gold:#f59e0b; --cream:#09090f; --ink:#f7f7fb; --muted:#9696a8; --surface:#11111a;
-        --danger:#ff7e8a; --danger-bg:rgba(239,68,68,.10); --success:#63e6b1; --success-bg:rgba(16,185,129,.10);
-      }
-      html,body{background:#09090f !important;color:#f7f7fb !important;}
-      body{background:radial-gradient(circle at 80% -10%,rgba(139,92,246,.12),transparent 35%),#09090f !important;}
-      #dashboard{min-height:100vh;}
-      header.dash-header{background:rgba(10,10,15,.90) !important;border-bottom:1px solid #252536;backdrop-filter:blur(16px);padding:14px 22px !important;min-height:66px;}
-      header.dash-header h1{font-family:Inter,"Segoe UI",Arial,sans-serif !important;font-size:16px !important;letter-spacing:-.02em;}
-      header.dash-header button{background:#151522 !important;border:1px solid #303044 !important;color:#eee !important;border-radius:9px !important;}
-      .tabs{position:fixed !important;left:0;top:66px !important;bottom:0;width:225px;display:flex !important;flex-direction:column;align-items:stretch;background:rgba(14,14,22,.97) !important;border-right:1px solid #252536 !important;border-bottom:0 !important;padding:16px 10px !important;overflow-y:auto !important;z-index:19;}
-      .tabs::before{content:"SELLER CENTER";color:#6f6f82;font-size:10px;font-weight:800;letter-spacing:.12em;padding:4px 10px 10px;}
-      .tabs button{border:1px solid transparent !important;border-radius:9px !important;text-align:left !important;padding:10px 12px !important;color:#9999aa !important;transition:.18s ease;}
-      .tabs button:hover{background:#171722 !important;color:#fff !important;border-color:#252536 !important;}
-      .tabs button.active{color:#fff !important;background:linear-gradient(90deg,rgba(139,92,246,.20),rgba(139,92,246,.06)) !important;border-color:rgba(139,92,246,.35) !important;box-shadow:inset 3px 0 #8b5cf6 !important;}
-      main{max-width:none !important;margin:0 0 0 225px !important;padding:28px 28px 70px !important;}
-      .card,.form-card,.p-card,.order-row{background:linear-gradient(180deg,#12121c,#101018) !important;border:1px solid #272738 !important;box-shadow:0 10px 30px rgba(0,0,0,.16) !important;}
-      .card,.form-card{border-radius:14px !important;}
-      input[type=text],input[type=password],input[type=tel],textarea{background:#0d0d15 !important;color:#f7f7fb !important;border-color:#2d2d40 !important;border-radius:9px !important;}
-      input:focus,textarea:focus{outline:none;border-color:#8b5cf6 !important;box-shadow:0 0 0 3px rgba(139,92,246,.12);}
-      button.submit{background:#7c3aed !important;border-radius:9px !important;}
-      button.link-btn{color:#a78bfa !important;}
-      .section-title{font-family:Inter,"Segoe UI",Arial,sans-serif !important;font-size:23px !important;font-weight:800;letter-spacing:-.03em;}
-      .p-card{transition:.18s ease;overflow:hidden;}
-      .p-card:hover{transform:translateY(-2px);border-color:#474763 !important;}
-      .p-card img{background:#171722 !important;}
-      .p-card .meta,.hint,.desc,.empty-state,.order-row .item-line{color:#858598 !important;}
-      .badge.pending{background:rgba(245,158,11,.12) !important;color:#ffc96a !important;}
-      .badge.live{background:rgba(16,185,129,.12) !important;color:#63e6b1 !important;}
-      .order-status{background:#191925 !important;color:#bdbdce !important;border:1px solid #303044;}
-      .pending-note{background:rgba(245,158,11,.10) !important;color:#ffc96a !important;border:1px solid rgba(245,158,11,.18);}
-      #sellerOverview{animation:dmSellerFade .22s ease both;}
-      .seller-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px;}
-      .seller-kpi{padding:16px;border-radius:14px;background:linear-gradient(145deg,#151521,#101018);border:1px solid #29293b;min-height:112px;position:relative;overflow:hidden;}
-      .seller-kpi::after{content:"";position:absolute;width:85px;height:85px;right:-35px;top:-35px;border-radius:50%;background:rgba(139,92,246,.10);}
-      .seller-kpi .label{color:#8f8fa1;font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;}
-      .seller-kpi .value{font-size:24px;font-weight:800;letter-spacing:-.03em;margin-top:10px;color:#fff;}
-      .seller-grid-2{display:grid;grid-template-columns:1.35fr .65fr;gap:16px;}
-      .seller-panel-card{padding:18px;border-radius:14px;background:linear-gradient(180deg,#12121c,#101018);border:1px solid #272738;}
-      .seller-panel-card h3{margin:0 0 14px;font-size:14px;}
-      .seller-recent-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #242436;font-size:12px;}
-      .seller-recent-row:first-child{border-top:0;}
-      .seller-recent-row strong{color:#eeeef5;display:block;}
-      .seller-recent-row span{color:#77778a;display:block;margin-top:3px;}
-      .seller-pill{padding:5px 8px;border-radius:999px;border:1px solid #35354a;background:#191925;color:#bdbdce;font-size:10px;white-space:nowrap;}
-      @keyframes dmSellerFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-      @media(max-width:1000px){.seller-kpis{grid-template-columns:repeat(3,minmax(0,1fr));}.seller-grid-2{grid-template-columns:1fr;}}
-      @media(max-width:700px){.tabs{position:sticky !important;top:0 !important;left:auto;width:auto;bottom:auto;height:auto;flex-direction:row;padding:8px !important;border-right:0 !important;border-bottom:1px solid #252536 !important;overflow-x:auto !important;}.tabs::before{display:none}.tabs button{width:auto;flex:0 0 auto;text-align:center !important}.tabs button.active{box-shadow:inset 0 -2px #8b5cf6 !important}.tabs{z-index:20}main{margin-left:0 !important;padding:18px 12px 60px !important}.seller-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}}
-
-
-      /* ===== FINAL SELLER OBSIDIAN GOLD THEME ===== */
-      body { background:#060607 !important; color:#f5f5f7 !important; }
-      #loginScreen { background:radial-gradient(circle at 50% 30%,rgba(232,184,75,.08),transparent 30%),#060607 !important; }
-      .login-page .brand img { filter:drop-shadow(0 0 14px rgba(232,184,75,.22)); }
-      .login-page .card { background:linear-gradient(145deg,rgba(22,20,15,.88),rgba(8,8,9,.96)) !important; border:1px solid rgba(232,184,75,.20) !important; box-shadow:0 30px 90px rgba(0,0,0,.55) !important; backdrop-filter:blur(22px); }
-      button.submit { background:linear-gradient(135deg,#d99f28,#f3c85c) !important; color:#171109 !important; box-shadow:0 10px 28px rgba(232,184,75,.14); }
-      header.dash-header { background:rgba(8,8,9,.88) !important; border-bottom:1px solid rgba(232,184,75,.16); backdrop-filter:blur(18px); }
-      .tabs { background:rgba(9,9,11,.94) !important; border-bottom-color:rgba(232,184,75,.14) !important; }
-      .tabs .tab-btn.active { color:#f2ca6c !important; border-bottom-color:#e8b84b !important; }
-      .seller-kpi,.seller-panel-card,.panel-card,.card { background:linear-gradient(145deg,rgba(20,18,14,.92),rgba(10,10,11,.96)) !important; border-color:rgba(232,184,75,.14) !important; box-shadow:0 14px 36px rgba(0,0,0,.2); }
-      .seller-kpi .value { color:#f5d47a !important; }
-      input,textarea,select { background:#0d0d10 !important; color:#f5f5f7 !important; border-color:#2b2923 !important; }
-    </style>
   </head>
   <body>
-    <button class="dm-dark-btn" onclick="toggleDarkMode()" title="Toggle dark mode" style="position:fixed; top:16px; right:16px; z-index:999; width:40px; height:40px; border-radius:50%; border:1px solid var(--blush-line); background:var(--surface); color:var(--ink); font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(0,0,0,0.25);">
-      <span class="dm-dark-icon">🌙</span>
-    </button>
-
     <!-- ============ LOGIN SCREEN ============ -->
     <div id="loginScreen">
       <div class="login-page">
@@ -366,21 +386,41 @@
 
     <!-- ============ DASHBOARD ============ -->
     <div id="dashboard">
-      <header class="dash-header">
-        <div>
-          <h1 id="dashShopTitle">Seller Dashboard</h1>
-          <div class="who" id="dashSellerId"></div>
+    <div class="dm-shell" id="dmShell">
+      <aside class="dm-sidebar">
+        <div class="dm-sidebar-logo">
+          <img src="Logo.png" alt="Design Makers" />
+          <div class="dm-brand-name">DESIGN MAKERS</div>
+          <div class="dm-brand-sub">Seller Center</div>
         </div>
-        <button onclick="doLogout()">Log out</button>
-      </header>
+        <nav class="dm-nav">
+          <button class="tab-btn dm-nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</button>
+          <button class="tab-btn dm-nav-item" data-tab="products" onclick="switchTab('products')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>My Products</button>
+          <button class="tab-btn dm-nav-item" data-tab="add" onclick="switchTab('add')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Add Product</button>
+          <button class="tab-btn dm-nav-item" data-tab="orders" onclick="switchTab('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Orders</button>
+          <button class="tab-btn dm-nav-item" data-tab="profile" onclick="switchTab('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>Profile</button>
+        </nav>
+        <div class="dm-sidebar-bottom">
+          <a class="dm-view-store" href="index.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>View Store</a>
+          <div class="dm-sidebar-profile">
+            <div class="dm-sidebar-avatar" id="sidebarAvatar">SL</div>
+            <div style="min-width:0;">
+              <div class="dm-sidebar-name" id="dashShopTitle">Seller Dashboard</div>
+              <div class="dm-sidebar-role" id="dashSellerId"></div>
+            </div>
+            <button class="dm-sidebar-logout" onclick="doLogout()" title="Log out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg></button>
+          </div>
+        </div>
+      </aside>
 
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
-        <button class="tab-btn" data-tab="products" onclick="switchTab('products')">My Products</button>
-        <button class="tab-btn" data-tab="add" onclick="switchTab('add')">Add Product</button>
-        <button class="tab-btn" data-tab="orders" onclick="switchTab('orders')">Orders</button>
-        <button class="tab-btn" data-tab="profile" onclick="switchTab('profile')">Profile</button>
-      </div>
+      <div class="dm-main">
+        <div class="dm-topbar">
+          <button class="dm-topbar-menu" onclick="dmToggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></button>
+          <div class="dm-topbar-title">
+            <h1 id="dmTopbarTitle">Dashboard</h1>
+            <p id="dmTopbarSub">Your business overview</p>
+          </div>
+        </div>
 
       <main>
         <!-- SELLER EXECUTIVE DASHBOARD -->
@@ -491,6 +531,8 @@
           </div>
         </div>
       </main>
+      </div>
+    </div>
     </div>
 
     <script>
@@ -701,11 +743,27 @@
       }
 
       // ---------- Dashboard shell ----------
+      const DM_SELLER_TAB_TITLES = {
+        dashboard: ["Dashboard", "Your business overview"],
+        products: ["My Products", "Everything you've listed"],
+        add: ["Add Product", "Submit a new product for approval"],
+        orders: ["Orders", "Track orders containing your products"],
+        profile: ["Profile", "Your shop details"],
+      };
+      function dmToggleSidebar() {
+        const shell = document.getElementById("dmShell");
+        if (shell) shell.classList.toggle("dm-sidebar-open");
+      }
       function enterDashboard(seller) {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
         document.getElementById("dashShopTitle").textContent = seller.shopTitle || "Seller Dashboard";
         document.getElementById("dashSellerId").textContent = seller.sellerId + " · " + seller.name;
+        const avatarEl = document.getElementById("sidebarAvatar");
+        if (avatarEl) {
+          const initials = (seller.shopTitle || seller.name || "SL").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+          avatarEl.textContent = initials || "SL";
+        }
         window.__dmSeller = seller;
         switchTab("dashboard");
       }
@@ -714,6 +772,15 @@
         document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
         document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
         document.getElementById("panel-" + tab).classList.add("active");
+        const titleInfo = DM_SELLER_TAB_TITLES[tab];
+        if (titleInfo) {
+          const titleEl = document.getElementById("dmTopbarTitle");
+          const subEl = document.getElementById("dmTopbarSub");
+          if (titleEl) titleEl.textContent = titleInfo[0];
+          if (subEl) subEl.textContent = titleInfo[1];
+        }
+        const shell = document.getElementById("dmShell");
+        if (shell) shell.classList.remove("dm-sidebar-open");
         if (tab === "dashboard") loadSellerOverview();
         if (tab === "products") loadProducts();
         if (tab === "orders") loadOrders();
@@ -1001,45 +1068,6 @@
         } else {
           clearToken();
         }
-      })();
-    </script>
-    <script>
-      // Shared dark-mode toggle — same localStorage key as the rest of the
-      // site, so a visitor's choice carries over across pages. Flips the
-      // dmDarkOverride stylesheet on/off via its `media` attribute.
-      function applyDarkMode(on) {
-        document.body.classList.toggle("dark-mode", on);
-        var override = document.getElementById("dmDarkOverride");
-        if (override) override.media = on ? "all" : "not all";
-        document.querySelectorAll(".dm-dark-icon").forEach(function (el) {
-          el.textContent = on ? "☀️" : "🌙";
-        });
-        document.querySelectorAll(".dm-dark-btn").forEach(function (el) {
-          el.title = on ? "Switch to light mode" : "Switch to dark mode";
-        });
-      }
-      function toggleDarkMode() {
-        var on = !document.body.classList.contains("dark-mode");
-        try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
-        applyDarkMode(on);
-      }
-      (function initDarkMode() {
-        var saved = null;
-        try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
-        var on;
-        if (saved === "1" || saved === "0") {
-          on = saved === "1";
-        } else {
-          on = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        }
-        applyDarkMode(on);
-        try {
-          window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
-            var cur = null;
-            try { cur = localStorage.getItem("dm_dark_mode"); } catch (err) {}
-            if (cur !== "1" && cur !== "0") applyDarkMode(e.matches);
-          });
-        } catch (e) {}
       })();
     </script>
   </body>
