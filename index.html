@@ -572,31 +572,91 @@
       /* ===== Gift add-on promo banner (below hero) ===== */
       .gift-addon-banner {
         display: none;
-        margin: 18px auto;
+        position: relative;
+        align-items: center;
+        gap: 14px;
+        margin: 22px auto;
         max-width: 900px;
-        background: linear-gradient(135deg, #fff3e0, #ffe4c4);
-        border: 1px solid #e6b978;
-        border-radius: 12px;
-        padding: 14px 18px;
-        text-align: center;
-        color: #6b3f10;
-        font-size: 13.5px;
+        background: linear-gradient(135deg, #ff8a3d, #e6006e 65%, #a31256);
+        border: none;
+        border-radius: 16px;
+        padding: 16px 22px;
+        text-align: left;
+        color: #fff;
+        font-size: 14px;
         font-weight: 600;
         line-height: 1.5;
+        box-shadow: 0 10px 28px rgba(230, 0, 110, 0.35), 0 0 0 3px #ffe4c4;
+        overflow: hidden;
+        animation: giftBannerPulse 2.2s ease-in-out infinite;
       }
-      .gift-addon-banner strong { color: #a3572a; }
+      .gift-addon-banner.show { display: flex; }
+      .gift-addon-banner::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0 12px, transparent 12px 24px);
+        pointer-events: none;
+      }
+      .gift-addon-banner .gift-addon-icon {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.22);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+      }
+      .gift-addon-banner .gift-addon-text { position: relative; z-index: 1; flex: 1; }
+      .gift-addon-banner .gift-addon-tag {
+        display: inline-block;
+        background: #fff;
+        color: #c40064;
+        font-size: 10.5px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-bottom: 4px;
+      }
+      .gift-addon-banner strong { color: #fff8ec; }
+      @keyframes giftBannerPulse {
+        0%, 100% { box-shadow: 0 10px 28px rgba(230, 0, 110, 0.35), 0 0 0 3px #ffe4c4; }
+        50% { box-shadow: 0 10px 34px rgba(230, 0, 110, 0.5), 0 0 0 6px #ffe4c4; }
+      }
+      @media (max-width: 600px) {
+        .gift-addon-banner { margin: 16px 12px; padding: 14px 16px; font-size: 13px; }
+        .gift-addon-banner .gift-addon-icon { width: 38px; height: 38px; font-size: 18px; }
+      }
 
       /* ===== Gift add-on row inside the cart ===== */
       .gift-addon-row {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
         padding: 12px;
         margin: 6px 0 14px;
-        background: #fff6ea;
-        border: 1px dashed #d9a256;
-        border-radius: 8px;
+        background: linear-gradient(135deg, #fff6ea, #ffe9d1);
+        border: 1.5px dashed #e6006e;
+        border-radius: 10px;
+        position: relative;
       }
+      .gift-addon-row .gift-addon-img {
+        width: 52px;
+        height: 52px;
+        border-radius: 8px;
+        background: var(--blush, #f6dfe6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+      .gift-addon-row .gift-addon-img img { width: 100%; height: 100%; object-fit: cover; }
       .gift-addon-row input[type="checkbox"] {
         width: 18px;
         height: 18px;
@@ -606,7 +666,22 @@
       }
       .gift-addon-row label { flex: 1; font-size: 13px; cursor: pointer; }
       .gift-addon-row .gift-addon-title { font-weight: 700; display: block; }
-      .gift-addon-row .gift-addon-price { font-weight: 700; color: var(--rosewood, #9e1b32); white-space: nowrap; }
+      .gift-addon-row .gift-addon-badge {
+        display: inline-block;
+        background: #e6006e;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        padding: 1px 7px;
+        border-radius: 999px;
+        margin-left: 6px;
+        vertical-align: middle;
+      }
+      .gift-addon-row .gift-addon-price-wrap { text-align: right; white-space: nowrap; }
+      .gift-addon-row .gift-addon-was { display: block; font-size: 11.5px; color: #b5849c; text-decoration: line-through; }
+      .gift-addon-row .gift-addon-price { font-weight: 800; color: var(--rosewood, #9e1b32); font-size: 15px; }
 
       /* ===== Top bar ===== */
       .announce {
@@ -2302,7 +2377,11 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       </div>
     </div>
     <div class="gift-addon-banner" id="giftAddonBanner">
-      🎁 <strong>Today's Special:</strong> Add a printed photo mug to your order for just ₹99 — automatically available in your cart on orders of ₹599 or more.
+      <div class="gift-addon-icon">🎁</div>
+      <div class="gift-addon-text">
+        <span class="gift-addon-tag">Today's Special</span><br/>
+        <strong>Photo Mug for just ₹99</strong> — worth ₹249. Automatically unlocks in your cart on orders of ₹599 or more.
+      </div>
     </div>
 
     <div class="festival-strip-wrap festival-offer-wrap" id="aug15OfferWrap">
@@ -2712,6 +2791,21 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       const GIFT_ADDON_PRODUCT_ID = 9999;
       const GIFT_ADDON_PRICE = 99;
       const GIFT_ADDON_MIN_SUBTOTAL = 599;
+      // Shown as a struck-through "was" price next to the ₹99 offer price so
+      // the deal reads as a real price-cut, not just a flat add-on fee.
+      // Display-only — never sent to the server, which prices the addon at
+      // GIFT_ADDON_PRICE regardless.
+      const GIFT_ADDON_ORIGINAL_PRICE = 249;
+
+      // The addon's own product record may not carry an image (it's a
+      // hidden/synthetic product). Fall back to a real mug product's photo
+      // so the offer always shows a picture instead of a blank/emoji tile.
+      function getGiftAddonImage() {
+        const liveAddon = allProducts.find((p) => p.id === GIFT_ADDON_PRODUCT_ID);
+        if (liveAddon && liveAddon.image) return liveAddon.image;
+        const fallbackMug = allProducts.find((p) => p.image && /mug/i.test(p.name || p.category || ""));
+        return (fallbackMug && fallbackMug.image) || "";
+      }
       const GIFT_ADDON_DAYS = [14, 15, 27, 28];
 
       // Eligibility is date-gated in India Standard Time regardless of the
@@ -2726,7 +2820,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       function showGiftAddonBanner() {
         const banner = document.getElementById("giftAddonBanner");
         if (!banner) return;
-        banner.style.display = isGiftAddonDateToday() ? "block" : "none";
+        banner.classList.toggle("show", isGiftAddonDateToday());
       }
       // Cart persists on the device (localStorage) and, when signed in, on the
       // customer's account too — so it survives logout and follows them to any device.
@@ -4496,7 +4590,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
             price: GIFT_ADDON_PRICE,
             qty: 1,
             size: null,
-            image: "",
+            image: getGiftAddonImage(),
             discounts: [],
           });
         } else if (!checked && idx !== -1) {
@@ -4510,15 +4604,21 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       function renderGiftAddonRow(eligible) {
         if (!eligible) return "";
         const checked = cart.some((i) => i.productId === GIFT_ADDON_PRODUCT_ID);
+        const addonImage = getGiftAddonImage();
+        const imgHtml = addonImage ? '<img src="' + escapeHtml(addonImage) + '" />' : "🎁";
         return (
           '<div class="gift-addon-row">' +
+            '<div class="gift-addon-img">' + imgHtml + "</div>" +
             '<input type="checkbox" id="giftAddonCheckbox" ' + (checked ? "checked" : "") +
               ' onchange="toggleGiftAddon(this.checked)" />' +
             '<label for="giftAddonCheckbox">' +
-              '<span class="gift-addon-title">🎁 Add a photo mug</span>' +
-              "Today's special add-on for orders ₹" + fmtINR(GIFT_ADDON_MIN_SUBTOTAL) + "+" +
+              '<span class="gift-addon-title">Add a photo mug<span class="gift-addon-badge">Special price</span></span>' +
+              "Today's deal on orders ₹" + fmtINR(GIFT_ADDON_MIN_SUBTOTAL) + "+" +
             "</label>" +
-            '<span class="gift-addon-price">₹' + fmtINR(GIFT_ADDON_PRICE) + "</span>" +
+            '<div class="gift-addon-price-wrap">' +
+              '<span class="gift-addon-was">₹' + fmtINR(GIFT_ADDON_ORIGINAL_PRICE) + "</span>" +
+              '<span class="gift-addon-price">₹' + fmtINR(GIFT_ADDON_PRICE) + "</span>" +
+            "</div>" +
           "</div>"
         );
       }
