@@ -2929,30 +2929,25 @@ app.get("/api/status", (req, res) => {
 // GET ALL ACTIVE PRODUCTS (public storefront)
 // ================================
 
-// Public — categories that are currently LIVE on the storefront (i.e. the
-// same active + approved + not-hidden + not-banned-seller products that
-// GET /api/products returns). Used by the seller dashboard's "Add Product"
-// form so a seller can only pick a category that's actually showing on the
-// site right now, instead of free-typing anything.
+// Public — the exact same category list the admin manages from the
+// Categories screen (GET /api/admin/categories): every category any
+// product currently uses, PLUS any category the boss has created ahead of
+// time with zero products yet. This is what "the categories" means to the
+// admin, so it's what a seller should see too — not a narrower subset,
+// or a newly-created category would never appear for sellers to pick
+// until a product already existed in it (chicken-and-egg).
 app.get("/api/categories", (req, res) => {
   try {
     const database = readDatabase();
-    const bannedSellerIds = new Set(
-      (database.sellers || []).filter((s) => s.banned).map((s) => s.id),
-    );
     const names = new Set();
-    (database.products || [])
-      .filter(
-        (product) =>
-          product.active &&
-          product.approved !== false &&
-          !product.hidden &&
-          !(product.sellerId && bannedSellerIds.has(product.sellerId)),
-      )
-      .forEach((product) => {
-        const c = String(product.category || "").trim();
-        if (c) names.add(c);
-      });
+    (database.products || []).forEach((p) => {
+      const c = String(p.category || "").trim();
+      if (c) names.add(c);
+    });
+    (database.categories || []).forEach((c) => {
+      const trimmed = String(c || "").trim();
+      if (trimmed) names.add(trimmed);
+    });
     res.json({ success: true, categories: Array.from(names).sort((a, b) => a.localeCompare(b)) });
   } catch (error) {
     console.error(error);

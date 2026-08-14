@@ -829,23 +829,28 @@
         const currentValue = select.value;
         try {
           const res = await fetch("/api/categories");
+          if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+          }
           const data = await res.json();
           const categories = data.success ? (data.categories || []) : [];
           liveCategoriesLoaded = true;
           if (!categories.length) {
-            select.innerHTML = '<option value="">No live categories yet — ask admin to add one</option>';
+            select.innerHTML = '<option value="">No categories yet — ask admin to add one</option>';
             return;
           }
           select.innerHTML =
             '<option value="">Select a category</option>' +
             categories.map((c) => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join("");
           // Keep whatever the seller had picked (e.g. while editing) if it's
-          // still a live category; otherwise leave it on the placeholder.
+          // still a valid category; otherwise leave it on the placeholder.
           if (currentValue && categories.includes(currentValue)) {
             select.value = currentValue;
           }
         } catch (err) {
-          select.innerHTML = '<option value="">Could not load categories — try again</option>';
+          console.error("Failed to load categories:", err);
+          select.innerHTML = '<option value="">Could not load categories — tap to retry</option>';
+          select.onclick = () => { select.onclick = null; loadLiveCategories(); };
         }
       }
 
