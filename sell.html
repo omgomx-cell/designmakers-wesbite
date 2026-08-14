@@ -31,6 +31,7 @@
         padding: 32px 16px;
         transition: background 0.4s ease, color 0.4s ease;
       }
+      @media (min-width: 700px) { body { padding: 48px 24px; } }
       .dark-toggle {
         position: fixed;
         top: 16px; right: 16px;
@@ -49,7 +50,10 @@
       .page {
         width: 100%;
         max-width: 480px;
+        transition: max-width 0.2s ease;
       }
+      @media (min-width: 700px)  { .page { max-width: 720px; } }
+      @media (min-width: 1000px) { .page { max-width: 880px; } }
       .brand {
         text-align: center;
         margin-bottom: 20px;
@@ -68,12 +72,15 @@
         padding: 28px 24px;
         box-shadow: 0 8px 30px rgba(138,28,66,0.08);
       }
+      @media (min-width: 700px)  { .card { padding: 40px 44px; border-radius: 20px; } }
+      @media (min-width: 1000px) { .card { padding: 48px 56px; } }
       h1 {
         font-family: "Playfair Display", serif;
         font-size: 1.4em;
         margin-bottom: 6px;
         color: var(--ink);
       }
+      @media (min-width: 700px) { h1 { font-size: 1.7em; } }
       .desc {
         font-size: 0.9em;
         color: var(--muted);
@@ -105,9 +112,11 @@
       input[type="file"] { font-size: 0.85em; }
       .row2 {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 0 16px;
       }
+      .row2 > div:not(:first-child) label { margin-top: 14px; }
+      @media (min-width: 700px) { .row2 { gap: 0 24px; } }
       .section-title {
         margin-top: 22px;
         padding-top: 16px;
@@ -194,33 +203,48 @@
           <h1>Become a seller</h1>
           <p class="desc">Fill this in and we'll review your application. You'll get your Seller ID and password by email once approved.</p>
 
-          <label for="applyName">Full name</label>
-          <input type="text" id="applyName" />
+          <div class="row2">
+            <div>
+              <label for="applyName">Full name</label>
+              <input type="text" id="applyName" />
+            </div>
+            <div>
+              <label for="applyEmail">Email address</label>
+              <input type="email" id="applyEmail" />
+            </div>
+          </div>
 
-          <label for="applyEmail">Email address</label>
-          <input type="email" id="applyEmail" />
-
-          <label for="applyPhone">Phone number</label>
-          <input type="tel" id="applyPhone" />
-
-          <label for="applyAltPhone">Alternate phone <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
-          <input type="tel" id="applyAltPhone" />
+          <div class="row2">
+            <div>
+              <label for="applyPhone">Phone number</label>
+              <input type="tel" id="applyPhone" />
+            </div>
+            <div>
+              <label for="applyAltPhone">Alternate phone <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+              <input type="tel" id="applyAltPhone" />
+            </div>
+          </div>
 
           <div class="section-title">Business / store information</div>
 
-          <label for="applyShopTitle">Your shop title</label>
-          <input type="text" id="applyShopTitle" />
-
-          <label for="applyBusinessType">Business type</label>
-          <select id="applyBusinessType">
-            <option value="">Select business type</option>
-            <option>Customized Gifts</option>
-            <option>Apparel &amp; T-Shirts</option>
-            <option>Mugs &amp; Drinkware</option>
-            <option>Photo Frames &amp; Decor</option>
-            <option>Stationery</option>
-            <option>Other</option>
-          </select>
+          <div class="row2">
+            <div>
+              <label for="applyShopTitle">Your shop title</label>
+              <input type="text" id="applyShopTitle" />
+            </div>
+            <div>
+              <label for="applyBusinessType">Business type</label>
+              <select id="applyBusinessType">
+                <option value="">Select business type</option>
+                <option>Customized Gifts</option>
+                <option>Apparel &amp; T-Shirts</option>
+                <option>Mugs &amp; Drinkware</option>
+                <option>Photo Frames &amp; Decor</option>
+                <option>Stationery</option>
+                <option>Other</option>
+              </select>
+            </div>
+          </div>
 
           <label for="applyBusinessAddress">Business address</label>
           <input type="text" id="applyBusinessAddress" placeholder="Street, area" />
@@ -234,17 +258,24 @@
               <label for="applyState">State</label>
               <input type="text" id="applyState" />
             </div>
+            <div>
+              <label for="applyPincode">Pincode</label>
+              <input type="text" id="applyPincode" maxlength="6" inputmode="numeric" />
+            </div>
           </div>
-          <label for="applyPincode">Pincode</label>
-          <input type="text" id="applyPincode" maxlength="6" inputmode="numeric" />
 
           <div class="section-title">Identity information</div>
 
-          <label for="applyAadhaar">Aadhaar number (12 digits)</label>
-          <input type="text" id="applyAadhaar" maxlength="12" />
-
-          <label for="applyPan">PAN number</label>
-          <input type="text" id="applyPan" maxlength="10" placeholder="ABCDE1234F" style="text-transform:uppercase;" />
+          <div class="row2">
+            <div>
+              <label for="applyAadhaar">Aadhaar number (12 digits)</label>
+              <input type="text" id="applyAadhaar" maxlength="12" />
+            </div>
+            <div>
+              <label for="applyPan">PAN number</label>
+              <input type="text" id="applyPan" maxlength="10" placeholder="ABCDE1234F" style="text-transform:uppercase;" />
+            </div>
+          </div>
 
           <div class="row2">
             <div>
@@ -262,25 +293,40 @@
             </div>
           </div>
 
-          <label for="applyPersonPhoto">Your photo (a clear selfie or headshot)</label>
-          <input type="file" id="applyPersonPhoto" accept="image/*" />
-
-          <label for="applyAadhaarPhoto">Photo of your Aadhaar card</label>
-          <input type="file" id="applyAadhaarPhoto" accept="image/*" />
+          <div class="row2">
+            <div>
+              <label for="applyPersonPhoto">Your photo (a clear selfie or headshot)</label>
+              <input type="file" id="applyPersonPhoto" accept="image/*" />
+            </div>
+            <div>
+              <label for="applyAadhaarPhoto">Photo of your Aadhaar card</label>
+              <input type="file" id="applyAadhaarPhoto" accept="image/*" />
+            </div>
+          </div>
 
           <div class="section-title">Bank / payout information</div>
 
-          <label for="applyBankAccount">Bank account number</label>
-          <input type="text" id="applyBankAccount" inputmode="numeric" />
+          <div class="row2">
+            <div>
+              <label for="applyBankAccount">Bank account number</label>
+              <input type="text" id="applyBankAccount" inputmode="numeric" />
+            </div>
+            <div>
+              <label for="applyIfsc">IFSC code</label>
+              <input type="text" id="applyIfsc" maxlength="11" placeholder="SBIN0001234" style="text-transform:uppercase;" />
+            </div>
+          </div>
 
-          <label for="applyIfsc">IFSC code</label>
-          <input type="text" id="applyIfsc" maxlength="11" placeholder="SBIN0001234" style="text-transform:uppercase;" />
-
-          <label for="applyUpi">UPI ID <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
-          <input type="text" id="applyUpi" placeholder="you@upi" />
-
-          <label for="applyGst">GST number <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
-          <input type="text" id="applyGst" style="text-transform:uppercase;" />
+          <div class="row2">
+            <div>
+              <label for="applyUpi">UPI ID <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+              <input type="text" id="applyUpi" placeholder="you@upi" />
+            </div>
+            <div>
+              <label for="applyGst">GST number <span style="color:var(--muted);font-weight:400;">(optional)</span></label>
+              <input type="text" id="applyGst" style="text-transform:uppercase;" />
+            </div>
+          </div>
 
           <div class="error" id="sellerApplyError"></div>
 
