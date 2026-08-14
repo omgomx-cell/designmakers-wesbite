@@ -130,6 +130,20 @@ function generateSellerPassword() {
   return out;
 }
 
+// Generates the initial seller password from their shop name + Aadhaar,
+// e.g. "Kanak Gifts" + last-4 "7391" -> "Kanak#7391" — easy for the seller
+// to remember/guess-recall themselves. Only used the first time (at
+// approval); a later admin "Reset password" still falls back to a random
+// one via generateSellerPassword(), since regenerating this same formula
+// would just hand back the identical password.
+function generateShopBasedPassword(shopTitle, aadhaarLast4) {
+  const firstWord = String(shopTitle || "").trim().split(/\s+/)[0] || "";
+  const cleaned = firstWord.replace(/[^a-zA-Z0-9]/g, "") || "Shop";
+  const capitalized = cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
+  const last4 = String(aadhaarLast4 || "").padStart(4, "0").slice(-4);
+  return `${capitalized}#${last4}`;
+}
+
 function getClientIp(req) {
   const forwarded = req.headers["x-forwarded-for"];
   if (forwarded) return forwarded.split(",")[0].trim();
@@ -963,6 +977,9 @@ app.post("/api/seller/login", loginLimiter, (req, res) => {
     success: true,
     token,
     seller: { id: seller.id, sellerId: seller.sellerId, name: seller.name, shopTitle: seller.shopTitle },
+    // True only right after an OTP/one-time password login — the dashboard
+    // should block everything else until the seller sets their own password.
+    mustChangePassword: !!seller.mustChangePassword,
   });
 });
 
@@ -1004,6 +1021,7 @@ app.post("/api/seller/google-login", loginLimiter, async (req, res) => {
     success: true,
     token,
     seller: { id: seller.id, sellerId: seller.sellerId, name: seller.name, shopTitle: seller.shopTitle },
+    mustChangePassword: !!seller.mustChangePassword,
   });
 });
 
@@ -1088,22 +1106,26 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, require
 
   const newPassword = generateSellerPassword();
   seller.passwordHash = bcrypt.hashSync(newPassword, 10);
+  // A reset password is now always one-time — force a fresh password on
+  // the seller's next login instead of leaving this one valid forever.
+  seller.mustChangePassword = true;
   // Clear out any stale unsent-password flag before we know how this one goes.
   delete seller.pendingPlainPassword;
   request.status = "resolved";
   request.resolvedAt = new Date().toISOString();
   writeDatabase(database);
 
+  const sellerLoginUrl = `${req.protocol}://${req.get("host")}/seller`;
   const emailResult = await sendMail(
     seller.email,
     "Your Design Makers password has been reset",
-    `<p>Hi ${seller.name},</p>
-     <p>Your password has been reset. Here's your new login for <b>${seller.shopTitle}</b>:</p>
-     <ul>
-       <li><b>Seller ID:</b> ${seller.sellerId}</li>
-       <li><b>New Password:</b> ${newPassword}</li>
-     </ul>
-     <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
+    buildPasswordResetOtpEmail({
+      name: seller.name,
+      shopTitle: seller.shopTitle,
+      sellerId: seller.sellerId,
+      otp: newPassword,
+      loginUrl: sellerLoginUrl,
+    }),
   );
 
   if (!emailResult.sent) {
@@ -1114,8 +1136,8 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, require
   res.json({
     success: true,
     message: emailResult.sent
-      ? `New password generated and emailed to ${seller.name}.`
-      : `New password generated for ${seller.name}. Share it with them yourself (WhatsApp/SMS/etc) — find it any time from the Live Sellers tab.`,
+      ? `One-time password generated and emailed to ${seller.name}.`
+      : `One-time password generated for ${seller.name}. Share it with them yourself (WhatsApp/SMS/etc) — find it any time from the Live Sellers tab.`,
     sellerId: seller.sellerId,
     newPassword: emailResult.sent ? undefined : newPassword,
     emailSent: emailResult.sent,
@@ -1139,6 +1161,40 @@ function requireSeller(req, res, next) {
     return res.status(401).json({ success: false, message: "Session expired. Please log in again." });
   }
 }
+
+// ================================
+// SELLER: SET OWN NEW PASSWORD
+// ================================
+// Used two ways: (1) the forced first-login flow after an OTP, where
+// currentPassword is the one-time password that just worked; and (2) a
+// seller who's already in and wants to change their password normally,
+// from their dashboard settings. Either way this always clears
+// mustChangePassword, since after this call the seller has a password only
+// they know.
+app.post("/api/seller/change-password", requireSeller, (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: "Current and new password are both required." });
+  }
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ success: false, message: "New password must be at least 6 characters." });
+  }
+
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === req.seller.id);
+  if (!seller) return res.status(404).json({ success: false, message: "Seller account not found." });
+
+  if (!bcrypt.compareSync(currentPassword, seller.passwordHash)) {
+    return res.status(401).json({ success: false, message: "Current password is incorrect." });
+  }
+
+  seller.passwordHash = bcrypt.hashSync(newPassword, 10);
+  delete seller.mustChangePassword;
+  delete seller.pendingPlainPassword;
+  writeDatabase(database);
+
+  res.json({ success: true, message: "Password updated. Use your new password next time you log in." });
+});
 
 // ================================
 // ADMIN: CUSTOMERS (mobile + password accounts)
@@ -1464,20 +1520,24 @@ app.put("/api/admin/sellers/:id/reset-password", requireAdmin, requireBoss, asyn
 
   const newPassword = generateSellerPassword();
   seller.passwordHash = bcrypt.hashSync(newPassword, 10);
+  // A reset password is now always one-time — force a fresh password on
+  // the seller's next login instead of leaving this one valid forever.
+  seller.mustChangePassword = true;
   // Clear out any stale unsent-password flag before we know how this one goes.
   delete seller.pendingPlainPassword;
   writeDatabase(database);
 
+  const sellerLoginUrl = `${req.protocol}://${req.get("host")}/seller`;
   const emailResult = await sendMail(
     seller.email,
     "Your Design Makers password has been reset",
-    `<p>Hi ${seller.name},</p>
-     <p>Your password has been reset. Here's your new login for <b>${seller.shopTitle}</b>:</p>
-     <ul>
-       <li><b>Seller ID:</b> ${seller.sellerId}</li>
-       <li><b>New Password:</b> ${newPassword}</li>
-     </ul>
-     <p>Please keep this password safe — we recommend not sharing it with anyone.</p>`,
+    buildPasswordResetOtpEmail({
+      name: seller.name,
+      shopTitle: seller.shopTitle,
+      sellerId: seller.sellerId,
+      otp: newPassword,
+      loginUrl: sellerLoginUrl,
+    }),
   );
 
   if (!emailResult.sent) {
@@ -1488,8 +1548,8 @@ app.put("/api/admin/sellers/:id/reset-password", requireAdmin, requireBoss, asyn
   res.json({
     success: true,
     message: emailResult.sent
-      ? `New password generated and emailed to ${seller.name}.`
-      : `New password generated for ${seller.name}. Share it with them yourself (WhatsApp/SMS/etc) — find it any time from the Live Sellers tab.`,
+      ? `One-time password generated and emailed to ${seller.name}.`
+      : `One-time password generated for ${seller.name}. Share it with them yourself (WhatsApp/SMS/etc) — find it any time from the Live Sellers tab.`,
     sellerId: seller.sellerId,
     newPassword: emailResult.sent ? undefined : newPassword,
     emailSent: emailResult.sent,
@@ -1519,8 +1579,10 @@ app.put("/api/admin/sellers/:id/set-password", requireAdmin, requireBoss, (req, 
 
   seller.passwordHash = bcrypt.hashSync(newPassword, 10);
   // A fresh password was just set by hand — any old "email never sent"
-  // fallback copy is now stale, clear it out.
+  // fallback copy is now stale, clear it out. It's also a real password
+  // the boss just typed, not a one-time one, so no forced change either.
   delete seller.pendingPlainPassword;
+  delete seller.mustChangePassword;
   writeDatabase(database);
 
   res.json({
@@ -1598,6 +1660,53 @@ app.get("/api/admin/seller-applications", requireAdmin, requireBoss, (req, res) 
 
 // Approving generates a Seller ID + random password, creates the seller
 // account, and emails the credentials — nothing further needed from you.
+// Builds the "welcome, you're approved" email. `mode` is "otp" (one-time
+// password — seller is forced to set their own password right after their
+// first login) or "password" (a normal password that just keeps working).
+function buildSellerWelcomeEmail({ name, shopTitle, sellerId, plainPassword, mode, loginUrl }) {
+  const isOtp = mode === "otp";
+  const credentialLabel = isOtp ? "One-Time Password" : "Password";
+  const credentialNote = isOtp
+    ? `<p style="margin:14px 0 0;font-size:0.9em;color:#8a1c42;background:#fff7e6;border:1px solid #f3d9a0;border-radius:8px;padding:10px 14px;">🔒 This password works <b>once</b>. The moment you log in with it, we'll ask you to choose a new password of your own — so only you will know it from then on.</p>`
+    : `<p style="margin:14px 0 0;font-size:0.85em;color:#8c7d78;">Please keep this password safe — we recommend not sharing it with anyone.</p>`;
+
+  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+       <h2 style="color:#8a1c42;margin-bottom:4px;">Welcome to the family, ${name}! 🎉💗</h2>
+       <p style="font-size:1.05em;">We're so happy to have you here. Your seller application for <b>${shopTitle}</b> has been approved — your little shop now has a home on Design Makers.</p>
+       <p>Every design, every product you list from here is a story you get to tell — and we can't wait to see what you create. You can start listing products, set your own prices, and open your doors whenever you're ready.</p>
+       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
+         <p style="margin:0 0 8px;"><b>Seller ID:</b> ${sellerId}</p>
+         <p style="margin:0;"><b>${credentialLabel}:</b> ${plainPassword}</p>
+         ${credentialNote}
+       </div>
+       <p><a href="${loginUrl}" style="background:#8a1c42;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;display:inline-block;">Log in to your Seller Dashboard</a></p>
+       <p style="font-size:0.85em;color:#8c7d78;">Or visit: ${loginUrl}</p>
+       <p style="font-size:0.85em;color:#8c7d78;">You can also sign in with Google on the same page if your Google account uses this email address.</p>
+       <p style="margin-top:22px;">Welcome aboard — truly excited to have you selling with us!<br/>With warmth,<br/><b>Team Design Makers</b> 💗</p>
+     </div>`;
+}
+
+// Builds the "your password was reset" email — always framed as a
+// one-time password now, since every reset (admin-triggered or via a
+// seller's own forgot-password request) forces a fresh password to be set
+// on next login.
+function buildPasswordResetOtpEmail({ name, shopTitle, sellerId, otp, loginUrl }) {
+  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+       <h2 style="color:#8a1c42;margin-bottom:4px;">Your password has been reset</h2>
+       <p>Hi ${name},</p>
+       <p>Here's a one-time password to get back into <b>${shopTitle}</b>:</p>
+       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
+         <p style="margin:0 0 8px;"><b>Seller ID:</b> ${sellerId}</p>
+         <p style="margin:0;"><b>One-Time Password:</b> ${otp}</p>
+         <p style="margin:14px 0 0;font-size:0.9em;color:#8a1c42;background:#fff7e6;border:1px solid #f3d9a0;border-radius:8px;padding:10px 14px;">🔒 This password works <b>once</b>. The moment you log in with it, we'll ask you to choose a new password of your own — so only you will know it from then on.</p>
+       </div>
+       <p><a href="${loginUrl}" style="background:#8a1c42;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;display:inline-block;">Log in to your Seller Dashboard</a></p>
+       <p style="font-size:0.85em;color:#8c7d78;">Or visit: ${loginUrl}</p>
+       <p style="margin-top:18px;">— Team Design Makers</p>
+     </div>`;
+}
+
+
 app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss, async (req, res) => {
   const database = readDatabase();
   const application = database.sellerApplications.find((a) => a.id === Number(req.params.id));
@@ -1606,9 +1715,16 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
     return res.status(400).json({ success: false, message: "Already approved." });
   }
 
+  // Admin chooses, per-approval, whether the seller gets a normal password
+  // or a one-time password that forces them to set their own on first login.
+  const passwordMode = (req.body || {}).passwordMode === "otp" ? "otp" : "password";
+
   const nextNum = getNextId(database.sellers);
   const sellerId = generateSellerId(nextNum);
-  const plainPassword = generateSellerPassword();
+  // Initial password is derived from their shop name + Aadhaar last-4 —
+  // e.g. "Kanak Gifts" -> "Kanak#7391" — so it's easy for the seller to
+  // remember/recall themselves.
+  const plainPassword = generateShopBasedPassword(application.shopTitle, application.aadhaarLast4);
 
   const seller = {
     id: nextNum,
@@ -1637,6 +1753,9 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
     applicationId: application.id,
     createdAt: new Date().toISOString(),
     banned: false,
+    // Only true for the OTP flow — cleared automatically the moment the
+    // seller sets their own new password after their first login.
+    mustChangePassword: passwordMode === "otp",
   };
   database.sellers.push(seller);
   application.status = "approved";
@@ -1646,18 +1765,14 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
   const emailResult = await sendMail(
     application.email,
     "Welcome to Design Makers — you're approved as a seller! 🎉",
-    `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
-       <h2 style="color:#8a1c42;">Welcome aboard, ${application.name}! 🎉</h2>
-       <p>Great news — your seller application for <b>${application.shopTitle}</b> has been approved. You can now list products, set your own prices, and start selling on Design Makers.</p>
-       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
-         <p style="margin:0 0 8px;"><b>Seller ID:</b> ${sellerId}</p>
-         <p style="margin:0;"><b>Password:</b> ${plainPassword}</p>
-       </div>
-       <p><a href="${sellerLoginUrl}" style="background:#8a1c42;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;display:inline-block;">Log in to your Seller Dashboard</a></p>
-       <p style="font-size:0.85em;color:#8c7d78;">Or visit: ${sellerLoginUrl}</p>
-       <p style="font-size:0.85em;color:#8c7d78;">Please keep this password safe — we recommend not sharing it with anyone. You can also sign in with Google on the same page if your Google account uses this email address.</p>
-       <p>Welcome to the family — excited to have you selling with us!<br/>— Team Design Makers</p>
-     </div>`,
+    buildSellerWelcomeEmail({
+      name: application.name,
+      shopTitle: application.shopTitle,
+      sellerId,
+      plainPassword,
+      mode: passwordMode,
+      loginUrl: sellerLoginUrl,
+    }),
   );
 
   // If the email didn't go through, keep the plaintext password on the
@@ -2247,6 +2362,7 @@ app.get("/api/seller/me", requireSeller, (req, res) => {
       photo: seller.photo || "",
       createdAt: seller.createdAt,
     },
+    mustChangePassword: !!seller.mustChangePassword,
   });
 });
 
@@ -2719,19 +2835,24 @@ app.get("/admin", (req, res) => {
 });
 
 // ================================
-// SELLER APPLICATION PAGE (invitation link — fill the form)
-// ================================
-
-app.get("/seller", (req, res) => {
-  res.sendFile(path.join(__dirname, "sell.html"));
-});
-
-// ================================
 // SELLER LOGIN / DASHBOARD PAGE
 // ================================
 
-app.get("/sell", (req, res) => {
+app.get("/seller", (req, res) => {
   res.sendFile(path.join(__dirname, "seller.html"));
+});
+
+// ================================
+// SELLER APPLICATION PAGE (invitation link — fill the form)
+// ================================
+
+app.get("/sellerapplication", (req, res) => {
+  res.sendFile(path.join(__dirname, "sell.html"));
+});
+
+// Old application link — keep working, just redirect to the new one
+app.get("/sell", (req, res) => {
+  res.redirect(301, "/sellerapplication");
 });
 
 

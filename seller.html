@@ -337,6 +337,33 @@
       </div>
     </div>
 
+    <!-- ============ FORCED PASSWORD CHANGE (first login after OTP) ============ -->
+    <div id="mustChangeScreen" style="display:none;">
+      <div class="login-page">
+        <div class="brand">
+          <img src="Logo.png" alt="Design Makers" />
+          <div class="name">DESIGN MAKERS</div>
+        </div>
+        <div class="card">
+          <h1>Set your own password</h1>
+          <p class="desc">You logged in with a one-time password. Please choose a new password that only you will know — you'll use this from now on.</p>
+
+          <label for="mcCurrentPassword">One-time password you just used</label>
+          <input type="password" id="mcCurrentPassword" autocomplete="off" />
+
+          <label for="mcNewPassword">New password</label>
+          <input type="password" id="mcNewPassword" placeholder="At least 6 characters" autocomplete="new-password" />
+
+          <label for="mcConfirmPassword">Confirm new password</label>
+          <input type="password" id="mcConfirmPassword" autocomplete="new-password" />
+
+          <div class="error" id="mcError"></div>
+
+          <button class="submit" id="mcSubmitBtn" onclick="submitMustChangePassword()">Save new password</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ============ DASHBOARD ============ -->
     <div id="dashboard">
       <header class="dash-header">
@@ -577,7 +604,64 @@
           return;
         }
         setToken(data.token);
+        window.__dmSeller = data.seller;
+        if (data.mustChangePassword) {
+          showMustChangeScreen(password);
+          return;
+        }
         enterDashboard(data.seller);
+      }
+
+      // ---------- Forced password change (first login after an OTP) ----------
+      function showMustChangeScreen(otpUsed) {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("mustChangeScreen").style.display = "block";
+        document.getElementById("mcCurrentPassword").value = otpUsed || "";
+        document.getElementById("mcNewPassword").value = "";
+        document.getElementById("mcConfirmPassword").value = "";
+        document.getElementById("mcError").style.display = "none";
+      }
+
+      async function submitMustChangePassword() {
+        const errorEl = document.getElementById("mcError");
+        errorEl.style.display = "none";
+        const currentPassword = document.getElementById("mcCurrentPassword").value;
+        const newPassword = document.getElementById("mcNewPassword").value;
+        const confirmPassword = document.getElementById("mcConfirmPassword").value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+          errorEl.textContent = "Fill in all three fields.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (newPassword.length < 6) {
+          errorEl.textContent = "New password must be at least 6 characters.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          errorEl.textContent = "New password and confirmation don't match.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        const btn = document.getElementById("mcSubmitBtn");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+        const { data } = await api("/api/seller/change-password", {
+          method: "POST",
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        btn.disabled = false;
+        btn.textContent = "Save new password";
+        if (!data.success) {
+          errorEl.textContent = data.message || "Could not update password.";
+          errorEl.style.display = "block";
+          return;
+        }
+        document.getElementById("mustChangeScreen").style.display = "none";
+        enterDashboard(window.__dmSeller || {});
       }
 
       async function submitForgotPassword() {
@@ -906,7 +990,14 @@
         if (!token) return;
         const { data } = await api("/api/seller/me");
         if (data.success) {
-          enterDashboard(data.seller);
+          window.__dmSeller = data.seller;
+          if (data.mustChangePassword) {
+            // Seller left mid-flow last time (closed the tab, etc) without
+            // setting their new password — pick up right where they left off.
+            showMustChangeScreen("");
+          } else {
+            enterDashboard(data.seller);
+          }
         } else {
           clearToken();
         }

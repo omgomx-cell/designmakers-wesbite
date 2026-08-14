@@ -1041,6 +1041,36 @@
       </div>
     </div>
 
+    <!-- APPROVE SELLER: choose how the login credential goes out -->
+    <div id="approveModeOverlay" class="seller-modal-overlay">
+      <div class="seller-modal">
+        <h2 style="margin-bottom:2px;">Send login details</h2>
+        <div style="font-size:13px;color:#8c7d78;margin-bottom:18px;">How should <strong id="approveModeShopTitle"></strong> get their password?</div>
+
+        <label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--blush-line);border-radius:10px;margin-bottom:10px;cursor:pointer;">
+          <input type="radio" name="approvePwMode" value="password" checked style="margin-top:3px;" />
+          <span>
+            <strong style="display:block;">Send Password</strong>
+            <span style="font-size:12.5px;color:#8c7d78;">A normal password — works every time, seller isn't asked to change it.</span>
+          </span>
+        </label>
+        <label style="display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--blush-line);border-radius:10px;margin-bottom:16px;cursor:pointer;">
+          <input type="radio" name="approvePwMode" value="otp" style="margin-top:3px;" />
+          <span>
+            <strong style="display:block;">Send OTP (one-time use)</strong>
+            <span style="font-size:12.5px;color:#8c7d78;">Works once — after logging in the first time, the seller must set their own new password before continuing.</span>
+          </span>
+        </label>
+
+        <div id="approveModeStatus" style="font-size:13px;margin-bottom:10px;min-height:18px;font-weight:600;"></div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn secondary" onclick="closeApproveModeModal()">Cancel</button>
+          <button class="btn" id="approveModeConfirmBtn" style="background:#1a7a3f !important;" onclick="confirmApproveSeller()">✓ Approve &amp; Send</button>
+        </div>
+      </div>
+    </div>
+
     <!-- SELLER DETAILS (rich profile page) -->
     <div id="sellerDetailOverlay" class="seller-detail-overlay">
       <div class="sd-wrap">
@@ -1244,13 +1274,13 @@
         }
       }
 
-      // ---------- SESSION KEEP-ALIVE (10 min prompt, 10s to respond) ----------
+      // ---------- SESSION KEEP-ALIVE (1 hr prompt, 10s to respond) ----------
       let sessionTimerId = null;
       let sessionCountdownId = null;
 
       function startSessionTimer() {
         clearTimeout(sessionTimerId);
-        sessionTimerId = setTimeout(showSessionPrompt, 10 * 60 * 1000);
+        sessionTimerId = setTimeout(showSessionPrompt, 60 * 60 * 1000);
       }
 
       function showSessionPrompt() {
@@ -1272,7 +1302,7 @@
       }
 
       // Called when the admin clicks "Yes, stay logged in" — hides the
-      // prompt and restarts the 10-minute cycle.
+      // prompt and restarts the 1-hour cycle.
       function staySessionAlive() {
         clearInterval(sessionCountdownId);
         document.getElementById("sessionPromptOverlay").style.display = "none";
@@ -2043,10 +2073,9 @@
         sdId = null;
       }
 
-      async function sdApprove() {
+      function sdApprove() {
         if (sdMode !== "pending" || !sdId) return;
-        await approveSellerApplication(sdId);
-        closeSellerDetail();
+        approveSellerApplication(sdId);
       }
 
       async function sdReject() {
@@ -2227,7 +2256,7 @@
           }
           statusEl.style.color = "#1c7a34";
           statusEl.textContent = data.newPassword
-            ? "New password: " + data.newPassword + " (copy it now — it won't be shown again after you close this)"
+            ? "One-time password: " + data.newPassword + " (copy it now — it won't be shown again after you close this; the seller must set their own password after using it)"
             : "✓ " + data.message;
           await loadSellerList();
           const s = sellerListData.find((x) => x.id === sellerModalId);
@@ -2358,7 +2387,7 @@
           }
           statusEl.style.color = "#1c7a34";
           statusEl.textContent = "✓ Opened in a new tab.";
-          window.open("/sell?impersonate=" + encodeURIComponent(data.token), "_blank");
+          window.open("/seller?impersonate=" + encodeURIComponent(data.token), "_blank");
         } catch (err) {
           statusEl.style.color = "#a3002a";
           statusEl.textContent = "Network error — check your connection and try again.";
@@ -2408,7 +2437,7 @@
       async function loadSellerApplications() {
         // Fill in the shareable seller-invite link (based on the live site URL).
         const inviteEl = document.getElementById("sellerInviteLink");
-        if (inviteEl) inviteEl.value = window.location.origin + "/seller";
+        if (inviteEl) inviteEl.value = window.location.origin + "/sellerapplication";
         const loadingEl = document.getElementById("sellerAppsLoading");
         const listEl = document.getElementById("sellerAppsList");
         loadingEl.classList.remove("hidden");
@@ -2438,24 +2467,59 @@
         }
       }
 
-      async function approveSellerApplication(id) {
-        const res = await fetch("/api/admin/seller-applications/" + id + "/approve", {
-          method: "PUT",
-          headers: { Authorization: "Bearer " + token },
-        });
-        const data = await res.json();
-        if (data.success && !data.emailSent) {
-          alert(
-            "⚠️ " + data.message + "\n\n" +
-            "Seller ID: " + data.sellerId + "\n" +
-            "Password: " + data.plainPassword + "\n\n" +
-            "Send these to them yourself (WhatsApp/SMS) — the automatic email did not go through. " +
-            "This usually means GMAIL_USER / GMAIL_APP_PASSWORD aren't set correctly in Render's Environment tab.",
-          );
-        } else if (!data.success) {
-          alert(data.message || "Could not approve this application.");
+      let approveModePendingId = null;
+
+      function approveSellerApplication(id) {
+        const a = sellerApplicationsData.find((x) => x.id === id);
+        approveModePendingId = id;
+        document.getElementById("approveModeShopTitle").textContent = a ? (a.shopTitle || a.name) : "this seller";
+        document.getElementById("approveModeStatus").textContent = "";
+        const radios = document.getElementsByName("approvePwMode");
+        for (const r of radios) r.checked = r.value === "password";
+        document.getElementById("approveModeOverlay").classList.add("open");
+      }
+
+      function closeApproveModeModal() {
+        document.getElementById("approveModeOverlay").classList.remove("open");
+        approveModePendingId = null;
+      }
+
+      async function confirmApproveSeller() {
+        if (!approveModePendingId) return;
+        const id = approveModePendingId;
+        const mode = document.querySelector('input[name="approvePwMode"]:checked').value;
+        const statusEl = document.getElementById("approveModeStatus");
+        const btn = document.getElementById("approveModeConfirmBtn");
+        statusEl.style.color = "";
+        statusEl.textContent = "Sending...";
+        btn.disabled = true;
+        try {
+          const res = await fetch("/api/admin/seller-applications/" + id + "/approve", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ passwordMode: mode }),
+          });
+          const data = await res.json();
+          if (data.success && !data.emailSent) {
+            alert(
+              "⚠️ " + data.message + "\n\n" +
+              "Seller ID: " + data.sellerId + "\n" +
+              (mode === "otp" ? "One-time password: " : "Password: ") + data.plainPassword + "\n\n" +
+              "Send these to them yourself (WhatsApp/SMS) — the automatic email did not go through. " +
+              "This usually means GMAIL_USER / GMAIL_APP_PASSWORD aren't set correctly in Render's Environment tab.",
+            );
+          } else if (!data.success) {
+            alert(data.message || "Could not approve this application.");
+          }
+          closeApproveModeModal();
+          closeSellerDetail();
+          loadSellerApplications();
+        } catch (err) {
+          statusEl.style.color = "#a3002a";
+          statusEl.textContent = "Network error — try again.";
+        } finally {
+          btn.disabled = false;
         }
-        loadSellerApplications();
       }
 
       async function rejectSellerApplication(id) {
@@ -2502,7 +2566,7 @@
           alert(
             "⚠️ " + data.message + "\n\n" +
             "Seller ID: " + data.sellerId + "\n" +
-            "New Password: " + data.newPassword + "\n\n" +
+            "One-Time Password: " + data.newPassword + "\n\n" +
             "Send these to them yourself (WhatsApp/SMS) — the automatic email did not go through. " +
             "This usually means GMAIL_USER / GMAIL_APP_PASSWORD aren't set correctly in Render's Environment tab.",
           );
@@ -3804,7 +3868,7 @@
       </div>
     </div>
 
-    <!-- SESSION KEEP-ALIVE PROMPT — shown every 10 minutes; auto-logout if
+    <!-- SESSION KEEP-ALIVE PROMPT — shown every 1 hour; auto-logout if
          no response within 10 seconds. -->
     <div id="sessionPromptOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
       <div style="background:#fff; border-radius:12px; padding:24px; max-width:340px; width:90%; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.25);">

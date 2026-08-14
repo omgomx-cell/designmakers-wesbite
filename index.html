@@ -2436,7 +2436,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
         </svg>
         YouTube
       </a> |
-      <a href="/sell">Seller Login</a>
+      <a href="/seller">Seller Login</a>
       <p style="margin-top:10px;">© 2026 Design Makers. All rights reserved.</p>
     </footer>
 
@@ -3197,7 +3197,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           openSellerDashModal();
         } else {
           closeAccountModal();
-          window.open("/sell", "_blank");
+          window.open("/seller", "_blank");
         }
       }
 
@@ -4799,7 +4799,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       // at its own address — send anyone who still has the old link there.
       const _sellParams = new URLSearchParams(window.location.search);
       if (window.location.hash === "#sell" || _sellParams.get("sell") === "1") {
-        window.location.replace("/seller");
+        window.location.replace("/sellerapplication");
       }
 
       // ===== Tap-to-burst festive interaction (flags + rakhi threads) =====
