@@ -7,12 +7,18 @@ const nodemailer = require("nodemailer");
 const { OAuth2Client } = require("google-auth-library");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const compression = require("compression");
 
 const { connectDB, readDatabase, writeDatabase, getNextId, GIFT_ADDON } = require("./database");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", true);
+
+// Gzip/deflate-compress every response (HTML, JSON, JS, CSS) before it goes
+// over the wire. This is the single biggest win for the ~240KB+ HTML/JSON
+// payloads this site sends on every page load.
+app.use(compression());
 
 // ================================
 // SECURITY HEADERS
@@ -267,13 +273,21 @@ app.use((req, res, next) => {
 // Serve website files
 app.use(
   express.static(__dirname, {
-    etag: false,
-    lastModified: false,
+    // etag/lastModified stay ON globally now so static assets (images, css,
+    // js) get proper 304-revalidation and browser caching. HTML explicitly
+    // overrides this below to "no-cache" so admin/product changes still
+    // show up immediately on next navigation/reopen.
+    etag: true,
+    lastModified: true,
     setHeaders: (res, filePath) => {
       if (filePath.endsWith(".html")) {
         // HTML pages (index.html, admin.html) must always be revalidated —
         // this is what was causing "close and reopen still shows old data".
         res.set("Cache-Control", "no-cache");
+      } else if (/\.(png|jpe?g|webp|gif|svg|ico|css|js|woff2?)$/.test(filePath)) {
+        // Static assets rarely change day-to-day; cache them for a day so
+        // repeat visits don't re-download the same images every time.
+        res.set("Cache-Control", "public, max-age=86400");
       }
     },
   }),
@@ -3014,6 +3028,17 @@ app.get("/api/products", (req, res) => {
       (database.sellers || []).filter((s) => s.banned).map((s) => s.id),
     );
 
+    // IMPORTANT: product photos stay in MongoDB exactly as stored, but the
+    // public storefront must NOT ship every base64 photo inside the JSON
+    // response. That makes the initial /api/products payload unnecessarily
+    // huge and is the main reason the product area feels slow.
+    //
+    // Instead, expose lightweight same-origin image URLs. The actual bytes
+    // are served by /product-image/:id/:index with browser caching. This is a
+    // transport optimisation only — no product/image data is deleted or
+    // rewritten in the database.
+    const publicImageUrl = (productId, index) => `/product-image/${productId}/${index}`;
+
     const products = database.products
       .filter(
         (product) =>
@@ -3022,12 +3047,27 @@ app.get("/api/products", (req, res) => {
           !product.hidden &&
           !(product.sellerId && bannedSellerIds.has(product.sellerId)),
       )
-      .map((product) => ({
-        ...product,
-        saleActive: isSaleActive(product),
-        popular: popularIds.has(product.id),
-        trending: trendingIds.has(product.id),
-      }));
+      .map((product) => {
+        const storedImages = Array.isArray(product.images) && product.images.length
+          ? product.images
+          : (product.image ? [product.image] : []);
+        const imageUrls = storedImages.map((src, index) => {
+          if (typeof src === "string" && src.startsWith("data:image/")) {
+            return publicImageUrl(product.id, index);
+          }
+          return src;
+        }).filter(Boolean);
+
+        return {
+          ...product,
+          // Strip the large base64 payloads from the public response only.
+          image: imageUrls[0] || "",
+          images: imageUrls,
+          saleActive: isSaleActive(product),
+          popular: popularIds.has(product.id),
+          trending: trendingIds.has(product.id),
+        };
+      });
     res.json({ success: true, products });
   } catch (error) {
     console.error(error);
@@ -3049,7 +3089,24 @@ app.get("/api/products/:id", (req, res) => {
       return res.status(404).json({ success: false, message: "Product not found." });
     }
 
-    res.json({ success: true, product: { ...product, saleActive: isSaleActive(product) } });
+    const storedImages = Array.isArray(product.images) && product.images.length
+      ? product.images
+      : (product.image ? [product.image] : []);
+    const imageUrls = storedImages.map((src, index) => {
+      if (typeof src === "string" && src.startsWith("data:image/")) {
+        return `/product-image/${product.id}/${index}`;
+      }
+      return src;
+    }).filter(Boolean);
+    res.json({
+      success: true,
+      product: {
+        ...product,
+        image: imageUrls[0] || "",
+        images: imageUrls,
+        saleActive: isSaleActive(product),
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Unable to load product." });
@@ -3166,12 +3223,17 @@ app.post("/api/products/:id/reviews", requireCustomer, (req, res) => {
 // route decodes the stored image and serves it as an actual image response,
 // so a URL like /product-image/12 opens (and link-previews) like any normal
 // photo — used by the "Checkout on WhatsApp" message.
-app.get("/product-image/:id", (req, res) => {
+app.get("/product-image/:id/:index?", (req, res) => {
   try {
     const database = readDatabase();
     const productId = Number(req.params.id);
+    const requestedIndex = req.params.index == null ? 0 : Number(req.params.index);
+    const imageIndex = Number.isInteger(requestedIndex) && requestedIndex >= 0 ? requestedIndex : 0;
     const product = database.products.find((product) => product.id === productId);
-    const imgSrc = product && ((Array.isArray(product.images) && product.images[0]) || product.image);
+    const storedImages = product && Array.isArray(product.images) && product.images.length
+      ? product.images
+      : (product && product.image ? [product.image] : []);
+    const imgSrc = storedImages[imageIndex] || "";
 
     if (!imgSrc) {
       return res.status(404).send("No photo for this product.");
@@ -3185,7 +3247,10 @@ app.get("/product-image/:id", (req, res) => {
 
     const buffer = Buffer.from(match[2], "base64");
     res.set("Content-Type", match[1]);
-    res.set("Cache-Control", "public, max-age=86400");
+    // One hour fresh + one day stale-while-revalidate keeps repeat visits fast
+    // while avoiding a full-day stale window after an admin changes a photo.
+    // Express also supplies an ETag, so unchanged images can become 304s.
+    res.set("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
     res.send(buffer);
   } catch (error) {
     console.error(error);

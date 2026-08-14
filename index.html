@@ -2146,6 +2146,164 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       body.dark-mode .hot-banner-tag { background: rgba(255,255,255,.08) !important; color: #fff !important; }
       body.dark-mode .dm-dark-btn { box-shadow: 0 2px 10px rgba(0,0,0,.4) !important; }
     </style>
+    <style id="dmFinalPolish">
+      /* ===== FINAL VISIBILITY + HERO PRODUCT POLISH ===== */
+      select, select:focus {
+        color: var(--ink) !important;
+        background: var(--surface) !important;
+        border-color: var(--blush-line) !important;
+      }
+      select option {
+        color: #211b18 !important;
+        background: #ffffff !important;
+      }
+      body.dark-mode select,
+      body.dark-mode select:focus {
+        color: #f5f7fb !important;
+        background: #12151f !important;
+        border-color: rgba(255,255,255,.16) !important;
+      }
+      body.dark-mode select option {
+        color: #f5f7fb !important;
+        background: #12151f !important;
+      }
+
+      /* Light-mode hero product: make any uploaded product artwork feel like
+         it belongs to the warm premium hero instead of looking pasted on. */
+      body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product-stage {
+        background:
+          radial-gradient(circle at 50% 35%, rgba(255,255,255,.98), rgba(255,248,240,.82) 55%, rgba(246,230,215,.62) 100%) !important;
+        border: 1px solid rgba(138,28,66,.12) !important;
+        box-shadow:
+          inset 0 1px rgba(255,255,255,.95),
+          0 24px 55px rgba(138,28,66,.10),
+          0 8px 22px rgba(184,134,63,.08) !important;
+        position: relative;
+        isolation: isolate;
+      }
+      body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product-stage::before {
+        content: "";
+        position: absolute;
+        width: 72%;
+        height: 58%;
+        left: 14%;
+        top: 17%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(184,134,63,.14), rgba(138,28,66,.04) 52%, transparent 72%);
+        filter: blur(14px);
+        z-index: 0;
+        pointer-events: none;
+      }
+      body:not(.dark-mode):not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product-img {
+        max-width: 78% !important;
+        max-height: 78% !important;
+        object-fit: contain !important;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 24px 24px rgba(54,29,20,.20)) drop-shadow(0 5px 8px rgba(138,28,66,.10)) !important;
+        mix-blend-mode: multiply;
+        animation: dmHeroFloatLight 5s ease-in-out infinite !important;
+      }
+      @keyframes dmHeroFloatLight {
+        0%,100% { transform: translateY(0) rotate(-0.8deg); }
+        50% { transform: translateY(-8px) rotate(0.8deg); }
+      }
+
+      /* Dark-mode hero product: a restrained premium display plate keeps
+         white-background product photos from looking like random rectangles. */
+      body.dark-mode:not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product-stage {
+        background:
+          radial-gradient(circle at 50% 38%, rgba(75,125,255,.14), transparent 40%),
+          linear-gradient(145deg, rgba(255,255,255,.065), rgba(255,255,255,.018)) !important;
+        border: 1px solid rgba(255,255,255,.12) !important;
+        box-shadow: inset 0 1px rgba(255,255,255,.08), 0 30px 70px rgba(0,0,0,.34) !important;
+        isolation: isolate;
+      }
+      body.dark-mode:not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product-stage::before {
+        content: "";
+        position: absolute;
+        width: 66%;
+        height: 62%;
+        left: 17%;
+        top: 16%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(71,158,255,.16), rgba(71,158,255,.035) 50%, transparent 72%);
+        filter: blur(20px);
+        z-index: 0;
+        pointer-events: none;
+      }
+      body.dark-mode:not(.theme-aug15):not(.theme-rakshabandhan) .dm-hero-product-img {
+        max-width: 78% !important;
+        max-height: 78% !important;
+        object-fit: contain !important;
+        position: relative;
+        z-index: 2;
+        filter: drop-shadow(0 30px 30px rgba(0,0,0,.72)) drop-shadow(0 0 18px rgba(71,158,255,.10)) !important;
+        mix-blend-mode: normal !important;
+      }
+
+      /* Seasonal hero product stage gets the same visual treatment without
+         fighting the festival artwork/colors. */
+      body.theme-aug15 .dm-hero-product-stage,
+      body.theme-rakshabandhan .dm-hero-product-stage {
+        position: relative;
+        isolation: isolate;
+        background: radial-gradient(circle at 50% 35%, rgba(255,255,255,.96), rgba(255,248,240,.76) 65%, rgba(255,235,215,.60)) !important;
+      }
+      body.theme-aug15 .dm-hero-product-img,
+      body.theme-rakshabandhan .dm-hero-product-img {
+        max-width: 78% !important;
+        max-height: 78% !important;
+        object-fit: contain !important;
+        filter: drop-shadow(0 24px 24px rgba(55,35,25,.18)) !important;
+        mix-blend-mode: multiply;
+      }
+
+      /* Common low-contrast text cleanup. */
+      .product-meta,
+      .search-result-cat,
+      .search-empty,
+      #statusMsg,
+      .category-heading .cat-count,
+      .modal-desc,
+      .modal-moq,
+      .field-label,
+      .tier-table th,
+      .empty-cart {
+        color: var(--muted) !important;
+      }
+      .product-price .old { color: #8b7d79 !important; }
+      body.dark-mode .product-price .old,
+      body.dark-mode .product-meta,
+      body.dark-mode .search-result-cat,
+      body.dark-mode .search-empty,
+      body.dark-mode #statusMsg,
+      body.dark-mode .category-heading .cat-count,
+      body.dark-mode .modal-desc,
+      body.dark-mode .modal-moq,
+      body.dark-mode .field-label,
+      body.dark-mode .tier-table th,
+      body.dark-mode .empty-cart {
+        color: rgba(255,255,255,.62) !important;
+      }
+      body.dark-mode .product-name,
+      body.dark-mode .modal-title,
+      body.dark-mode .order-items,
+      body.dark-mode .cart-total-row.grand,
+      body.dark-mode .field-label,
+      body.dark-mode .tier-table td {
+        color: #f5f7fb !important;
+      }
+
+      /* Images should decode off the main rendering path wherever possible. */
+      .product-card img,
+      .tile-cat img,
+      .search-result-thumb,
+      .hot-banner img,
+      .modal-thumb img {
+        background: transparent;
+      }
+    </style>
   </head>
   <body>
     <div class="aug15-flag" style="left:6%; animation-delay:0s;"><span class="stripe-top"></span><span class="stripe-bottom"></span></div>
@@ -2272,8 +2430,8 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
 
     <div class="sale-banner" id="saleBanner" style="display:none;"></div>
     <div class="announce" id="announceBar">Custom-made just for you &nbsp;·&nbsp; Message us on WhatsApp for bulk orders</div>
-    <div class="festival-strip-wrap" id="aug15TopStripWrap"><img class="festival-strip-img" src="aug15-top-strip.png" data-dark-src="aug15-top-strip-dark.png" alt="Proud to be Indian. Proud to be free. Happy 15th August."></div>
-    <div class="festival-strip-wrap" id="rakhiTopStripWrap"><img class="festival-strip-img" src="rakhi-top-strip.png" data-dark-src="rakhi-top-strip-dark.png" alt="A bond that grows stronger every day. Happy Raksha Bandhan."></div>
+    <div class="festival-strip-wrap" id="aug15TopStripWrap"><img class="festival-strip-img" src="aug15-top-strip.webp" alt="Proud to be Indian. Proud to be free. Happy 15th August."></div>
+    <div class="festival-strip-wrap" id="rakhiTopStripWrap"><img class="festival-strip-img" src="rakhi-top-strip.webp" alt="A bond that grows stronger every day. Happy Raksha Bandhan."></div>
 
     <header class="site-header">
       <div class="header-inner">
@@ -2366,12 +2524,12 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
 
       <!-- Festival hero banners: fully-designed artwork shown instead of the default hero when a seasonal theme is active. Hidden on the normal theme. -->
       <div class="festival-hero-wrap" id="aug15HeroWrap">
-        <img class="festival-hero-img" src="aug15-hero-desktop.png" data-dark-src="aug15-hero-desktop-dark.png" alt="Happy 15th August — Independence Day. Design Makers, gifts that feel like royalty.">
+        <img class="festival-hero-img" src="aug15-hero-desktop.webp" alt="Happy 15th August — Independence Day. Design Makers, gifts that feel like royalty.">
         <button class="festival-hero-hit festival-hero-hit-shop" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
         <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/7004847813','_blank')" aria-label="Chat on WhatsApp"></button>
       </div>
       <div class="festival-hero-wrap" id="rakhiHeroWrap">
-        <img class="festival-hero-img" src="rakhi-hero-desktop.png" data-dark-src="rakhi-hero-desktop-dark.png" alt="Happy Raksha Bandhan. Design Makers, celebrating the bond of love.">
+        <img class="festival-hero-img" src="rakhi-hero-desktop.webp" alt="Happy Raksha Bandhan. Design Makers, celebrating the bond of love.">
         <button class="festival-hero-hit festival-hero-hit-shop" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
         <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/7004847813','_blank')" aria-label="Chat on WhatsApp"></button>
       </div>
@@ -2385,52 +2543,50 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
     </div>
 
     <div class="festival-strip-wrap festival-offer-wrap" id="aug15OfferWrap">
-      <img class="festival-strip-img" src="aug15-offer-banner.png" data-dark-src="aug15-offer-banner-dark.png" alt="Independence Day special offer. Flat 15% off on all customised gifts.">
+      <img class="festival-strip-img" src="aug15-offer-banner.webp" alt="Independence Day special offer. Flat 15% off on all customised gifts.">
       <button class="festival-strip-hit" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
     </div>
     <div class="festival-strip-wrap festival-offer-wrap" id="rakhiOfferWrap">
-      <img class="festival-strip-img" src="rakhi-offer-banner.png" data-dark-src="rakhi-offer-banner-dark.png" alt="Raksha Bandhan special offer. Flat 20% off on all customised gifts.">
+      <img class="festival-strip-img" src="rakhi-offer-banner.webp" alt="Raksha Bandhan special offer. Flat 20% off on all customised gifts.">
       <button class="festival-strip-hit" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
     </div>
 
     <div class="promo-banner-wrap">
-      <div class="promo-banner pb-rosewood gift-banner">
+      <div class="promo-banner pb-rosewood gift-banner" onclick="openGenderModal('her')" role="button" tabindex="0" style="cursor:pointer;" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('her');}">
         <div class="promo-banner-content">
           <span class="promo-banner-tag">For Her</span>
           <h3>Gift for Her</h3>
           <p>Mugs, frames & jewellery — made around her story.</p>
-          <button class="promo-banner-btn" onclick="openGenderModal('her')">Customise Now</button>
         </div>
-        <img class="gift-banner-img" src="gift-for-her.png" alt="Gift for her" loading="lazy">
+        <img class="gift-banner-img" src="gift-for-her.webp" alt="Gift for her" loading="lazy">
       </div>
-      <div class="promo-banner pb-gold gift-banner">
+      <div class="promo-banner pb-gold gift-banner" onclick="openGenderModal('him')" role="button" tabindex="0" style="cursor:pointer;" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('him');}">
         <div class="promo-banner-content">
           <span class="promo-banner-tag">For Him</span>
           <h3>Gift for Him</h3>
           <p>Keychains, mugs & accessories — made around his story.</p>
-          <button class="promo-banner-btn" onclick="openGenderModal('him')">Customise Now</button>
         </div>
-        <img class="gift-banner-img" src="gift-for-him.png" alt="Gift for him" loading="lazy">
+        <img class="gift-banner-img" src="gift-for-him.webp" alt="Gift for him" loading="lazy">
       </div>
     </div>
 
     <div class="promo-banner-wrap festival-cat-wrap" id="aug15CatWrap">
       <div class="promo-banner gift-banner festival-cat-card">
-        <img class="gift-banner-img" src="aug15-gift-for-her.png" data-dark-src="aug15-gift-for-her-dark.png" alt="For her — gifts as beautiful as her smile" loading="lazy">
+        <img class="gift-banner-img" src="aug15-gift-for-her.webp" alt="For her — gifts as beautiful as her smile" loading="lazy">
         <button class="festival-cat-hit" onclick="openGenderModal('her')" aria-label="Explore gifts for her"></button>
       </div>
       <div class="promo-banner gift-banner festival-cat-card">
-        <img class="gift-banner-img" src="aug15-gift-for-him.png" data-dark-src="aug15-gift-for-him-dark.png" alt="For him — unique gifts for the real hero" loading="lazy">
+        <img class="gift-banner-img" src="aug15-gift-for-him.webp" alt="For him — unique gifts for the real hero" loading="lazy">
         <button class="festival-cat-hit" onclick="openGenderModal('him')" aria-label="Explore gifts for him"></button>
       </div>
     </div>
     <div class="promo-banner-wrap festival-cat-wrap" id="rakhiCatWrap">
       <div class="promo-banner gift-banner festival-cat-card">
-        <img class="gift-banner-img" src="rakhi-gift-for-sister.png" data-dark-src="rakhi-gift-for-sister-dark.png" alt="For your sister — because she deserves the best" loading="lazy">
+        <img class="gift-banner-img" src="rakhi-gift-for-sister.webp" alt="For your sister — because she deserves the best" loading="lazy">
         <button class="festival-cat-hit" onclick="openGenderModal('her')" aria-label="Explore gifts for sister"></button>
       </div>
       <div class="promo-banner gift-banner festival-cat-card">
-        <img class="gift-banner-img" src="rakhi-gift-for-brother.png" data-dark-src="rakhi-gift-for-brother-dark.png" alt="For your brother — the one who always has you" loading="lazy">
+        <img class="gift-banner-img" src="rakhi-gift-for-brother.webp" alt="For your brother — the one who always has you" loading="lazy">
         <button class="festival-cat-hit" onclick="openGenderModal('him')" aria-label="Explore gifts for brother"></button>
       </div>
     </div>
@@ -3714,7 +3870,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
         resultsEl.innerHTML = matches
           .map((p) => {
             const thumb = p.image
-              ? '<img class="search-result-thumb" src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" />'
+              ? '<img class="search-result-thumb" src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" loading="lazy" decoding="async" />'
               : '<div class="search-result-thumb"></div>';
             return (
               '<div class="search-result-item" onclick="selectSearchResult(' + p.id + ')">' +
@@ -3952,7 +4108,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       // Fixed thumbnail override for specific category tiles — takes priority
       // over the auto-picked "first product photo" thumbnail below.
       const CATEGORY_THUMB_OVERRIDE = {
-        "All": "all-category.jpg",
+        "All": "all-category.webp",
       };
 
       function renderCategories() {
@@ -3964,9 +4120,9 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           const overrideImg = CATEGORY_THUMB_OVERRIDE[c];
           const colorClass = "tc-" + (i % 6);
           const bodyHtml = overrideImg
-            ? '<img src="' + escapeHtml(overrideImg) + '" alt="' + escapeHtml(c) + '" />'
+            ? '<img src="' + escapeHtml(overrideImg) + '" alt="' + escapeHtml(c) + '" loading="lazy" decoding="async" />'
             : thumb
-            ? '<img src="' + escapeHtml(thumb.image) + '" alt="' + escapeHtml(c) + '" />'
+            ? '<img src="' + escapeHtml(thumb.image) + '" alt="' + escapeHtml(c) + '" loading="lazy" decoding="async" />'
             : '<div class="tile-cat-noimg">' + getIcon(c) + "</div>";
           return (
             '<div class="tile-cat ' + colorClass + (i === 0 ? " active" : "") + '" data-cat="' + escapeHtml(c) + '" onclick="filterCategoryFromCard(this.dataset.cat, this)">' +
@@ -4113,7 +4269,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
 
         // rebuild images + progress segments
         const imgs = hotProducts
-          .map((p, i) => '<img src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" class="' + (i === 0 ? "active" : "") + '" />')
+          .map((p, i) => '<img src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" class="' + (i === 0 ? "active" : "") + '" loading="lazy" decoding="async" />')
           .join("");
         rotator.innerHTML = imgs + progressWrap.outerHTML;
 
@@ -4245,7 +4401,7 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
         const useBuyBadge = Boolean(opts && opts.buyBadge);
         const bestDiscount = (p.discounts || []).slice(-1)[0];
         const imgHtml = p.image
-          ? '<img src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" />'
+          ? '<img src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" loading="lazy" decoding="async" />'
           : '<div class="placeholder-icon">' + getIcon(p.category) + '</div>';
         const salePrice = getSalePrice(p);
         const priceHtml = salePrice

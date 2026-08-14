@@ -484,6 +484,8 @@
       .dm-hero-admin select { margin:0; }
       .dm-hero-admin-preview { min-height:120px; border-radius:14px; overflow:hidden; border:1px solid var(--line); background:var(--field); display:flex; align-items:center; justify-content:center; }
       .dm-hero-admin-preview img { max-width:100%; max-height:140px; object-fit:contain; filter:drop-shadow(0 14px 25px rgba(0,0,0,.55)); }
+      .dm-hero-admin-preview { background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.10),rgba(255,255,255,.025) 65%),var(--field) !important; }
+      .dm-hero-admin-preview img { max-width:90% !important; max-height:155px !important; border-radius:12px; }
       @media(max-width:760px){ .dm-hero-admin-grid{grid-template-columns:1fr;} .dm-hero-admin-preview{min-height:100px;} }
       @media (max-width: 760px) {
         .dm-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -642,6 +644,50 @@
       .dm-legend-dot{ width:9px; height:9px; border-radius:50%; flex:0 0 9px; }
       .dm-legend-row .dm-legend-label{ flex:1; color:var(--muted); }
       .dm-legend-row .dm-legend-value{ font-weight:750; }
+    </style>
+    <style id="dmAdminFinalVisibility">
+      /* ===== FINAL ADMIN VISIBILITY POLISH ===== */
+      select, select:focus {
+        color: var(--ink) !important;
+        background: var(--field) !important;
+        border-color: var(--blush-line) !important;
+        color-scheme: dark;
+      }
+      /* Chrome/Windows native option menus were inheriting a near-white text
+         color on a white popup in some combinations. Force a readable menu. */
+      select option {
+        background: #ffffff !important;
+        color: #20252b !important;
+      }
+      select option:checked,
+      select option:hover {
+        background: #eaf0f6 !important;
+        color: #111827 !important;
+      }
+      .cat-dropdown {
+        background: var(--field) !important;
+        color: var(--ink) !important;
+        border-color: var(--blush-line) !important;
+      }
+      .cat-option { color: var(--ink) !important; }
+      .cat-option:hover, .cat-option.active {
+        background: var(--blush) !important;
+        color: var(--ink) !important;
+      }
+      .cat-option.add-new { color: var(--gold-soft) !important; }
+      .cat-option.empty { color: var(--muted) !important; }
+
+      /* Make secondary/muted admin text readable without making the UI loud. */
+      .hint, #loading, .empty-state, .product-card .meta,
+      .order-date, .customer-card .phone, .dm-card-title span,
+      .dm-order-customer, .dm-queue-main span, .dm-sidebar-role,
+      .dm-topbar-title p, .dm-view-store, .dm-sidebar-logout {
+        color: var(--muted) !important;
+      }
+      .dm-order-main, .dm-order-amount, .dm-queue-main strong,
+      .dm-kpi .value, .dm-sidebar-name, .dm-topbar-title h1 {
+        color: var(--ink) !important;
+      }
     </style>
   </head>
   <body>
