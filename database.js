@@ -1,5 +1,6 @@
 const { MongoClient } = require("mongodb");
 const bcrypt = require("bcryptjs");
+const productsStore = require("./products-store");
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = "designmakers";
@@ -753,6 +754,7 @@ async function connectDB() {
   await mongoClient.connect();
   const db = mongoClient.db(DB_NAME);
   mongoCollection = db.collection(COLLECTION_NAME);
+  productsStore.init(db);
 
   const existing = await mongoCollection.findOne({ _id: DOC_ID });
 
@@ -760,6 +762,22 @@ async function connectDB() {
     delete existing._id;
     cachedData = existing;
     console.log("Design Makers database loaded from MongoDB.");
+
+    // ONE-TIME AUTO-MIGRATION: older app_data documents still carry an
+    // embedded `products` array. If we find one, move it into the
+    // dedicated `products` collection (via products-store.js) and strip
+    // it out of app_data from now on — this is exactly what was causing
+    // app_data to blow past MongoDB's 16MB document limit as the catalog
+    // (and its base64 product photos) grew. Runs automatically, every
+    // deploy, and is a safe no-op once already migrated.
+    if (Array.isArray(existing.products) && existing.products.length > 0) {
+      const migratedCount = await productsStore.migrateLegacyProducts(existing.products);
+      delete cachedData.products;
+      await mongoCollection.updateOne({ _id: DOC_ID }, { $unset: { products: "" } });
+      console.log(
+        `One-time migration: moved ${migratedCount} product(s) out of app_data into their own 'products' collection.`
+      );
+    }
   } else {
     // SAFETY NET: previously, a missing document here silently triggered
     // creating a brand-new database from `defaultDatabase` (the hardcoded
@@ -786,9 +804,17 @@ async function connectDB() {
       );
     }
     cachedData = JSON.parse(JSON.stringify(defaultDatabase));
+    await productsStore.migrateLegacyProducts(cachedData.products);
+    delete cachedData.products;
     await mongoCollection.insertOne({ _id: DOC_ID, ...cachedData });
     console.log("Design Makers database created in MongoDB (first run, ALLOW_NEW_DATABASE=true).");
   }
+
+  // Products always load from their own dedicated collection now — this
+  // is the single source of truth for the in-memory `cachedData.products`
+  // array that the rest of the app reads/writes exactly as before.
+  cachedData.products = await productsStore.loadAllProducts();
+  console.log(`Loaded ${cachedData.products.length} product(s) from the 'products' collection.`);
 
   ensureShape(cachedData);
 }
@@ -1019,16 +1045,27 @@ function readDatabase() {
 // Save database — updates the in-memory cache immediately (so the next
 // readDatabase() sees the change right away) and persists to MongoDB
 // in the background.
+//
+// Products are split out and saved to their own `products` collection
+// (one document per product, via products-store.js) instead of being
+// embedded in the single app_data document — that embedding is what
+// previously let app_data grow past MongoDB's 16MB limit and start
+// silently failing to save as the catalog (and its photos) grew.
 function writeDatabase(data) {
   cachedData = data;
+  const { products, ...restOfData } = data;
 
   if (mongoCollection) {
     mongoCollection
-      .replaceOne({ _id: DOC_ID }, { _id: DOC_ID, ...data }, { upsert: true })
+      .replaceOne({ _id: DOC_ID }, { _id: DOC_ID, ...restOfData }, { upsert: true })
       .catch((err) => {
         console.error("Failed to persist database to MongoDB:", err.message);
       });
   }
+
+  productsStore.saveAllProducts(products || []).catch((err) => {
+    console.error("Failed to persist products to MongoDB:", err.message);
+  });
 
   return data;
 }
