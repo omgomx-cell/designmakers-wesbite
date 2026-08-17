@@ -1,0 +1,1352 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seller Dashboard - Design Makers</title>
+    <link rel="icon" type="image/png" href="Logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      /* ===== SLATE + GOLD GLASS THEME — same palette as the admin panel,
+         single source of truth, no dark/light toggle ===== */
+      :root {
+        --rosewood: #45515e;
+        --rosewood-dark: #2e3a46;
+        --blush: rgba(200,169,107,.10);
+        --blush-line: rgba(161,168,179,.16);
+        --gold: #c8a96b;
+        --gold-soft: #dcc191;
+        --cream: #2e3a46;
+        --ink: #eef1f4;
+        --muted: #a1a8b3;
+        --surface: rgba(69,81,94,.58);
+        --field: rgba(161,168,179,.08);
+        --line: rgba(161,168,179,.18);
+        --success: #4fce88;
+        --success-bg: rgba(79,206,136,.15);
+        --danger: #e8798a;
+        --danger-bg: rgba(232,121,138,.15);
+        --warn: #c8a96b;
+        --warn-bg: rgba(200,169,107,.15);
+        --info: #8fa8c2;
+        --info-bg: rgba(143,168,194,.15);
+        --gold-bg: rgba(200,169,107,.16);
+      }
+      html { background:#242d37; }
+      body {
+        font-family: "Inter", sans-serif;
+        color: var(--ink);
+        min-height: 100vh;
+        background:
+          radial-gradient(1100px 560px at 8% -10%, rgba(69,81,94,.5), transparent 60%),
+          radial-gradient(950px 620px at 98% 4%, rgba(161,168,179,.18), transparent 55%),
+          radial-gradient(800px 520px at 45% 105%, rgba(200,169,107,.16), transparent 60%),
+          linear-gradient(180deg,#374553 0%, #2e3a46 45%, #242d37 100%);
+        background-attachment: fixed;
+      }
+      h1, h2, .brand .name { font-family: "Playfair Display", serif; }
+
+      /* ---------- LOGIN SCREEN ---------- */
+      #loginScreen {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 48px 16px;
+      }
+      .login-page { width: 100%; max-width: 420px; }
+      .brand { text-align: center; margin-bottom: 20px; }
+      .brand img { height: 44px; margin-bottom: 8px; }
+      .brand .name { font-weight: 700; font-size: 1.3em; color: var(--gold-soft); letter-spacing: 0.04em; }
+      .card {
+        background: var(--cream);
+        border: 1px solid var(--blush-line);
+        border-radius: 16px;
+        padding: 28px 24px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+      }
+      .card h1 { font-size: 1.4em; margin-bottom: 6px; }
+      .desc { font-size: 0.9em; color: var(--muted); margin-bottom: 20px; line-height: 1.4; }
+      label { font-size: 0.85em; display: block; margin-bottom: 4px; margin-top: 14px; font-weight: 500; }
+      input[type="text"], input[type="password"], input[type="tel"], textarea {
+        width: 100%;
+        padding: 11px 12px;
+        border: 1px solid var(--blush-line);
+        border-radius: 8px;
+        font-size: 0.95em;
+        font-family: inherit;
+        background: var(--surface);
+        color: var(--ink);
+      }
+      input[type="file"] { font-size: 0.85em; margin-top: 4px; }
+      .hint { font-size: 0.78em; color: var(--muted); margin-top: 4px; }
+      .error { display: none; background: var(--danger-bg); color: var(--danger); border-radius: 8px; padding: 10px 12px; font-size: 0.85em; margin-top: 16px; }
+      .success-msg { display: none; background: var(--success-bg); color: var(--success); border-radius: 8px; padding: 10px 12px; font-size: 0.85em; margin-top: 16px; }
+      button {
+        cursor: pointer;
+        font-family: inherit;
+      }
+      button.submit {
+        width: 100%;
+        margin-top: 20px;
+        padding: 13px;
+        background: linear-gradient(135deg,var(--rosewood-dark),var(--gold));
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 1em;
+        font-weight: 600;
+      }
+      button.submit:hover { background: linear-gradient(135deg,var(--rosewood),var(--gold-soft)); }
+      button.submit:disabled { opacity: 0.6; cursor: default; }
+      button.link-btn {
+        background: none;
+        border: none;
+        color: var(--gold-soft);
+        font-size: 0.82em;
+        margin-top: 14px;
+        display: block;
+        width: 100%;
+        text-align: center;
+      }
+      .back-link { display: block; text-align: center; margin-top: 18px; font-size: 0.85em; color: var(--muted); text-decoration: none; }
+
+      /* ---------- Buttons (same as admin panel) ---------- */
+      .btn {
+        display: inline-block;
+        background: linear-gradient(135deg,var(--rosewood-dark),var(--gold));
+        color: #fff;
+        border: none;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 14.5px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 14px;
+      }
+      .btn:hover { background: linear-gradient(135deg,var(--rosewood),var(--gold-soft)); }
+      .btn.secondary { background: var(--blush); color: var(--gold-soft); }
+      .btn.danger { background: var(--danger-bg); color: var(--danger); }
+      .btn.small { width: auto; padding: 8px 14px; font-size: 12.5px; margin: 4px 4px 0 0; }
+
+      /* ---------- DASHBOARD SHELL (identical to admin panel) ---------- */
+      #dashboard { display: none; }
+      .dm-shell { display:flex; align-items:flex-start; min-height:100vh; }
+      .dm-sidebar{
+        width:252px; flex:0 0 252px; position:sticky; top:0; height:100vh;
+        display:flex; flex-direction:column;
+        background:rgba(35,44,53,.62);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border-right:1px solid var(--line);
+        padding:22px 16px; z-index:70;
+      }
+      .dm-sidebar-logo{ display:flex; flex-direction:column; align-items:center; gap:3px; margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+      .dm-sidebar-logo img{ width:52px; height:52px; object-fit:contain; margin-bottom:4px; }
+      .dm-sidebar-logo .dm-brand-name{ font-family:"Playfair Display",Georgia,serif; font-weight:800; font-size:14.5px; letter-spacing:.05em; color:var(--ink); }
+      .dm-sidebar-logo .dm-brand-sub{ font-size:10px; color:var(--muted); letter-spacing:.03em; }
+      .dm-nav{ display:flex; flex-direction:column; gap:3px; flex:1; overflow-y:auto; }
+      .dm-nav-item{
+        display:flex; align-items:center; gap:10px;
+        background:none; border:none; text-align:left;
+        padding:10px 12px; border-radius:10px;
+        font-size:12.8px; font-weight:650; color:var(--muted);
+        cursor:pointer; width:100%; font-family:inherit;
+      }
+      .dm-nav-item svg{ width:17px; height:17px; flex:0 0 17px; }
+      .dm-nav-item:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
+      .dm-nav-item.active{
+        background:linear-gradient(135deg,rgba(212,162,76,.24),rgba(212,162,76,.09));
+        color:var(--gold-soft);
+        border:1px solid rgba(212,162,76,.32);
+        box-shadow:0 2px 10px rgba(212,162,76,.12);
+      }
+      .dm-sidebar-bottom{ border-top:1px solid var(--line); padding-top:14px; margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+      .dm-view-store{ display:flex; align-items:center; gap:9px; font-size:12.3px; font-weight:650; color:var(--muted); text-decoration:none; padding:9px 10px; border-radius:9px; }
+      .dm-view-store svg{ width:15px; height:15px; }
+      .dm-view-store:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
+      .dm-sidebar-profile{ display:flex; align-items:center; gap:9px; padding:8px; border-radius:12px; background:rgba(255,255,255,.045); border:1px solid var(--line); }
+      .dm-sidebar-avatar{ width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--rosewood-dark),var(--gold)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; flex:0 0 32px; }
+      .dm-sidebar-name{ font-size:12px; font-weight:750; color:var(--ink); line-height:1.3; }
+      .dm-sidebar-role{ font-size:10.3px; color:var(--muted); }
+      .dm-sidebar-logout{ margin-left:auto; background:none; border:none; color:var(--muted); cursor:pointer; padding:4px; }
+      .dm-sidebar-logout:hover{ color:var(--danger); }
+
+      .dm-main{ flex:1; min-width:0; }
+      .dm-topbar{
+        position:sticky; top:0; z-index:60;
+        display:flex; align-items:center; gap:14px;
+        padding:14px 26px;
+        background:rgba(35,44,53,.55);
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        border-bottom:1px solid var(--line);
+      }
+      .dm-topbar-menu{ display:none; background:none; border:none; color:var(--ink); cursor:pointer; padding:4px; }
+      .dm-topbar-title h1{ margin:0; font-size:16.5px; color:var(--ink); font-family:"Playfair Display",Georgia,serif; }
+      .dm-topbar-title p{ margin:1px 0 0; font-size:11.3px; color:var(--muted); }
+      .dm-topbar-actions{ display:flex; align-items:center; gap:14px; margin-left:auto; }
+      .dm-topbar-profile{ display:flex; align-items:center; gap:8px; }
+      .dm-topbar-profile .dm-sidebar-avatar{ width:30px; height:30px; flex:0 0 30px; }
+      .dm-topbar-profile .dm-sidebar-name{ font-size:12px; }
+      .dm-topbar-profile .dm-sidebar-role{ font-size:10px; }
+
+      @media (max-width: 980px){
+        .dm-sidebar{ position:fixed; left:0; top:0; transform:translateX(-100%); transition:transform .25s ease; box-shadow:0 0 40px rgba(0,0,0,.2); }
+        .dm-shell.dm-sidebar-open .dm-sidebar{ transform:translateX(0); }
+        .dm-topbar-menu{ display:block; }
+      }
+
+      main { max-width:1180px; margin: 0 auto; padding: 22px 26px 60px; }
+      .panel { display: none; }
+      .panel.active { display: block; }
+      .section-title { font-family: "Playfair Display", serif; font-size: 1.15em; margin-bottom: 14px; }
+      .empty-state { color: var(--muted); font-size: 0.9em; padding: 30px 0; text-align: center; }
+
+      /* Products / orders grid */
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+      .p-card {
+        background: var(--surface);
+        border: 1px solid var(--blush-line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .p-card img { width: 100%; height: 130px; object-fit: cover; display: block; background: var(--blush); }
+      .p-card .body { padding: 10px 12px; }
+      .p-card .name { font-weight: 600; font-size: 0.92em; margin-bottom: 2px; }
+      .p-card .meta { font-size: 0.8em; color: var(--muted); }
+      .badge {
+        display: inline-block;
+        font-size: 0.72em;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        margin-top: 6px;
+      }
+      .badge.pending { background: var(--warn-bg); color: var(--warn); }
+      .badge.live { background: var(--success-bg); color: var(--success); }
+      .p-card .actions { padding: 0 12px 12px; }
+      .p-card .actions .btn.small { margin: 0; width: 100%; }
+
+      /* ---------- EDIT PRODUCT MODAL ---------- */
+      #editModalOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(5,6,9,.62);
+        backdrop-filter: blur(3px);
+        z-index: 200;
+        align-items: flex-start;
+        justify-content: center;
+        overflow-y: auto;
+        padding: 40px 16px;
+      }
+      #editModalOverlay.open { display: flex; }
+      #editModalOverlay .modal-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 24px;
+        max-width: 520px;
+        width: 100%;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: 0 10px 32px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
+      }
+      #editModalOverlay h2 { font-family: "Playfair Display", serif; font-size: 1.15em; margin-bottom: 16px; color: var(--gold-soft); }
+      #editModalOverlay .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+      #editModalOverlay .modal-actions .btn.small { margin: 0; width: auto; flex: 1; text-align: center; }
+
+      .order-row {
+        background: var(--surface);
+        border: 1px solid var(--blush-line);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+      }
+      .order-row .top-line { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.92em; margin-bottom: 4px; }
+      .order-row .item-line { font-size: 0.85em; color: var(--muted); }
+      .order-status {
+        display: inline-block;
+        font-size: 0.72em;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: var(--blush);
+        color: var(--gold-soft);
+      }
+
+      .form-card {
+        background: var(--surface);
+        border: 1px solid var(--blush-line);
+        border-radius: 12px;
+        padding: 20px;
+        max-width: 520px;
+      }
+      /* Glass treatment for every card-like surface — same as admin panel */
+      .card,.p-card,.order-row,.form-card,.seller-kpi,.seller-panel-card {
+        background: var(--surface) !important;
+        border: 1px solid var(--line) !important;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: 0 10px 32px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2) !important;
+      }
+      .card,.form-card { border-radius:18px !important; }
+      input[type=text],input[type=password],input[type=tel],input[type=number],textarea,select {
+        background: var(--field) !important;
+        color: var(--ink) !important;
+        border-color: var(--line) !important;
+        backdrop-filter: blur(6px);
+      }
+      input:focus, textarea:focus, select:focus { outline: none; border-color: var(--gold) !important; }
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+      /* Executive dashboard widgets — always on, same look as admin panel's KPIs */
+      #sellerOverview { animation: dmSellerFade .22s ease both; }
+      .seller-kpis { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
+      .seller-kpi { padding:16px; border-radius:14px; min-height:112px; position:relative; overflow:hidden; }
+      .seller-kpi::after { content:""; position:absolute; width:85px; height:85px; right:-35px; top:-35px; border-radius:50%; background:var(--gold-bg); }
+      .seller-kpi .label { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.07em; font-weight:800; }
+      .seller-kpi .value { font-size:24px; font-weight:800; letter-spacing:-.03em; margin-top:10px; color:var(--gold-soft); }
+      .seller-grid-2 { display:grid; grid-template-columns:1.35fr .65fr; gap:16px; }
+      .seller-panel-card { padding:18px; }
+      .seller-panel-card h3 { margin:0 0 14px; font-size:14px; color:var(--ink); }
+      .seller-recent-row { display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-top:1px solid var(--line); font-size:12px; }
+      .seller-recent-row:first-child { border-top:0; }
+      .seller-recent-row strong { color:var(--ink); display:block; }
+      .seller-recent-row span { color:var(--muted); display:block; margin-top:3px; }
+      .seller-pill { padding:5px 8px; border-radius:999px; border:1px solid var(--line); background:var(--field); color:var(--muted); font-size:10px; white-space:nowrap; }
+      @keyframes dmSellerFade { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+      @media (max-width:1000px) { .seller-kpis{grid-template-columns:repeat(3,minmax(0,1fr));} .seller-grid-2{grid-template-columns:1fr;} }
+      @media (max-width:700px) { .seller-kpis{grid-template-columns:repeat(2,minmax(0,1fr));} }
+
+      .pending-note {
+        background: var(--warn-bg);
+        color: var(--warn);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 0.85em;
+        margin-bottom: 16px;
+      }
+    
+
+    </style>
+  </head>
+  <body>
+    <!-- ============ LOGIN SCREEN ============ -->
+    <div id="loginScreen">
+      <div class="login-page">
+        <div class="brand">
+          <img src="Logo.png" alt="Design Makers" />
+          <div class="name">DESIGN MAKERS</div>
+        </div>
+        <div class="card">
+          <div id="loginFormBlock">
+            <h1>Seller login</h1>
+            <p class="desc">Log in with the Seller ID and password we emailed you when your application was approved.</p>
+
+            <label for="loginSellerId">Seller ID</label>
+            <input type="text" id="loginSellerId" placeholder="DM-SLR-001" />
+
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" />
+
+            <div class="error" id="loginError"></div>
+
+            <button class="submit" id="loginBtn" onclick="doLogin()">Log in</button>
+            <button class="link-btn" onclick="showForgotPassword()">Forgot password?</button>
+
+            <div style="display:flex;align-items:center;gap:10px;margin:18px 0;">
+              <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+              <span style="font-size:0.8em;color:var(--muted);">or</span>
+              <div style="flex:1;height:1px;background:var(--blush-line);"></div>
+            </div>
+            <div id="googleSignInBtn" style="display:flex;justify-content:center;"></div>
+            <div class="error" id="googleLoginError" style="display:none;margin-top:8px;"></div>
+            <p style="font-size:0.78em;color:var(--muted);text-align:center;margin-top:8px;">Google sign-in works only if your seller account email matches your Google account — apply as a seller first if you don't have one yet.</p>
+          </div>
+
+          <div id="forgotBlock" style="display:none;">
+            <h1>Forgot password</h1>
+            <p class="desc">Enter your Seller ID and we'll send a request to the admin to reset it. You'll get a new password by email.</p>
+
+            <label for="forgotSellerId">Seller ID</label>
+            <input type="text" id="forgotSellerId" placeholder="DM-SLR-001" />
+
+            <div class="error" id="forgotError"></div>
+            <div class="success-msg" id="forgotSuccess"></div>
+
+            <button class="submit" id="forgotBtn" onclick="submitForgotPassword()">Send request</button>
+            <button class="link-btn" onclick="showLoginForm()">Back to login</button>
+          </div>
+        </div>
+        <a class="back-link" href="/">← Back to Design Makers</a>
+      </div>
+    </div>
+
+    <!-- ============ FORCED PASSWORD CHANGE (first login after OTP) ============ -->
+    <div id="mustChangeScreen" style="display:none;">
+      <div class="login-page">
+        <div class="brand">
+          <img src="Logo.png" alt="Design Makers" />
+          <div class="name">DESIGN MAKERS</div>
+        </div>
+        <div class="card">
+          <h1>Set your own password</h1>
+          <p class="desc">You logged in with a one-time password. Please choose a new password that only you will know — you'll use this from now on.</p>
+
+          <label for="mcCurrentPassword">One-time password you just used</label>
+          <input type="password" id="mcCurrentPassword" autocomplete="off" />
+
+          <label for="mcNewPassword">New password</label>
+          <input type="password" id="mcNewPassword" placeholder="At least 6 characters" autocomplete="new-password" />
+
+          <label for="mcConfirmPassword">Confirm new password</label>
+          <input type="password" id="mcConfirmPassword" autocomplete="new-password" />
+
+          <div class="error" id="mcError"></div>
+
+          <button class="submit" id="mcSubmitBtn" onclick="submitMustChangePassword()">Save new password</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <div id="dashboard">
+    <div class="dm-shell" id="dmShell">
+      <aside class="dm-sidebar">
+        <div class="dm-sidebar-logo">
+          <img src="Logo.png" alt="Design Makers" />
+          <div class="dm-brand-name">DESIGN MAKERS</div>
+          <div class="dm-brand-sub">Seller Center</div>
+        </div>
+        <nav class="dm-nav">
+          <button class="tab-btn dm-nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</button>
+          <button class="tab-btn dm-nav-item" data-tab="products" onclick="switchTab('products')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>My Products</button>
+          <button class="tab-btn dm-nav-item" data-tab="add" onclick="switchTab('add')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Add Product</button>
+          <button class="tab-btn dm-nav-item" data-tab="orders" onclick="switchTab('orders')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Orders</button>
+          <button class="tab-btn dm-nav-item" data-tab="profile" onclick="switchTab('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>Profile</button>
+        </nav>
+        <div class="dm-sidebar-bottom">
+          <a class="dm-view-store" href="index.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/></svg>View Store</a>
+          <div class="dm-sidebar-profile">
+            <div class="dm-sidebar-avatar" id="sidebarAvatar">SL</div>
+            <div style="min-width:0;">
+              <div class="dm-sidebar-name" id="dashShopTitle">Seller Dashboard</div>
+              <div class="dm-sidebar-role" id="dashSellerId"></div>
+            </div>
+            <button class="dm-sidebar-logout" onclick="doLogout()" title="Log out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg></button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="dm-main">
+        <div class="dm-topbar">
+          <button class="dm-topbar-menu" onclick="dmToggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg></button>
+          <div class="dm-topbar-title">
+            <h1 id="dmTopbarTitle">Dashboard</h1>
+            <p id="dmTopbarSub">Your business overview</p>
+          </div>
+        </div>
+
+      <main>
+        <!-- SELLER EXECUTIVE DASHBOARD -->
+        <div class="panel active" id="panel-dashboard">
+          <div id="sellerOverview">
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+              <div>
+                <div style="color:#77778a;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Seller Business Center</div>
+                <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;"><span id="sellerOverviewGreeting">Welcome back</span>, <span id="sellerOverviewName">Seller</span> 👋</h2>
+                <p style="margin:6px 0 0;color:#8f8fa1;font-size:12px;">Your live business performance from actual orders and products.</p>
+              </div>
+              <button class="btn small secondary" onclick="loadSellerOverview()">↻ Refresh</button>
+            </div>
+            <div class="seller-kpis">
+              <div class="seller-kpi"><div class="label">Sales</div><div class="value" id="svSales">—</div></div>
+              <div class="seller-kpi"><div class="label">Orders</div><div class="value" id="svOrders">—</div></div>
+              <div class="seller-kpi"><div class="label">Products</div><div class="value" id="svProducts">—</div></div>
+              <div class="seller-kpi"><div class="label">Pending Orders</div><div class="value" id="svPending">—</div></div>
+              <div class="seller-kpi"><div class="label">Avg Order</div><div class="value" id="svAov">—</div></div>
+            </div>
+            <div class="seller-grid-2">
+              <section class="seller-panel-card"><h3>Recent Orders</h3><div id="svRecent"><div class="empty-state">Loading…</div></div></section>
+              <section class="seller-panel-card"><h3>Product Health</h3><div id="svHealth"><div class="empty-state">Loading…</div></div></section>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Products -->
+        <div class="panel" id="panel-products">
+          <div class="section-title">My Products</div>
+          <div id="productsGrid" class="grid"></div>
+          <div class="empty-state" id="productsEmpty" style="display:none;">You haven't added any products yet.</div>
+        </div>
+
+        <!-- Add Product -->
+        <div class="panel" id="panel-add">
+          <div class="section-title">Add Product</div>
+          <div class="form-card">
+            <label for="pName">Product name</label>
+            <input type="text" id="pName" />
+
+            <div class="two-col">
+              <div>
+                <label for="pPrice">Price (₹)</label>
+                <input type="text" id="pPrice" />
+              </div>
+              <div>
+                <label for="pMoq">MOQ</label>
+                <input type="text" id="pMoq" placeholder="1" />
+              </div>
+            </div>
+
+            <label for="pCategory">Category</label>
+            <select id="pCategory">
+              <option value="">Select a category</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Bottles">Bottles</option>
+              <option value="Corporate Gifts">Corporate Gifts</option>
+              <option value="Cushions">Cushions</option>
+              <option value="Engraving">Engraving</option>
+              <option value="Frames">Frames</option>
+              <option value="Home Decor">Home Decor</option>
+              <option value="Keychains">Keychains</option>
+              <option value="Mugs">Mugs</option>
+              <option value="T-Shirts">T-Shirts</option>
+            </select>
+
+            <label for="pSizes">Sizes (comma separated, optional)</label>
+            <input type="text" id="pSizes" placeholder="S, M, L" />
+
+            <label for="pDescription">Description</label>
+            <textarea id="pDescription" rows="3"></textarea>
+
+            <label for="pImage">Product photo</label>
+            <input type="file" id="pImage" accept="image/*" />
+
+            <div class="error" id="addProductError"></div>
+            <div class="success-msg" id="addProductSuccess"></div>
+
+            <button class="submit" id="addProductBtn" onclick="submitNewProduct()">Submit for approval</button>
+          </div>
+        </div>
+
+        <!-- Orders -->
+        <div class="panel" id="panel-orders">
+          <div class="section-title">Orders</div>
+          <div id="ordersList"></div>
+          <div class="empty-state" id="ordersEmpty" style="display:none;">No orders with your products yet.</div>
+        </div>
+
+        <!-- Profile -->
+        <div class="panel" id="panel-profile">
+          <div class="section-title">Profile</div>
+          <div class="form-card">
+            <div class="pending-note" id="profilePendingNote" style="display:none;">
+              You have a profile update request awaiting admin approval.
+            </div>
+
+            <label>Seller ID</label>
+            <input type="text" id="profileSellerId" disabled />
+
+            <label>Name</label>
+            <input type="text" id="profileName" disabled />
+
+            <label for="profilePhone">Phone number</label>
+            <input type="tel" id="profilePhone" />
+
+            <label for="profileShopTitle">Shop title</label>
+            <input type="text" id="profileShopTitle" />
+
+            <label for="profilePhoto">Update photo (optional)</label>
+            <input type="file" id="profilePhoto" accept="image/*" />
+
+            <div class="hint">Changes here need admin approval before they take effect.</div>
+
+            <div class="error" id="profileError"></div>
+            <div class="success-msg" id="profileSuccess"></div>
+
+            <button class="submit" id="profileSubmitBtn" onclick="submitProfileUpdate()">Request update</button>
+          </div>
+        </div>
+      </main>
+      </div>
+    </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editModalOverlay">
+      <div class="modal-card">
+        <h2>Edit Product</h2>
+
+        <label for="eName">Product name</label>
+        <input type="text" id="eName" />
+
+        <div class="two-col">
+          <div>
+            <label for="ePrice">Price (₹)</label>
+            <input type="text" id="ePrice" />
+          </div>
+          <div>
+            <label for="eMoq">MOQ</label>
+            <input type="text" id="eMoq" placeholder="1" />
+          </div>
+        </div>
+
+        <label for="eCategory">Category</label>
+        <select id="eCategory">
+          <option value="">Select a category</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Bottles">Bottles</option>
+          <option value="Corporate Gifts">Corporate Gifts</option>
+          <option value="Cushions">Cushions</option>
+          <option value="Engraving">Engraving</option>
+          <option value="Frames">Frames</option>
+          <option value="Home Decor">Home Decor</option>
+          <option value="Keychains">Keychains</option>
+          <option value="Mugs">Mugs</option>
+          <option value="T-Shirts">T-Shirts</option>
+        </select>
+
+        <label for="eSizes">Sizes (comma separated, optional)</label>
+        <input type="text" id="eSizes" placeholder="S, M, L" />
+
+        <label for="eDescription">Description</label>
+        <textarea id="eDescription" rows="3"></textarea>
+
+        <label for="eImage">Replace product photo (optional)</label>
+        <input type="file" id="eImage" accept="image/*" />
+        <div id="eImagePreview" style="display:flex;flex-wrap:wrap;margin-top:8px;"></div>
+
+        <div class="error" id="editProductError"></div>
+        <div class="success-msg" id="editProductSuccess"></div>
+
+        <div class="modal-actions">
+          <button class="btn small secondary" type="button" onclick="closeEditModal()">Cancel</button>
+          <button class="btn small" id="editProductBtn" type="button" onclick="submitEditProduct()">Save changes</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const TOKEN_KEY = "dm_seller_token";
+
+      function getToken() { return localStorage.getItem(TOKEN_KEY); }
+      function setToken(t) { localStorage.setItem(TOKEN_KEY, t); }
+      function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+
+      async function api(path, options = {}) {
+        const token = getToken();
+        const headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+        if (token) headers.Authorization = "Bearer " + token;
+        const res = await fetch(path, Object.assign({}, options, { headers }));
+        const data = await res.json().catch(() => ({ success: false, message: "Server error." }));
+
+        // GLOBAL 401 HANDLER — every seller tab (Dashboard, My Products,
+        // Orders, Profile) calls this same api() helper. Before this fix,
+        // if the token went stale mid-session, every one of those calls
+        // just quietly failed and each tab's own catch block left it on
+        // an empty/loading state forever — "dashboard loads but data/tabs
+        // broken", with no way for the seller to tell it was an auth
+        // problem. Now a 401 on any authenticated call kicks them straight
+        // back to a visible, working login screen instead.
+        if (res.status === 401 && token && !path.includes("/login") && !path.includes("/forgot-password")) {
+          clearToken();
+          const dashboardEl = document.getElementById("dashboard");
+          const loginScreenEl = document.getElementById("loginScreen");
+          if (dashboardEl) dashboardEl.style.display = "none";
+          if (loginScreenEl) loginScreenEl.style.display = "flex";
+          showLoginForm();
+          const errorEl = document.getElementById("loginError");
+          if (errorEl) {
+            errorEl.textContent = "Your session ended. Please log in again.";
+            errorEl.style.display = "block";
+          }
+        }
+
+        return { ok: res.ok, data };
+      }
+
+      // ---------- Login screen ----------
+      function showForgotPassword() {
+        document.getElementById("loginFormBlock").style.display = "none";
+        document.getElementById("forgotBlock").style.display = "block";
+      }
+      function showLoginForm() {
+        document.getElementById("forgotBlock").style.display = "none";
+        document.getElementById("loginFormBlock").style.display = "block";
+      }
+
+      // ================================
+      // GOOGLE SIGN-IN (seller)
+      // ================================
+      // Paste your Google OAuth Client ID here — same one used on index.html
+      // and set as GOOGLE_CLIENT_ID on the server.
+      const GOOGLE_CLIENT_ID = "982773085262-n04rje1hcha9om6h2qe7fshhirmi9j6t.apps.googleusercontent.com";
+
+      function initGoogleSignIn() {
+        if (!window.google || !window.google.accounts || GOOGLE_CLIENT_ID.startsWith("YOUR_")) return;
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleSellerLogin,
+        });
+        const btnEl = document.getElementById("googleSignInBtn");
+        if (btnEl) {
+          google.accounts.id.renderButton(btnEl, { theme: "outline", size: "large", width: 280, text: "continue_with" });
+        }
+      }
+
+      async function handleGoogleSellerLogin(response) {
+        const errorEl = document.getElementById("googleLoginError");
+        errorEl.style.display = "none";
+        const { data } = await api("/api/seller/google-login", {
+          method: "POST",
+          body: JSON.stringify({ idToken: response.credential }),
+        });
+        if (!data.success) {
+          errorEl.textContent = data.message || "Google sign-in failed.";
+          errorEl.style.display = "block";
+          return;
+        }
+        setToken(data.token);
+        enterDashboard(data.seller);
+      }
+
+      window.addEventListener("load", initGoogleSignIn);
+
+      async function doLogin() {
+        const errorEl = document.getElementById("loginError");
+        errorEl.style.display = "none";
+        const sellerId = document.getElementById("loginSellerId").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        if (!sellerId || !password) {
+          errorEl.textContent = "Enter your Seller ID and password.";
+          errorEl.style.display = "block";
+          return;
+        }
+        const btn = document.getElementById("loginBtn");
+        btn.disabled = true;
+        btn.textContent = "Logging in...";
+        const { data } = await api("/api/seller/login", {
+          method: "POST",
+          body: JSON.stringify({ sellerId, password }),
+        });
+        btn.disabled = false;
+        btn.textContent = "Log in";
+        if (!data.success) {
+          errorEl.textContent = data.message || "Could not log in.";
+          errorEl.style.display = "block";
+          return;
+        }
+        setToken(data.token);
+        window.__dmSeller = data.seller;
+        if (data.mustChangePassword) {
+          showMustChangeScreen(password);
+          return;
+        }
+        enterDashboard(data.seller);
+      }
+
+      // ---------- Forced password change (first login after an OTP) ----------
+      function showMustChangeScreen(otpUsed) {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("mustChangeScreen").style.display = "block";
+        document.getElementById("mcCurrentPassword").value = otpUsed || "";
+        document.getElementById("mcNewPassword").value = "";
+        document.getElementById("mcConfirmPassword").value = "";
+        document.getElementById("mcError").style.display = "none";
+      }
+
+      async function submitMustChangePassword() {
+        const errorEl = document.getElementById("mcError");
+        errorEl.style.display = "none";
+        const currentPassword = document.getElementById("mcCurrentPassword").value;
+        const newPassword = document.getElementById("mcNewPassword").value;
+        const confirmPassword = document.getElementById("mcConfirmPassword").value;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+          errorEl.textContent = "Fill in all three fields.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (newPassword.length < 6) {
+          errorEl.textContent = "New password must be at least 6 characters.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          errorEl.textContent = "New password and confirmation don't match.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        const btn = document.getElementById("mcSubmitBtn");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+        const { data } = await api("/api/seller/change-password", {
+          method: "POST",
+          body: JSON.stringify({ currentPassword, newPassword }),
+        });
+        btn.disabled = false;
+        btn.textContent = "Save new password";
+        if (!data.success) {
+          errorEl.textContent = data.message || "Could not update password.";
+          errorEl.style.display = "block";
+          return;
+        }
+        document.getElementById("mustChangeScreen").style.display = "none";
+        enterDashboard(window.__dmSeller || {});
+      }
+
+      async function submitForgotPassword() {
+        const errorEl = document.getElementById("forgotError");
+        const successEl = document.getElementById("forgotSuccess");
+        errorEl.style.display = "none";
+        successEl.style.display = "none";
+        const sellerId = document.getElementById("forgotSellerId").value.trim();
+        if (!sellerId) {
+          errorEl.textContent = "Enter your Seller ID.";
+          errorEl.style.display = "block";
+          return;
+        }
+        const btn = document.getElementById("forgotBtn");
+        btn.disabled = true;
+        btn.textContent = "Sending...";
+        const { data } = await api("/api/seller/forgot-password", {
+          method: "POST",
+          body: JSON.stringify({ sellerId }),
+        });
+        btn.disabled = false;
+        btn.textContent = "Send request";
+        if (!data.success) {
+          errorEl.textContent = data.message || "Could not send request.";
+          errorEl.style.display = "block";
+          return;
+        }
+        successEl.textContent = data.message;
+        successEl.style.display = "block";
+      }
+
+      function doLogout() {
+        clearToken();
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("loginScreen").style.display = "flex";
+        showLoginForm();
+      }
+
+      // ---------- Dashboard shell ----------
+      const DM_SELLER_TAB_TITLES = {
+        dashboard: ["Dashboard", "Your business overview"],
+        products: ["My Products", "Everything you've listed"],
+        add: ["Add Product", "Submit a new product for approval"],
+        orders: ["Orders", "Track orders containing your products"],
+        profile: ["Profile", "Your shop details"],
+      };
+      function dmToggleSidebar() {
+        const shell = document.getElementById("dmShell");
+        if (shell) shell.classList.toggle("dm-sidebar-open");
+      }
+      function enterDashboard(seller) {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        document.getElementById("dashShopTitle").textContent = seller.shopTitle || "Seller Dashboard";
+        document.getElementById("dashSellerId").textContent = seller.sellerId + " · " + seller.name;
+        const avatarEl = document.getElementById("sidebarAvatar");
+        if (avatarEl) {
+          const initials = (seller.shopTitle || seller.name || "SL").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+          avatarEl.textContent = initials || "SL";
+        }
+        window.__dmSeller = seller;
+        switchTab("dashboard");
+        // Preload live categories right away (in the background) so the
+        // "Add Product" dropdown is already filled the instant the seller
+        // opens that tab — no "Loading categories…" wait.
+        loadLiveCategories();
+      }
+
+      function switchTab(tab) {
+        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
+        document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+        document.getElementById("panel-" + tab).classList.add("active");
+        const titleInfo = DM_SELLER_TAB_TITLES[tab];
+        if (titleInfo) {
+          const titleEl = document.getElementById("dmTopbarTitle");
+          const subEl = document.getElementById("dmTopbarSub");
+          if (titleEl) titleEl.textContent = titleInfo[0];
+          if (subEl) subEl.textContent = titleInfo[1];
+        }
+        const shell = document.getElementById("dmShell");
+        if (shell) shell.classList.remove("dm-sidebar-open");
+        if (tab === "dashboard") loadSellerOverview();
+        if (tab === "products") loadProducts();
+        if (tab === "add") loadLiveCategories();
+        if (tab === "orders") loadOrders();
+        if (tab === "profile") loadProfile();
+      }
+
+      // ---------- SELLER EXECUTIVE OVERVIEW ----------
+      async function loadSellerOverview() {
+        const authName = (window.__dmSeller && window.__dmSeller.name) || "Seller";
+        const nameEl = document.getElementById("sellerOverviewName");
+        const greetingEl = document.getElementById("sellerOverviewGreeting");
+        if (greetingEl) { const h = new Date().getHours(); greetingEl.textContent = h >= 5 && h < 12 ? "Good morning" : (h >= 12 && h < 17 ? "Good afternoon" : "Good evening"); }
+        if (nameEl) nameEl.textContent = authName;
+        ["svSales","svOrders","svProducts","svPending","svAov","svRecent","svHealth"].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML = ["svRecent","svHealth"].includes(id) ? '<div class="empty-state">Loading…</div>' : '—'; });
+        try {
+          const [pRes,oRes] = await Promise.all([api("/api/seller/products"), api("/api/seller/orders")]);
+          const pData=pRes.data, oData=oRes.data;
+          if(!pData.success || !oData.success) throw new Error("Unable to load seller data");
+          const ps=pData.products||[], os=oData.orders||[];
+          const valid=os.filter(o=>o.status!=="Cancelled");
+          const sales=valid.reduce((sum,o)=>sum+(Number(o.sellerTotal)||0),0);
+          const pending=os.filter(o=>["New","Processing"].includes(o.status)).length;
+          const aov=valid.length ? sales/valid.length : 0;
+          const live=ps.filter(p=>p.approved!==false).length;
+          const pendingProducts=ps.filter(p=>p.approved===false).length;
+          document.getElementById("svSales").textContent="₹"+Math.round(sales).toLocaleString("en-IN");
+          document.getElementById("svOrders").textContent=os.length.toLocaleString("en-IN");
+          document.getElementById("svProducts").textContent=live.toLocaleString("en-IN");
+          document.getElementById("svPending").textContent=pending.toLocaleString("en-IN");
+          document.getElementById("svAov").textContent=aov ? "₹"+Math.round(aov).toLocaleString("en-IN") : "₹0";
+          const recent=os.slice(0,6);
+          document.getElementById("svRecent").innerHTML = recent.length ? recent.map(o => `<div class="seller-recent-row"><div><strong>${escapeHtml(o.orderNumber || "")}</strong><span>${escapeHtml((o.items || []).map(i => i.name + " × " + i.qty).join(", "))}</span></div><div style="text-align:right"><strong>₹${(Number(o.sellerTotal) || 0).toLocaleString("en-IN")}</strong><span>${escapeHtml(o.status || "")}</span></div></div>`).join("") : '<div class="empty-state">No orders with your products yet.</div>';
+          document.getElementById("svHealth").innerHTML='<div class="seller-recent-row"><div><strong>Live products</strong><span>Currently approved</span></div><span class="seller-pill">'+live+'</span></div><div class="seller-recent-row"><div><strong>Pending approval</strong><span>Waiting for admin review</span></div><span class="seller-pill">'+pendingProducts+'</span></div><div class="seller-recent-row"><div><strong>Total products</strong><span>All products in your account</span></div><span class="seller-pill">'+ps.length+'</span></div>';
+        } catch(err) {
+          document.getElementById("svRecent").innerHTML='<div class="empty-state">Could not load orders. <button class="link-btn" onclick="loadSellerOverview()">Retry</button></div>';
+          document.getElementById("svHealth").innerHTML='<div class="empty-state">Could not load product data.</div>';
+        }
+      }
+
+      // ---------- My Products ----------
+      // The <select> already ships with the 10 known categories hardcoded
+      // in the HTML, so the seller NEVER sees a "Loading…" or empty state —
+      // it works instantly even if this fetch is slow or fails. This
+      // function only runs quietly in the background to pull in any NEW
+      // category the admin adds later (or drop one that's been removed),
+      // updating the same dropdown in place without disturbing what's
+      // already there if the fetch doesn't succeed.
+      let liveCategoriesLoaded = false;
+      async function loadLiveCategories() {
+        // Both the "Add Product" form and the "Edit Product" modal have
+        // their own category <select> — keep them in sync.
+        const selects = [document.getElementById("pCategory"), document.getElementById("eCategory")].filter(Boolean);
+        const currentValues = selects.map((s) => s.value);
+        try {
+          const res = await fetch("/api/categories");
+          if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+          }
+          const data = await res.json();
+          const categories = data.success ? (data.categories || []) : [];
+          liveCategoriesLoaded = true;
+          if (!categories.length) {
+            // No live categories from the server for some reason — leave the
+            // hardcoded fallback list in the dropdown as-is rather than
+            // wiping it out to an empty/error state.
+            return;
+          }
+          const optionsHtml =
+            '<option value="">Select a category</option>' +
+            categories.map((c) => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join("");
+          selects.forEach((select, i) => {
+            select.innerHTML = optionsHtml;
+            // Keep whatever the seller had picked (e.g. while editing) if
+            // it's still a valid category; otherwise leave it on the
+            // placeholder.
+            if (currentValues[i] && categories.includes(currentValues[i])) {
+              select.value = currentValues[i];
+            }
+          });
+        } catch (err) {
+          // Fetch failed entirely — no problem, the hardcoded 10 categories
+          // already in the dropdown keep working; just log it and move on.
+          console.error("Failed to load live categories, keeping fallback list:", err);
+        }
+      }
+
+      // Cached so the Edit modal can look a product up by id without an
+      // extra round-trip when the seller clicks "Edit".
+      let sellerProductsCache = [];
+
+      async function loadProducts() {
+        const { data } = await api("/api/seller/products");
+        if (!data.success) return;
+        sellerProductsCache = data.products;
+        const grid = document.getElementById("productsGrid");
+        const empty = document.getElementById("productsEmpty");
+        grid.innerHTML = "";
+        if (!data.products.length) {
+          empty.style.display = "block";
+          return;
+        }
+        empty.style.display = "none";
+        data.products.forEach((p) => {
+          const img = (Array.isArray(p.images) && p.images[0]) || p.image || "";
+          const card = document.createElement("div");
+          card.className = "p-card";
+          card.innerHTML =
+            (img ? `<img src="${img}" alt="${escapeHtml(p.name)}" />` : `<div style="height:130px;background:var(--blush);"></div>`) +
+            `<div class="body">
+              <div class="name">${escapeHtml(p.name)}</div>
+              <div class="meta">₹${p.price} · ${escapeHtml(p.category || "Uncategorized")}</div>
+              <span class="badge ${p.approved !== false ? "live" : "pending"}">${p.approved !== false ? "Live" : "Pending approval"}</span>
+            </div>
+            <div class="actions"><button class="btn small secondary" onclick="openEditModal(${p.id})">Edit</button></div>`;
+          grid.appendChild(card);
+        });
+      }
+
+      // ---------- Edit Product ----------
+      let editingProductId = null;
+      let editCurrentImages = [];
+
+      function openEditModal(id) {
+        const p = sellerProductsCache.find((x) => x.id === id);
+        if (!p) return;
+
+        editingProductId = id;
+        editCurrentImages = (Array.isArray(p.images) && p.images.length) ? p.images.slice() : (p.image ? [p.image] : []);
+
+        document.getElementById("eName").value = p.name || "";
+        document.getElementById("ePrice").value = p.price || "";
+        document.getElementById("eMoq").value = p.moq || 1;
+        document.getElementById("eSizes").value = (p.sizes || []).join(", ");
+        document.getElementById("eDescription").value = p.description || "";
+        document.getElementById("eImage").value = "";
+
+        const catSelect = document.getElementById("eCategory");
+        if (p.category && !Array.from(catSelect.options).some((o) => o.value === p.category)) {
+          const opt = document.createElement("option");
+          opt.value = p.category;
+          opt.textContent = p.category;
+          catSelect.appendChild(opt);
+        }
+        catSelect.value = p.category || "";
+
+        document.getElementById("editProductError").style.display = "none";
+        document.getElementById("editProductSuccess").style.display = "none";
+        renderEditImagePreview();
+
+        document.getElementById("editModalOverlay").classList.add("open");
+      }
+
+      function closeEditModal() {
+        document.getElementById("editModalOverlay").classList.remove("open");
+      }
+
+      function renderEditImagePreview() {
+        const row = document.getElementById("eImagePreview");
+        row.innerHTML = editCurrentImages
+          .map((src) => `<img src="${src}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--border);margin:0 6px 6px 0;" />`)
+          .join("");
+      }
+
+      document.getElementById("eImage").addEventListener("change", async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        try {
+          const dataUrl = await downscaleImage(file, 1000, 0.82);
+          editCurrentImages = [dataUrl];
+          renderEditImagePreview();
+        } catch (err) {
+          document.getElementById("editProductError").textContent = "Could not process the photo. Try a different image.";
+          document.getElementById("editProductError").style.display = "block";
+        }
+      });
+
+      async function submitEditProduct() {
+        const errorEl = document.getElementById("editProductError");
+        const successEl = document.getElementById("editProductSuccess");
+        errorEl.style.display = "none";
+        successEl.style.display = "none";
+
+        const name = document.getElementById("eName").value.trim();
+        const price = document.getElementById("ePrice").value.trim();
+        const moq = document.getElementById("eMoq").value.trim();
+        const category = document.getElementById("eCategory").value.trim();
+        const sizes = document.getElementById("eSizes").value.trim();
+        const description = document.getElementById("eDescription").value.trim();
+
+        if (!name || !price) {
+          errorEl.textContent = "Product name and price are required.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!category) {
+          errorEl.textContent = "Please select a category.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        const btn = document.getElementById("editProductBtn");
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+
+        const { data } = await api("/api/seller/products/" + editingProductId, {
+          method: "PUT",
+          body: JSON.stringify({
+            name,
+            price,
+            moq: moq || 1,
+            category,
+            sizes,
+            description,
+            images: editCurrentImages,
+          }),
+        });
+
+        btn.disabled = false;
+        btn.textContent = "Save changes";
+
+        if (!data.success) {
+          errorEl.textContent = data.message || "Could not update product.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        successEl.textContent = data.message || "Product updated.";
+        successEl.style.display = "block";
+        loadProducts();
+        setTimeout(closeEditModal, 900);
+      }
+
+      // ---------- Add Product ----------
+      function downscaleImage(file, maxDimension, quality) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error("read failed"));
+          reader.onload = () => {
+            const img = new Image();
+            img.onerror = () => reject(new Error("decode failed"));
+            img.onload = () => {
+              let { width, height } = img;
+              if (width > maxDimension || height > maxDimension) {
+                if (width >= height) {
+                  height = Math.round((height / width) * maxDimension);
+                  width = maxDimension;
+                } else {
+                  width = Math.round((width / height) * maxDimension);
+                  height = maxDimension;
+                }
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+            img.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function submitNewProduct() {
+        const errorEl = document.getElementById("addProductError");
+        const successEl = document.getElementById("addProductSuccess");
+        errorEl.style.display = "none";
+        successEl.style.display = "none";
+
+        const name = document.getElementById("pName").value.trim();
+        const price = document.getElementById("pPrice").value.trim();
+        const moq = document.getElementById("pMoq").value.trim();
+        const category = document.getElementById("pCategory").value.trim();
+        const sizes = document.getElementById("pSizes").value.trim();
+        const description = document.getElementById("pDescription").value.trim();
+        const fileInput = document.getElementById("pImage");
+
+        if (!name || !price) {
+          errorEl.textContent = "Product name and price are required.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!category) {
+          errorEl.textContent = "Please select a category.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        const btn = document.getElementById("addProductBtn");
+        btn.disabled = true;
+        btn.textContent = "Submitting...";
+
+        let image = "";
+        if (fileInput.files && fileInput.files[0]) {
+          try {
+            image = await downscaleImage(fileInput.files[0], 1000, 0.82);
+          } catch (e) {
+            errorEl.textContent = "Could not process the photo. Try a different image.";
+            errorEl.style.display = "block";
+            btn.disabled = false;
+            btn.textContent = "Submit for approval";
+            return;
+          }
+        }
+
+        const { data } = await api("/api/seller/products", {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            price,
+            moq: moq || 1,
+            category,
+            sizes,
+            description,
+            images: image ? [image] : [],
+          }),
+        });
+
+        btn.disabled = false;
+        btn.textContent = "Submit for approval";
+
+        if (!data.success) {
+          errorEl.textContent = data.message || "Could not submit product.";
+          errorEl.style.display = "block";
+          return;
+        }
+
+        successEl.textContent = data.message || "Product submitted for approval.";
+        successEl.style.display = "block";
+        document.getElementById("pName").value = "";
+        document.getElementById("pPrice").value = "";
+        document.getElementById("pMoq").value = "";
+        document.getElementById("pCategory").value = "";
+        document.getElementById("pSizes").value = "";
+        document.getElementById("pDescription").value = "";
+        fileInput.value = "";
+      }
+
+      // ---------- Orders ----------
+      async function loadOrders() {
+        const { data } = await api("/api/seller/orders");
+        if (!data.success) return;
+        const list = document.getElementById("ordersList");
+        const empty = document.getElementById("ordersEmpty");
+        list.innerHTML = "";
+        if (!data.orders.length) {
+          empty.style.display = "block";
+          return;
+        }
+        empty.style.display = "none";
+        data.orders.forEach((o) => {
+          const row = document.createElement("div");
+          row.className = "order-row";
+          const itemsText = (o.items || [])
+            .map((it) => `${escapeHtml(it.name)}${it.size ? " (" + escapeHtml(it.size) + ")" : ""} × ${it.qty} — ₹${it.lineTotal}`)
+            .join("<br>");
+          const customerName = o.customer && o.customer.name ? o.customer.name : "—";
+          const customerPhone = o.customer && o.customer.phone ? o.customer.phone : "—";
+          const address = o.customer && o.customer.address ? o.customer.address : "";
+          row.innerHTML = `
+            <div class="top-line">
+              <span>${escapeHtml(o.orderNumber || "")}</span>
+              <span class="order-status">${escapeHtml(o.status || "")}</span>
+            </div>
+            <div class="item-line">${itemsText}</div>
+            <div class="item-line">Your total: ₹${o.sellerTotal}</div>
+            <div class="item-line" style="margin-top:6px;color:#8f8fa1;">👤 ${escapeHtml(customerName)} · ${escapeHtml(customerPhone)}</div>
+            ${address ? `<div class="item-line" style="color:#8f8fa1;">📍 ${escapeHtml(address)}</div>` : ""}
+          `;
+          list.appendChild(row);
+        });
+      }
+
+      // ---------- Profile ----------
+      async function loadProfile() {
+        const { data } = await api("/api/seller/me");
+        if (!data.success) return;
+        const s = data.seller;
+        document.getElementById("profileSellerId").value = s.sellerId;
+        document.getElementById("profileName").value = s.name;
+        document.getElementById("profilePhone").value = s.phone || "";
+        document.getElementById("profileShopTitle").value = s.shopTitle || "";
+      }
+
+      async function submitProfileUpdate() {
+        const errorEl = document.getElementById("profileError");
+        const successEl = document.getElementById("profileSuccess");
+        errorEl.style.display = "none";
+        successEl.style.display = "none";
+
+        const phone = document.getElementById("profilePhone").value.trim();
+        const shopTitle = document.getElementById("profileShopTitle").value.trim();
+        const fileInput = document.getElementById("profilePhoto");
+
+        const btn = document.getElementById("profileSubmitBtn");
+        btn.disabled = true;
+        btn.textContent = "Submitting...";
+
+        let photo = "";
+        if (fileInput.files && fileInput.files[0]) {
+          try {
+            photo = await downscaleImage(fileInput.files[0], 800, 0.82);
+          } catch (e) {
+            errorEl.textContent = "Could not process the photo. Try a different image.";
+            errorEl.style.display = "block";
+            btn.disabled = false;
+            btn.textContent = "Request update";
+            return;
+          }
+        }
+
+        const { data } = await api("/api/seller/profile-update-request", {
+          method: "POST",
+          body: JSON.stringify({ phone, shopTitle, photo }),
+        });
+
+        btn.disabled = false;
+        btn.textContent = "Request update";
+
+        if (!data.success) {
+          errorEl.textContent = data.message || "Could not submit request.";
+          errorEl.style.display = "block";
+          return;
+        }
+        successEl.textContent = data.message || "Request submitted.";
+        successEl.style.display = "block";
+        document.getElementById("profilePendingNote").style.display = "block";
+      }
+
+      function escapeHtml(str) {
+        return String(str || "").replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+        }[c]));
+      }
+
+      // ---------- Boot ----------
+      (async function boot() {
+        // If the admin panel opened this page with "Log in as this seller",
+        // the token arrives as ?impersonate=... — store it like a normal
+        // login token, then strip it from the visible URL.
+        const urlParams = new URLSearchParams(window.location.search);
+        const impersonateToken = urlParams.get("impersonate");
+        if (impersonateToken) {
+          setToken(impersonateToken);
+          window.history.replaceState({}, "", window.location.pathname);
+        }
+
+        const token = getToken();
+        if (!token) return;
+        const { data } = await api("/api/seller/me");
+        if (data.success) {
+          window.__dmSeller = data.seller;
+          if (data.mustChangePassword) {
+            // Seller left mid-flow last time (closed the tab, etc) without
+            // setting their new password — pick up right where they left off.
+            showMustChangeScreen("");
+          } else {
+            enterDashboard(data.seller);
+          }
+        } else {
+          clearToken();
+        }
+      })();
+    </script>
+  </body>
+</html>
