@@ -3799,11 +3799,32 @@ connectDB()
       console.error("Auto-seed of category sample products failed (non-fatal):", err.message);
     }
 
-    app.listen(PORT, "0.0.0.0", () => {
+    const httpServer = app.listen(PORT, "0.0.0.0", () => {
       console.log(`Design Makers running on port ${PORT}`);
       console.log(`Storefront:   /`);
       console.log(`Admin panel:  /admin`);
       console.log(`Products API: /api/products`);
+    });
+
+    // Without this handler, an error on the server (most commonly
+    // EADDRINUSE — something else already bound to PORT, e.g. an old
+    // instance not fully stopped yet during a redeploy) becomes an
+    // uncaught exception and kills the process with no useful log line.
+    // Logging it explicitly turns a silent crash-loop into a clear,
+    // diagnosable error message.
+    httpServer.on("error", (err) => {
+      console.error("Server failed to start/listen:", err.code || "", err.message);
+      if (err.stack) console.error(err.stack);
+      process.exit(1);
+    });
+
+    process.on("uncaughtException", (err) => {
+      console.error("Uncaught exception (server kept running until now):", err.message);
+      if (err.stack) console.error(err.stack);
+    });
+
+    process.on("unhandledRejection", (reason) => {
+      console.error("Unhandled promise rejection:", reason);
     });
   })
   .catch((err) => {

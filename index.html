@@ -581,64 +581,16 @@
       /* ===== Gift add-on promo banner (below hero) ===== */
       .gift-addon-banner {
         display: none;
-        position: relative;
-        align-items: center;
-        gap: 14px;
         margin: 22px auto;
         max-width: 900px;
-        background: linear-gradient(135deg, #ff8a3d, #e6006e 65%, #a31256);
-        border: none;
         border-radius: 16px;
-        padding: 16px 22px;
-        text-align: left;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 1.5;
-        box-shadow: 0 10px 28px rgba(230, 0, 110, 0.35), 0 0 0 3px #ffe4c4;
         overflow: hidden;
-        animation: giftBannerPulse 2.2s ease-in-out infinite;
+        box-shadow: 0 10px 28px rgba(230, 0, 110, 0.25);
       }
-      .gift-addon-banner.show { display: flex; }
-      .gift-addon-banner::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0 12px, transparent 12px 24px);
-        pointer-events: none;
-      }
-      .gift-addon-banner .gift-addon-icon {
-        flex-shrink: 0;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.22);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-      }
-      .gift-addon-banner .gift-addon-text { position: relative; z-index: 1; flex: 1; }
-      .gift-addon-banner .gift-addon-tag {
-        display: inline-block;
-        background: #fff;
-        color: #c40064;
-        font-size: 10.5px;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        padding: 2px 8px;
-        border-radius: 999px;
-        margin-bottom: 4px;
-      }
-      .gift-addon-banner strong { color: #fff8ec; }
-      @keyframes giftBannerPulse {
-        0%, 100% { box-shadow: 0 10px 28px rgba(230, 0, 110, 0.35), 0 0 0 3px #ffe4c4; }
-        50% { box-shadow: 0 10px 34px rgba(230, 0, 110, 0.5), 0 0 0 6px #ffe4c4; }
-      }
+      .gift-addon-banner.show { display: block; }
+      .gift-addon-banner-img { display: block; width: 100%; height: auto; }
       @media (max-width: 600px) {
-        .gift-addon-banner { margin: 16px 12px; padding: 14px 16px; font-size: 13px; }
-        .gift-addon-banner .gift-addon-icon { width: 38px; height: 38px; font-size: 18px; }
+        .gift-addon-banner { margin: 16px 12px; border-radius: 12px; }
       }
 
       /* ===== Gift add-on row inside the cart ===== */
@@ -2062,10 +2014,10 @@ body.theme-aug15 .aug15-flag{box-shadow:0 5px 12px rgba(24,63,104,.12)!important
         display: block !important;
       }
       .festival-offer-wrap { display: none; max-width: 1280px; margin: 18px auto 0; border-radius: 12px; overflow: hidden; }
-      body.theme-aug15 #aug15OfferWrap,
-      body.theme-rakshabandhan #rakhiOfferWrap {
+      body.theme-aug15 #aug15OfferWrap {
         display: block !important;
       }
+      /* Rakhi offer banner intentionally hidden — no HD version available. */
       .festival-strip-hit {
         position: absolute;
         top: 15%; height: 70%;
@@ -2087,13 +2039,18 @@ body.theme-aug15 .aug15-flag{box-shadow:0 5px 12px rgba(24,63,104,.12)!important
       body.theme-rakshabandhan .promo-banner-wrap:not(.festival-cat-wrap) {
         display: none !important;
       }
-      .festival-cat-card { position: relative; padding: 0 !important; overflow: hidden; line-height: 0; background: none !important; box-shadow: none !important; border: 1px solid var(--dm-border, #eee); min-height: 0 !important; backdrop-filter: none !important; }
+      .festival-cat-card { position: relative; padding: 0 !important; overflow: hidden; line-height: 0; background: none !important; box-shadow: none !important; border: 1px solid var(--dm-border, #eee); border-radius: 20px !important; min-height: 0 !important; backdrop-filter: none !important; cursor: pointer; transition: transform .3s ease, box-shadow .3s ease; }
+      .festival-cat-card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(138,28,66,.18) !important; }
       .festival-cat-card::after { display: none !important; }
       .festival-cat-card .gift-banner-img { position: static !important; width: 100% !important; max-width: 100% !important; height: auto !important; display: block; filter: none !important; transform: none !important; top: auto !important; right: auto !important; opacity: 1 !important; }
+      /* Whole card is tappable now (onclick moved to the card div itself);
+         .festival-cat-hit is kept only as a legacy fallback selector, sized
+         to cover the full card so nothing is dead space. */
       .festival-cat-hit {
         position: absolute;
-        left: 5%; bottom: 8%;
-        width: 34%; height: 16%;
+        inset: 0;
+        left: 0; bottom: 0;
+        width: 100%; height: 100%;
         background: transparent;
         border: none;
         cursor: pointer;
@@ -2576,10 +2533,8 @@ body.theme-aug15 .aug15-flag{box-shadow:0 5px 12px rgba(24,63,104,.12)!important
       </div>
     </div>
     <div class="gift-addon-banner" id="giftAddonBanner">
-      <div class="gift-addon-icon">🎁</div>
-      <div class="gift-addon-text">
-        <span class="gift-addon-tag">Today's Special</span><br/>
-        <strong>Photo Mug for just ₹99</strong> — worth ₹249. Automatically unlocks in your cart on orders of ₹599 or more.
+      <img class="gift-addon-banner-img" src="gift-addon-banner.webp" alt="Rakhi Week Special — Free Photo Mug Add-On, worth ₹249, unlocks automatically in your cart on orders of ₹599 or more.">
+    </div>
       </div>
     </div>
 
@@ -2612,23 +2567,19 @@ body.theme-aug15 .aug15-flag{box-shadow:0 5px 12px rgba(24,63,104,.12)!important
     </div>
 
     <div class="promo-banner-wrap festival-cat-wrap" id="aug15CatWrap">
-      <div class="promo-banner gift-banner festival-cat-card">
+      <div class="promo-banner gift-banner festival-cat-card" onclick="openGenderModal('her')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('her');}">
         <img class="gift-banner-img" src="aug15-gift-for-her.webp" alt="For her — gifts as beautiful as her smile" loading="lazy">
-        <button class="festival-cat-hit" onclick="openGenderModal('her')" aria-label="Explore gifts for her"></button>
       </div>
-      <div class="promo-banner gift-banner festival-cat-card">
+      <div class="promo-banner gift-banner festival-cat-card" onclick="openGenderModal('him')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('him');}">
         <img class="gift-banner-img" src="aug15-gift-for-him.webp" alt="For him — unique gifts for the real hero" loading="lazy">
-        <button class="festival-cat-hit" onclick="openGenderModal('him')" aria-label="Explore gifts for him"></button>
       </div>
     </div>
     <div class="promo-banner-wrap festival-cat-wrap" id="rakhiCatWrap">
-      <div class="promo-banner gift-banner festival-cat-card">
+      <div class="promo-banner gift-banner festival-cat-card" onclick="openGenderModal('her')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('her');}">
         <img class="gift-banner-img" src="rakhi-gift-for-sister.webp" alt="For your sister — because she deserves the best" loading="lazy">
-        <button class="festival-cat-hit" onclick="openGenderModal('her')" aria-label="Explore gifts for sister"></button>
       </div>
-      <div class="promo-banner gift-banner festival-cat-card">
+      <div class="promo-banner gift-banner festival-cat-card" onclick="openGenderModal('him')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('him');}">
         <img class="gift-banner-img" src="rakhi-gift-for-brother.webp" alt="For your brother — the one who always has you" loading="lazy">
-        <button class="festival-cat-hit" onclick="openGenderModal('him')" aria-label="Explore gifts for brother"></button>
       </div>
     </div>
 
