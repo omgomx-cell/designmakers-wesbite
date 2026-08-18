@@ -11,41 +11,42 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      /* ===== SLATE + GOLD GLASS THEME — same palette as the admin panel,
+      /* ===== ROSEWOOD + GOLD PREMIUM GLASS THEME — same palette as the admin panel,
          single source of truth, no dark/light toggle ===== */
       :root {
-        --rosewood: #45515e;
-        --rosewood-dark: #2e3a46;
-        --blush: rgba(200,169,107,.10);
-        --blush-line: rgba(161,168,179,.16);
-        --gold: #c8a96b;
-        --gold-soft: #dcc191;
-        --cream: #2e3a46;
-        --ink: #eef1f4;
-        --muted: #a1a8b3;
-        --surface: rgba(69,81,94,.58);
-        --field: rgba(161,168,179,.08);
-        --line: rgba(161,168,179,.18);
-        --success: #4fce88;
-        --success-bg: rgba(79,206,136,.15);
-        --danger: #e8798a;
-        --danger-bg: rgba(232,121,138,.15);
-        --warn: #c8a96b;
-        --warn-bg: rgba(200,169,107,.15);
-        --info: #8fa8c2;
-        --info-bg: rgba(143,168,194,.15);
-        --gold-bg: rgba(200,169,107,.16);
+        --rosewood: #a3134f;
+        --rosewood-dark: #7a0e3c;
+        --rosewood-bright: #d81b60;
+        --blush: #fdeef4;
+        --blush-line: rgba(163,19,79,0.14);
+        --gold: #b8863f;
+        --gold-soft: #a5732e;
+        --cream: #fff7fa;
+        --ink: #2a1420;
+        --muted: #8c6f7a;
+        --surface: rgba(255,255,255,.62);
+        --field: rgba(255,255,255,.45);
+        --line: rgba(163,19,79,0.13);
+        --success: #1f9d55;
+        --success-bg: rgba(31,157,85,0.10);
+        --danger: #d6455a;
+        --danger-bg: rgba(214,69,90,0.10);
+        --warn: #b8863f;
+        --warn-bg: rgba(184,134,63,0.10);
+        --info: #2f6fed;
+        --info-bg: rgba(47,111,237,0.10);
+        --gold-bg: rgba(184,134,63,0.12);
       }
-      html { background:#242d37; }
+      html { background:#fdeef4; }
       body {
         font-family: "Inter", sans-serif;
         color: var(--ink);
         min-height: 100vh;
         background:
-          radial-gradient(1100px 560px at 8% -10%, rgba(69,81,94,.5), transparent 60%),
-          radial-gradient(950px 620px at 98% 4%, rgba(161,168,179,.18), transparent 55%),
-          radial-gradient(800px 520px at 45% 105%, rgba(200,169,107,.16), transparent 60%),
-          linear-gradient(180deg,#374553 0%, #2e3a46 45%, #242d37 100%);
+          radial-gradient(1100px 560px at 8% -10%, rgba(216,27,96,.12), transparent 60%),
+          radial-gradient(950px 620px at 98% 4%, rgba(184,134,63,.13), transparent 55%),
+          radial-gradient(800px 520px at 45% 105%, rgba(163,19,79,.10), transparent 60%),
+          linear-gradient(180deg, #fff8fa 0%, #fdeef4 55%, #fbe4ee 100%);
         background-attachment: fixed;
       }
       h1, h2, .brand .name { font-family: "Playfair Display", serif; }
@@ -63,11 +64,13 @@
       .brand img { height: 44px; margin-bottom: 8px; }
       .brand .name { font-weight: 700; font-size: 1.3em; color: var(--gold-soft); letter-spacing: 0.04em; }
       .card {
-        background: var(--cream);
-        border: 1px solid var(--blush-line);
+        background: rgba(255,255,255,.62);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border: 1px solid rgba(255,255,255,.5);
         border-radius: 16px;
         padding: 28px 24px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+        box-shadow: 0 8px 28px rgba(163,19,79,.10), inset 0 1px 0 rgba(255,255,255,.6);
       }
       .card h1 { font-size: 1.4em; margin-bottom: 6px; }
       .desc { font-size: 0.9em; color: var(--muted); margin-bottom: 20px; line-height: 1.4; }
@@ -140,10 +143,11 @@
       .dm-sidebar{
         width:252px; flex:0 0 252px; position:sticky; top:0; height:100vh;
         display:flex; flex-direction:column;
-        background:rgba(35,44,53,.62);
-        backdrop-filter: blur(20px) saturate(160%);
-        -webkit-backdrop-filter: blur(20px) saturate(160%);
-        border-right:1px solid var(--line);
+        background:rgba(255,255,255,.55);
+        backdrop-filter: blur(22px) saturate(160%);
+        -webkit-backdrop-filter: blur(22px) saturate(160%);
+        border-right:1px solid rgba(255,255,255,.5);
+        box-shadow: 4px 0 24px rgba(163,19,79,.06);
         padding:22px 16px; z-index:70;
       }
       .dm-sidebar-logo{ display:flex; flex-direction:column; align-items:center; gap:3px; margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid var(--line); }
@@ -153,24 +157,33 @@
       .dm-nav{ display:flex; flex-direction:column; gap:3px; flex:1; overflow-y:auto; }
       .dm-nav-item{
         display:flex; align-items:center; gap:10px;
-        background:none; border:none; text-align:left;
+        background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.28);
+        text-align:left;
         padding:10px 12px; border-radius:10px;
         font-size:12.8px; font-weight:650; color:var(--muted);
         cursor:pointer; width:100%; font-family:inherit;
+        backdrop-filter: blur(10px) saturate(150%);
+        -webkit-backdrop-filter: blur(10px) saturate(150%);
+        box-shadow: 0 2px 8px rgba(163,19,79,.05), inset 0 1px 0 rgba(255,255,255,.35);
+        transition: background-color .2s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1), border-color .2s cubic-bezier(.4,0,.2,1), box-shadow .2s cubic-bezier(.4,0,.2,1);
       }
       .dm-nav-item svg{ width:17px; height:17px; flex:0 0 17px; }
-      .dm-nav-item:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
+      .dm-nav-item:hover{ background:rgba(255,255,255,.4); border-color:rgba(255,255,255,.45); color:var(--ink); }
       .dm-nav-item.active{
-        background:linear-gradient(135deg,rgba(212,162,76,.24),rgba(212,162,76,.09));
-        color:var(--gold-soft);
-        border:1px solid rgba(212,162,76,.32);
-        box-shadow:0 2px 10px rgba(212,162,76,.12);
+        background:linear-gradient(135deg, rgba(216,27,96,.82), rgba(163,19,79,.86));
+        backdrop-filter: blur(12px) saturate(170%);
+        -webkit-backdrop-filter: blur(12px) saturate(170%);
+        color:#fff;
+        border:1px solid rgba(255,255,255,.35);
+        box-shadow:0 6px 18px rgba(163,19,79,.32), inset 0 1px 0 rgba(255,255,255,.3);
       }
+      .dm-nav-item.active:hover{ background:linear-gradient(135deg, rgba(216,27,96,.88), rgba(163,19,79,.92)); }
+      .dm-nav-item.active svg{ color:#fff; }
       .dm-sidebar-bottom{ border-top:1px solid var(--line); padding-top:14px; margin-top:10px; display:flex; flex-direction:column; gap:10px; }
       .dm-view-store{ display:flex; align-items:center; gap:9px; font-size:12.3px; font-weight:650; color:var(--muted); text-decoration:none; padding:9px 10px; border-radius:9px; }
       .dm-view-store svg{ width:15px; height:15px; }
-      .dm-view-store:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
-      .dm-sidebar-profile{ display:flex; align-items:center; gap:9px; padding:8px; border-radius:12px; background:rgba(255,255,255,.045); border:1px solid var(--line); }
+      .dm-view-store:hover{ background:rgba(163,19,79,.07); color:var(--ink); }
+      .dm-sidebar-profile{ display:flex; align-items:center; gap:9px; padding:8px; border-radius:12px; background:rgba(255,255,255,.4); border:1px solid var(--line); }
       .dm-sidebar-avatar{ width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--rosewood-dark),var(--gold)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; flex:0 0 32px; }
       .dm-sidebar-name{ font-size:12px; font-weight:750; color:var(--ink); line-height:1.3; }
       .dm-sidebar-role{ font-size:10.3px; color:var(--muted); }
@@ -182,10 +195,11 @@
         position:sticky; top:0; z-index:60;
         display:flex; align-items:center; gap:14px;
         padding:14px 26px;
-        background:rgba(35,44,53,.55);
-        backdrop-filter: blur(18px) saturate(160%);
-        -webkit-backdrop-filter: blur(18px) saturate(160%);
-        border-bottom:1px solid var(--line);
+        background:rgba(255,255,255,.55);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border-bottom:1px solid rgba(255,255,255,.5);
+        box-shadow: 0 4px 24px rgba(163,19,79,.05);
       }
       .dm-topbar-menu{ display:none; background:none; border:none; color:var(--ink); cursor:pointer; padding:4px; }
       .dm-topbar-title h1{ margin:0; font-size:16.5px; color:var(--ink); font-family:"Playfair Display",Georgia,serif; }
@@ -211,9 +225,12 @@
       /* Products / orders grid */
       .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
       .p-card {
-        background: var(--surface);
-        border: 1px solid var(--blush-line);
+        background: rgba(255,255,255,.62);
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        border: 1px solid rgba(255,255,255,.5);
         border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(163,19,79,.08);
         overflow: hidden;
       }
       .p-card img { width: 100%; height: 130px; object-fit: cover; display: block; background: var(--blush); }
@@ -256,7 +273,7 @@
         width: 100%;
         backdrop-filter: blur(18px) saturate(160%);
         -webkit-backdrop-filter: blur(18px) saturate(160%);
-        box-shadow: 0 10px 32px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2);
+        box-shadow: 0 10px 32px rgba(163,19,79,.14), inset 0 1px 0 rgba(255,255,255,.6);
       }
       #editModalOverlay h2 { font-family: "Playfair Display", serif; font-size: 1.15em; margin-bottom: 16px; color: var(--gold-soft); }
       #editModalOverlay .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
@@ -459,9 +476,9 @@
           <div id="sellerOverview">
             <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
               <div>
-                <div style="color:#77778a;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Seller Business Center</div>
+                <div style="color:#8c6f7a;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Seller Business Center</div>
                 <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;"><span id="sellerOverviewGreeting">Welcome back</span>, <span id="sellerOverviewName">Seller</span> 👋</h2>
-                <p style="margin:6px 0 0;color:#8f8fa1;font-size:12px;">Your live business performance from actual orders and products.</p>
+                <p style="margin:6px 0 0;color:#8c6f7a;font-size:12px;">Your live business performance from actual orders and products.</p>
               </div>
               <button class="btn small secondary" onclick="loadSellerOverview()">↻ Refresh</button>
             </div>
@@ -1250,8 +1267,8 @@
             </div>
             <div class="item-line">${itemsText}</div>
             <div class="item-line">Your total: ₹${o.sellerTotal}</div>
-            <div class="item-line" style="margin-top:6px;color:#8f8fa1;">👤 ${escapeHtml(customerName)} · ${escapeHtml(customerPhone)}</div>
-            ${address ? `<div class="item-line" style="color:#8f8fa1;">📍 ${escapeHtml(address)}</div>` : ""}
+            <div class="item-line" style="margin-top:6px;color:#8c6f7a;">👤 ${escapeHtml(customerName)} · ${escapeHtml(customerPhone)}</div>
+            ${address ? `<div class="item-line" style="color:#8c6f7a;">📍 ${escapeHtml(address)}</div>` : ""}
           `;
           list.appendChild(row);
         });
