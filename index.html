@@ -581,64 +581,16 @@
       /* ===== Gift add-on promo banner (below hero) ===== */
       .gift-addon-banner {
         display: none;
-        position: relative;
-        align-items: center;
-        gap: 14px;
         margin: 22px auto;
         max-width: 900px;
-        background: linear-gradient(135deg, #ff8a3d, #e6006e 65%, #a31256);
-        border: none;
         border-radius: 16px;
-        padding: 16px 22px;
-        text-align: left;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 1.5;
-        box-shadow: 0 10px 28px rgba(230, 0, 110, 0.35), 0 0 0 3px #ffe4c4;
         overflow: hidden;
-        animation: giftBannerPulse 2.2s ease-in-out infinite;
+        box-shadow: 0 10px 28px rgba(230, 0, 110, 0.25);
       }
-      .gift-addon-banner.show { display: flex; }
-      .gift-addon-banner::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0 12px, transparent 12px 24px);
-        pointer-events: none;
-      }
-      .gift-addon-banner .gift-addon-icon {
-        flex-shrink: 0;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.22);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
-      }
-      .gift-addon-banner .gift-addon-text { position: relative; z-index: 1; flex: 1; }
-      .gift-addon-banner .gift-addon-tag {
-        display: inline-block;
-        background: #fff;
-        color: #c40064;
-        font-size: 10.5px;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        padding: 2px 8px;
-        border-radius: 999px;
-        margin-bottom: 4px;
-      }
-      .gift-addon-banner strong { color: #fff8ec; }
-      @keyframes giftBannerPulse {
-        0%, 100% { box-shadow: 0 10px 28px rgba(230, 0, 110, 0.35), 0 0 0 3px #ffe4c4; }
-        50% { box-shadow: 0 10px 34px rgba(230, 0, 110, 0.5), 0 0 0 6px #ffe4c4; }
-      }
+      .gift-addon-banner.show { display: block; }
+      .gift-addon-banner-img { display: block; width: 100%; height: auto; }
       @media (max-width: 600px) {
-        .gift-addon-banner { margin: 16px 12px; padding: 14px 16px; font-size: 13px; }
-        .gift-addon-banner .gift-addon-icon { width: 38px; height: 38px; font-size: 18px; }
+        .gift-addon-banner { margin: 16px 12px; border-radius: 12px; }
       }
 
       /* ===== Gift add-on row inside the cart ===== */
@@ -2062,10 +2014,10 @@ body.theme-aug15 .aug15-flag{box-shadow:0 5px 12px rgba(24,63,104,.12)!important
         display: block !important;
       }
       .festival-offer-wrap { display: none; max-width: 1280px; margin: 18px auto 0; border-radius: 12px; overflow: hidden; }
-      body.theme-aug15 #aug15OfferWrap,
-      body.theme-rakshabandhan #rakhiOfferWrap {
+      body.theme-aug15 #aug15OfferWrap {
         display: block !important;
       }
+      /* Rakhi offer banner intentionally hidden — no HD version available. */
       .festival-strip-hit {
         position: absolute;
         top: 15%; height: 70%;
@@ -2576,10 +2528,8 @@ body.theme-aug15 .aug15-flag{box-shadow:0 5px 12px rgba(24,63,104,.12)!important
       </div>
     </div>
     <div class="gift-addon-banner" id="giftAddonBanner">
-      <div class="gift-addon-icon">🎁</div>
-      <div class="gift-addon-text">
-        <span class="gift-addon-tag">Today's Special</span><br/>
-        <strong>Photo Mug for just ₹99</strong> — worth ₹249. Automatically unlocks in your cart on orders of ₹599 or more.
+      <img class="gift-addon-banner-img" src="gift-addon-banner.webp" alt="Rakhi Week Special — Free Photo Mug Add-On, worth ₹249, unlocks automatically in your cart on orders of ₹599 or more.">
+    </div>
       </div>
     </div>
 
