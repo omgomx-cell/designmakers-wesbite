@@ -13,7 +13,7 @@ const { connectDB, readDatabase, writeDatabase, getNextId, GIFT_ADDON } = requir
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.set("trust proxy", true);
+app.set("trust proxy", 1);
 
 // Gzip/deflate-compress every response (HTML, JSON, JS, CSS) before it goes
 // over the wire. This is the single biggest win for the ~240KB+ HTML/JSON
