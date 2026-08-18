@@ -13,7 +13,7 @@ const { connectDB, readDatabase, writeDatabase, getNextId, GIFT_ADDON } = requir
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.set("trust proxy", 1);
+app.set("trust proxy", true);
 
 // Gzip/deflate-compress every response (HTML, JSON, JS, CSS) before it goes
 // over the wire. This is the single biggest win for the ~240KB+ HTML/JSON
@@ -1367,7 +1367,7 @@ app.post("/api/admin/sellers/:id/login-as", requireAdmin, requireBoss, (req, res
 // ADMIN: SELLER LIST (approved sellers + their products)
 // ================================
 
-app.get("/api/admin/sellers", requireAdmin, requireBoss, (req, res) => {
+app.get("/api/admin/sellers", requireAdmin, (req, res) => {
   const database = readDatabase();
   const allProducts = database.products || [];
   const allOrders = database.orders || [];
@@ -1423,6 +1423,10 @@ app.get("/api/admin/sellers", requireAdmin, requireBoss, (req, res) => {
         // fetched only on demand via the endpoint below, so it isn't sitting
         // in a network response every time the tab loads.
         hasPendingPassword: !!s.pendingPlainPassword,
+        // A sub-admin's proposed change to this seller's own details
+        // (name/email/phone/shopTitle/photo) — held here until the boss
+        // approves it. Included so the Live Sellers tab can flag it.
+        pendingSellerEdit: s.pendingSellerEdit || null,
         productCount: products.length,
         approvedCount,
         pendingCount,
@@ -1531,16 +1535,18 @@ app.delete("/api/admin/sellers/:id", requireAdmin, requireBoss, (req, res) => {
 });
 
 // ================================
-// ADMIN: EDIT SELLER DETAILS (name / email / phone / shop title)
+// ADMIN: EDIT SELLER DETAILS (name / email / phone / shop title / photo)
 // ================================
 // Direct edit by any admin — separate from the seller-initiated
 // profile-update-request flow above, which still exists for sellers
-// asking to change their own phone/shopTitle/photo. This lets an admin
-// fix a typo or update a seller's details immediately, no request needed.
-// Same permission level as editing a product (requireAdmin only, no
-// requireBoss) — this was previously boss-only, which meant a regular
-// admin would see the Edit button but every save silently failed with a
-// 403 "only the boss" error.
+// asking to change their own phone/shopTitle/photo.
+//
+// The boss's edit applies immediately, same as before. A sub-admin's edit
+// is held as a proposal on the seller record (pendingSellerEdit) — the
+// live seller details are left untouched until the boss reviews and
+// approves it from the "Pending Seller Detail Edits" card. This mirrors
+// the pendingAdminEdit pattern already used for a sub-admin's edit to an
+// existing product.
 
 app.put("/api/admin/sellers/:id", requireAdmin, (req, res) => {
   const database = readDatabase();
@@ -1552,6 +1558,9 @@ app.put("/api/admin/sellers/:id", requireAdmin, (req, res) => {
   const email = body.email !== undefined ? String(body.email).trim() : seller.email;
   const phone = body.phone !== undefined ? String(body.phone).trim() : seller.phone;
   const shopTitle = body.shopTitle !== undefined ? String(body.shopTitle).trim() : seller.shopTitle;
+  // Optional — a base64 data URL, same as the seller's own
+  // profile-update-request photo field. Only replaced if a new one is sent.
+  const photo = body.photo !== undefined && body.photo !== "" ? String(body.photo).trim() : seller.photo || "";
 
   if (!name) return res.status(400).json({ success: false, message: "Name cannot be empty." });
   if (!email) return res.status(400).json({ success: false, message: "Email cannot be empty." });
@@ -1565,13 +1574,59 @@ app.put("/api/admin/sellers/:id", requireAdmin, (req, res) => {
     return res.status(409).json({ success: false, message: "Another seller already uses that email or phone." });
   }
 
-  seller.name = name;
-  seller.email = email;
-  seller.phone = phone;
-  seller.shopTitle = shopTitle;
+  const changes = { name, email, phone, shopTitle, photo };
+
+  if (req.admin.role !== "boss") {
+    seller.pendingSellerEdit = {
+      changes,
+      requestedBy: req.admin.username,
+      requestedAt: new Date().toISOString(),
+    };
+    writeDatabase(database);
+    return res.json({
+      success: true,
+      pending: true,
+      message: "Change submitted — it needs the boss's approval before it goes live.",
+    });
+  }
+
+  Object.assign(seller, changes);
+  delete seller.pendingSellerEdit;
   writeDatabase(database);
 
   res.json({ success: true, message: `${seller.name} (${seller.sellerId}) has been updated.` });
+});
+
+// A sub-admin's proposed edit to a seller's own details, waiting on the
+// boss to review it. Boss-only — same shape as the product pending-edits
+// endpoints, so the admin panel can reuse the same before/after diff UI.
+app.get("/api/admin/sellers/pending-edits", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const pending = (database.sellers || []).filter((s) => s.pendingSellerEdit);
+  res.json({ success: true, sellers: pending });
+});
+
+app.put("/api/admin/sellers/:id/approve-edit", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller || !seller.pendingSellerEdit) {
+    return res.status(404).json({ success: false, message: "No pending edit found for this seller." });
+  }
+  Object.assign(seller, seller.pendingSellerEdit.changes);
+  delete seller.pendingSellerEdit;
+  writeDatabase(database);
+  res.json({ success: true, message: "Edit approved and now live." });
+});
+
+app.put("/api/admin/sellers/:id/reject-edit", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const seller = database.sellers.find((s) => s.id === Number(req.params.id));
+  if (!seller || !seller.pendingSellerEdit) {
+    return res.status(404).json({ success: false, message: "No pending edit found for this seller." });
+  }
+  delete seller.pendingSellerEdit;
+  writeDatabase(database);
+  res.json({ success: true, message: "Edit rejected — seller left unchanged." });
 });
 
 // ================================
@@ -2417,12 +2472,21 @@ app.put("/api/seller/products/:id", requireSeller, (req, res) => {
     product.buyBadgePercent = database.products[index].buyBadgePercent ?? 10;
   }
 
+  // Keep a snapshot of the last-live version so the admin review screen can
+  // show a before/after summary of exactly what the seller changed. Only
+  // captured the first time a live product goes back to pending — if it's
+  // already pending from an earlier unreviewed edit, keep that original
+  // snapshot so the diff always compares against what's actually live now.
+  const wasLive = database.products[index].approved !== false;
+  const snapshot = wasLive ? database.products[index] : database.products[index].pendingSnapshot;
+
   database.products[index] = {
     ...database.products[index],
     ...product,
     id,
     sellerId: database.products[index].sellerId,
     approved: false,
+    pendingSnapshot: snapshot ? { ...snapshot, pendingSnapshot: undefined } : undefined,
   };
   writeDatabase(database);
 
@@ -2587,6 +2651,11 @@ app.get("/api/admin/products/pending", requireAdmin, (req, res) => {
         // their real name/ID/contact. Only the boss gets sellerName.
         sellerName: isBoss ? (seller ? seller.name : "Unknown seller") : undefined,
         shopTitle: seller ? seller.shopTitle : "",
+        // isEdit tells the admin UI whether this is a brand-new listing
+        // (nothing to compare) or a change to something already live
+        // (pendingSnapshot holds the before version, so the UI can show
+        // a before/after summary instead of just the new values).
+        isEdit: Boolean(p.pendingSnapshot),
       };
     });
   res.json({ success: true, products: pending });
@@ -2597,6 +2666,7 @@ app.put("/api/admin/products/:id/approve", requireAdmin, (req, res) => {
   const product = database.products.find((p) => p.id === Number(req.params.id));
   if (!product) return res.status(404).json({ success: false, message: "Product not found." });
   product.approved = true;
+  delete product.pendingSnapshot;
   writeDatabase(database);
   res.json({ success: true, message: "Product approved and now live.", product });
 });
@@ -2606,6 +2676,16 @@ app.put("/api/admin/products/:id/reject", requireAdmin, (req, res) => {
   const product = database.products.find((p) => p.id === Number(req.params.id));
   if (!product) return res.status(404).json({ success: false, message: "Product not found." });
   const index = database.products.indexOf(product);
+
+  // If this was an edit to a product that was already live (it has a
+  // pendingSnapshot), reject means "undo the seller's edit" — revert to
+  // the last-approved version instead of deleting the listing outright.
+  if (product.pendingSnapshot) {
+    database.products[index] = { ...product.pendingSnapshot, id: product.id, sellerId: product.sellerId, approved: true };
+    writeDatabase(database);
+    return res.json({ success: true, message: "Edit rejected — reverted to the previously approved version.", product: database.products[index] });
+  }
+
   database.products.splice(index, 1);
   writeDatabase(database);
   res.json({ success: true, message: "Product rejected and removed." });
@@ -2912,10 +2992,64 @@ app.put("/api/admin/products/:id", requireAdmin, (req, res) => {
     product.buyBadgePercent = database.products[index].buyBadgePercent ?? 10;
   }
 
+  // The boss's edits apply immediately. A sub-admin's edit is held as a
+  // proposal on the product (pendingAdminEdit) — the live product is left
+  // untouched until the boss reviews and approves it.
+  if (req.admin.role !== "boss") {
+    database.products[index].pendingAdminEdit = {
+      changes: product,
+      requestedBy: req.admin.username,
+      requestedAt: new Date().toISOString(),
+    };
+    writeDatabase(database);
+    return res.json({
+      success: true,
+      pending: true,
+      message: "Change submitted — it needs the boss's approval before it goes live.",
+      product: database.products[index],
+    });
+  }
+
   database.products[index] = { ...database.products[index], ...product, id };
+  delete database.products[index].pendingAdminEdit;
   writeDatabase(database);
 
   res.json({ success: true, product: database.products[index] });
+});
+
+// A sub-admin's proposed edit to an already-live product, waiting on the
+// boss to review it. Boss-only — this is where the before/after summary
+// comes from (the live product vs. pendingAdminEdit.changes).
+app.get("/api/admin/products/pending-edits", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const pending = database.products.filter((p) => p.pendingAdminEdit);
+  res.json({ success: true, products: pending });
+});
+
+app.put("/api/admin/products/:id/approve-edit", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const product = database.products.find((p) => p.id === Number(req.params.id));
+  if (!product || !product.pendingAdminEdit) {
+    return res.status(404).json({ success: false, message: "No pending edit found for this product." });
+  }
+  const index = database.products.indexOf(product);
+  const { changes } = product.pendingAdminEdit;
+  database.products[index] = { ...product, ...changes, id: product.id };
+  delete database.products[index].pendingAdminEdit;
+  writeDatabase(database);
+  res.json({ success: true, message: "Edit approved and now live.", product: database.products[index] });
+});
+
+app.put("/api/admin/products/:id/reject-edit", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const product = database.products.find((p) => p.id === Number(req.params.id));
+  if (!product || !product.pendingAdminEdit) {
+    return res.status(404).json({ success: false, message: "No pending edit found for this product." });
+  }
+  const index = database.products.indexOf(product);
+  delete database.products[index].pendingAdminEdit;
+  writeDatabase(database);
+  res.json({ success: true, message: "Edit rejected — product left unchanged." });
 });
 
 // Delete a product
@@ -2977,6 +3111,18 @@ app.get("/sell", (req, res) => {
 // ================================
 
 app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Shareable product links, e.g. /product/123/photo-print-mug — the
+// name-slug is only there to make the link readable/SEO-friendly, the
+// front-end reads the numeric id and ignores the slug. Serving the same
+// index.html here (not a redirect) is what lets a pasted link — WhatsApp,
+// a new tab, anywhere — open straight into that product instead of 404ing.
+app.get("/product/:id", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+app.get("/product/:id/:slug", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 

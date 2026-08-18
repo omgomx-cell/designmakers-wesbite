@@ -898,7 +898,11 @@
       .discount-badge {
         position: absolute;
         top: 10px; left: 10px;
-        background: var(--rosewood);
+        background: linear-gradient(135deg, rgba(138,28,66,0.88), rgba(107,20,51,0.88));
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255,255,255,0.28);
+        box-shadow: 0 3px 10px rgba(138,28,66,0.25);
         color: white;
         font-size: 10.5px;
         font-weight: 600;
@@ -990,7 +994,7 @@
         display: flex; align-items: center; justify-content: center;
         overflow: hidden;
       }
-      .modal-main-img img { width: 100%; height: 100%; object-fit: cover; }
+      .modal-main-img img { width: 100%; height: 100%; object-fit: contain; background: var(--blush); }
       .modal-nav-btn {
         position: absolute;
         top: 50%; transform: translateY(-50%);
@@ -1094,7 +1098,14 @@
         font-size: 14px;
         font-weight: 600;
       }
-      .size-chip.selected { background: var(--rosewood); color: white; border-color: var(--rosewood); }
+      .size-chip.selected {
+        background: linear-gradient(135deg, rgba(138,28,66,0.90), rgba(184,134,63,0.55));
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        color: white;
+        border-color: rgba(138,28,66,0.6);
+        box-shadow: 0 3px 10px rgba(138,28,66,0.22);
+      }
 
       .qty-row { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
       .qty-btn {
@@ -1130,7 +1141,13 @@
       .tier-table th { text-align: left; padding: 6px 8px; color: var(--muted); font-weight: 600; font-size: 11.5px; border-bottom: 1px solid var(--blush-line); }
       .tier-table td { padding: 7px 8px; color: var(--ink); border-radius: 6px; }
       .tier-table tbody tr { cursor: pointer; }
-      .tier-table tr.active-tier td { background: var(--rosewood); color: white; font-weight: 700; }
+      .tier-table tr.active-tier td {
+        background: linear-gradient(135deg, rgba(138,28,66,0.90), rgba(184,134,63,0.45));
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        color: white;
+        font-weight: 700;
+      }
       .tier-table tr.active-tier td:first-child { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
       .tier-table tr.active-tier td:last-child { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
 
@@ -1343,6 +1360,45 @@
       .category-heading { font-size: 20px; color: var(--rosewood); margin: 28px 0 4px; }
       .category-heading .cat-count { font-weight: 400; font-size: 0.6em; color: var(--muted); }
 
+      /* ===== Dark mode toggle — lives inside the profile/account panel ===== */
+      .dm-dark-toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        margin-bottom: 18px;
+        border-radius: 14px;
+        background: linear-gradient(145deg, rgba(255,255,255,.5), rgba(255,255,255,.18));
+        border: 1px solid rgba(255,255,255,.6);
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: 0 8px 22px rgba(138,28,66,.08), inset 0 1px rgba(255,255,255,.7);
+      }
+      .dm-dark-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 0.92em; font-weight: 600; color: var(--ink); }
+      .dm-toggle-switch { position: relative; display: inline-block; width: 44px; height: 25px; flex-shrink: 0; }
+      .dm-toggle-switch input { opacity: 0; width: 0; height: 0; }
+      .dm-toggle-slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background: rgba(138,28,66,.16);
+        border: 1px solid rgba(138,28,66,.18);
+        transition: .25s ease;
+        border-radius: 999px;
+      }
+      .dm-toggle-slider::before {
+        content: "";
+        position: absolute;
+        height: 19px; width: 19px;
+        left: 2px; top: 2px;
+        background: #fff;
+        box-shadow: 0 2px 5px rgba(0,0,0,.25);
+        transition: .25s ease;
+        border-radius: 50%;
+      }
+      .dm-toggle-switch input:checked + .dm-toggle-slider { background: var(--rosewood); border-color: var(--rosewood); }
+      .dm-toggle-switch input:checked + .dm-toggle-slider::before { transform: translateX(19px); }
+      body.dark-mode .dm-dark-toggle-row { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; border: 1px solid rgba(255,255,255,.10) !important; box-shadow: 0 8px 22px rgba(0,0,0,.24) !important; }
+      body.dark-mode .dm-dark-toggle-label { color: #fff !important; }
+
       /* ===== Gift for Her / Him popup — shows only that gender's linked products ===== */
       /* "Hero Banner" style — dark rosewood/gold gradient header with decorative
          circles, product grid card overlapping slightly up into it. */
@@ -1350,27 +1406,33 @@
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(20,10,14,0.55);
+        background: rgba(90,28,48,0.28);
+        backdrop-filter: blur(6px) saturate(140%);
+        -webkit-backdrop-filter: blur(6px) saturate(140%);
         z-index: 95;
         padding: 24px 16px;
         overflow-y: auto;
       }
       .gender-modal-overlay.open { display: block; }
       .gender-modal {
-        background: var(--cream, #fdf7f3);
+        background: linear-gradient(145deg, rgba(255,255,255,.55), rgba(255,255,255,.22)), rgba(253,247,240,.6);
         max-width: 1100px;
         margin: 0 auto;
-        border-radius: 20px;
+        border-radius: 24px;
         overflow: hidden;
         position: relative;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,.6);
+        backdrop-filter: blur(30px) saturate(170%);
+        -webkit-backdrop-filter: blur(30px) saturate(170%);
+        box-shadow: 0 30px 80px rgba(138,28,66,.18), inset 0 1px rgba(255,255,255,.85);
       }
       .gender-modal-hero {
         position: relative;
         padding: 36px 36px 56px;
-        background: linear-gradient(135deg, #5a1c30 0%, #8a1c42 55%, #5a1c30 100%);
-        color: #fff;
+        background: linear-gradient(135deg, rgba(255,255,255,.45), rgba(255,255,255,.15)), radial-gradient(circle at 80% 20%, rgba(184,134,63,.22), transparent 45%);
+        color: var(--dm-text, #2a1710);
         overflow: hidden;
+        border-bottom: 1px solid rgba(255,255,255,.5);
       }
       .gender-modal-hero::before {
         content: "";
@@ -1380,7 +1442,8 @@
         width: 200px;
         height: 200px;
         border-radius: 50%;
-        background: rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.35);
+        filter: blur(2px);
       }
       .gender-modal-hero::after {
         content: "";
@@ -1390,7 +1453,7 @@
         width: 160px;
         height: 160px;
         border-radius: 50%;
-        background: rgba(184,134,63,0.15);
+        background: rgba(184,134,63,0.18);
       }
       .gender-modal-close {
         position: absolute;
@@ -1399,17 +1462,19 @@
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        border: none;
-        background: rgba(255,255,255,0.15);
-        color: #fff;
+        border: 1px solid rgba(255,255,255,.6);
+        background: rgba(255,255,255,0.35);
+        backdrop-filter: blur(14px) saturate(160%);
+        -webkit-backdrop-filter: blur(14px) saturate(160%);
+        color: var(--dm-text, #2a1710);
         font-size: 16px;
         cursor: pointer;
         z-index: 2;
       }
-      .gender-modal-close:hover { background: rgba(255,255,255,0.28); }
-      .gender-modal-tag { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); font-weight: 700; position: relative; z-index: 1; }
-      .gender-modal h2 { font-family: "Playfair Display", Georgia, serif; font-size: 32px; margin: 8px 0 6px; position: relative; z-index: 1; color: #fff; }
-      .gender-modal-sub { font-size: 14px; color: #e8c9d2; max-width: 420px; position: relative; z-index: 1; margin: 0; }
+      .gender-modal-close:hover { background: rgba(255,255,255,0.55); }
+      .gender-modal-tag { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--rosewood, #8a1c42); font-weight: 700; position: relative; z-index: 1; }
+      .gender-modal h2 { font-family: "Playfair Display", Georgia, serif; font-size: 32px; margin: 8px 0 6px; position: relative; z-index: 1; color: var(--dm-text, #2a1710); }
+      .gender-modal-sub { font-size: 14px; color: var(--dm-muted, rgba(42,23,16,.6)); max-width: 420px; position: relative; z-index: 1; margin: 0; }
       .gender-modal-body { padding: 28px 32px 32px; margin-top: -30px; position: relative; z-index: 1; }
       .gender-modal-grid {
         display: grid;
@@ -1862,6 +1927,16 @@ body.theme-aug15 .sale-section-wrap,body.theme-rakshabandhan .sale-section-wrap,
 body.theme-aug15 .hot-banner-wrap,body.theme-rakshabandhan .hot-banner-wrap{filter:none!important}
 body.theme-aug15 .hot-banner{background:linear-gradient(135deg,#fff0df,#eef5ed)!important;border:1px solid var(--dm-border)!important;box-shadow:var(--dm-shadow)!important}
 body.theme-rakshabandhan .hot-banner{background:linear-gradient(135deg,#fff0f3,#fff8e9)!important;border:1px solid var(--dm-border)!important;box-shadow:var(--dm-shadow)!important}
+/* Bug fix: the two rules above swap the banner to a light background for
+   festival themes, but .hot-banner sets color:#fff (heading) and
+   .hot-banner p sets a light pink (#e8c9d2) by default — both meant for the
+   original dark rosewood background. Left un-overridden, that's white/light
+   text on a light background, i.e. unreadable. Force dark, high-contrast
+   text here so the heading/subtext are always legible on the light theme bg. */
+body.theme-aug15 .hot-banner h3{color:var(--navy)!important}
+body.theme-aug15 .hot-banner p{color:#4a3312!important}
+body.theme-rakshabandhan .hot-banner h3{color:var(--dm-accent-dark)!important}
+body.theme-rakshabandhan .hot-banner p{color:#5a2a1a!important}
 body.theme-aug15 .hot-banner-tag{background:#eef5ed!important;color:var(--dm-green)!important}
 body.theme-rakshabandhan .hot-banner-tag{background:#fff0f3!important;color:var(--dm-accent-dark)!important}
 body.theme-aug15 .hot-banner-btn{background:var(--dm-green)!important;color:#fff!important}
@@ -2144,7 +2219,6 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       body.dark-mode .modal-close { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.14) !important; color: #fff !important; }
       body.dark-mode .hot-banner { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; border: 1px solid rgba(255,255,255,.10) !important; }
       body.dark-mode .hot-banner-tag { background: rgba(255,255,255,.08) !important; color: #fff !important; }
-      body.dark-mode .dm-dark-btn { box-shadow: 0 2px 10px rgba(0,0,0,.4) !important; }
     </style>
     <style id="dmFinalPolish">
       /* ===== FINAL VISIBILITY + HERO PRODUCT POLISH ===== */
@@ -2437,9 +2511,6 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       <div class="header-inner">
         <div class="logo"><img src="Logo.png" alt="Design Makers" style="height:48px;width:48px;object-fit:contain;vertical-align:middle;"> DESIGN MAKERS<span>Gifts That Feel Like Royalty</span></div>
         <div class="header-actions">
-          <button class="icon-btn dm-dark-btn" onclick="toggleDarkMode()" title="Toggle dark mode">
-            <span class="dm-dark-icon">🌙</span>
-          </button>
           <button class="icon-btn" onclick="toggleSearchBar()" title="Search" id="searchToggleBtn">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
@@ -2687,7 +2758,16 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
         <button class="modal-close" onclick="closeProductModal()">✕</button>
         <div class="modal-img" id="modalImg"></div>
         <div class="modal-body">
-          <span class="modal-cat" id="modalCat"></span>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;">
+            <span class="modal-cat" id="modalCat"></span>
+            <button type="button" id="shareProductBtn" onclick="shareProduct()" aria-label="Share product" style="border:none;background:transparent;color:var(--rosewood,#8a1c42);padding:6px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
+            </button>
+            <div id="shareMenu" style="display:none;position:absolute;top:32px;right:0;background:#fff;border:1px solid var(--blush-line,#eadfda);border-radius:12px;box-shadow:0 8px 24px rgba(138,28,66,.14);padding:6px;z-index:5;min-width:170px;">
+              <button type="button" onclick="copyProductLink()" style="display:flex;align-items:center;gap:8px;width:100%;border:none;background:transparent;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:0.85em;color:var(--ink,#2a1710);text-align:left;">🔗 Copy link</button>
+              <a id="shareWhatsappLink" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;width:100%;padding:9px 10px;border-radius:8px;font-size:0.85em;color:var(--ink,#2a1710);text-decoration:none;">🟢 Share on WhatsApp</a>
+            </div>
+          </div>
           <h2 class="modal-title" id="modalTitle"></h2>
           <p class="modal-desc" id="modalDesc"></p>
           <div class="modal-price" id="modalPrice"></div>
@@ -2800,6 +2880,13 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
 
         <!-- RIGHT: form panel -->
         <div class="auth-form">
+          <div class="dm-dark-toggle-row">
+            <span class="dm-dark-toggle-label"><span class="dm-dark-icon">🌙</span> Dark mode</span>
+            <label class="dm-toggle-switch">
+              <input type="checkbox" class="dm-dark-toggle-input" onchange="setDarkMode(this.checked)" />
+              <span class="dm-toggle-slider"></span>
+            </label>
+          </div>
           <div id="accountSignedOut">
             <h2 class="modal-title" style="margin-bottom:6px;" id="authFormTitle">Log in</h2>
             <p class="modal-desc" style="margin-bottom:20px;" id="authFormDesc">Log in with your mobile number and password.</p>
@@ -4000,6 +4087,11 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           statusEl.style.display = "none";
           statusEl.textContent = "";
           document.getElementById("productsGrid").innerHTML = "";
+
+          // If this page was opened via a shared product link
+          // (?product=123), jump straight to that product now that
+          // allProducts is populated.
+          openProductFromUrlIfPresent();
         } catch (err) {
           statusEl.textContent = "Could not load products. Please refresh.";
         }
@@ -4029,9 +4121,9 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
             document.body.classList.add("theme-" + theme);
           
     applyDarkMode(false);
-    document.querySelectorAll(".dm-dark-btn").forEach(function(el){ el.style.display = "none"; });
+    document.querySelectorAll(".dm-dark-toggle-row").forEach(function(el){ el.style.display = "none"; });
   } else {
-    document.querySelectorAll(".dm-dark-btn").forEach(function(el){ el.style.display = ""; });
+    document.querySelectorAll(".dm-dark-toggle-row").forEach(function(el){ el.style.display = ""; });
   }
 
           const heroTitle = document.getElementById("heroTitle");
@@ -4305,17 +4397,24 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
         }, stepMs);
       }
 
+      // Was: scrolled down to the same inline grid section. Now matches the
+      // "All Products" / category tile behavior — opens in the same popup
+      // modal (#genderModalOverlay) instead of jumping within the page.
       function filterHotProducts() {
         document.querySelectorAll(".tile-cat").forEach((c) => c.classList.remove("active"));
         const filtered = allProducts.filter((p) => p.hotProduct);
-        renderProducts(filtered.length ? filtered : allProducts);
-
-        const heading = document.getElementById("categoryHeading");
         const shown = filtered.length ? filtered : allProducts;
-        heading.innerHTML = "🔥 Hot Products" + ' <span class="cat-count">— ' + shown.length + (shown.length === 1 ? " item" : " items") + "</span>";
-        heading.style.display = "block";
 
-        document.querySelector(".grid-wrap").scrollIntoView({ behavior: "smooth" });
+        const overlay = document.getElementById("genderModalOverlay");
+        document.getElementById("genderModalTag").textContent = "Trending Now";
+        document.getElementById("genderModalTitle").textContent = "🔥 Hot Products";
+        document.getElementById("genderModalSub").textContent =
+          shown.length + (shown.length === 1 ? " product" : " products") + " picked by us, loved by our customers.";
+        document.getElementById("genderModalGrid").innerHTML = shown.map(buildProductCard).join("");
+
+        overlay.classList.add("open");
+        document.body.style.overflow = "hidden";
+        startSaleTimers();
       }
 
       // Renders the dedicated "Live Sale" row above the category cards —
@@ -4505,13 +4604,110 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       }
 
       // ---------- PRODUCT MODAL ----------
-      function openProductModal(id) {
+      // Gives every product its own real, shareable URL —
+      // /product/<id>/<name-slug> — the way a Flipkart product page link
+      // works. Opening that URL fresh (server sends index.html for it,
+      // see server.js) or pasting it anywhere jumps straight to that
+      // product's modal.
+      function slugifyProductName(name) {
+        return (name || "product")
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-+|-+$)/g, "") || "product";
+      }
+
+      function buildProductUrl(p) {
+        return window.location.origin + "/product/" + p.id + "/" + slugifyProductName(p.name);
+      }
+
+      function updateUrlForProduct(p) {
+        try {
+          const url = buildProductUrl(p);
+          if (window.location.href.split("?")[0].replace(/\/$/, "") === url.replace(/\/$/, "")) return;
+          window.history.pushState({ dmProductId: p.id }, "", url);
+        } catch (e) {}
+      }
+
+      function clearUrlForProduct() {
+        try {
+          if (window.location.pathname === "/" && !window.location.search) return;
+          window.history.replaceState({}, "", window.location.origin + "/");
+        } catch (e) {}
+      }
+
+      // Reads a product id out of either URL style: the new pretty
+      // /product/<id>/<slug> path, or the older ?product=<id> query param
+      // (kept working so any links already shared the old way still open).
+      function getProductIdFromLocation() {
+        const pathMatch = window.location.pathname.match(/^\/product\/(\d+)/);
+        if (pathMatch) return Number(pathMatch[1]);
+        const qp = new URLSearchParams(window.location.search).get("product");
+        return qp ? Number(qp) : null;
+      }
+
+      function copyProductLink() {
+        if (!currentProduct) return;
+        const url = buildProductUrl(currentProduct);
+        const menu = document.getElementById("shareMenu");
+        if (menu) menu.style.display = "none";
+        const btn = document.getElementById("shareProductBtn");
+        const done = (ok) => {
+          if (!btn) return;
+          const original = btn.innerHTML;
+          btn.innerHTML = ok
+            ? '<span style="font-size:0.75em;font-weight:600;white-space:nowrap;">✅ Copied</span>'
+            : '<span style="font-size:0.75em;font-weight:600;white-space:nowrap;">Couldn\'t copy</span>';
+          setTimeout(() => { btn.innerHTML = original; }, 1600);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(() => done(true)).catch(() => done(false));
+        } else {
+          done(false);
+        }
+      }
+
+      // Share button: on phones (and Windows/Edge/Chrome on desktop) this
+      // opens the device's own native Share sheet — WhatsApp, Instagram,
+      // Gmail, Copy link, everything the OS already supports, no need to
+      // build each one ourselves. Where navigator.share isn't available
+      // (older desktop browsers) we fall back to a tiny menu with the two
+      // options that always work: Copy link and a direct WhatsApp link.
+      function shareProduct() {
+        if (!currentProduct) return;
+        const url = buildProductUrl(currentProduct);
+        const shareData = {
+          title: currentProduct.name,
+          text: "Check out " + currentProduct.name + " on Design Makers",
+          url: url,
+        };
+        if (navigator.share) {
+          navigator.share(shareData).catch(() => {});
+          return;
+        }
+        const menu = document.getElementById("shareMenu");
+        if (!menu) return;
+        const waLink = document.getElementById("shareWhatsappLink");
+        if (waLink) waLink.href = "https://wa.me/?text=" + encodeURIComponent(shareData.text + " " + url);
+        menu.style.display = menu.style.display === "none" ? "block" : "none";
+      }
+
+      document.addEventListener("click", function (e) {
+        const menu = document.getElementById("shareMenu");
+        const btn = document.getElementById("shareProductBtn");
+        if (!menu || menu.style.display === "none") return;
+        if (e.target !== btn && !menu.contains(e.target)) menu.style.display = "none";
+      });
+
+      function openProductModal(id, fromUrl) {
         const p = allProducts.find((x) => x.id === id);
         if (!p) return;
 
         // Fire-and-forget — feeds the automatic Popular/Trending homepage
         // rows. Never blocks the modal from opening even if it fails.
         fetch("/api/products/" + id + "/view", { method: "POST" }).catch(() => {});
+
+        if (!fromUrl) updateUrlForProduct(p);
 
         currentProduct = p;
         currentSize = (p.sizes && p.sizes.length) ? p.sizes[0] : null;
@@ -4610,7 +4806,27 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
       function closeProductModal(e) {
         if (e && e.target !== document.getElementById("productOverlay")) return;
         document.getElementById("productOverlay").classList.remove("open");
+        const menu = document.getElementById("shareMenu");
+        if (menu) menu.style.display = "none";
+        clearUrlForProduct();
       }
+
+      // Deep-link support: /product/123/product-name (or the older
+      // ?product=123 form) opens straight into that product, and the
+      // browser back/forward buttons open/close the modal correctly.
+      function openProductFromUrlIfPresent() {
+        const pid = getProductIdFromLocation();
+        if (pid) openProductModal(pid, true);
+      }
+
+      window.addEventListener("popstate", function () {
+        const pid = getProductIdFromLocation();
+        if (pid) {
+          openProductModal(pid, true);
+        } else {
+          document.getElementById("productOverlay").classList.remove("open");
+        }
+      });
 
       function selectSize(size, el) {
         currentSize = size;
@@ -5163,8 +5379,8 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
         document.querySelectorAll(".dm-dark-icon").forEach(function (el) {
           el.textContent = on ? "☀️" : "🌙";
         });
-        document.querySelectorAll(".dm-dark-btn").forEach(function (el) {
-          el.title = on ? "Switch to light mode" : "Switch to dark mode";
+        document.querySelectorAll(".dm-dark-toggle-input").forEach(function (el) {
+          el.checked = on;
         });
         // Festival banners (Aug15 / Rakhi) have their own dark-theme
         // artwork — swap src between the light original and the
@@ -5175,28 +5391,22 @@ body.theme-rakshabandhan .rakhi-thread{filter:drop-shadow(0 5px 8px rgba(182,61,
           img.src = on ? img.dataset.darkSrc : img.dataset.lightSrc;
         });
       }
-      function toggleDarkMode() {
-        var on = !document.body.classList.contains("dark-mode");
+      function setDarkMode(on) {
         try { localStorage.setItem("dm_dark_mode", on ? "1" : "0"); } catch (e) {}
         applyDarkMode(on);
+      }
+      function toggleDarkMode() {
+        setDarkMode(!document.body.classList.contains("dark-mode"));
       }
       (function initDarkMode() {
         var saved = null;
         try { saved = localStorage.getItem("dm_dark_mode"); } catch (e) {}
-        var on;
-        if (saved === "1" || saved === "0") {
-          on = saved === "1";
-        } else {
-          on = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        }
+        // First-time visitors (no saved preference yet) always start in
+        // light mode, regardless of their OS/browser dark-mode setting.
+        // Dark mode only turns on if the visitor explicitly switches it
+        // on themselves (see the toggle in the profile panel below).
+        var on = saved === "1";
         applyDarkMode(on);
-        try {
-          window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (e) {
-            var cur = null;
-            try { cur = localStorage.getItem("dm_dark_mode"); } catch (err) {}
-            if (cur !== "1" && cur !== "0") applyDarkMode(e.matches);
-          });
-        } catch (e) {}
       })();
     </script>
   </body>

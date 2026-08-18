@@ -11,27 +11,28 @@
     <style>
       * { box-sizing: border-box; }
       :root {
-        --rosewood: #c9436c;
-        --rosewood-dark: #8f2249;
-        --blush: #241820;
-        --blush-line: #382733;
-        --gold: #d9a752;
-        --gold-soft: #ecca86;
-        --cream: #0e0b0d;
-        --ink: #f5ece7;
-        --muted: #af9d9c;
-        --surface: #1a1315;
-        --field: #221a1c;
-        --line: #33272b;
-        --success: #6fd99a;
-        --success-bg: rgba(111,217,154,0.14);
-        --danger: #ff8a97;
-        --danger-bg: rgba(255,90,105,0.14);
-        --warn: #f0c274;
-        --warn-bg: rgba(240,194,116,0.14);
-        --info: #8ab4ff;
-        --info-bg: rgba(85,140,255,0.14);
-        --gold-bg: rgba(217,167,82,0.14);
+        /* ===== SINGLE SOURCE OF TRUTH — matches the main site's theme (index.html) ===== */
+        --rosewood: #8a1c42;
+        --rosewood-dark: #6b1433;
+        --blush: #f8ecef;
+        --blush-line: #ecd7dd;
+        --gold: #b8863f;
+        --gold-soft: #a5732e;
+        --cream: #fffdfb;
+        --ink: #2a231f;
+        --muted: #8c7d78;
+        --surface: #ffffff;
+        --field: #faf6f3;
+        --line: #ecd7dd;
+        --success: #1f9d55;
+        --success-bg: rgba(31,157,85,0.10);
+        --danger: #d6455a;
+        --danger-bg: rgba(214,69,90,0.10);
+        --warn: #b8863f;
+        --warn-bg: rgba(184,134,63,0.10);
+        --info: #2f6fed;
+        --info-bg: rgba(47,111,237,0.10);
+        --gold-bg: rgba(184,134,63,0.12);
       }
       body {
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
@@ -85,10 +86,12 @@
         cursor: pointer;
         border-bottom: 2.5px solid transparent;
         white-space: nowrap;
+        transition: color .15s ease, border-color .15s ease;
       }
+      .tab-btn:hover { color: var(--ink); }
       .tab-btn.active { color: var(--gold-soft); border-bottom-color: var(--gold); }
       .tab-panel { display: none; }
-      .tab-panel.active { display: block; }
+      .tab-panel.active { display: block; animation: dmFade .18s ease both; }
 
       .wrap { max-width: 780px; margin: 0 auto; padding: 16px; }
 
@@ -155,8 +158,25 @@
         cursor: pointer;
         width: 100%;
         margin-top: 14px;
+        transition: background-color .15s ease, transform .1s ease;
       }
       .btn:hover { background: var(--rosewood-dark); }
+      .btn:active { transform: translateY(1px); }
+      .btn:disabled { opacity: .7; cursor: not-allowed; }
+      .btn.btn-loading { position: relative; color: transparent !important; }
+      .btn.btn-loading::after {
+        content: ""; position: absolute; left: 50%; top: 50%;
+        width: 16px; height: 16px; margin: -8px 0 0 -8px;
+        border: 2px solid rgba(255,255,255,.5); border-top-color: #fff;
+        border-radius: 50%; animation: dmSpin .6s linear infinite;
+      }
+      @keyframes dmSpin { to { transform: rotate(360deg); } }
+      .dm-mini-spinner {
+        width: 18px; height: 18px;
+        border: 2px solid var(--line); border-top-color: var(--gold);
+        border-radius: 50%;
+        animation: dmSpin .7s linear infinite;
+      }
       .btn.secondary { background: var(--blush); color: var(--gold-soft); }
       .btn.danger { background: var(--danger-bg); color: var(--danger); }
       .btn.small { width: auto; padding: 8px 14px; font-size: 12.5px; margin: 4px 4px 0 0; }
@@ -248,6 +268,45 @@
         overflow-y: auto;
       }
       #modalOverlay.open { display: block; }
+
+      /* Image zoom lightbox — click any product photo thumbnail to check it
+         full-size before saving, so blur/quality is easy to actually see
+         (a 64px thumbnail is too small to judge that from). */
+      #imgZoomOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.82);
+        z-index: 120;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+        padding: 24px;
+        cursor: zoom-out;
+      }
+      #imgZoomOverlay.open { display: flex; }
+      #imgZoomOverlay img {
+        max-width: min(92vw, 640px);
+        max-height: 72vh;
+        object-fit: contain;
+        border-radius: 10px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        background: #111;
+      }
+      #imgZoomOverlay .zoom-caption {
+        color: #fff;
+        font-size: 12.5px;
+        font-weight: 600;
+        opacity: .9;
+        text-align: center;
+      }
+      #imgZoomOverlay .zoom-hint {
+        color: rgba(255,255,255,.6);
+        font-size: 11.5px;
+      }
+      .img-slot { cursor: zoom-in; }
+      .img-slot:hover { outline: 2px solid var(--gold); outline-offset: 1px; }
       .seller-modal-overlay {
         display: none;
         position: fixed;
@@ -425,7 +484,8 @@
       @media (max-width: 480px) {
         #floatBubble { width: 80px; height: 70px; }
       }
-      .theme-card.active { border-color: var(--rosewood) !important; background: var(--gold-bg); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.35); }
+      .theme-card { transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+      .theme-card.active { border-color: var(--rosewood) !important; background: var(--gold-bg); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(138,28,66,0.15); }
       .theme-card:hover { border-color: var(--rosewood); }
     
 
@@ -494,65 +554,48 @@
       }
     </style>
 
-    <!-- ===== SLATE + GOLD GLASS THEME (redesigned admin look, single source of truth) ===== -->
+    <!-- ===== ADMIN SHELL LOOK — now shares the single :root theme above, matching the main site ===== -->
     <style>
-      :root{
-        --rosewood:#45515e;
-        --rosewood-dark:#2e3a46;
-        --blush:rgba(200,169,107,.10);
-        --blush-line:rgba(161,168,179,.16);
-        --gold:#c8a96b;
-        --gold-soft:#dcc191;
-        --cream:#2e3a46;
-        --ink:#eef1f4;
-        --muted:#a1a8b3;
-        --surface:rgba(69,81,94,.58);
-        --field:rgba(161,168,179,.08);
-        --line:rgba(161,168,179,.18);
-        --success:#4fce88;
-        --success-bg:rgba(79,206,136,.15);
-        --danger:#e8798a;
-        --danger-bg:rgba(232,121,138,.15);
-        --warn:#c8a96b;
-        --warn-bg:rgba(200,169,107,.15);
-        --info:#8fa8c2;
-        --info-bg:rgba(143,168,194,.15);
-        --gold-bg:rgba(200,169,107,.16);
-      }
-      html{ background:#242d37; }
+      html{ background: var(--cream); }
       body{
         background:
-          radial-gradient(1100px 560px at 8% -10%, rgba(69,81,94,.5), transparent 60%),
-          radial-gradient(950px 620px at 98% 4%, rgba(161,168,179,.18), transparent 55%),
-          radial-gradient(800px 520px at 45% 105%, rgba(200,169,107,.16), transparent 60%),
-          linear-gradient(180deg,#374553 0%, #2e3a46 45%, #242d37 100%);
+          radial-gradient(1100px 560px at 8% -10%, rgba(138,28,66,.09), transparent 60%),
+          radial-gradient(950px 620px at 98% 4%, rgba(184,134,63,.13), transparent 55%),
+          radial-gradient(800px 520px at 45% 105%, rgba(184,134,63,.09), transparent 60%),
+          var(--cream);
         background-attachment: fixed;
       }
 
-      /* Glass treatment for every existing card-like surface */
+      /* Card surfaces — warm cream glass over the gradient backdrop, matching
+         the main site's palette. Moderate blur only (14px, no stacked
+         saturate) so it stays smooth on scroll instead of the old triple
+         18-20px blur stack. */
       .card,.stat-card,.dm-overview-card,.dm-kpi,.modal-card,.dm-hero-admin,.sd-about,.sd-chip{
-        background: var(--surface) !important;
+        background: rgba(255,253,250,.82) !important;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         border: 1px solid var(--line) !important;
-        backdrop-filter: blur(18px) saturate(160%);
-        -webkit-backdrop-filter: blur(18px) saturate(160%);
-        box-shadow: 0 10px 32px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.2) !important;
+        box-shadow: 0 4px 18px rgba(138,28,66,.07), 0 1px 2px rgba(138,28,66,.05) !important;
+        transition: box-shadow .2s cubic-bezier(.4,0,.2,1), transform .2s cubic-bezier(.4,0,.2,1);
       }
+      .dm-kpi:hover,.dm-overview-card:hover{ transform: translateY(-2px); box-shadow: 0 10px 26px rgba(138,28,66,.11), 0 1px 2px rgba(138,28,66,.06) !important; }
       .card,.dm-overview-card,.dm-kpi,.dm-hero-admin,.modal-card{ border-radius:18px !important; }
       input[type=text],input[type=password],input[type=number],input[type=tel],textarea,select{
         background: var(--field) !important;
-        backdrop-filter: blur(6px);
+        transition: border-color .15s ease, box-shadow .15s ease;
       }
+      input:focus,textarea:focus,select:focus{ box-shadow: 0 0 0 3px rgba(184,134,63,.14); }
       .theme-card{ background: var(--field) !important; }
-      #modalOverlay,.seller-modal-overlay,.seller-detail-overlay{ background: rgba(5,6,9,.62) !important; backdrop-filter: blur(3px); }
+      #modalOverlay,.seller-modal-overlay,.seller-detail-overlay{ background: rgba(42,23,16,.45) !important; backdrop-filter: blur(4px); }
 
       /* ===== Sidebar + topbar shell ===== */
       .dm-shell{ display:flex; align-items:flex-start; min-height:100vh; }
       .dm-sidebar{
         width:252px; flex:0 0 252px; position:sticky; top:0; height:100vh;
         display:flex; flex-direction:column;
-        background:rgba(35,44,53,.62);
-        backdrop-filter: blur(20px) saturate(160%);
-        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        background:rgba(255,253,250,.80);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         border-right:1px solid var(--line);
         padding:22px 16px; z-index:70;
       }
@@ -567,20 +610,21 @@
         padding:10px 12px; border-radius:10px;
         font-size:12.8px; font-weight:650; color:var(--muted);
         cursor:pointer; width:100%; font-family:inherit;
+        transition: background-color .2s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1);
       }
       .dm-nav-item svg{ width:17px; height:17px; flex:0 0 17px; }
-      .dm-nav-item:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
+      .dm-nav-item:hover{ background:rgba(138,28,66,.06); color:var(--ink); }
       .dm-nav-item.active{
-        background:linear-gradient(135deg,rgba(212,162,76,.24),rgba(212,162,76,.09));
-        color:var(--gold-soft);
-        border:1px solid rgba(212,162,76,.32);
-        box-shadow:0 2px 10px rgba(212,162,76,.12);
+        background:linear-gradient(135deg,rgba(184,134,63,.20),rgba(138,28,66,.06));
+        color:var(--rosewood-dark);
+        border:1px solid rgba(184,134,63,.38);
+        box-shadow:0 2px 12px rgba(184,134,63,.16), inset 0 1px 0 rgba(255,255,255,.5);
       }
       .dm-sidebar-bottom{ border-top:1px solid var(--line); padding-top:14px; margin-top:10px; display:flex; flex-direction:column; gap:10px; }
-      .dm-view-store{ display:flex; align-items:center; gap:9px; font-size:12.3px; font-weight:650; color:var(--muted); text-decoration:none; padding:9px 10px; border-radius:9px; }
+      .dm-view-store{ display:flex; align-items:center; gap:9px; font-size:12.3px; font-weight:650; color:var(--muted); text-decoration:none; padding:9px 10px; border-radius:9px; transition: background-color .2s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1); }
       .dm-view-store svg{ width:15px; height:15px; }
-      .dm-view-store:hover{ background:rgba(255,255,255,.055); color:var(--ink); }
-      .dm-sidebar-profile{ display:flex; align-items:center; gap:9px; padding:8px; border-radius:12px; background:rgba(255,255,255,.045); border:1px solid var(--line); }
+      .dm-view-store:hover{ background:rgba(138,28,66,.06); color:var(--ink); }
+      .dm-sidebar-profile{ display:flex; align-items:center; gap:9px; padding:8px; border-radius:12px; background:var(--field); border:1px solid var(--line); }
       .dm-sidebar-avatar{ width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--rosewood-dark),var(--gold)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; flex:0 0 32px; }
       .dm-sidebar-name{ font-size:12px; font-weight:750; color:var(--ink); line-height:1.3; }
       .dm-sidebar-role{ font-size:10.3px; color:var(--muted); }
@@ -592,15 +636,15 @@
         position:sticky; top:0; z-index:60;
         display:flex; align-items:center; gap:14px;
         padding:14px 26px;
-        background:rgba(35,44,53,.55);
-        backdrop-filter: blur(18px) saturate(160%);
-        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        background:rgba(255,253,250,.78);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         border-bottom:1px solid var(--line);
       }
       .dm-topbar-menu{ display:none; background:none; border:none; color:var(--ink); cursor:pointer; padding:4px; }
       .dm-topbar-title h1{ margin:0; font-size:16.5px; color:var(--ink); font-family:"Playfair Display",Georgia,serif; }
       .dm-topbar-title p{ margin:1px 0 0; font-size:11.3px; color:var(--muted); }
-      .dm-topbar-search{ flex:1; max-width:340px; margin-left:8px; display:flex; align-items:center; gap:8px; padding:9px 13px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,.045); color:var(--muted); }
+      .dm-topbar-search{ flex:1; max-width:340px; margin-left:8px; display:flex; align-items:center; gap:8px; padding:9px 13px; border-radius:10px; border:1px solid var(--line); background:var(--field); color:var(--muted); }
       .dm-topbar-search svg{ flex:0 0 15px; }
       .dm-topbar-search input{ border:none !important; background:none !important; padding:0 !important; margin:0 !important; font-size:12.8px; flex:1; backdrop-filter:none; }
       .dm-topbar-search input:focus{ outline:none; }
@@ -651,7 +695,7 @@
         color: var(--ink) !important;
         background: var(--field) !important;
         border-color: var(--blush-line) !important;
-        color-scheme: dark;
+        color-scheme: light;
       }
       /* Chrome/Windows native option menus were inheriting a near-white text
          color on a white popup in some combinations. Force a readable menu. */
@@ -989,11 +1033,25 @@
             <div id="sellerProfileReqList"></div>
           </div>
 
-          <div class="card">
+          <div class="card" style="margin-bottom:16px;">
             <h3 style="margin:0 0 10px;color: var(--gold-soft);">Pending Seller Products</h3>
             <div class="phone" style="margin:0 0 10px;">New products submitted by sellers — they won't appear on the storefront until approved. Only the shop's public name is shown here; the seller's real identity is visible to the boss account only.</div>
             <div id="pendingProductsLoading">Loading pending products...</div>
             <div id="pendingProductsList"></div>
+          </div>
+
+          <div class="card hidden" id="pendingAdminEditsCard">
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">Pending Admin Edits</h3>
+            <div class="phone" style="margin:0 0 10px;">Changes sub-admins made to existing products — held here until you approve them. Nothing goes live until you do.</div>
+            <div id="pendingAdminEditsLoading">Loading pending edits...</div>
+            <div id="pendingAdminEditsList"></div>
+          </div>
+
+          <div class="card hidden" id="pendingSellerEditsCard">
+            <h3 style="margin:0 0 10px;color: var(--gold-soft);">Pending Seller Detail Edits</h3>
+            <div class="phone" style="margin:0 0 10px;">Changes sub-admins made to a seller's name, email, phone, shop title, or photo — held here until you approve them. Nothing goes live until you do.</div>
+            <div id="pendingSellerEditsLoading">Loading pending edits...</div>
+            <div id="pendingSellerEditsList"></div>
           </div>
         </div>
 
@@ -1070,8 +1128,10 @@
 
         <label>Product Photos (up to 3)</label>
         <input type="file" id="fImageFiles" accept="image/*" multiple />
-        <div class="hint">Pick up to 3 photos from your device — no need to upload anywhere else first.</div>
+        <div class="hint">Pick up to 3 photos from your device — no need to upload anywhere else first. Large photos are auto-resized so the site stays fast.</div>
+        <div id="imageSizeWarning" class="hint" style="display:none; color:var(--warn); font-weight:600;"></div>
         <div id="imagePreviewRow" style="display:flex; gap:8px; margin:8px 0; flex-wrap:wrap;"></div>
+        <div id="imagePreviewSizes" class="hint" style="margin-top:-4px;"></div>
 
         <div class="row2">
           <div>
@@ -1140,7 +1200,7 @@
         <div class="error" id="modalError"></div>
 
         <div style="display:flex; gap:8px; margin-top:20px;">
-          <button class="btn" onclick="saveProduct()">Save Product</button>
+          <button class="btn" id="saveProductBtn" onclick="saveProduct()"><span id="saveProductBtnText">Save Product</span></button>
           <button class="btn secondary" onclick="closeModal()">Cancel</button>
         </div>
       </div>
@@ -1163,28 +1223,33 @@
         <input type="text" id="sellerModalPhone" />
         <label>Shop title</label>
         <input type="text" id="sellerModalShopTitleInput" />
-        <button class="btn small" style="margin-top:6px;" onclick="saveSellerDetailsModal()">Save details</button>
+        <label for="sellerModalPhoto">Photo (optional)</label>
+        <input type="file" id="sellerModalPhoto" accept="image/*" />
+        <div id="sellerModalPendingEditBox"></div>
+        <button class="btn small" id="sellerModalSaveDetailsBtn" style="margin-top:6px;" onclick="saveSellerDetailsModal()">Save details</button>
         <div id="sellerModalDetailsStatus" style="font-size:13px;margin-top:6px;min-height:18px;"></div>
 
-        <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
+        <div id="sellerModalSensitiveSections">
+          <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
 
-        <h3 style="font-size:14px;color: var(--gold-soft);margin:0 0 8px;">Password</h3>
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Only a hashed copy of the password is ever stored — there's no way to "view" the seller's current password, only to set a new one.</div>
+          <h3 style="font-size:14px;color: var(--gold-soft);margin:0 0 8px;">Password</h3>
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Only a hashed copy of the password is ever stored — there's no way to "view" the seller's current password, only to set a new one.</div>
 
-        <button class="btn small secondary" onclick="generateRandomPasswordModal()">Generate &amp; email a random password</button>
+          <button class="btn small secondary" onclick="generateRandomPasswordModal()">Generate &amp; email a random password</button>
 
-        <label style="margin-top:14px;">Or set a specific password</label>
-        <input type="text" id="sellerModalCustomPassword" placeholder="At least 6 characters" autocomplete="off" />
-        <button class="btn small" style="margin-top:6px;" onclick="setCustomPasswordModal()">Set this password</button>
+          <label style="margin-top:14px;">Or set a specific password</label>
+          <input type="text" id="sellerModalCustomPassword" placeholder="At least 6 characters" autocomplete="off" />
+          <button class="btn small" style="margin-top:6px;" onclick="setCustomPasswordModal()">Set this password</button>
 
-        <div id="sellerModalPasswordStatus" style="font-size:13px;margin-top:8px;min-height:18px;font-weight:600;"></div>
+          <div id="sellerModalPasswordStatus" style="font-size:13px;margin-top:8px;min-height:18px;font-weight:600;"></div>
 
-        <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
+          <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
 
-        <h3 style="font-size:14px;color: var(--gold-soft);margin:0 0 8px;">Skip the password entirely</h3>
-        <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Opens this seller's dashboard in a new tab, already logged in as them — no password needed. Good for checking or fixing something in their account directly.</div>
-        <button class="btn small" onclick="loginAsSellerModal()">Log in as this seller</button>
-        <div id="sellerModalLoginAsStatus" style="font-size:13px;margin-top:8px;min-height:18px;font-weight:600;"></div>
+          <h3 style="font-size:14px;color: var(--gold-soft);margin:0 0 8px;">Skip the password entirely</h3>
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px;">Opens this seller's dashboard in a new tab, already logged in as them — no password needed. Good for checking or fixing something in their account directly.</div>
+          <button class="btn small" onclick="loginAsSellerModal()">Log in as this seller</button>
+          <div id="sellerModalLoginAsStatus" style="font-size:13px;margin-top:8px;min-height:18px;font-weight:600;"></div>
+        </div>
 
         <hr style="margin:18px 0;border:none;border-top:1px solid var(--blush-line);" />
 
@@ -1214,6 +1279,11 @@
 
         <div style="font-size:12px;color:var(--muted);">Description</div>
         <div id="ppmDescription" style="margin:4px 0 16px;white-space:pre-wrap;"></div>
+
+        <div id="ppmDiffWrap" style="display:none;margin-bottom:16px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">What the seller changed</div>
+          <div id="ppmDiff" style="border:1px solid var(--blush-line,#eadfda);border-radius:8px;overflow:hidden;font-size:13px;"></div>
+        </div>
 
         <div id="ppmSellerNote" style="font-size:12.5px;color:var(--muted);margin-bottom:14px;"></div>
 
@@ -1555,16 +1625,21 @@
         document.getElementById("backupBtn").classList.toggle("hidden", role !== "boss");
         document.getElementById("newCategoryBtn").classList.toggle("hidden", role !== "boss");
         document.getElementById("seedCategoryProductsBtn").classList.toggle("hidden", role !== "boss");
-        // Live Sellers reveals real seller identity (name/email/phone) —
-        // sub-admins never get to see that, only the boss.
-        document.getElementById("tabBtnSellerlist").classList.toggle("hidden", role !== "boss");
-        // Same for the identity-revealing cards inside "Approval for Seller" —
+        // Live Sellers used to be boss-only because it reveals real seller
+        // identity (name/email/phone). It's now open to sub-admins too, so
+        // they can edit seller details — a sub-admin's edit is just held
+        // for boss approval instead of applying immediately (see the
+        // "Pending Seller Detail Edits" card below, boss-only).
+        document.getElementById("tabBtnSellerlist").classList.toggle("hidden", false);
+        // The rest of "Approval for Seller" stays boss-only —
         // sub-admins keep that tab open, but only for the pending-products
         // list (which already shows shop name only, not real identity).
         document.getElementById("sellerInviteCard").classList.toggle("hidden", role !== "boss");
         document.getElementById("sellerAppsCard").classList.toggle("hidden", role !== "boss");
         document.getElementById("sellerPwCard").classList.toggle("hidden", role !== "boss");
         document.getElementById("sellerProfileReqCard").classList.toggle("hidden", role !== "boss");
+        document.getElementById("pendingAdminEditsCard").classList.toggle("hidden", role !== "boss");
+        document.getElementById("pendingSellerEditsCard").classList.toggle("hidden", role !== "boss");
 
         myCanDeleteProducts = role === "boss";
         try {
@@ -1634,6 +1709,8 @@
             loadSellerApplications();
             loadSellerPasswordRequests();
             loadSellerProfileUpdateRequests();
+            loadPendingAdminEdits();
+            loadPendingSellerEdits();
           }
           loadPendingProducts();
         }
@@ -2348,7 +2425,7 @@
         document.getElementById("sdRejectBtn").style.display = mode === "pending" ? "block" : "none";
         document.getElementById("sdEditBtn").style.display = mode === "live" ? "block" : "none";
         const banBtn = document.getElementById("sdBanBtn");
-        banBtn.style.display = mode === "live" ? "block" : "none";
+        banBtn.style.display = (mode === "live" && role === "boss") ? "block" : "none";
         banBtn.textContent = obj.banned ? "Unban Seller" : "Ban / Block Seller";
         document.getElementById("sdDeleteBtn").style.display = (mode === "live" && role === "boss") ? "block" : "none";
 
@@ -2447,12 +2524,18 @@
         document.getElementById("sellerModalEmail").value = s.email || "";
         document.getElementById("sellerModalPhone").value = s.phone || "";
         document.getElementById("sellerModalShopTitleInput").value = s.shopTitle || "";
+        document.getElementById("sellerModalPhoto").value = "";
         document.getElementById("sellerModalDetailsStatus").textContent = "";
         document.getElementById("sellerModalCustomPassword").value = "";
         document.getElementById("sellerModalPasswordStatus").textContent = "";
         document.getElementById("sellerModalPasswordStatus").style.color = "";
 
+        // Ban, password, and "log in as" are sensitive actions — boss-only.
+        // The server already blocks these for a sub-admin (403), this just
+        // keeps the buttons from showing up and confusing anyone.
+        document.getElementById("sellerModalSensitiveSections").style.display = role === "boss" ? "block" : "none";
         const banBtn = document.getElementById("sellerModalBanBtn");
+        banBtn.style.display = role === "boss" ? "inline-block" : "none";
         if (s.banned) {
           banBtn.textContent = "Unban this seller";
           banBtn.className = "btn small";
@@ -2463,9 +2546,32 @@
           banBtn.onclick = () => modalToggleBan(id, true);
         }
 
+        // A sub-admin's Save button submits for approval instead of saving
+        // directly — label it accordingly.
+        document.getElementById("sellerModalSaveDetailsBtn").textContent = role === "boss" ? "Save details" : "Submit for approval";
+
+        renderSellerModalPendingEdit(s);
         renderSellerModalPendingPassword(s);
 
         document.getElementById("sellerModalOverlay").classList.add("open");
+      }
+
+      // Shows a banner when this seller already has a sub-admin's edit
+      // waiting on the boss — so nobody submits a second one blind, and a
+      // sub-admin can see their change hasn't gone live yet.
+      function renderSellerModalPendingEdit(s) {
+        const box = document.getElementById("sellerModalPendingEditBox");
+        if (!s.pendingSellerEdit) {
+          box.innerHTML = "";
+          box.style.display = "none";
+          return;
+        }
+        box.style.display = "block";
+        box.innerHTML =
+          '<div style="padding:10px;background:var(--warn-bg);border:1px solid var(--warn);border-radius:8px;font-size:13px;color:var(--warn);margin:10px 0;">' +
+            '⏳ A change to this seller\'s details (by ' + escapeHtml(s.pendingSellerEdit.requestedBy) + ') is waiting for the boss\'s approval' +
+            (role === "boss" ? ' — review it from the Sellers tab\'s "Pending Seller Detail Edits" card.' : '.') +
+          '</div>';
       }
 
       function closeSellerModal() {
@@ -2492,7 +2598,9 @@
           '</div>';
       }
 
-      // Direct edit of a seller's own details (name/email/phone/shop title).
+      // Edit of a seller's details (name/email/phone/shop title/photo).
+      // Boss's edit goes live immediately; a sub-admin's edit is held for
+      // the boss to approve (the server decides which, based on role).
       async function saveSellerDetailsModal() {
         if (sellerModalId == null) return;
         const statusEl = document.getElementById("sellerModalDetailsStatus");
@@ -2500,11 +2608,26 @@
         const email = document.getElementById("sellerModalEmail").value.trim();
         const phone = document.getElementById("sellerModalPhone").value.trim();
         const shopTitle = document.getElementById("sellerModalShopTitleInput").value.trim();
+        const fileInput = document.getElementById("sellerModalPhoto");
 
         if (!name || !email || !shopTitle) {
           statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Name, email, and shop title cannot be empty.";
           return;
+        }
+
+        let photo = "";
+        if (fileInput.files && fileInput.files[0]) {
+          statusEl.style.color = "";
+          statusEl.textContent = "Processing photo...";
+          try {
+            const { dataUrl } = await compressImage(fileInput.files[0], 800, 0.82);
+            photo = dataUrl;
+          } catch (e) {
+            statusEl.style.color = "var(--danger)";
+            statusEl.textContent = "Could not process the photo. Try a different image.";
+            return;
+          }
         }
 
         statusEl.style.color = "";
@@ -2513,13 +2636,21 @@
           const res = await fetch("/api/admin/sellers/" + sellerModalId, {
             method: "PUT",
             headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-            body: JSON.stringify({ name, email, phone, shopTitle }),
+            body: JSON.stringify({ name, email, phone, shopTitle, photo }),
           });
           const data = await res.json();
           if (res.status === 401) { closeSellerModal(); logout(); return; }
           if (!data.success) {
             statusEl.style.color = "var(--danger)";
             statusEl.textContent = data.message || "Could not update seller.";
+            return;
+          }
+          if (data.pending) {
+            statusEl.style.color = "var(--warn)";
+            statusEl.textContent = "⏳ Submitted — waiting for the boss's approval.";
+            await loadSellerList();
+            const s = sellerListData.find((x) => x.id === sellerModalId);
+            if (s) renderSellerModalPendingEdit(s);
             return;
           }
           statusEl.style.color = "var(--success)";
@@ -2956,6 +3087,46 @@
         }
       }
 
+      // Renders a simple before/after table for the fields that differ
+      // between an old and new version of a product. Used for both a
+      // seller's edit (pendingSnapshot) and a sub-admin's proposed edit
+      // (pendingAdminEdit.changes).
+      const DIFF_FIELDS = [
+        { key: "name", label: "Name" },
+        { key: "price", label: "Price", fmt: (v) => fmtINR(v) },
+        { key: "category", label: "Category" },
+        { key: "moq", label: "MOQ" },
+        { key: "sizes", label: "Sizes", fmt: (v) => (Array.isArray(v) && v.length ? v.join(", ") : "—") },
+        { key: "description", label: "Description" },
+      ];
+      // Same field set, but for a seller's name/email/phone/shopTitle/photo
+      // — used by the "Pending Seller Detail Edits" card below.
+      const SELLER_DIFF_FIELDS = [
+        { key: "name", label: "Name" },
+        { key: "email", label: "Email" },
+        { key: "phone", label: "Phone" },
+        { key: "shopTitle", label: "Shop title" },
+        { key: "photo", label: "Photo", fmt: (v) => (v ? "Photo (" + Math.round(v.length / 1024) + " KB)" : "—") },
+      ];
+      function buildDiffRows(before, after, fields) {
+        const rows = (fields || DIFF_FIELDS).map((f) => {
+          const oldVal = f.fmt ? f.fmt(before[f.key]) : (before[f.key] ?? "—");
+          const newVal = f.fmt ? f.fmt(after[f.key]) : (after[f.key] ?? "—");
+          const oldStr = String(oldVal ?? "—");
+          const newStr = String(newVal ?? "—");
+          if (oldStr === newStr) return "";
+          return (
+            '<div style="display:grid;grid-template-columns:90px 1fr 14px 1fr;gap:6px;align-items:start;padding:8px 10px;border-top:1px solid var(--blush-line,#eadfda);">' +
+              '<div style="color:var(--muted);font-size:12px;">' + escapeHtml(f.label) + '</div>' +
+              '<div style="color:var(--danger,#b3261e);text-decoration:line-through;white-space:pre-wrap;">' + escapeHtml(oldStr) + '</div>' +
+              '<div style="color:var(--muted);">→</div>' +
+              '<div style="color:var(--success,#1e8e3e);font-weight:600;white-space:pre-wrap;">' + escapeHtml(newStr) + '</div>' +
+            '</div>'
+          );
+        }).filter(Boolean);
+        return rows.length ? rows.join("") : '<div style="padding:8px 10px;color:var(--muted);font-size:13px;">No tracked fields changed.</div>';
+      }
+
       // ---------- PENDING PRODUCT DETAIL MODAL ----------
       let pendingProductModalId = null;
 
@@ -2966,6 +3137,14 @@
 
         document.getElementById("ppmName").textContent = p.name || "Product";
         document.getElementById("ppmShop").textContent = p.shopTitle || p.sellerName || "Unknown seller";
+
+        const diffWrap = document.getElementById("ppmDiffWrap");
+        if (p.isEdit && p.pendingSnapshot) {
+          document.getElementById("ppmDiff").innerHTML = buildDiffRows(p.pendingSnapshot, p);
+          diffWrap.style.display = "block";
+        } else {
+          diffWrap.style.display = "none";
+        }
 
         const images = (p.images && p.images.length ? p.images : (p.image ? [p.image] : []));
         document.getElementById("ppmImages").innerHTML = images.length
@@ -3018,6 +3197,110 @@
           headers: { Authorization: "Bearer " + token },
         });
         loadPendingProducts();
+      }
+
+      // ---------- PENDING ADMIN EDITS (boss-only review of sub-admin changes) ----------
+      async function loadPendingAdminEdits() {
+        const loadingEl = document.getElementById("pendingAdminEditsLoading");
+        const listEl = document.getElementById("pendingAdminEditsList");
+        loadingEl.classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/products/pending-edits", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          loadingEl.classList.add("hidden");
+          if (!data.success || !data.products.length) {
+            listEl.innerHTML = '<p class="empty-state">No sub-admin edits waiting for approval.</p>';
+            return;
+          }
+          listEl.innerHTML = data.products.map((p) => (
+            '<div class="card" style="margin-bottom:10px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;">' +
+                '<div><strong>' + escapeHtml(p.name) + '</strong><br>' +
+                  '<span style="font-size:12.5px;color:var(--muted);">Edited by ' + escapeHtml(p.pendingAdminEdit.requestedBy) + '</span></div>' +
+                '<div style="display:flex;gap:8px;">' +
+                  '<button class="btn small" style="background:var(--success) !important;" onclick="approvePendingAdminEdit(' + p.id + ')">✓ Approve</button>' +
+                  '<button class="btn small secondary" onclick="rejectPendingAdminEdit(' + p.id + ')">Reject</button>' +
+                '</div>' +
+              '</div>' +
+              '<div style="border:1px solid var(--blush-line,#eadfda);border-radius:8px;overflow:hidden;font-size:13px;">' +
+                buildDiffRows(p, p.pendingAdminEdit.changes) +
+              '</div>' +
+            '</div>'
+          )).join("");
+        } catch (err) {
+          loadingEl.classList.add("hidden");
+          listEl.innerHTML = '<p class="empty-state">Network error loading pending edits.</p>';
+        }
+      }
+
+      async function approvePendingAdminEdit(id) {
+        await fetch("/api/admin/products/" + id + "/approve-edit", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadPendingAdminEdits();
+        loadProducts();
+      }
+
+      async function rejectPendingAdminEdit(id) {
+        if (!confirm("Reject this edit? The product stays as it is now.")) return;
+        await fetch("/api/admin/products/" + id + "/reject-edit", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadPendingAdminEdits();
+      }
+
+      // ---------- PENDING SELLER DETAIL EDITS (boss-only) ----------
+      async function loadPendingSellerEdits() {
+        const loadingEl = document.getElementById("pendingSellerEditsLoading");
+        const listEl = document.getElementById("pendingSellerEditsList");
+        loadingEl.classList.remove("hidden");
+        try {
+          const res = await fetch("/api/admin/sellers/pending-edits", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          loadingEl.classList.add("hidden");
+          if (!data.success || !data.sellers.length) {
+            listEl.innerHTML = '<p class="empty-state">No sub-admin edits waiting for approval.</p>';
+            return;
+          }
+          listEl.innerHTML = data.sellers.map((s) => (
+            '<div class="card" style="margin-bottom:10px;">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;">' +
+                '<div><strong>' + escapeHtml(s.shopTitle || s.name) + '</strong> <span style="font-size:12.5px;color:var(--muted);">(' + escapeHtml(s.sellerId) + ')</span><br>' +
+                  '<span style="font-size:12.5px;color:var(--muted);">Edited by ' + escapeHtml(s.pendingSellerEdit.requestedBy) + '</span></div>' +
+                '<div style="display:flex;gap:8px;">' +
+                  '<button class="btn small" style="background:var(--success) !important;" onclick="approvePendingSellerEdit(' + s.id + ')">✓ Approve</button>' +
+                  '<button class="btn small secondary" onclick="rejectPendingSellerEdit(' + s.id + ')">Reject</button>' +
+                '</div>' +
+              '</div>' +
+              '<div style="border:1px solid var(--blush-line,#eadfda);border-radius:8px;overflow:hidden;font-size:13px;">' +
+                buildDiffRows(s, s.pendingSellerEdit.changes, SELLER_DIFF_FIELDS) +
+              '</div>' +
+            '</div>'
+          )).join("");
+        } catch (err) {
+          loadingEl.classList.add("hidden");
+          listEl.innerHTML = '<p class="empty-state">Network error loading pending edits.</p>';
+        }
+      }
+
+      async function approvePendingSellerEdit(id) {
+        await fetch("/api/admin/sellers/" + id + "/approve-edit", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadPendingSellerEdits();
+        loadSellerList();
+      }
+
+      async function rejectPendingSellerEdit(id) {
+        if (!confirm("Reject this edit? The seller's details stay as they are now.")) return;
+        await fetch("/api/admin/sellers/" + id + "/reject-edit", {
+          method: "PUT",
+          headers: { Authorization: "Bearer " + token },
+        });
+        loadPendingSellerEdits();
       }
 
       async function downloadBackup() {
@@ -3320,6 +3603,8 @@
         document.getElementById("fHotProduct").checked = false;
         document.getElementById("discountRows").innerHTML = "";
         document.getElementById("modalError").textContent = "";
+        document.getElementById("imageSizeWarning").style.display = "none";
+        document.getElementById("imagePreviewSizes").textContent = "";
         toggleSaleField();
         renderImagePreview();
         updatePricePreview();
@@ -3406,27 +3691,204 @@
         document.getElementById("saleEndsAtNote").textContent = "Sale ends " + new Date(saleEndsAtMs).toLocaleString();
       }
 
-      // Reads the picked files, turns them into base64 data URLs (kept in
-      // currentImages), and shows small thumbnails so the admin can see what
-      // they picked before saving. Keeps at most 3.
+      // Hard cap: no compressed photo is ever allowed to leave the browser
+      // above this size, no matter how big the original was. Product pages
+      // load 3 of these at once, so keeping each one small is what keeps
+      // the storefront feeling fast.
+      const MAX_IMAGE_BYTES = 600 * 1024; // 600 KB per photo
+
+      // Loads a File into an <img> once (used by compressImage below so we
+      // don't re-read/re-decode the file for every quality attempt).
+      function loadImageFromFile(file) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          const reader = new FileReader();
+          reader.onload = () => { img.src = reader.result; };
+          reader.onerror = reject;
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Draws the image onto a canvas at the given max dimension and returns
+      // a JPEG data URL at the given quality.
+      function drawToDataUrl(img, maxDim, quality) {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+          else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        return canvas.toDataURL("image/jpeg", quality);
+      }
+
+      // Reads the picked file, resizes+compresses it on a canvas (phone
+      // photos are often 3-8MB each — three of those blows past the
+      // server's 15MB body limit and just hangs with no feedback), and
+      // keeps stepping DOWN until the result is under MAX_IMAGE_BYTES — so
+      // uploads are always capped, whatever the original size was.
+      //
+      // To keep the photo looking CLEAN (not muddy/blocky), the order here
+      // matters: JPEG quality below ~0.6 is what makes photos look dirty
+      // (blocky artifacts, smudged edges), while a smaller dimension at
+      // good quality still looks sharp, just physically smaller. So we
+      // shrink the dimension first (quality held reasonably high) and only
+      // drop quality into the risky low range as a last resort.
+      // Returns { dataUrl, size, hitFloor }.
+      async function compressImage(file, maxDim, quality, maxBytes) {
+        maxBytes = maxBytes || MAX_IMAGE_BYTES;
+        const img = await loadImageFromFile(file);
+
+        // Pass 1: keep quality clean (>=0.72), shrink dimension step by step.
+        const dimSteps = [maxDim, 1400, 1280, 1120, 1000, 900, 800];
+        const cleanQualitySteps = [quality, 0.78, 0.72];
+
+        let best = null;
+        for (const dim of dimSteps) {
+          for (const q of cleanQualitySteps) {
+            const dataUrl = drawToDataUrl(img, dim, q);
+            const size = dataUrlSize(dataUrl);
+            if (!best || size < best.size) best = { dataUrl, size };
+            if (size <= maxBytes) {
+              return { dataUrl, size, hitFloor: false };
+            }
+          }
+        }
+
+        // Pass 2 (rare — very busy/high-detail photo): dimension is already
+        // small and still over cap, so now allow quality to drop further.
+        const fallbackQualitySteps = [0.62, 0.5, 0.4];
+        for (const dim of [800, 700, 640]) {
+          for (const q of fallbackQualitySteps) {
+            const dataUrl = drawToDataUrl(img, dim, q);
+            const size = dataUrlSize(dataUrl);
+            if (!best || size < best.size) best = { dataUrl, size };
+            if (size <= maxBytes) {
+              return { dataUrl, size, hitFloor: false };
+            }
+          }
+        }
+
+        // Even the smallest/lowest-quality attempt is still over the cap.
+        // Use the best (smallest) result we found rather than blocking the
+        // upload.
+        return { dataUrl: best.dataUrl, size: best.size, hitFloor: true };
+      }
+
+      function formatSize(bytes) {
+        return bytes >= 1024 * 1024
+          ? (bytes / (1024 * 1024)).toFixed(1) + " MB"
+          : Math.max(1, Math.round(bytes / 1024)) + " KB";
+      }
+
+      // Rough size of a base64 data URL in bytes (base64 is ~4/3 the size of
+      // the original binary; strip the "data:image/...;base64," header first).
+      function dataUrlSize(dataUrl) {
+        const b64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+        return Math.round(b64.length * 0.75);
+      }
+
       document.getElementById("fImageFiles").addEventListener("change", async (e) => {
         const files = Array.from(e.target.files || []).slice(0, 3);
-        const readAsDataUrl = (file) =>
-          new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
-        currentImages = await Promise.all(files.map(readAsDataUrl));
-        renderImagePreview();
+        const row = document.getElementById("imagePreviewRow");
+        const warnEl = document.getElementById("imageSizeWarning");
+        const sizesEl = document.getElementById("imagePreviewSizes");
+        warnEl.style.display = "none";
+        sizesEl.textContent = "";
+
+        if (!files.length) { row.innerHTML = ""; return; }
+
+        // Heads up before we even compress: a single photo over ~8MB (common
+        // with modern phone cameras) is the main thing that makes uploads
+        // feel stuck, so tell the admin up front — auto-resize below still
+        // handles it, this is just visibility.
+        const bigOriginals = files.filter((f) => f.size > 8 * 1024 * 1024);
+        if (bigOriginals.length) {
+          warnEl.style.display = "block";
+          warnEl.textContent =
+            "⚠️ " + bigOriginals.length + " photo(s) are quite large (" +
+            bigOriginals.map((f) => formatSize(f.size)).join(", ") +
+            "). Auto-resizing them now to fit under " + formatSize(MAX_IMAGE_BYTES) + " each so the site stays fast.";
+        }
+
+        // Process one at a time (not Promise.all) so we can show live,
+        // per-photo "Compressing…" progress instead of one generic line —
+        // no matter how small the file is, the admin sees it happening.
+        currentImages = [];
+        const results = []; // { originalSize, compressedSize, hitFloor }
+        row.innerHTML = files
+          .map((f, i) => '<div class="img-slot" id="imgSlot' + i + '" style="width:64px; height:64px; border-radius:8px; border:1px solid var(--line); background:var(--field); display:flex; align-items:center; justify-content:center; overflow:hidden;">' +
+            '<span class="dm-mini-spinner"></span></div>').join("");
+
+        try {
+          for (let i = 0; i < files.length; i++) {
+            sizesEl.textContent = "Compressing photo " + (i + 1) + " of " + files.length + "…";
+            const { dataUrl: src, size: compressedSize, hitFloor } = await compressImage(files[i], 1600, 0.82, MAX_IMAGE_BYTES);
+            currentImages.push(src);
+            results.push({ originalSize: files[i].size, compressedSize, hitFloor });
+            const slot = document.getElementById("imgSlot" + i);
+            if (slot) {
+              const caption = formatSize(files[i].size) + " → " + formatSize(compressedSize);
+              slot.innerHTML = '<img src="' + src + '" style="width:100%; height:100%; object-fit:cover;" />';
+              slot.title = caption + " — click to view full size";
+              slot.onclick = () => openImageZoom(src, caption);
+            }
+          }
+        } catch (err) {
+          row.innerHTML = '<div class="hint" style="color:var(--danger);">Could not read one of the images. Try a different photo.</div>';
+          sizesEl.textContent = "";
+          return;
+        }
+
+        const originalTotal = results.reduce((sum, r) => sum + r.originalSize, 0);
+        const compressedTotal = results.reduce((sum, r) => sum + r.compressedSize, 0);
+        sizesEl.textContent =
+          "✓ Ready to save — " + formatSize(compressedTotal) +
+          (originalTotal > compressedTotal ? " (auto-resized from " + formatSize(originalTotal) + ")" : "") +
+          " · capped at " + formatSize(MAX_IMAGE_BYTES) + "/photo · tap a photo to check clarity";
+
+        // Extremely rare edge case: even at the lowest quality/dimension
+        // step, a photo (usually a very busy/high-detail image) is still
+        // over the cap. We still upload the smallest version we found —
+        // just let the admin know so they're not surprised.
+        const flooredCount = results.filter((r) => r.hitFloor).length;
+        if (flooredCount) {
+          warnEl.style.display = "block";
+          warnEl.textContent =
+            "⚠️ " + flooredCount + " photo(s) couldn't be brought fully under " + formatSize(MAX_IMAGE_BYTES) +
+            " even at the lowest quality setting (unusually detailed image) — uploading the smallest version we could make. Try a simpler photo if possible.";
+        }
       });
+
+      // Opens the full-size lightbox so the admin can actually judge
+      // sharpness/blur — a 64px thumbnail is too small for that.
+      function openImageZoom(src, caption) {
+        document.getElementById("imgZoomTarget").src = src;
+        document.getElementById("imgZoomCaption").textContent = caption || "";
+        document.getElementById("imgZoomOverlay").classList.add("open");
+      }
+      function closeImageZoom() {
+        document.getElementById("imgZoomOverlay").classList.remove("open");
+        document.getElementById("imgZoomTarget").src = "";
+      }
 
       function renderImagePreview() {
         const row = document.getElementById("imagePreviewRow");
         row.innerHTML = currentImages
-          .map((src) => '<img src="' + src + '" style="width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--border);" />')
+          .map((src, i) => '<div class="img-slot" id="imgSlot' + i + '" style="width:64px; height:64px; border-radius:8px; border:1px solid var(--line); overflow:hidden;">' +
+            '<img src="' + src + '" style="width:100%; height:100%; object-fit:cover;" /></div>')
           .join("");
+        currentImages.forEach((src, i) => {
+          const slot = document.getElementById("imgSlot" + i);
+          if (slot) {
+            slot.title = "Click to view full size";
+            slot.onclick = () => openImageZoom(src, "Photo " + (i + 1));
+          }
+        });
       }
 
       function closeModal() {
@@ -3466,6 +3928,8 @@
         document.getElementById("fGiftFor").value = p.giftFor || "";
         document.getElementById("fHotProduct").checked = Boolean(p.hotProduct);
         document.getElementById("modalError").textContent = "";
+        document.getElementById("imageSizeWarning").style.display = "none";
+        document.getElementById("imagePreviewSizes").textContent = "";
         toggleSaleField();
         renderImagePreview();
 
@@ -3534,6 +3998,13 @@
         const url = isEdit ? "/api/admin/products/" + editingId : "/api/admin/products";
         const method = isEdit ? "PUT" : "POST";
 
+        const saveBtn = document.getElementById("saveProductBtn");
+        const saveBtnText = document.getElementById("saveProductBtnText");
+        if (saveBtn.disabled) return; // already saving — ignore extra clicks
+        saveBtn.disabled = true;
+        saveBtn.classList.add("btn-loading");
+        saveBtnText.textContent = "Saving…";
+
         try {
           const res = await fetch(url, {
             method,
@@ -3552,8 +4023,13 @@
 
           closeModal();
           loadProducts();
+          if (data.pending) alert(data.message || "Change submitted — it needs the boss's approval before it goes live.");
         } catch (err) {
           errorEl.textContent = "Network error. Try again.";
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.classList.remove("btn-loading");
+          saveBtnText.textContent = "Save Product";
         }
       }
 
@@ -4235,5 +4711,13 @@
         </div>
       </div>
     </div>
+  <!-- Image zoom lightbox: click a product photo thumbnail to view it full
+       size (checking for blur/clarity is hard on a 64px thumbnail). -->
+  <div id="imgZoomOverlay" onclick="closeImageZoom()">
+    <img id="imgZoomTarget" src="" alt="Full size preview" />
+    <div class="zoom-caption" id="imgZoomCaption"></div>
+    <div class="zoom-hint">Tap anywhere to close</div>
+  </div>
+
   </body>
 </html>
