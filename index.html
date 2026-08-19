@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Design Makers - Personalized Gifts</title>
-    <base href="/" />
     <link rel="icon" type="image/png" href="Logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -36,58 +35,18 @@
         --muted: #caa87e;
         --glow: rgba(212,175,55,0.5);
       }
-        --rosewood: #e6720f;
-        --rosewood-dark: #c25e00;
-        --blush: #fff4e8;
-        --blush-line: #ffd9a3;
-        --gold: #128807;
-        --cream: #ffffff;
-        --ink: #10163a;
-        --muted: #52566e;
-        --navy: #0b1f66;
-        --glow: rgba(255,153,51,0.45);
-      }
-      /* ===== Aug 15 "Flag Block" — tricolor ribbon, white header, navy accents ===== */
-        content: "";
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: 5px;
-        background: linear-gradient(to right, #FF9933 0 33.33%, #ffffff 33.33% 66.66%, #138808 66.66% 100%);
-        z-index: 200;
-      }
-        background: #ffffff;
-        color: var(--navy);
-        border-bottom: 3px solid #138808;
-        box-shadow: 0 1px 0 rgba(0,0,0,0.05), 0 0 20px var(--glow);
-      }
-        background: rgba(11,31,102,0.07);
-        border: 1px solid rgba(11,31,102,0.18);
-        color: var(--navy);
-      }
-        position: relative;
-        max-width: none;
-        margin: 0 0 30px;
-        padding: 46px 20px 42px;
-        background: var(--rosewood);
-        overflow: hidden;
-      }
-        content: "";
-        position: absolute;
-        top: 50%; left: 50%;
-        width: 340px; height: 340px;
-        transform: translate(-50%, -50%);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='none' stroke='%230b1f66' stroke-width='2'%3E%3Ccircle cx='50' cy='50' r='42'/%3E%3Ccircle cx='50' cy='50' r='4' fill='%230b1f66' stroke='none'/%3E%3Cg%3E%3Cline x1='50' y1='8' x2='50' y2='92'/%3E%3Cline x1='8' y1='50' x2='92' y2='50'/%3E%3Cline x1='16.6' y1='16.6' x2='83.4' y2='83.4'/%3E%3Cline x1='83.4' y1='16.6' x2='16.6' y2='83.4'/%3E%3Cline x1='50' y1='8' x2='50' y2='92' transform='rotate(15 50 50)'/%3E%3Cline x1='8' y1='50' x2='92' y2='50' transform='rotate(15 50 50)'/%3E%3Cline x1='16.6' y1='16.6' x2='83.4' y2='83.4' transform='rotate(15 50 50)'/%3E%3Cline x1='83.4' y1='16.6' x2='16.6' y2='83.4' transform='rotate(15 50 50)'/%3E%3Cline x1='50' y1='8' x2='50' y2='92' transform='rotate(30 50 50)'/%3E%3Cline x1='8' y1='50' x2='92' y2='50' transform='rotate(30 50 50)'/%3E%3Cline x1='16.6' y1='16.6' x2='83.4' y2='83.4' transform='rotate(30 50 50)'/%3E%3Cline x1='83.4' y1='16.6' x2='16.6' y2='83.4' transform='rotate(30 50 50)'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-size: contain;
-        opacity: 0.16;
-        z-index: 0;
-        pointer-events: none;
-        filter: drop-shadow(0 0 18px var(--glow));
-        animation: chakraSpin 24s linear infinite;
-      }
-      @keyframes chakraSpin {
-        100% { transform: translate(-50%, -50%) rotate(360deg); }
-      }
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
 
       /* ===== Rakshabandhan "Rani & Gold" — thread stripe, golden glow, rakhi charms, floating rakhi threads ===== */
       body.theme-rakshabandhan header.site-header {
@@ -129,7 +88,7 @@
       body.theme-rakshabandhan .rakhi-charm { display: block; }
       .rakhi-charm.rakhi-charm-left { left: 3%; }
       .rakhi-charm.rakhi-charm-right { right: 3%; transform: scaleX(-1); }
-      @media (max-width: 720px) {
+      @media  (max-width: 720px)  {
         .rakhi-charm { width: 46px; height: 78px; }
       }
 
@@ -167,7 +126,7 @@
       .rakhi-float-petal.p1 { top: 2px; left: -14px; animation-delay: 0.5s; opacity: 0.3; }
       .rakhi-float-petal.p2 { top: 30px; left: -10px; width: 9px; height: 11px; animation-delay: 2s; opacity: 0.25; }
       .rakhi-float-petal.p3 { top: 12px; right: -12px; width: 10px; height: 13px; animation-delay: 3.5s; opacity: 0.3; }
-      @media (max-width: 720px) {
+      @media  (max-width: 720px)  {
         .rakhi-float-wrap { width: 24px; height: 38px; top: 6%; right: 1%; }
         .rakhi-float-petal { display: none; }
       }
@@ -194,6 +153,46 @@
       body.theme-rakshabandhan .buy-badge { background: #3a1408; color: #ffd9a3; }
       body.theme-rakshabandhan .search-bar-panel { background: var(--cream); }
 
+      /* ===== Tap-to-burst festive interaction ===== */
+      .fest-burst { position: fixed; width: 0; height: 0; z-index: 9998; pointer-events: none; }
+      .fest-burst-particle {
+        position: absolute;
+        width: 7px; height: 7px;
+        left: 0; top: 0;
+        border-radius: 50%;
+        animation: festBurstFly 0.65s ease-out forwards;
+      }
+      @keyframes festBurstFly {
+        0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+        100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+      }
+      .fest-msg {
+        position: fixed;
+        transform: translate(-50%, -100%);
+        background: rgba(20, 20, 20, 0.88);
+        color: #fff;
+        padding: 9px 16px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.4;
+        text-align: center;
+        white-space: nowrap;
+        z-index: 9999;
+        pointer-events: none;
+        animation: festMsgPop 1.9s ease-out forwards;
+      }
+      @keyframes festMsgPop {
+        0%   { opacity: 0; transform: translate(-50%, -100%) translateY(8px) scale(0.85); }
+        15%  { opacity: 1; transform: translate(-50%, -100%) translateY(-6px) scale(1.05); }
+        25%  { transform: translate(-50%, -100%) translateY(-10px) scale(1); }
+        78%  { opacity: 1; }
+        100% { opacity: 0; transform: translate(-50%, -100%) translateY(-42px) scale(1); }
+      }
+      @media  (max-width: 480px)  {
+        .fest-msg { white-space: normal; max-width: 220px; }
+      }
+
       body {
         font-family: "Inter", "Segoe UI", Arial, sans-serif;
         background: var(--cream);
@@ -201,7 +200,10 @@
         padding-bottom: 40px;
         transition: background 0.4s ease, color 0.4s ease;
       }
-      h1, h2, .logo, .modal-title { font-family: "Playfair Display", Georgia, serif; }
+      h1,
+      h2,
+      .logo,
+      .modal-title { font-family: "Playfair Display", Georgia, serif; }
 
       /* ===== Promo banners (poster-style, side by side) ===== */
       .promo-banner-wrap {
@@ -233,7 +235,8 @@
         z-index: 2;
       }
       .gift-banner { overflow: visible; align-items: flex-end; }
-      .gift-banner::before, .gift-banner::after { display: none; }
+      .gift-banner::before,
+      .gift-banner::after { display: none; }
       .gift-banner-img {
         position: absolute;
         right: 14px;
@@ -247,7 +250,7 @@
         pointer-events: none;
         filter: drop-shadow(0 10px 14px rgba(0,0,0,0.12));
       }
-      @media (max-width: 520px) {
+      @media  (max-width: 520px)  {
         .promo-banner-wrap { padding-top: 10px; }
         .gift-banner { flex-direction: column; align-items: center; text-align: center; padding-top: 100px; }
         .promo-banner-content { max-width: 100%; align-items: center; }
@@ -305,7 +308,7 @@
         z-index: 1;
       }
       .promo-banner-btn:hover { background: var(--rosewood-dark); }
-      @media (max-width: 720px) {
+      @media  (max-width: 720px)  {
         .promo-banner-wrap { grid-template-columns: 1fr; }
       }
 
@@ -377,10 +380,10 @@
       .tc-4 { --tile-bg: #ece3f5; }
       .tc-5 { --tile-bg: #f5e6ea; }
       .tile-cat-inner { background: var(--tile-bg); }
-      @media (max-width: 900px) {
+      @media  (max-width: 900px)  {
         .tile-cat-grid { grid-template-columns: repeat(4, 1fr); }
       }
-      @media (max-width: 520px) {
+      @media  (max-width: 520px)  {
         .tile-cat-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .tile-cat-label { font-size: 11px; padding: 5px 3px; }
       }
@@ -422,7 +425,7 @@
       .cat-arrow.cat-arrow-prev { left: -14px; }
       .cat-arrow.cat-arrow-next { right: -14px; }
       .cat-arrow.cat-arrow-hidden { display: none; }
-      @media (max-width: 640px) {
+      @media  (max-width: 640px)  {
         .cat-carousel-track .tile-cat { width: 108px; }
         .cat-carousel-track .tile-cat-label { font-size: 11px; padding: 5px 3px; }
         .cat-arrow { width: 32px; height: 32px; font-size: 15px; }
@@ -438,7 +441,7 @@
         grid-template-columns: repeat(4, 1fr);
         gap: 18px;
       }
-      @media (max-width: 640px) {
+      @media  (max-width: 640px)  {
         .prod-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       }
       .buy-badge {
@@ -490,7 +493,7 @@
       }
       .gift-addon-banner.show { display: block; }
       .gift-addon-banner-img { display: block; width: 100%; height: auto; }
-      @media (max-width: 600px) {
+      @media  (max-width: 600px)  {
         .gift-addon-banner { margin: 16px 12px; border-radius: 12px; }
       }
 
@@ -817,7 +820,7 @@
         display: flex;
         position: relative;
       }
-      @media (max-width: 720px) {
+      @media  (max-width: 720px)  {
         .modal { flex-direction: column; }
       }
       .modal-close {
@@ -936,7 +939,7 @@
       .auth-form { flex: 1 1 55%; padding: 40px 34px; display: flex; flex-direction: column; justify-content: center; }
       .auth-seller-links { text-align: center; margin-top: 22px; font-size: 0.85em; padding-top: 16px; border-top: 1px solid var(--blush-line); }
       .auth-seller-links a { color: var(--rosewood); }
-      @media (max-width: 640px) {
+      @media  (max-width: 640px)  {
         .auth-brand { min-height: 150px; padding: 22px; }
         .auth-brand-logo { width: 58px; height: 58px; margin-bottom: 10px; }
         .auth-brand-name { font-size: 22px; }
@@ -1213,7 +1216,7 @@
       .hot-progress { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; gap: 4px; z-index: 3; }
       .hot-progress-seg { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.3); overflow: hidden; }
       .hot-progress-seg-fill { display: block; height: 100%; width: 0%; background: #fff; }
-      @media (max-width: 640px) {
+      @media  (max-width: 640px)  {
         .hot-banner { flex-direction: column; text-align: center; padding: 26px 22px; }
         .hot-banner-content { max-width: 100%; align-items: center; }
         .hot-banner p { max-width: 100%; }
@@ -1343,7 +1346,7 @@
         grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
         gap: 20px;
       }
-      @media (max-width: 640px) {
+      @media  (max-width: 640px)  {
         .gender-modal-hero { padding: 28px 22px 46px; }
         .gender-modal h2 { font-size: 26px; }
         .gender-modal-body { padding: 22px 18px 26px; }
@@ -1364,7 +1367,7 @@
 
       /* ===== Sticky mobile action bar ===== */
       .mobile-action-bar { display: none; }
-      @media (max-width: 640px) {
+      @media  (max-width: 640px)  {
         .mobile-action-bar {
           display: flex;
           position: fixed;
@@ -1392,76 +1395,92 @@
       }
 
 /* ===== DESIGN MAKERS PREMIUM HOMEPAGE V2 (light warm gold-maroon) ===== */
-:root{--dm-bg:#fbf2e9;--dm-surface:rgba(255,255,255,.6);--dm-border:rgba(138,28,66,.13);--dm-blue:#b8863f;--dm-text:#2a1710;--dm-muted:rgba(42,23,16,.6)}
-html{scroll-behavior:smooth}
-body{background:radial-gradient(circle at 78% 6%,rgba(184,134,63,.32),transparent 34%),radial-gradient(circle at 8% 28%,rgba(138,28,66,.22),transparent 36%),radial-gradient(circle at 30% 85%,rgba(184,134,63,.2),transparent 38%),radial-gradient(circle at 90% 75%,rgba(138,28,66,.16),transparent 34%),#fbf2e9!important;color:var(--dm-text)!important}
-body::before{background:radial-gradient(circle at 75% 12%,rgba(184,134,63,.28),transparent 28%),radial-gradient(circle at 15% 55%,rgba(138,28,66,.18),transparent 30%)!important;filter:blur(52px)!important}
-.announce{display:none!important}
-.site-header{position:sticky!important;top:14px!important;z-index:80!important;max-width:1280px!important;margin:14px auto 0!important;border:1px solid rgba(255,255,255,.5)!important;border-bottom:1px solid rgba(138,28,66,.1)!important;border-radius:22px!important;background:rgba(255,251,246,.4)!important;backdrop-filter:blur(34px) saturate(180%)!important;box-shadow:0 18px 50px rgba(138,28,66,.1),inset 0 1px rgba(255,255,255,.85)!important}
-.site-header .header-inner{min-height:72px!important;padding:0 20px!important}
-.site-header .logo{color:var(--dm-text)!important;font-family:Inter,"Segoe UI",sans-serif!important;font-weight:700!important;letter-spacing:.02em!important}
-.site-header .logo img{filter:drop-shadow(0 0 10px rgba(184,134,63,.25))!important}
-.site-header .logo span{color:rgba(42,23,16,.5)!important;font-size:10px!important;letter-spacing:.12em!important}
-.site-header .icon-btn{background:rgba(255,255,255,.3)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.6)!important;border-radius:14px!important;backdrop-filter:blur(16px) saturate(160%)!important;box-shadow:inset 0 1px rgba(255,255,255,.8),0 4px 14px rgba(138,28,66,.06)!important;transition:.25s ease!important}
-.site-header .icon-btn:hover{transform:translateY(-2px);border-color:rgba(184,134,63,.55)!important;background:rgba(184,134,63,.16)!important}
-.search-bar-panel{background:rgba(255,251,246,.55)!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(30px) saturate(170%)!important}
-.hero{position:relative!important;overflow:hidden!important;margin:24px auto 0!important;max-width:1280px!important;min-height:560px!important;border-radius:32px!important;padding:58px 58px!important;background:linear-gradient(135deg,rgba(255,255,255,.42),rgba(255,255,255,.14)),radial-gradient(circle at 80% 40%,rgba(184,134,63,.2),transparent 42%),rgba(253,247,240,.5)!important;border:1px solid rgba(255,255,255,.55)!important;backdrop-filter:blur(28px) saturate(160%)!important;box-shadow:0 30px 80px rgba(138,28,66,.1),inset 0 1px rgba(255,255,255,.85)!important}
-.hero::after{display:none!important}.hero h1{font-size:clamp(42px,5vw,72px)!important;letter-spacing:-.045em!important;line-height:.96!important;color:var(--dm-text)!important}.hero h1::first-line{color:var(--dm-text)!important}.hero p{color:var(--dm-muted)!important}.hero-btn{border-radius:15px!important}.hero-btn.primary{background:linear-gradient(135deg,#b8863f,#8a1c42)!important;color:#fff!important}.hero-btn.secondary{background:rgba(255,255,255,.35)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(14px)!important}.hero-trust-item{color:rgba(42,23,16,.55)!important}
-.dm-hero-product-stage{border-radius:28px!important;background:linear-gradient(145deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important;border:1px solid rgba(255,255,255,.55)!important;backdrop-filter:blur(22px) saturate(160%)!important;box-shadow:inset 0 1px rgba(255,255,255,.85),0 25px 60px rgba(138,28,66,.09)!important}
-.dm-hero-product-stage,.dm-hero-product-stage *{color:rgba(42,23,16,.45)!important}
+:root {--dm-bg:#fbf2e9;--dm-surface:rgba(255,255,255,.6);--dm-border:rgba(138,28,66,.13);--dm-blue:#b8863f;--dm-text:#2a1710;--dm-muted:rgba(42,23,16,.6)}
+html {scroll-behavior:smooth}
+body {background:radial-gradient(circle at 78% 6%,rgba(184,134,63,.32),transparent 34%),radial-gradient(circle at 8% 28%,rgba(138,28,66,.22),transparent 36%),radial-gradient(circle at 30% 85%,rgba(184,134,63,.2),transparent 38%),radial-gradient(circle at 90% 75%,rgba(138,28,66,.16),transparent 34%),#fbf2e9!important;color:var(--dm-text)!important}
+body::before {background:radial-gradient(circle at 75% 12%,rgba(184,134,63,.28),transparent 28%),radial-gradient(circle at 15% 55%,rgba(138,28,66,.18),transparent 30%)!important;filter:blur(52px)!important}
+.announce {display:none!important}
+.site-header {position:sticky!important;top:14px!important;z-index:80!important;max-width:1280px!important;margin:14px auto 0!important;border:1px solid rgba(255,255,255,.5)!important;border-bottom:1px solid rgba(138,28,66,.1)!important;border-radius:22px!important;background:rgba(255,251,246,.4)!important;backdrop-filter:blur(34px) saturate(180%)!important;box-shadow:0 18px 50px rgba(138,28,66,.1),inset 0 1px rgba(255,255,255,.85)!important}
+.site-header .header-inner {min-height:72px!important;padding:0 20px!important}
+.site-header .logo {color:var(--dm-text)!important;font-family:Inter,"Segoe UI",sans-serif!important;font-weight:700!important;letter-spacing:.02em!important}
+.site-header .logo img {filter:drop-shadow(0 0 10px rgba(184,134,63,.25))!important}
+.site-header .logo span {color:rgba(42,23,16,.5)!important;font-size:10px!important;letter-spacing:.12em!important}
+.site-header .icon-btn {background:rgba(255,255,255,.3)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.6)!important;border-radius:14px!important;backdrop-filter:blur(16px) saturate(160%)!important;box-shadow:inset 0 1px rgba(255,255,255,.8),0 4px 14px rgba(138,28,66,.06)!important;transition:.25s ease!important}
+.site-header .icon-btn:hover {transform:translateY(-2px);border-color:rgba(184,134,63,.55)!important;background:rgba(184,134,63,.16)!important}
+.search-bar-panel {background:rgba(255,251,246,.55)!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(30px) saturate(170%)!important}
+.hero {position:relative!important;overflow:hidden!important;margin:24px auto 0!important;max-width:1280px!important;min-height:560px!important;border-radius:32px!important;padding:58px 58px!important;background:linear-gradient(135deg,rgba(255,255,255,.42),rgba(255,255,255,.14)),radial-gradient(circle at 80% 40%,rgba(184,134,63,.2),transparent 42%),rgba(253,247,240,.5)!important;border:1px solid rgba(255,255,255,.55)!important;backdrop-filter:blur(28px) saturate(160%)!important;box-shadow:0 30px 80px rgba(138,28,66,.1),inset 0 1px rgba(255,255,255,.85)!important}
+.hero::after {display:none!important}.hero h1 {font-size:clamp(42px,5vw,72px)!important;letter-spacing:-.045em!important;line-height:.96!important;color:var(--dm-text)!important}.hero h1::first-line {color:var(--dm-text)!important}.hero p {color:var(--dm-muted)!important}.hero-btn {border-radius:15px!important}.hero-btn.primary {background:linear-gradient(135deg,#b8863f,#8a1c42)!important;color:#fff!important}.hero-btn.secondary {background:rgba(255,255,255,.35)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(14px)!important}.hero-trust-item {color:rgba(42,23,16,.55)!important}
+.dm-hero-product-stage {border-radius:28px!important;background:linear-gradient(145deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important;border:1px solid rgba(255,255,255,.55)!important;backdrop-filter:blur(22px) saturate(160%)!important;box-shadow:inset 0 1px rgba(255,255,255,.85),0 25px 60px rgba(138,28,66,.09)!important}
+.dm-hero-product-stage,
+      .dm-hero-product-stage * {color:rgba(42,23,16,.45)!important}
 
 /* ===== Light-mode DEFAULT hero: give it the same 2-column
    copy+product-stage grid that dark mode and the festival themes
    already have, so the product card sits properly instead of
    stacking below the trust row. Skipped when dark mode or a
    festival theme is active — those carry their own layout. ===== */
+body:not(.dark-mode):not(.theme-rakshabandhan) .hero {
   display:grid!important;
   grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr)!important;
   align-items:center!important;
   text-align:left!important;
   gap:20px!important;
 }
+body:not(.dark-mode):not(.theme-rakshabandhan) .dm-hero-copy {min-width:0;}
+body:not(.dark-mode):not(.theme-rakshabandhan) .hero-badge {width:max-content;}
+body:not(.dark-mode):not(.theme-rakshabandhan) .hero-ctas,
+      body:not(.dark-mode):not(.theme-rakshabandhan) .hero-trust {justify-content:flex-start!important;}
+body:not(.dark-mode):not(.theme-rakshabandhan) .dm-hero-product {
   min-height:380px;display:flex;align-items:center;justify-content:center;
 }
+body:not(.dark-mode):not(.theme-rakshabandhan) .dm-hero-product-stage {
   width:min(100%,480px);height:380px;display:flex;align-items:center;justify-content:center;
 }
-@media(max-width:900px){
+@media (max-width:900px) {
+  body:not(.dark-mode):not(.theme-rakshabandhan) .hero {grid-template-columns:1fr!important;min-height:auto!important;}
+  body:not(.dark-mode):not(.theme-rakshabandhan) .dm-hero-product {min-height:260px;}
+  body:not(.dark-mode):not(.theme-rakshabandhan) .dm-hero-product-stage {height:260px;}
 }
 
-.promo-banner-wrap{margin:42px auto 0!important;gap:18px!important}
-.promo-banner{min-height:230px!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:26px!important;background:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important;color:var(--dm-text)!important;box-shadow:0 18px 45px rgba(138,28,66,.09),inset 0 1px rgba(255,255,255,.8)!important;backdrop-filter:blur(26px) saturate(170%)!important}
-.promo-banner.pb-rosewood,.promo-banner.pb-gold{background:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important}
-.promo-banner::after{content:"";position:absolute;width:220px;height:220px;right:-50px;top:-70px;border-radius:50%;background:rgba(184,134,63,.18);filter:blur(28px)}
-.promo-banner-content{z-index:3!important}.promo-banner-tag{color:#a3702c!important;letter-spacing:.12em!important}.promo-banner h3{color:var(--dm-text)!important;font-size:30px!important;letter-spacing:-.02em}.promo-banner p{color:rgba(42,23,16,.62)!important}.promo-banner-btn{background:rgba(255,255,255,.45)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.65)!important;border-radius:14px!important;backdrop-filter:blur(16px)!important}.promo-banner-btn:hover{background:rgba(184,134,63,.2)!important;border-color:rgba(184,134,63,.5)!important}
-.gift-banner-img{height:132%!important;max-width:44%!important;filter:drop-shadow(0 20px 24px rgba(138,28,66,.18))!important;transition:transform .45s ease,filter .45s ease!important}.gift-banner:hover .gift-banner-img{transform:translateY(-7px) scale(1.025);filter:drop-shadow(0 26px 30px rgba(138,28,66,.24))}
-.cat-cards-wrap{margin-top:54px!important}.cat-cards-wrap h2,.prod-section-wrap h2{font-size:27px!important;letter-spacing:-.03em!important;color:var(--dm-text)!important}.cat-carousel-track,.prod-grid{scrollbar-width:none!important}.cat-card,.product-card{border-radius:22px!important;background:linear-gradient(145deg,rgba(255,255,255,.45),rgba(255,255,255,.15))!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(18px) saturate(160%)!important;color:var(--dm-text)!important;box-shadow:0 14px 34px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.7)!important;overflow:hidden!important}.cat-card img,.product-card img{transition:transform .45s ease!important}.cat-card:hover img,.product-card:hover img{transform:scale(1.045)}
-.cat-arrow{background:rgba(255,255,255,.45)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.65)!important;backdrop-filter:blur(20px) saturate(160%)!important}
-.prod-section-wrap,.grid-wrap{margin-top:52px!important}.grid-wrap #statusMsg{color:var(--dm-muted)!important}
-.why-us-wrap{margin:56px auto 0!important;padding:28px!important;background:linear-gradient(145deg,rgba(255,255,255,.38),rgba(255,255,255,.1))!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:24px!important;backdrop-filter:blur(26px) saturate(170%)!important;box-shadow:0 18px 45px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.8)!important}.why-us-item .why-us-icon{filter:drop-shadow(0 0 8px rgba(184,134,63,.28))}.why-us-item .why-us-label{color:var(--dm-text)!important;font-size:13px!important}
-footer{max-width:1280px!important;margin:60px auto 0!important;padding:30px 20px 42px!important;border-top:1px solid rgba(138,28,66,.12)!important;color:rgba(42,23,16,.5)!important;background:transparent!important}footer a{color:#a3702c!important;text-decoration:none!important}footer a:hover{color:var(--dm-text)!important}
-.mobile-action-bar{background:rgba(255,251,246,.9)!important;border-color:rgba(138,28,66,.13)!important;backdrop-filter:blur(22px)!important}
-@media(max-width:900px){.site-header{top:8px!important;margin:8px 12px 0!important}.hero{margin:16px 12px 0!important;padding:36px 24px!important;border-radius:26px!important}.promo-banner-wrap,.cat-cards-wrap,.prod-section-wrap,.grid-wrap,.why-us-wrap{margin-left:12px!important;margin-right:12px!important;padding-left:0!important;padding-right:0!important}.promo-banner-wrap{grid-template-columns:1fr!important}.promo-banner{min-height:210px!important}.gift-banner-img{height:118%!important}}
-@media(max-width:640px){.site-header .logo span{display:none}.site-header .header-inner{padding:0 12px!important}.hero{min-height:unset!important}.hero h1{font-size:42px!important}.promo-banner h3{font-size:25px!important}.gift-banner-img{opacity:.78!important}}
+.promo-banner-wrap {margin:42px auto 0!important;gap:18px!important}
+.promo-banner {min-height:230px!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:26px!important;background:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important;color:var(--dm-text)!important;box-shadow:0 18px 45px rgba(138,28,66,.09),inset 0 1px rgba(255,255,255,.8)!important;backdrop-filter:blur(26px) saturate(170%)!important}
+.promo-banner.pb-rosewood,
+      .promo-banner.pb-gold {background:linear-gradient(135deg,rgba(255,255,255,.4),rgba(255,255,255,.12))!important}
+.promo-banner::after {content:"";position:absolute;width:220px;height:220px;right:-50px;top:-70px;border-radius:50%;background:rgba(184,134,63,.18);filter:blur(28px)}
+.promo-banner-content {z-index:3!important}.promo-banner-tag {color:#a3702c!important;letter-spacing:.12em!important}.promo-banner h3 {color:var(--dm-text)!important;font-size:30px!important;letter-spacing:-.02em}.promo-banner p {color:rgba(42,23,16,.62)!important}.promo-banner-btn {background:rgba(255,255,255,.45)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.65)!important;border-radius:14px!important;backdrop-filter:blur(16px)!important}.promo-banner-btn:hover {background:rgba(184,134,63,.2)!important;border-color:rgba(184,134,63,.5)!important}
+.gift-banner-img {height:132%!important;max-width:44%!important;filter:drop-shadow(0 20px 24px rgba(138,28,66,.18))!important;transition:transform .45s ease,filter .45s ease!important}.gift-banner:hover .gift-banner-img {transform:translateY(-7px) scale(1.025);filter:drop-shadow(0 26px 30px rgba(138,28,66,.24))}
+.cat-cards-wrap {margin-top:54px!important}.cat-cards-wrap h2,
+      .prod-section-wrap h2 {font-size:27px!important;letter-spacing:-.03em!important;color:var(--dm-text)!important}.cat-carousel-track,
+      .prod-grid {scrollbar-width:none!important}.cat-card,
+      .product-card {border-radius:22px!important;background:linear-gradient(145deg,rgba(255,255,255,.45),rgba(255,255,255,.15))!important;border:1px solid rgba(255,255,255,.6)!important;backdrop-filter:blur(18px) saturate(160%)!important;color:var(--dm-text)!important;box-shadow:0 14px 34px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.7)!important;overflow:hidden!important}.cat-card img,
+      .product-card img {transition:transform .45s ease!important}.cat-card:hover img,
+      .product-card:hover img {transform:scale(1.045)}
+.cat-arrow {background:rgba(255,255,255,.45)!important;color:var(--dm-text)!important;border:1px solid rgba(255,255,255,.65)!important;backdrop-filter:blur(20px) saturate(160%)!important}
+.prod-section-wrap,
+      .grid-wrap {margin-top:52px!important}.grid-wrap #statusMsg {color:var(--dm-muted)!important}
+.why-us-wrap {margin:56px auto 0!important;padding:28px!important;background:linear-gradient(145deg,rgba(255,255,255,.38),rgba(255,255,255,.1))!important;border:1px solid rgba(255,255,255,.55)!important;border-radius:24px!important;backdrop-filter:blur(26px) saturate(170%)!important;box-shadow:0 18px 45px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.8)!important}.why-us-item .why-us-icon {filter:drop-shadow(0 0 8px rgba(184,134,63,.28))}.why-us-item .why-us-label {color:var(--dm-text)!important;font-size:13px!important}
+footer {max-width:1280px!important;margin:60px auto 0!important;padding:30px 20px 42px!important;border-top:1px solid rgba(138,28,66,.12)!important;color:rgba(42,23,16,.5)!important;background:transparent!important}footer a {color:#a3702c!important;text-decoration:none!important}footer a:hover {color:var(--dm-text)!important}
+.mobile-action-bar {background:rgba(255,251,246,.9)!important;border-color:rgba(138,28,66,.13)!important;backdrop-filter:blur(22px)!important}
+@media (max-width:900px) {.site-header {top:8px!important;margin:8px 12px 0!important}.hero {margin:16px 12px 0!important;padding:36px 24px!important;border-radius:26px!important}.promo-banner-wrap,
+      .cat-cards-wrap,
+      .prod-section-wrap,
+      .grid-wrap,
+      .why-us-wrap {margin-left:12px!important;margin-right:12px!important;padding-left:0!important;padding-right:0!important}.promo-banner-wrap {grid-template-columns:1fr!important}.promo-banner {min-height:210px!important}.gift-banner-img {height:118%!important}}
+@media (max-width:640px) {.site-header .logo span {display:none}.site-header .header-inner {padding:0 12px!important}.hero {min-height:unset!important}.hero h1 {font-size:42px!important}.promo-banner h3 {font-size:25px!important}.gift-banner-img {opacity:.78!important}}
 
 
 /* Override seasonal skins for the permanent premium storefront */
-body.theme-rakshabandhan .site-header{background:rgba(255,251,246,.72)!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important;border-bottom:1px solid var(--dm-border)!important;border-radius:22px!important;box-shadow:0 18px 50px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.6)!important}
-body.theme-rakshabandhan .logo, body.theme-rakshabandhan .logo span{color:var(--dm-text)!important}
-body.theme-rakshabandhan .icon-btn{background:rgba(255,255,255,.55)!important;border:1px solid rgba(138,28,66,.14)!important;color:var(--dm-text)!important}
-body.theme-rakshabandhan .hero{background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,255,255,.35)),radial-gradient(circle at 80% 40%,rgba(184,134,63,.16),transparent 40%),#fdf7f0!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important;border-radius:32px!important}
-body.theme-rakshabandhan .hero h1{color:var(--dm-text)!important}body.theme-rakshabandhan .hero p{color:var(--dm-muted)!important}body.theme-rakshabandhan .hero-btn.primary{background:linear-gradient(135deg,#b8863f,#8a1c42)!important;color:#fff!important}body.theme-rakshabandhan .hero-btn.secondary{background:rgba(255,255,255,.6)!important;color:var(--dm-text)!important;border:1px solid rgba(138,28,66,.16)!important}
+body.theme-rakshabandhan .site-header {background:rgba(255,251,246,.72)!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important;border-bottom:1px solid var(--dm-border)!important;border-radius:22px!important;box-shadow:0 18px 50px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.6)!important}
+body.theme-rakshabandhan .logo,
+      body.theme-rakshabandhan .logo span {color:var(--dm-text)!important}
+body.theme-rakshabandhan .icon-btn {background:rgba(255,255,255,.55)!important;border:1px solid rgba(138,28,66,.14)!important;color:var(--dm-text)!important}
+body.theme-rakshabandhan .hero {background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,255,255,.35)),radial-gradient(circle at 80% 40%,rgba(184,134,63,.16),transparent 40%),#fdf7f0!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important;border-radius:32px!important}
+body.theme-rakshabandhan .hero h1 {color:var(--dm-text)!important}body.theme-rakshabandhan .hero p {color:var(--dm-muted)!important}body.theme-rakshabandhan .hero-btn.primary {background:linear-gradient(135deg,#b8863f,#8a1c42)!important;color:#fff!important}body.theme-rakshabandhan .hero-btn.secondary {background:rgba(255,255,255,.6)!important;color:var(--dm-text)!important;border:1px solid rgba(138,28,66,.16)!important}
 
-
-
-/* ================================================================
-   DESIGN MAKERS — POLISHED FULL-PAGE SEASONAL THEMES
-   Normal theme is intentionally untouched. These rules activate only
-================================================================ */
-
-.seasonal-quote{display:none}
+.seasonal-quote {display:none}
 
 /* ---------- shared seasonal architecture ---------- */
-body.theme-rakshabandhan{
+body.theme-rakshabandhan {
   --dm-page:#fbf6ef;
   --dm-surface:rgba(255,255,255,.78);
   --dm-surface-solid:#fffdf9;
@@ -1477,16 +1496,7 @@ body.theme-rakshabandhan{
   transition:background .45s ease,color .35s ease;
 }
 
-  --dm-accent:#e77918;
-  --dm-accent-dark:#c85d08;
-  --dm-green:#2f7d45;
-  --dm-navy:#183f68;
-  --dm-soft:#fff2e5;
-  --dm-soft-2:#edf4eb;
-  --dm-gold:#c48a35;
-}
-
-body.theme-rakshabandhan{
+body.theme-rakshabandhan {
   --dm-accent:#b63d61;
   --dm-accent-dark:#8f2346;
   --dm-green:#b36c76;
@@ -1496,7 +1506,7 @@ body.theme-rakshabandhan{
   --dm-gold:#c7933c;
 }
 
-body.theme-rakshabandhan::after{
+body.theme-rakshabandhan::after {
   content:"";
   position:fixed;
   inset:0;
@@ -1506,7 +1516,7 @@ body.theme-rakshabandhan::after{
 }
 
 /* ---------- announcement ---------- */
-body.theme-rakshabandhan .announce{
+body.theme-rakshabandhan .announce {
   max-width:1280px!important;
   margin:10px auto 0!important;
   border-radius:14px!important;
@@ -1517,16 +1527,14 @@ body.theme-rakshabandhan .announce{
   box-shadow:0 8px 25px rgba(0,0,0,.05)!important;
   border:1px solid var(--dm-border)!important;
 }
-  background:linear-gradient(90deg,#fff0df,#fffaf3,#eef5ed)!important;
-  color:var(--dm-navy)!important;
-}
-body.theme-rakshabandhan .announce{
+
+body.theme-rakshabandhan .announce {
   background:linear-gradient(90deg,#fff0f3,#fffaf4,#fff0d8)!important;
   color:var(--dm-accent-dark)!important;
 }
 
 /* ---------- navbar ---------- */
-body.theme-rakshabandhan .site-header{
+body.theme-rakshabandhan .site-header {
   background:rgba(255,253,249,.86)!important;
   color:var(--dm-text)!important;
   border:1px solid var(--dm-border)!important;
@@ -1534,22 +1542,24 @@ body.theme-rakshabandhan .site-header{
   border-image:linear-gradient(90deg,var(--dm-accent),#fff,var(--dm-green)) 1!important;
   box-shadow:var(--dm-shadow)!important;
 }
-body.theme-rakshabandhan .site-header{
+body.theme-rakshabandhan .site-header {
   border-image:linear-gradient(90deg,var(--dm-accent),var(--dm-gold),var(--dm-accent)) 1!important;
 }
 body.theme-rakshabandhan .logo,
-body.theme-rakshabandhan .logo span{color:var(--dm-text)!important}
-body.theme-rakshabandhan .icon-btn{
+      body.theme-rakshabandhan .logo span {color:var(--dm-text)!important}
+body.theme-rakshabandhan .icon-btn {
   background:rgba(255,255,255,.72)!important;
   color:var(--dm-text)!important;
   border:1px solid var(--dm-border)!important;
   box-shadow:0 6px 18px rgba(55,35,25,.06)!important;
 }
-body.theme-rakshabandhan .icon-btn:hover{background:var(--dm-soft)!important;color:var(--dm-accent)!important}
-body.theme-rakshabandhan .cart-count{background:var(--dm-gold)!important;color:#fff!important;border-color:#fff!important}
+
+body.theme-rakshabandhan .icon-btn:hover {background:var(--dm-soft)!important;color:var(--dm-accent)!important}
+
+body.theme-rakshabandhan .cart-count {background:var(--dm-gold)!important;color:#fff!important;border-color:#fff!important}
 
 /* ---------- hero: same structure, completely new visual skin ---------- */
-body.theme-rakshabandhan .hero{
+body.theme-rakshabandhan .hero {
   position:relative!important;
   max-width:1280px!important;
   margin:24px auto 28px!important;
@@ -1565,18 +1575,14 @@ body.theme-rakshabandhan .hero{
   box-shadow:var(--dm-shadow)!important;
   background:var(--dm-surface-solid)!important;
 }
-  background:
-    radial-gradient(circle at 82% 24%,rgba(231,121,24,.18),transparent 26%),
-    radial-gradient(circle at 95% 90%,rgba(47,125,69,.14),transparent 30%),
-    linear-gradient(135deg,#fffdf9 0%,#fff8ef 58%,#f4f7f0 100%)!important;
-}
-body.theme-rakshabandhan .hero{
+
+body.theme-rakshabandhan .hero {
   background:
     radial-gradient(circle at 82% 22%,rgba(182,61,97,.17),transparent 27%),
     radial-gradient(circle at 96% 90%,rgba(199,147,60,.15),transparent 29%),
     linear-gradient(135deg,#fffdf9 0%,#fff5f3 58%,#fff8e9 100%)!important;
 }
-body.theme-rakshabandhan .hero::before{
+body.theme-rakshabandhan .hero::before {
   content:""!important;
   position:absolute!important;
   inset:auto -90px -120px auto!important;
@@ -1588,23 +1594,8 @@ body.theme-rakshabandhan .hero::before{
   box-shadow:0 0 0 26px rgba(255,255,255,.35),0 0 0 52px rgba(255,255,255,.18)!important;
   animation:none!important;
 }
-  content:""!important;
-  position:absolute!important;
-  width:190px!important;
-  height:190px!important;
-  right:30%!important;
-  top:50%!important;
-  transform:translate(50%,-50%)!important;
-  background:
-    repeating-conic-gradient(from 0deg,rgba(24,63,104,.28) 0 5deg,transparent 5deg 15deg)!important;
-  border:2px solid rgba(24,63,104,.18)!important;
-  border-radius:50%!important;
-  opacity:.28!important;
-  z-index:0!important;
-  filter:none!important;
-  animation:dmChakra 28s linear infinite!important;
-}
-body.theme-rakshabandhan .hero::after{
+
+body.theme-rakshabandhan .hero::after {
   content:"✦"!important;
   position:absolute!important;
   right:25%!important;
@@ -1622,12 +1613,12 @@ body.theme-rakshabandhan .hero::after{
   z-index:0!important;
   animation:dmFloat 5s ease-in-out infinite!important;
 }
-@keyframes dmChakra{to{transform:translate(50%,-50%) rotate(360deg)}}
-@keyframes dmFloat{50%{transform:translateY(-8px) rotate(4deg)}}
-body.theme-rakshabandhan .hero>*{position:relative;z-index:2}
-body.theme-rakshabandhan .dm-hero-copy{max-width:620px}
 
-body.theme-rakshabandhan .hero-badge{
+@keyframes dmFloat{50%{transform:translateY(-8px) rotate(4deg)}}
+body.theme-rakshabandhan .hero>* {position:relative;z-index:2}
+body.theme-rakshabandhan .dm-hero-copy {max-width:620px}
+
+body.theme-rakshabandhan .hero-badge {
   display:inline-flex!important;
   width:max-content!important;
   max-width:100%!important;
@@ -1639,8 +1630,9 @@ body.theme-rakshabandhan .hero-badge{
   box-shadow:0 7px 18px rgba(50,35,25,.07)!important;
   border:1px solid var(--dm-border)!important;
 }
-body.theme-rakshabandhan .hero-badge{background:#fff0f3!important;color:var(--dm-accent-dark)!important}
-body.theme-rakshabandhan .hero h1{
+
+body.theme-rakshabandhan .hero-badge {background:#fff0f3!important;color:var(--dm-accent-dark)!important}
+body.theme-rakshabandhan .hero h1 {
   color:var(--dm-text)!important;
   font-size:clamp(38px,4.2vw,58px)!important;
   line-height:1.04!important;
@@ -1649,13 +1641,14 @@ body.theme-rakshabandhan .hero h1{
   animation:none!important;
   margin:18px 0 12px!important;
 }
-body.theme-rakshabandhan .hero p{
+
+body.theme-rakshabandhan .hero p {
   color:var(--dm-muted)!important;
   max-width:590px!important;
   font-size:15.5px!important;
   line-height:1.65!important;
 }
-body.theme-rakshabandhan .seasonal-quote{
+body.theme-rakshabandhan .seasonal-quote {
   display:block!important;
   width:max-content!important;
   max-width:100%!important;
@@ -1667,22 +1660,25 @@ body.theme-rakshabandhan .seasonal-quote{
   line-height:1.35!important;
   box-shadow:0 7px 18px rgba(55,35,25,.06)!important;
 }
-body.theme-rakshabandhan .seasonal-quote{background:#fff0f3!important;color:#7c2945!important;border-left:4px solid var(--dm-accent)!important}
-body.theme-rakshabandhan .hero-btn.primary{background:linear-gradient(135deg,var(--dm-accent-dark),var(--dm-accent))!important;color:#fff!important;box-shadow:0 10px 24px rgba(182,61,97,.24)!important}
-body.theme-rakshabandhan .hero-btn.secondary{background:rgba(255,255,255,.8)!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important}
-body.theme-rakshabandhan .hero-trust-item{color:var(--dm-muted)!important}
-body.theme-rakshabandhan .dm-hero-product-stage{
+
+body.theme-rakshabandhan .seasonal-quote {background:#fff0f3!important;color:#7c2945!important;border-left:4px solid var(--dm-accent)!important}
+
+body.theme-rakshabandhan .hero-btn.primary {background:linear-gradient(135deg,var(--dm-accent-dark),var(--dm-accent))!important;color:#fff!important;box-shadow:0 10px 24px rgba(182,61,97,.24)!important}
+body.theme-rakshabandhan .hero-btn.secondary {background:rgba(255,255,255,.8)!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important}
+body.theme-rakshabandhan .hero-trust-item {color:var(--dm-muted)!important}
+body.theme-rakshabandhan .dm-hero-product-stage {
   background:rgba(255,255,255,.5)!important;
   border:1px solid rgba(255,255,255,.9)!important;
   border-radius:28px!important;
   box-shadow:0 18px 45px rgba(75,45,25,.08),inset 0 1px rgba(255,255,255,.9)!important;
 }
-body.theme-rakshabandhan .dm-hero-product-stage{box-shadow:0 18px 45px rgba(182,61,97,.10),inset 0 1px rgba(255,255,255,.9)!important}
+
+body.theme-rakshabandhan .dm-hero-product-stage {box-shadow:0 18px 45px rgba(182,61,97,.10),inset 0 1px rgba(255,255,255,.9)!important}
 
 /* ---------- seasonal section heading labels ---------- */
 body.theme-rakshabandhan .cat-cards-wrap h2,
-body.theme-rakshabandhan .prod-section-wrap h2,
-body.theme-rakshabandhan .sale-section-wrap h2{
+      body.theme-rakshabandhan .prod-section-wrap h2,
+      body.theme-rakshabandhan .sale-section-wrap h2 {
   color:var(--dm-text)!important;
   display:flex!important;
   align-items:center!important;
@@ -1691,99 +1687,125 @@ body.theme-rakshabandhan .sale-section-wrap h2{
   margin-bottom:16px!important;
 }
 body.theme-rakshabandhan .cat-cards-wrap h2::after,
-body.theme-rakshabandhan .prod-section-wrap h2::after,
-body.theme-rakshabandhan .sale-section-wrap h2::after{
+      body.theme-rakshabandhan .prod-section-wrap h2::after,
+      body.theme-rakshabandhan .sale-section-wrap h2::after {
   content:"";height:3px;flex:1;max-width:120px;border-radius:99px;background:linear-gradient(90deg,var(--dm-accent),transparent)
 }
-body.theme-rakshabandhan .category-heading{color:var(--dm-text)!important}
+body.theme-rakshabandhan .category-heading {color:var(--dm-text)!important}
 
 /* ---------- For Her / For Him banners ---------- */
-body.theme-rakshabandhan .promo-banner{
+body.theme-rakshabandhan .promo-banner {
   border-radius:24px!important;
   border:1px solid var(--dm-border)!important;
   box-shadow:var(--dm-shadow)!important;
   overflow:hidden!important;
 }
-body.theme-rakshabandhan .promo-banner.pb-rosewood{background:linear-gradient(135deg,#fff0f3,#fff8f7 58%,#fbe4eb)!important}
-body.theme-rakshabandhan .promo-banner.pb-gold{background:linear-gradient(135deg,#fff8e9,#fffdf8 58%,#f4e6c9)!important}
-body.theme-rakshabandhan .promo-banner-tag{
+
+
+body.theme-rakshabandhan .promo-banner.pb-rosewood {background:linear-gradient(135deg,#fff0f3,#fff8f7 58%,#fbe4eb)!important}
+body.theme-rakshabandhan .promo-banner.pb-gold {background:linear-gradient(135deg,#fff8e9,#fffdf8 58%,#f4e6c9)!important}
+body.theme-rakshabandhan .promo-banner-tag {
   display:inline-block!important;width:max-content!important;padding:6px 10px!important;border-radius:999px!important;background:rgba(255,255,255,.72)!important;border:1px solid var(--dm-border)!important;color:var(--dm-accent-dark)!important
 }
-body.theme-rakshabandhan .promo-banner h3{color:var(--dm-text)!important;font-size:28px!important}
-body.theme-rakshabandhan .promo-banner p{color:var(--dm-muted)!important}
-body.theme-rakshabandhan .promo-banner-btn{background:var(--dm-accent-dark)!important;color:#fff!important;box-shadow:0 8px 18px rgba(143,35,70,.18)!important}
+body.theme-rakshabandhan .promo-banner h3 {color:var(--dm-text)!important;font-size:28px!important}
+body.theme-rakshabandhan .promo-banner p {color:var(--dm-muted)!important}
+
+body.theme-rakshabandhan .promo-banner-btn {background:var(--dm-accent-dark)!important;color:#fff!important;box-shadow:0 8px 18px rgba(143,35,70,.18)!important}
 
 /* ---------- category tiles ---------- */
-body.theme-rakshabandhan .tile-cat{
+body.theme-rakshabandhan .tile-cat {
   background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-accent),#fff,var(--dm-green)) border-box!important;
   box-shadow:0 10px 25px rgba(65,40,25,.08)!important;
 }
-body.theme-rakshabandhan .tile-cat{background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-accent),var(--dm-gold),#f1d8df) border-box!important}
-body.theme-rakshabandhan .tile-cat.active{background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-accent-dark),var(--dm-gold),var(--dm-accent)) border-box!important}
-body.theme-rakshabandhan .tile-cat-label{background:rgba(255,253,249,.92)!important;color:var(--dm-text)!important}
-body.theme-rakshabandhan .tile-cat.active .tile-cat-label{background:var(--dm-accent-dark)!important;color:#fff!important}
-body.theme-rakshabandhan .cat-arrow{background:var(--dm-surface-solid)!important;color:var(--dm-accent-dark)!important;border-color:var(--dm-border)!important}
+body.theme-rakshabandhan .tile-cat {background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-accent),var(--dm-gold),#f1d8df) border-box!important}
+
+body.theme-rakshabandhan .tile-cat.active {background:linear-gradient(#fffdf9,#fffdf9) padding-box,linear-gradient(135deg,var(--dm-accent-dark),var(--dm-gold),var(--dm-accent)) border-box!important}
+body.theme-rakshabandhan .tile-cat-label {background:rgba(255,253,249,.92)!important;color:var(--dm-text)!important}
+
+body.theme-rakshabandhan .tile-cat.active .tile-cat-label {background:var(--dm-accent-dark)!important;color:#fff!important}
+body.theme-rakshabandhan .cat-arrow {background:var(--dm-surface-solid)!important;color:var(--dm-accent-dark)!important;border-color:var(--dm-border)!important}
 
 /* ---------- product cards / sale / hot ---------- */
-body.theme-rakshabandhan .product-card{
+body.theme-rakshabandhan .product-card {
   background:rgba(255,255,255,.82)!important;
   border:1px solid var(--dm-border)!important;
   box-shadow:0 12px 32px rgba(65,40,25,.07)!important;
 }
-body.theme-rakshabandhan .product-card:hover{border-color:rgba(182,61,97,.4)!important;box-shadow:0 18px 38px rgba(182,61,97,.12)!important}
-body.theme-rakshabandhan .product-img{background:#fff0f3!important}
-body.theme-rakshabandhan .product-category{color:var(--dm-gold)!important}
-body.theme-rakshabandhan .product-price{color:var(--dm-accent-dark)!important}
-body.theme-rakshabandhan .discount-badge{background:var(--dm-accent-dark)!important}
-body.theme-rakshabandhan .hot-banner-wrap{filter:none!important}
-body.theme-rakshabandhan .hot-banner{background:linear-gradient(135deg,#fff0f3,#fff8e9)!important;border:1px solid var(--dm-border)!important;box-shadow:var(--dm-shadow)!important}
+
+body.theme-rakshabandhan .product-card:hover {border-color:rgba(182,61,97,.4)!important;box-shadow:0 18px 38px rgba(182,61,97,.12)!important}
+
+body.theme-rakshabandhan .product-img {background:#fff0f3!important}
+
+body.theme-rakshabandhan .product-category {color:var(--dm-gold)!important}
+
+body.theme-rakshabandhan .product-price {color:var(--dm-accent-dark)!important}
+
+body.theme-rakshabandhan .discount-badge {background:var(--dm-accent-dark)!important}
+body.theme-rakshabandhan .sale-section-wrap,
+      body.theme-rakshabandhan .hot-banner-wrap {filter:none!important}
+
+body.theme-rakshabandhan .hot-banner {background:linear-gradient(135deg,#fff0f3,#fff8e9)!important;border:1px solid var(--dm-border)!important;box-shadow:var(--dm-shadow)!important}
 /* Bug fix: the two rules above swap the banner to a light background for
    festival themes, but .hot-banner sets color:#fff (heading) and
    .hot-banner p sets a light pink (#e8c9d2) by default — both meant for the
    original dark rosewood background. Left un-overridden, that's white/light
    text on a light background, i.e. unreadable. Force dark, high-contrast
    text here so the heading/subtext are always legible on the light theme bg. */
-body.theme-rakshabandhan .hot-banner h3{color:var(--dm-accent-dark)!important}
-body.theme-rakshabandhan .hot-banner p{color:#5a2a1a!important}
-body.theme-rakshabandhan .hot-banner-tag{background:#fff0f3!important;color:var(--dm-accent-dark)!important}
-body.theme-rakshabandhan .hot-banner-btn{background:var(--dm-accent-dark)!important;color:#fff!important}
+
+
+body.theme-rakshabandhan .hot-banner h3 {color:var(--dm-accent-dark)!important}
+body.theme-rakshabandhan .hot-banner p {color:#5a2a1a!important}
+
+body.theme-rakshabandhan .hot-banner-tag {background:#fff0f3!important;color:var(--dm-accent-dark)!important}
+
+body.theme-rakshabandhan .hot-banner-btn {background:var(--dm-accent-dark)!important;color:#fff!important}
 
 /* ---------- why-us / footer ---------- */
-body.theme-rakshabandhan .why-us-wrap{
+body.theme-rakshabandhan .why-us-wrap {
   background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(255,255,255,.55))!important;
   border:1px solid var(--dm-border)!important;
   box-shadow:var(--dm-shadow)!important;
 }
-body.theme-rakshabandhan .why-us-icon{filter:drop-shadow(0 5px 10px rgba(182,61,97,.16))!important}
-body.theme-rakshabandhan .why-us-label{color:var(--dm-text)!important}
-body.theme-rakshabandhan footer{color:var(--dm-muted)!important;border-top:1px solid var(--dm-border)!important}
-body.theme-rakshabandhan footer a{color:var(--dm-accent-dark)!important}
+
+body.theme-rakshabandhan .why-us-icon {filter:drop-shadow(0 5px 10px rgba(182,61,97,.16))!important}
+body.theme-rakshabandhan .why-us-label {color:var(--dm-text)!important}
+body.theme-rakshabandhan footer {color:var(--dm-muted)!important;border-top:1px solid var(--dm-border)!important}
+
+body.theme-rakshabandhan footer a {color:var(--dm-accent-dark)!important}
 
 /* ---------- overlays / search / cart / modals ---------- */
-body.theme-rakshabandhan .search-bar-panel{background:#fff0f3!important}
-body.theme-rakshabandhan .cart-drawer{
+
+body.theme-rakshabandhan .search-bar-panel {background:#fff0f3!important}
+body.theme-rakshabandhan .search-bar-input-wrap,
+      body.theme-rakshabandhan .search-results,
+      body.theme-rakshabandhan .modal,
+      body.theme-rakshabandhan .cart-drawer {
   background:var(--dm-surface-solid)!important;
   border:1px solid var(--dm-border)!important;
   box-shadow:0 22px 60px rgba(45,25,15,.16)!important;
 }
-body.theme-rakshabandhan .modal-title,body.theme-rakshabandhan .product-name{color:var(--dm-text)!important}
-body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!important;border-top:1px solid var(--dm-border)!important}
+
+body.theme-rakshabandhan .modal-title,
+      body.theme-rakshabandhan .product-name {color:var(--dm-text)!important}
+
+body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!important;border-top:1px solid var(--dm-border)!important}
 
 /* ---------- festive page accents ---------- */
 
-@media(max-width:900px){
-  body.theme-rakshabandhan .hero{
+
+@media (max-width:900px) {
+  body.theme-rakshabandhan .hero {
     grid-template-columns:1fr!important;
     padding:38px 26px 30px!important;
     min-height:unset!important;
   }
-  body.theme-rakshabandhan .dm-hero-product{margin-top:24px!important}
-  body.theme-rakshabandhan .hero h1{font-size:42px!important}
+  body.theme-rakshabandhan .dm-hero-product {margin-top:24px!important}
+  body.theme-rakshabandhan .hero h1 {font-size:42px!important}
 }
-@media(max-width:560px){
-  body.theme-rakshabandhan .hero{border-radius:24px!important;padding:30px 20px 22px!important}
-  body.theme-rakshabandhan .hero h1{font-size:35px!important}
-  body.theme-rakshabandhan .seasonal-quote{font-size:13px!important}
+@media (max-width:560px) {
+  body.theme-rakshabandhan .hero {border-radius:24px!important;padding:30px 20px 22px!important}
+  body.theme-rakshabandhan .hero h1 {font-size:35px!important}
+  body.theme-rakshabandhan .seasonal-quote {font-size:13px!important}
 }
 
 
@@ -1791,25 +1813,6 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
          Placed last in the stylesheet on purpose so it wins over the theme-skin blocks above it. */
       .festival-hero-wrap { display: none; position: relative; width: 100%; line-height: 0; border-radius: 20px; overflow: hidden; }
       .festival-hero-img { display: block; width: 100%; height: auto; }
-      .festival-hero-badge {
-        position: absolute;
-        top: 2.2%;
-        left: 3%;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #fff;
-        color: #8a1c42;
-        font-weight: 700;
-        font-size: clamp(9px, 1.1vw, 14px);
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        padding: clamp(6px, 1vw, 11px) clamp(12px, 1.8vw, 20px);
-        border-radius: 999px;
-        box-shadow: 0 8px 20px rgba(138,28,66,.14);
-        line-height: 1.2;
-        white-space: nowrap;
-      }
       .festival-hero-hit {
         position: absolute;
         background: transparent;
@@ -1824,6 +1827,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
       .festival-hero-hit-whatsapp { left: 20.5%; width: 20%; }
       #rakhiHeroWrap .festival-hero-hit { top: 83.5%; height: 8%; }
       #rakhiHeroWrap .festival-hero-hit-whatsapp { left: 18.5%; width: 20%; }
+      
       body.theme-rakshabandhan #rakhiHeroWrap { display: block !important; }
       body.theme-rakshabandhan .dm-hero-copy,
       body.theme-rakshabandhan .dm-hero-product {
@@ -1831,7 +1835,6 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
       }
       body.theme-rakshabandhan .hero {
         display: block !important;
-        margin: 0 !important;
         padding: 0 !important;
         min-height: auto !important;
         background: transparent !important;
@@ -1843,7 +1846,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
       body.theme-rakshabandhan .hero > .rakhi-charm {
         display: none !important;
       }
-      @media (max-width: 900px) {
+      @media  (max-width: 900px)  {
         body.theme-rakshabandhan .hero {
           padding: 0 !important;
           min-height: auto !important;
@@ -1859,17 +1862,9 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
       .festival-strip-img { display: block; width: 100%; height: auto; }
       body.theme-rakshabandhan #rakhiTopStripWrap {
         display: block !important;
-        margin-bottom: -10px !important;
-      }
-      body.theme-rakshabandhan .site-header {
-        margin-top: 6px !important;
-        top: 6px !important;
-      }
-      #rakhiTopStripWrap .festival-strip-img {
-        width: 100%;
-        height: auto;
       }
       .festival-offer-wrap { display: none; max-width: 1280px; margin: 18px auto 0; border-radius: 12px; overflow: hidden; }
+      
       /* Rakhi offer banner intentionally hidden — no HD version available. */
       .festival-strip-hit {
         position: absolute;
@@ -1985,12 +1980,8 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
       }
       /* ===== FINAL CUSTOMER LIQUID GLASS THEME ===== */
       body { background:#05070a !important; color:#f5f7fb; }
-      /* Festival themes define their own page background via a
-         body.theme-rakshabandhan{ background: ... }`
-         rule (specificity 0,1,1) which otherwise beats the plain `body`
-         rule above. Re-assert the dark background here with matching/higher
-         specificity so dark mode still darkens the page chrome even while
-         a festival theme (and its untouched hero artwork) is active. */
+      
+      body.dark-mode.theme-rakshabandhan {
         --dm-page: #05070a;
         --dm-surface: rgba(255,255,255,.05);
         --dm-surface-solid: #12151f;
@@ -2001,8 +1992,12 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         color: #f5f7fb !important;
       }
       body::before { content:""; position:fixed; inset:-20%; pointer-events:none; z-index:-1; background:radial-gradient(circle at 72% 12%,rgba(46,150,255,.14),transparent 28%),radial-gradient(circle at 18% 58%,rgba(62,103,255,.08),transparent 30%); filter:blur(30px); }
-      body.dark-mode header, body.dark-mode .topbar, body.dark-mode .navbar { backdrop-filter:blur(22px) saturate(140%); }
+      body.dark-mode header,
+      body.dark-mode .topbar,
+      body.dark-mode .navbar { backdrop-filter:blur(22px) saturate(140%); }
+      body.dark-mode:not(.theme-rakshabandhan) .hero { max-width:1280px !important; margin:22px auto 0 !important; min-height:540px !important; padding:58px 54px !important; display:grid !important; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr) !important; align-items:center; gap:20px; text-align:left !important; position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.11) !important; border-radius:30px !important; background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.018)),radial-gradient(circle at 75% 45%,rgba(42,145,255,.13),transparent 38%),#07090d !important; box-shadow:0 30px 90px rgba(0,0,0,.46),inset 0 1px rgba(255,255,255,.08) !important; }
       /* Festival themes keep their own hero banner artwork untouched in dark mode — only the surrounding chrome (header, cards, footer) switches to dark. */
+      body.dark-mode.theme-rakshabandhan .hero { border-radius:20px !important; }
       body.dark-mode .hero::before { content:""; position:absolute; width:420px;height:420px;right:-100px;bottom:-170px;border-radius:50%;background:rgba(38,136,255,.13);filter:blur(60px); }
       body.dark-mode .hero > * { position:relative; z-index:2; }
       body.dark-mode .dm-hero-copy { min-width:0; position:relative; z-index:3; }
@@ -2022,17 +2017,27 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
       body.dark-mode .dm-hero-product-img { max-width:76%; max-height:78%; object-fit:contain; position:relative; z-index:2; filter:drop-shadow(0 35px 35px rgba(0,0,0,.7)); animation:dmHeroFloat 5s ease-in-out infinite; }
       @keyframes dmHeroFloat {0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
       body.dark-mode .dm-hero-product-empty { color:rgba(255,255,255,.38); font-size:13px; text-align:center; padding:20px; }
-      body.dark-mode .cat-cards-wrap, body.dark-mode .prod-section-wrap, body.dark-mode .grid-wrap, body.dark-mode .why-us-wrap, body.dark-mode .promo-banner-wrap, body.dark-mode .sale-section-wrap, body.dark-mode .hot-banner-wrap { max-width:1280px !important; }
-      body.dark-mode .cat-cards-wrap h2, body.dark-mode .prod-section-wrap h2 { color:#fff !important; font-family:Inter,"Segoe UI",Arial,sans-serif !important; }
-      body.dark-mode .cat-carousel-track, body.dark-mode .prod-grid { gap:14px !important; }
-      body.dark-mode .cat-card, body.dark-mode .product-card { background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018)) !important; border:1px solid rgba(255,255,255,.10) !important; box-shadow:0 16px 40px rgba(0,0,0,.24) !important; backdrop-filter:blur(18px); }
-      body.dark-mode .cat-card:hover, body.dark-mode .product-card:hover { border-color:rgba(82,165,255,.34) !important; box-shadow:0 22px 50px rgba(0,0,0,.32),0 0 24px rgba(53,145,255,.08) !important; transform:translateY(-4px); }
+      body.dark-mode .cat-cards-wrap,
+      body.dark-mode .prod-section-wrap,
+      body.dark-mode .grid-wrap,
+      body.dark-mode .why-us-wrap,
+      body.dark-mode .promo-banner-wrap,
+      body.dark-mode .sale-section-wrap,
+      body.dark-mode .hot-banner-wrap { max-width:1280px !important; }
+      body.dark-mode .cat-cards-wrap h2,
+      body.dark-mode .prod-section-wrap h2 { color:#fff !important; font-family:Inter,"Segoe UI",Arial,sans-serif !important; }
+      body.dark-mode .cat-carousel-track,
+      body.dark-mode .prod-grid { gap:14px !important; }
+      body.dark-mode .cat-card,
+      body.dark-mode .product-card { background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018)) !important; border:1px solid rgba(255,255,255,.10) !important; box-shadow:0 16px 40px rgba(0,0,0,.24) !important; backdrop-filter:blur(18px); }
+      body.dark-mode .cat-card:hover,
+      body.dark-mode .product-card:hover { border-color:rgba(82,165,255,.34) !important; box-shadow:0 22px 50px rgba(0,0,0,.32),0 0 24px rgba(53,145,255,.08) !important; transform:translateY(-4px); }
       /* The dark-theme offer-banner artwork has a different (taller/
          squarer) aspect ratio than its light counterpart. Full-bleed
          width:100% would stretch it absurdly tall, so in dark mode
          cap its height and center it on a near-black backdrop that
          matches the artwork's own background instead of stretching. */
-      body.dark-mode.theme-rakshabandhan #rakhiOfferWrap{
+      body.dark-mode.theme-rakshabandhan #rakhiOfferWrap {
         background:#0a0a0a; justify-content:center; align-items:center; border-radius:20px; overflow:hidden;
       }
       body.dark-mode.theme-rakshabandhan #rakhiOfferWrap.festival-strip-wrap {
@@ -2041,20 +2046,24 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
       body.dark-mode.theme-rakshabandhan #rakhiOfferWrap .festival-strip-img {
         width:auto !important; max-width:100%; height:auto; max-height:220px; margin:0 auto;
       }
-      @media(max-width:900px){
+      @media (max-width:900px) {
         body.dark-mode.theme-rakshabandhan #rakhiOfferWrap .festival-strip-img { max-height:160px; }
       }
+      @media (max-width:900px)  {body.dark-mode:not(.theme-rakshabandhan) .hero {grid-template-columns:1fr !important; min-height:auto !important; padding:36px 24px !important;}body.dark-mode .dm-hero-product {min-height:330px;}body.dark-mode .dm-hero-product-stage {height:330px;}body.dark-mode .hero-ctas,
+      body.dark-mode .hero-trust {justify-content:flex-start !important;} }
     
       body.dark-mode .announce { display:none !important; }
       body.dark-mode .site-header { background: rgba(10,14,20,.6) !important; border: 1px solid rgba(255,255,255,.10) !important; border-bottom: 1px solid rgba(255,255,255,.06) !important; box-shadow: 0 18px 50px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.06) !important; }
-      body.dark-mode .site-header .logo, body.dark-mode .site-header .logo span { color: #fff !important; }
+      body.dark-mode .site-header .logo,
+      body.dark-mode .site-header .logo span { color: #fff !important; }
       body.dark-mode .site-header .icon-btn { background: rgba(255,255,255,.06) !important; border: 1px solid rgba(255,255,255,.14) !important; color: #fff !important; }
       body.dark-mode .site-header .icon-btn:hover { background: rgba(82,165,255,.16) !important; border-color: rgba(82,165,255,.4) !important; }
       body.dark-mode .search-bar-panel { background: rgba(10,14,20,.85) !important; border: 1px solid rgba(255,255,255,.1) !important; }
       body.dark-mode .search-bar-input-wrap { background: rgba(255,255,255,.06) !important; }
       body.dark-mode .search-results { background: #12151f !important; box-shadow: 0 8px 24px rgba(0,0,0,.4) !important; }
       body.dark-mode .promo-banner { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; border: 1px solid rgba(255,255,255,.10) !important; color:#fff !important; box-shadow: 0 16px 40px rgba(0,0,0,.28) !important; }
-      body.dark-mode .promo-banner.pb-rosewood, body.dark-mode .promo-banner.pb-gold { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; }
+      body.dark-mode .promo-banner.pb-rosewood,
+      body.dark-mode .promo-banner.pb-gold { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; }
       body.dark-mode .promo-banner-tag { color:#8cc8ff !important; }
       body.dark-mode .promo-banner h3 { color:#fff !important; }
       body.dark-mode .promo-banner p { color: rgba(255,255,255,.62) !important; }
@@ -2076,7 +2085,8 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
     </style>
     <style id="dmFinalPolish">
       /* ===== FINAL VISIBILITY + HERO PRODUCT POLISH ===== */
-      select, select:focus {
+      select,
+      select:focus {
         color: var(--ink) !important;
         background: var(--surface) !important;
         border-color: var(--blush-line) !important;
@@ -2098,6 +2108,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
 
       /* Light-mode hero product: make any uploaded product artwork feel like
          it belongs to the warm premium hero instead of looking pasted on. */
+      body:not(.dark-mode):not(.theme-rakshabandhan) .dm-hero-product-stage {
         background:
           radial-gradient(circle at 50% 35%, rgba(255,255,255,.98), rgba(255,248,240,.82) 55%, rgba(246,230,215,.62) 100%) !important;
         border: 1px solid rgba(138,28,66,.12) !important;
@@ -2108,6 +2119,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         position: relative;
         isolation: isolate;
       }
+      body:not(.dark-mode):not(.theme-rakshabandhan) .dm-hero-product-stage::before {
         content: "";
         position: absolute;
         width: 72%;
@@ -2120,6 +2132,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         z-index: 0;
         pointer-events: none;
       }
+      body:not(.dark-mode):not(.theme-rakshabandhan) .dm-hero-product-img {
         max-width: 78% !important;
         max-height: 78% !important;
         object-fit: contain !important;
@@ -2136,6 +2149,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
 
       /* Dark-mode hero product: a restrained premium display plate keeps
          white-background product photos from looking like random rectangles. */
+      body.dark-mode:not(.theme-rakshabandhan) .dm-hero-product-stage {
         background:
           radial-gradient(circle at 50% 38%, rgba(75,125,255,.14), transparent 40%),
           linear-gradient(145deg, rgba(255,255,255,.065), rgba(255,255,255,.018)) !important;
@@ -2143,6 +2157,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         box-shadow: inset 0 1px rgba(255,255,255,.08), 0 30px 70px rgba(0,0,0,.34) !important;
         isolation: isolate;
       }
+      body.dark-mode:not(.theme-rakshabandhan) .dm-hero-product-stage::before {
         content: "";
         position: absolute;
         width: 66%;
@@ -2155,6 +2170,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         z-index: 0;
         pointer-events: none;
       }
+      body.dark-mode:not(.theme-rakshabandhan) .dm-hero-product-img {
         max-width: 78% !important;
         max-height: 78% !important;
         object-fit: contain !important;
@@ -2235,14 +2251,14 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         <div class="logo"><img src="Logo.png" alt="Design Makers" style="height:48px;width:48px;object-fit:contain;vertical-align:middle;"> DESIGN MAKERS<span>Gifts That Feel Like Royalty</span></div>
         <div class="header-actions">
           <button class="icon-btn" onclick="toggleSearchBar()" title="Search" id="searchToggleBtn">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.2"/><line x1="20.5" y1="20.5" x2="16.4" y2="16.4"/></svg>
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
           <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
-            <svg id="accountBtnIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.7"/><path d="M4.6 19.8c1.5-3.7 4.5-5.6 7.4-5.6s5.9 1.9 7.4 5.6"/></svg>
+            <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
             <img id="accountBtnPic" alt="" style="display:none;width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.9);box-shadow:0 1px 4px rgba(0,0,0,0.25);" />
           </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.2 8.2h11.6l-1.05 12.2a1.6 1.6 0 0 1-1.6 1.47H8.85a1.6 1.6 0 0 1-1.6-1.47L6.2 8.2z"/><path d="M9.1 8.2V6.3a2.9 2.9 0 0 1 5.8 0v1.9"/></svg>
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7a1.5 1.5 0 0 1-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
             <span class="cart-count" id="cartCount">0</span>
           </button>
         </div>
@@ -2252,7 +2268,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
     <div class="search-bar-panel" id="searchBarPanel">
       <div class="search-bar-inner" id="searchBarInner">
         <div class="search-bar-input-wrap">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#8c7d78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.2"/><line x1="20.5" y1="20.5" x2="16.4" y2="16.4"/></svg>
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#8c7d78" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="searchInput" placeholder="Search for mugs, t-shirts, keychains…" oninput="onSearchInput()" autocomplete="off" />
           <button class="search-bar-close" onclick="toggleSearchBar(false)" title="Close">✕</button>
         </div>
@@ -2347,9 +2363,9 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         <div class="dm-hero-product-stage" id="dmHeroProductStage"><div class="dm-hero-product-empty">Loading your featured creation…</div></div>
       </div>
 
+      <!-- Festival hero banners: fully-designed artwork shown instead of the default hero when a seasonal theme is active. Hidden on the normal theme. -->
       <div class="festival-hero-wrap" id="rakhiHeroWrap">
         <img class="festival-hero-img" src="rakhi-hero-desktop.webp" alt="Happy Raksha Bandhan. Design Makers, celebrating the bond of love.">
-        <span class="festival-hero-badge">Raksha Bandhan Special ♥</span>
         <button class="festival-hero-hit festival-hero-hit-shop" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
         <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/7004847813','_blank')" aria-label="Chat on WhatsApp"></button>
       </div>
@@ -2440,10 +2456,10 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
 
     <div class="why-us-wrap">
       <div class="why-us-grid">
-        <div class="why-us-item"><div class="why-us-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 8h18M12 8v13M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 5.5 12 8c0-2.5 2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg></div><div class="why-us-label">Made to order</div></div>
-        <div class="why-us-item"><div class="why-us-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="8" width="12.5" height="9" rx="1.4"/><path d="M14 11h4l3.5 3.5V17h-7.5z"/><circle cx="6" cy="18.5" r="1.9"/><circle cx="17" cy="18.5" r="1.9"/></svg></div><div class="why-us-label">Pan-India delivery</div></div>
-        <div class="why-us-item"><div class="why-us-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M15 9.5c0-1.4-1.3-2.2-3-2.2s-3 .8-3 2.1c0 1.3 1.2 1.8 3 2.1 1.8.3 3 .9 3 2.2 0 1.3-1.3 2.1-3 2.1s-3-.8-3-2.2"/></svg></div><div class="why-us-label">Best bulk pricing</div></div>
-        <div class="why-us-item"><div class="why-us-icon"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.6 5.1L3 17.5V21h3.5l6.1-6.1a4 4 0 0 0 5.1-5.6l-2.9 2.9-2.2-2.2 2.1-2.7z"/></svg></div><div class="why-us-label">Real support on WhatsApp</div></div>
+        <div class="why-us-item"><div class="why-us-icon">🎁</div><div class="why-us-label">Made to order</div></div>
+        <div class="why-us-item"><div class="why-us-icon">🚚</div><div class="why-us-label">Pan-India delivery</div></div>
+        <div class="why-us-item"><div class="why-us-icon">💰</div><div class="why-us-label">Best bulk pricing</div></div>
+        <div class="why-us-item"><div class="why-us-icon">🛠️</div><div class="why-us-label">Real support on WhatsApp</div></div>
       </div>
     </div>
 
@@ -2489,7 +2505,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         <button class="modal-close" onclick="closeProductModal()">✕</button>
         <div class="modal-img" id="modalImg"></div>
         <div class="modal-body">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;padding-right:38px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;">
             <span class="modal-cat" id="modalCat"></span>
             <button type="button" id="shareProductBtn" onclick="shareProduct()" aria-label="Share product" style="border:none;background:transparent;color:var(--rosewood,#8a1c42);padding:6px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
               <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 8l5-5 5 5"/><path d="M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>
@@ -2612,7 +2628,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         <!-- RIGHT: form panel -->
         <div class="auth-form">
           <div class="dm-dark-toggle-row">
-            <span class="dm-dark-toggle-label"><span class="dm-dark-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.5 14.7A8.5 8.5 0 1 1 9.3 3.5a7 7 0 0 0 11.2 11.2z"/></svg></span> Dark mode</span>
+            <span class="dm-dark-toggle-label"><span class="dm-dark-icon">🌙</span> Dark mode</span>
             <label class="dm-toggle-switch">
               <input type="checkbox" class="dm-dark-toggle-input" onchange="setDarkMode(this.checked)" />
               <span class="dm-toggle-slider"></span>
@@ -2669,7 +2685,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
             <div style="display:flex;align-items:center;gap:14px;margin:12px 0 18px;">
               <div>
                 <img id="accountPic" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--blush-line);display:none;" />
-                <div id="accountPicPlaceholder" style="width:64px;height:64px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="var(--dm-accent,#8a1c42)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.2" r="3.9"/><path d="M4.2 20c1.6-4 4.8-6 7.8-6s6.2 2 7.8 6"/></svg></div>
+                <div id="accountPicPlaceholder" style="width:64px;height:64px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:28px;">🙂</div>
               </div>
               <div>
                 <div id="accountName" style="font-weight:700;font-size:1.05em;"></div>
@@ -3210,12 +3226,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
           if (btnIcon) btnIcon.style.display = "none";
         } else {
           if (btnPic) btnPic.style.display = "none";
-          if (btnIcon) {
-            btnIcon.style.display = "";
-            btnIcon.innerHTML = currentCustomer
-              ? '<circle cx="12" cy="8.2" r="3.7"/><path d="M4.6 19.8c1.5-3.7 4.5-5.6 7.4-5.6s5.9 1.9 7.4 5.6"/><circle cx="18.3" cy="6.5" r="4.1" fill="#2fae4e" stroke="none"/><path d="M16.5 6.5l1.2 1.2 2-2.2" stroke="#fff" stroke-width="1.4" fill="none"/>'
-              : '<circle cx="12" cy="8.2" r="3.7"/><path d="M4.6 19.8c1.5-3.7 4.5-5.6 7.4-5.6s5.9 1.9 7.4 5.6"/>';
-          }
+          if (btnIcon) { btnIcon.style.display = ""; btnIcon.textContent = currentCustomer ? "🙂" : "👤"; }
         }
 
         const signedOutBox = document.getElementById("accountSignedOut");
@@ -4702,13 +4713,11 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         renderCart();
       }
 
-      const GIFT_ICON_SVG = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 8h18M12 8v13M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 5.5 12 8c0-2.5 2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>';
-
       function renderGiftAddonRow(eligible) {
         if (!eligible) return "";
         const checked = cart.some((i) => i.productId === GIFT_ADDON_PRODUCT_ID);
         const addonImage = getGiftAddonImage();
-        const imgHtml = addonImage ? '<img src="' + escapeHtml(addonImage) + '" />' : GIFT_ICON_SVG;
+        const imgHtml = addonImage ? '<img src="' + escapeHtml(addonImage) + '" />' : "🎁";
         return (
           '<div class="gift-addon-row">' +
             '<div class="gift-addon-img">' + imgHtml + "</div>" +
@@ -4733,7 +4742,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         const giftAddonEligible = syncGiftAddonEligibility();
 
         if (!cart.length) {
-          container.innerHTML = '<div class="empty-cart">Your cart is empty.<br/>Browse our gifts and add something special ' + GIFT_ICON_SVG + '</div>';
+          container.innerHTML = '<div class="empty-cart">Your cart is empty.<br/>Browse our gifts and add something special 🎁</div>';
           footer.style.display = "none";
           return;
         }
@@ -4754,7 +4763,7 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
             const cartImage = (liveProduct && liveProduct.image) || item.image || "";
             const imgHtml = cartImage
               ? '<img src="' + escapeHtml(cartImage) + '" />'
-              : GIFT_ICON_SVG;
+              : "🎁";
 
             return (
               '<div class="cart-item">' +
@@ -5025,6 +5034,51 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         window.location.replace("/sellerapplication");
       }
 
+      // ===== Tap-to-burst festive interaction (rakhi threads) =====
+      function burstAt(el, colors) {
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+
+        const burst = document.createElement("div");
+        burst.className = "fest-burst";
+        burst.style.left = cx + "px";
+        burst.style.top = cy + "px";
+        const count = 10;
+        for (let i = 0; i < count; i++) {
+          const p = document.createElement("span");
+          p.className = "fest-burst-particle";
+          const angle = (i / count) * Math.PI * 2;
+          const dist = 34 + Math.random() * 18;
+          p.style.setProperty("--dx", Math.cos(angle) * dist + "px");
+          p.style.setProperty("--dy", Math.sin(angle) * dist + "px");
+          p.style.background = colors[i % colors.length];
+          burst.appendChild(p);
+        }
+        document.body.appendChild(burst);
+        setTimeout(() => burst.remove(), 700);
+
+        return { cx, cy };
+      }
+
+      function showFestMessage(cx, cy, text) {
+        const msg = document.createElement("div");
+        msg.className = "fest-msg";
+        msg.textContent = text;
+        msg.style.left = cx + "px";
+        msg.style.top = cy + "px";
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 1900);
+      }
+
+      function popAndRespawn(el) {
+        el.style.animation = "none";
+        el.style.opacity = "0";
+        // force reflow so the animation restarts cleanly from the beginning
+        void el.offsetWidth;
+        setTimeout(() => { el.style.animation = ""; }, 60);
+      }
+
     </script>
     <script>
       // Shared dark-mode toggle — same localStorage key as the rest of the
@@ -5034,10 +5088,8 @@ body.theme-rakshabandhan .mobile-action-bar{background:rgba(255,253,249,.94)!imp
         document.body.classList.toggle("dark-mode", on);
         var override = document.getElementById("dmDarkOverride");
         if (override) override.media = on ? "all" : "not all";
-        var SUN_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.3"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>';
-        var MOON_ICON = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.5 14.7A8.5 8.5 0 1 1 9.3 3.5a7 7 0 0 0 11.2 11.2z"/></svg>';
         document.querySelectorAll(".dm-dark-icon").forEach(function (el) {
-          el.innerHTML = on ? SUN_ICON : MOON_ICON;
+          el.textContent = on ? "☀️" : "🌙";
         });
         document.querySelectorAll(".dm-dark-toggle-input").forEach(function (el) {
           el.checked = on;
