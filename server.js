@@ -3745,10 +3745,10 @@ app.put("/api/admin/settings/hero-product", requireAdmin, (req, res) => {
   }
 });
 
-// Festival theme applied across the whole storefront (normal / rakshabandhan / aug15).
+// Festival theme applied across the whole storefront (normal / rakshabandhan).
 app.put("/api/admin/settings/theme", requireAdmin, (req, res) => {
   try {
-    const VALID_THEMES = ["normal", "rakshabandhan", "aug15"];
+    const VALID_THEMES = ["normal", "rakshabandhan"];
     const { theme } = req.body || {};
     if (!VALID_THEMES.includes(theme)) {
       return res.status(400).json({ success: false, message: "Invalid theme." });

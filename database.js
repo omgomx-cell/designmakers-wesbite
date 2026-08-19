@@ -896,7 +896,7 @@ function ensureShape(database) {
     needsUpgrade = true;
   }
 
-  const VALID_THEMES = ["normal", "rakshabandhan", "aug15"];
+  const VALID_THEMES = ["normal", "rakshabandhan"];
   if (!Object.prototype.hasOwnProperty.call(database.settings, "heroProductId")) {
     database.settings.heroProductId = null;
     needsUpgrade = true;
