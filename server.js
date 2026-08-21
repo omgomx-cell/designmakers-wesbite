@@ -269,7 +269,20 @@ app.use((req, res, next) => {
   }
   next();
 });
-
+// ================================
+// BLOCK SERVER-SIDE FILES FROM STATIC SERVING
+// ================================
+// express.static below serves this entire project folder, so without this
+// check, requests like GET /server.js or GET /database.js would return the
+// raw backend source — including the JWT_SECRET dev fallback, DB logic, and
+// every dependency under node_modules. Dotfiles (.env, .git) are already
+// blocked by express.static's default `dotfiles: "ignore"` behavior; this
+// covers everything else that shouldn't be publicly downloadable.
+const BLOCKED_STATIC_PATHS = /^\/(server\.js|database\.js|products-store\.js|package(-lock)?\.json|node_modules(\/|$))/i;
+app.use((req, res, next) => {
+  if (BLOCKED_STATIC_PATHS.test(req.path)) return res.status(404).end();
+  next();
+});
 // Serve website files
 app.use(
   express.static(__dirname, {
