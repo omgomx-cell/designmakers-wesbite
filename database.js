@@ -11,6 +11,39 @@ let mongoClient = null;
 let mongoCollection = null;
 let cachedData = null;
 
+// The last products-array "fingerprint" that was actually persisted to
+// the `products` collection (see fingerprintProducts()/writeDatabase()
+// below) — used to skip re-saving the whole catalog when nothing about
+// it changed.
+let lastSavedProductsFingerprint = null;
+
+// Serializes every persistence write (app_data + products) so that if two
+// writeDatabase() calls overlap — e.g. two requests in flight at once —
+// a slower earlier write can never finish after, and clobber, a faster
+// later one. Each write waits for the previous write's network
+// round-trip before starting its own.
+let writeQueue = Promise.resolve();
+
+// Cheap, lightweight signature of everything about the products array
+// that's worth re-saving for. Deliberately does NOT hash full base64
+// image bytes (that would cost as much CPU as the save itself); instead
+// it uses each image's length, which changes whenever an image is
+// actually swapped. This is O(number of products), not O(catalog size
+// in bytes), so it's safe to run on every single writeDatabase() call.
+function fingerprintProducts(products) {
+  if (!Array.isArray(products)) return "0";
+  let sig = products.length + "|";
+  for (const p of products) {
+    const img = p.image || (Array.isArray(p.images) ? p.images.join("") : "") || "";
+    sig +=
+      p.id + ":" + p.stockQty + ":" + JSON.stringify(p.variantStock || {}) + ":" +
+      p.price + ":" + p.name + ":" + p.approved + ":" + p.active + ":" + p.hidden + ":" +
+      p.sellerId + ":" + img.length + ":" + (p.description || "").length + ":" +
+      (p.category || "") + ";";
+  }
+  return sig;
+}
+
 // ================================
 // GIFT ADD-ON (date-gated cart offer)
 // ================================
@@ -651,6 +684,9 @@ const defaultDatabase = {
 
   orders: [],
 
+  // Gift/promo codes created by the main admin (Om). Each code stores discount rules and usage.
+  giftCodes: [],
+
   // Each entry: { productId, viewedAt } — one row per product-detail open.
   // Used to compute the automatic "Our Most Popular Products" (all-time
   // views) and "Trending" (views in the last 7 days) homepage rows.
@@ -667,6 +703,10 @@ const defaultDatabase = {
   //   createdAt
   // }
   customers: [],
+
+  // Customer marketing preferences/campaigns. Existing customers default to subscribed
+  // until they explicitly unsubscribe; transactional email is always separate.
+  marketingCampaigns: [],
 
   // Product reviews left by customers on products they've bought.
   // Each entry: { id, productId, customerId, customerName, rating, text, createdAt }
@@ -750,7 +790,20 @@ async function connectDB() {
     );
   }
 
-  mongoClient = new MongoClient(MONGODB_URI);
+  mongoClient = new MongoClient(MONGODB_URI, {
+    // Auto-retry a write/read that failed only because of a transient
+    // network blip or replica-set failover, instead of surfacing it as a
+    // hard error on the very first hiccup.
+    retryWrites: true,
+    retryReads: true,
+    // Don't hang forever if Mongo is briefly unreachable — fail fast so
+    // the request handler's existing try/catch can log it and move on.
+    serverSelectionTimeoutMS: 10000,
+    maxPoolSize: 20,
+  });
+  mongoClient.on("error", (err) => {
+    console.error("MongoDB client error:", err.message);
+  });
   await mongoClient.connect();
   const db = mongoClient.db(DB_NAME);
   mongoCollection = db.collection(COLLECTION_NAME);
@@ -815,6 +868,9 @@ async function connectDB() {
   // array that the rest of the app reads/writes exactly as before.
   cachedData.products = await productsStore.loadAllProducts();
   console.log(`Loaded ${cachedData.products.length} product(s) from the 'products' collection.`);
+  // Baseline the fingerprint against what we just loaded, so the first
+  // writeDatabase() call after boot doesn't re-save an unchanged catalog.
+  lastSavedProductsFingerprint = fingerprintProducts(cachedData.products);
 
   ensureShape(cachedData);
 }
@@ -822,6 +878,7 @@ async function connectDB() {
 // Self-heal: older databases won't have these fields yet.
 function ensureShape(database) {
   let needsUpgrade = false;
+  if (!Array.isArray(database.giftCodes)) { database.giftCodes = []; needsUpgrade = true; }
 
   if (!Array.isArray(database.customers)) {
     database.customers = [];
@@ -829,7 +886,16 @@ function ensureShape(database) {
   }
   // Older customer records (or ones created before Google login existed)
   // won't have the seller/role fields yet — backfill sane defaults.
+  if (!Array.isArray(database.marketingCampaigns)) {
+    database.marketingCampaigns = [];
+    needsUpgrade = true;
+  }
+
   database.customers.forEach((c) => {
+    if (typeof c.marketingOptIn !== "boolean") {
+      c.marketingOptIn = true;
+      needsUpgrade = true;
+    }
     if (!c.role) {
       c.role = "customer";
       needsUpgrade = true;
@@ -846,6 +912,41 @@ function ensureShape(database) {
 
   if (!Array.isArray(database.reviews)) {
     database.reviews = [];
+    needsUpgrade = true;
+  }
+
+  // Back-in-stock "Notify Me" subscriptions — see server.js's
+  // deliverBackInStockNotifications() for where these get acted on.
+  if (!Array.isArray(database.backInStockSubscriptions)) {
+    database.backInStockSubscriptions = [];
+    needsUpgrade = true;
+  }
+
+  // Lightweight internal callback requests. Customers submit a reason,
+  // admins are notified, and the customer is connected to the existing
+  // Design Makers WhatsApp destination. No direct calling is performed.
+  if (!Array.isArray(database.callbackRequests)) {
+    const legacy = Array.isArray(database.callRequests) ? database.callRequests : [];
+    database.callbackRequests = legacy.map((r) => ({
+      id: r.id,
+      requestId: `CR-${String(r.id).padStart(6, "0")}`,
+      customerId: r.customerId,
+      name: r.name || "",
+      phone: r.phone || "",
+      orderId: r.orderId || null,
+      orderNumber: r.orderNumber || null,
+      reason: r.reason || "",
+      source: "WhatsApp",
+      status: r.status === "resolved" ? "Completed" : "New",
+      createdAt: r.createdAt || new Date().toISOString(),
+      updatedAt: r.updatedAt || r.createdAt || new Date().toISOString(),
+      completedAt: r.resolvedAt || null,
+      readBy: [],
+    }));
+    needsUpgrade = true;
+  }
+  if (Object.prototype.hasOwnProperty.call(database, "callRequests")) {
+    delete database.callRequests;
     needsUpgrade = true;
   }
 
@@ -988,6 +1089,45 @@ function ensureShape(database) {
     }
   }
 
+  // Inventory migration: every product gets a unique internal product code
+  // and mandatory stock fields. Existing products are kept sellable until the
+  // admin performs the first inventory import, so this deploy cannot suddenly
+  // make the live catalog unavailable. New products start at 0 stock.
+  const productPrefix = (category) => {
+    const c = String(category || "").toLowerCase();
+    if (c.includes("t-shirt") || c.includes("tshirt") || c.includes("tee")) return "TS";
+    if (c.includes("mug")) return "MUG";
+    if (c.includes("frame")) return "FRM";
+    if (c.includes("cushion")) return "CUS";
+    if (c.includes("keychain") || c.includes("key chain")) return "KEY";
+    if (c.includes("bottle")) return "BOT";
+    if (c.includes("cover") || c.includes("phone")) return "COV";
+    return (c.replace(/[^a-z0-9]/g, "").slice(0, 3).toUpperCase() || "PRD");
+  };
+  const usedCodes = new Set((database.products || []).map((p) => p.productCode).filter(Boolean));
+  const counters = {};
+  (database.products || []).forEach((p) => {
+    if (!p.isGiftAddon && !p.productCode) {
+      const prefix = productPrefix(p.category);
+      counters[prefix] = counters[prefix] || 0;
+      let code;
+      do { counters[prefix] += 1; code = `DM-${prefix}-${String(counters[prefix]).padStart(3, "0")}`; } while (usedCodes.has(code));
+      p.productCode = code;
+      usedCodes.add(code);
+      needsUpgrade = true;
+    }
+    if (!p.isGiftAddon && p.stockQty === undefined) { p.stockQty = 999999; p.stockConfigured = false; needsUpgrade = true; }
+    if (!p.isGiftAddon && p.lowStockThreshold === undefined) { p.lowStockThreshold = 5; needsUpgrade = true; }
+    if (!p.isGiftAddon && (!p.variantStock || typeof p.variantStock !== "object")) { p.variantStock = {}; needsUpgrade = true; }
+    if (!p.isGiftAddon && (!p.variantStockConfigured || typeof p.variantStockConfigured !== "object")) {
+      p.variantStockConfigured = {};
+      if (p.stockConfigured !== false && Array.isArray(p.sizes)) {
+        p.sizes.forEach((size) => { if (Object.prototype.hasOwnProperty.call(p.variantStock, size)) p.variantStockConfigured[size] = true; });
+      }
+      needsUpgrade = true;
+    }
+  });
+
   // Backfill the gift add-on product for databases that existed before
   // this feature was added, so the offer works without a manual admin step.
   if (Array.isArray(database.products) && !database.products.some((p) => p.id === GIFT_ADDON.productId)) {
@@ -1015,7 +1155,26 @@ function ensureShape(database) {
   // "pending" since there's no reliable way to know which of them were
   // actually confirmed on WhatsApp.
   if (Array.isArray(database.orders)) {
+    const usedOrderNumbers = new Set(database.orders.map((o) => String(o.orderNumber || "")).filter(Boolean));
+    let orderFallbackCounter = 10000000;
+    const nextLegacyOrderNumber = () => {
+      let candidate;
+      do {
+        orderFallbackCounter += 1;
+        if (orderFallbackCounter > 99999999) orderFallbackCounter = 10000001;
+        candidate = `DM-${String(orderFallbackCounter).padStart(8, "0")}`;
+      } while (usedOrderNumbers.has(candidate));
+      usedOrderNumbers.add(candidate);
+      return candidate;
+    };
+
     database.orders.forEach((o) => {
+      // Customer-facing Order ID is permanent. Older orders that predate the
+      // Order ID feature receive one once and it is never regenerated later.
+      if (!o.orderNumber) {
+        o.orderNumber = nextLegacyOrderNumber();
+        needsUpgrade = true;
+      }
       if (!o.paymentStatus) {
         o.paymentStatus = "pending";
         needsUpgrade = true;
@@ -1024,6 +1183,12 @@ function ensureShape(database) {
         o.paidAt = null;
         needsUpgrade = true;
       }
+      if (!Array.isArray(o.statusHistory)) {
+        o.statusHistory = [{ status: o.status || "New", at: o.createdAt || new Date().toISOString() }];
+        needsUpgrade = true;
+      }
+      if (o.inventoryDeducted === undefined) { o.inventoryDeducted = false; needsUpgrade = true; }
+      if (o.inventoryRestored === undefined) { o.inventoryRestored = false; needsUpgrade = true; }
     });
   }
 
@@ -1055,16 +1220,42 @@ function writeDatabase(data) {
   cachedData = data;
   const { products, ...restOfData } = data;
 
-  if (mongoCollection) {
-    mongoCollection
-      .replaceOne({ _id: DOC_ID }, { _id: DOC_ID, ...restOfData }, { upsert: true })
-      .catch((err) => {
-        console.error("Failed to persist database to MongoDB:", err.message);
-      });
-  }
+  // writeDatabase() is called from ~90 places across the app (order
+  // placement, gift-code toggles, settings changes, seller password
+  // resets — almost anything). Most of those never touch the products
+  // array at all, so we only re-save the products collection (bulkWrite +
+  // deleteMany over every product, incl. base64 photos) when something
+  // about the products actually changed since the last successful save.
+  // Everything is queued through writeQueue so writes to Mongo always
+  // complete in the same order they were requested in.
+  const fingerprint = fingerprintProducts(products);
+  const productsChanged = fingerprint !== lastSavedProductsFingerprint;
 
-  productsStore.saveAllProducts(products || []).catch((err) => {
-    console.error("Failed to persist products to MongoDB:", err.message);
+  writeQueue = writeQueue.then(async () => {
+    if (mongoCollection) {
+      try {
+        await mongoCollection.replaceOne({ _id: DOC_ID }, { _id: DOC_ID, ...restOfData }, { upsert: true });
+      } catch (err) {
+        console.error("Failed to persist database to MongoDB:", err.message);
+      }
+    }
+
+    if (productsChanged) {
+      try {
+        await productsStore.saveAllProducts(products || []);
+        lastSavedProductsFingerprint = fingerprint;
+      } catch (err) {
+        console.error("Failed to persist products to MongoDB:", err.message);
+        // Leave lastSavedProductsFingerprint unchanged so the NEXT
+        // writeDatabase() call retries this save instead of wrongly
+        // treating it as already-saved.
+      }
+    }
+  });
+  // Never let one failed write silently kill the whole chain for every
+  // write that comes after it.
+  writeQueue = writeQueue.catch((err) => {
+    console.error("Unexpected error in database write queue:", err.message);
   });
 
   return data;

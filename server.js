@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
@@ -12,6 +13,17 @@ const compression = require("compression");
 const { connectDB, readDatabase, writeDatabase, getNextId, GIFT_ADDON } = require("./database");
 
 const app = express();
+
+// Fallback WhatsApp destination + URL builder — used across the products,
+// product-detail, and callback-request endpoints below. Must be declared at
+// module scope (not nested inside any single route handler) since more than
+// one handler references it.
+const DESIGN_MAKERS_WHATSAPP = "https://wa.me/917004847813";
+
+function buildWhatsAppUrl(number) {
+  const digits = String(number || "").replace(/\D/g, "");
+  return digits.length >= 8 ? `https://wa.me/${digits}` : DESIGN_MAKERS_WHATSAPP;
+}
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
 
@@ -93,6 +105,58 @@ async function sendMail(to, subject, html) {
   }
 }
 
+
+// ================================
+// CUSTOMER MARKETING / OFFERS
+// ================================
+// Marketing is intentionally separate from transactional email. A customer
+// can opt out of offers/product updates without losing OTP, order or delivery
+// messages. Unsubscribe links are signed so a customer cannot change an ID in
+// the URL and unsubscribe someone else.
+function makeMarketingToken(customerId) {
+  const payload = `${customerId}.${Date.now()}`;
+  const sig = crypto.createHmac("sha256", JWT_SECRET).update(`marketing-unsubscribe:${payload}`).digest("hex");
+  return Buffer.from(`${payload}.${sig}`).toString("base64url");
+}
+
+function verifyMarketingToken(token) {
+  try {
+    const raw = Buffer.from(String(token || ""), "base64url").toString("utf8");
+    const parts = raw.split(".");
+    if (parts.length !== 3) return null;
+    const [id, ts, sig] = parts;
+    if (!/^\d+$/.test(id) || !/^\d+$/.test(ts)) return null;
+    const age = Date.now() - Number(ts);
+    if (age < 0 || age > 180 * 24 * 60 * 60 * 1000) return null;
+    const expected = crypto.createHmac("sha256", JWT_SECRET).update(`marketing-unsubscribe:${id}.${ts}`).digest("hex");
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+    return Number(id);
+  } catch (_) { return null; }
+}
+
+function marketingProductHtml(product, baseUrl) {
+  const name = escapeHtml(product.name || "Product");
+  const price = Number(product.price || 0).toLocaleString("en-IN");
+  const href = `${baseUrl}/index.html?product=${encodeURIComponent(product.id)}`;
+  const image = typeof product.image === "string" && product.image.startsWith("data:image/") && product.image.length < 350000
+    ? `<img src="${product.image}" alt="${name}" style="width:100%;max-width:240px;height:180px;object-fit:cover;border-radius:12px;display:block;margin:0 auto 12px;">`
+    : "";
+  return `<div style="display:inline-block;vertical-align:top;width:240px;max-width:100%;margin:8px;text-align:center;border:1px solid #ead8d0;border-radius:14px;padding:14px;background:#fffaf7;box-sizing:border-box;">${image}<div style="font-weight:800;color:#5b2b24;font-size:16px;line-height:1.3;">${name}</div><div style="font-weight:800;color:#a56a2a;font-size:18px;margin:7px 0 12px;">₹${price}</div><a href="${href}" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:9px 15px;border-radius:9px;font-weight:700;">View Product</a></div>`;
+}
+
+function buildMarketingEmail(campaign, unsubscribeToken) {
+  const title = escapeHtml(campaign.title || "Design Makers Update");
+  const subjectText = escapeHtml(campaign.heading || campaign.title || "Design Makers");
+  const body = escapeHtml(campaign.message || "").replace(/\n/g, "<br>");
+  const products = Array.isArray(campaign.products) ? campaign.products : [];
+  const baseUrl = String(campaign.baseUrl || "").replace(/\/$/, "");
+  const cards = products.length ? `<div style="text-align:center;margin:14px -4px;">${products.map(p => marketingProductHtml(p, baseUrl)).join("")}</div>` : "";
+  const button = campaign.buttonUrl ? `<p style="text-align:center;margin:22px 0;"><a href="${escapeHtml(campaign.buttonUrl)}" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:11px 20px;border-radius:10px;font-weight:800;">${escapeHtml(campaign.buttonText || "View Now")}</a></p>` : "";
+  const unsubscribeUrl = `${baseUrl}/api/marketing/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
+  return `<!doctype html><html><body style="margin:0;background:#f9f2ee;font-family:Arial,sans-serif;color:#33231f;"><div style="max-width:680px;margin:0 auto;padding:24px 14px;"><div style="background:#fff;border:1px solid #ead8d0;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(72,38,28,.08);"><div style="text-align:center;font-size:12px;letter-spacing:2px;font-weight:800;color:#a56a2a;margin-bottom:10px;">DESIGN MAKERS</div><h1 style="text-align:center;color:#6b3028;font-size:26px;margin:0 0 16px;">${subjectText}</h1><div style="font-size:15px;line-height:1.65;">${body}</div>${cards}${button}<hr style="border:0;border-top:1px solid #ead8d0;margin:28px 0 16px;"><p style="font-size:12px;color:#806e68;text-align:center;margin:0;">You're receiving this because you're subscribed to Design Makers offers & product updates.</p><p style="font-size:12px;text-align:center;margin:9px 0 0;"><a href="${unsubscribeUrl}" style="color:#6b3028;">Unsubscribe from offers &amp; product updates</a></p></div></div></body></html>`;
+}
+
+
 // ================================
 // GOOGLE SIGN-IN (customers + sellers)
 // ================================
@@ -111,6 +175,44 @@ async function verifyGoogleToken(idToken) {
   const payload = ticket.getPayload();
   if (!payload || !payload.email) throw new Error("Could not read your Google account.");
   return { email: payload.email, name: payload.name || "", picture: payload.picture || "", googleId: payload.sub };
+}
+
+// ================================
+// SEO HELPERS
+// ================================
+// Public site origin used to build absolute URLs for canonical tags, Open
+// Graph/social-share previews, and the sitemap. Overridable via env var in
+// case the production domain ever differs from the current default —
+// nothing else about routing changes based on this.
+const SITE_URL = (process.env.SITE_URL || "https://designmakers.site").replace(/\/+$/, "");
+
+// Same slugify logic as buildProductUrl()/slugifyProductName() in
+// index.html — kept identical so server-generated canonical/sitemap URLs
+// always match the links the frontend itself builds and shares.
+function slugifyProductName(name) {
+  return (
+    (name || "product")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-+|-+$)/g, "") || "product"
+  );
+}
+
+function escapeHtml(str) {
+  return String(str == null ? "" : str).replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  })[ch]);
+}
+
+function escapeJsonForHtml(obj) {
+  // Safe to inline inside a <script type="application/ld+json"> tag —
+  // escapes "</" so a stray "</script" inside product text can't break out.
+  return JSON.stringify(obj).replace(/</g, "\\u003c");
 }
 
 // Generates a seller ID like DM-SLR-001 and a random 10-character password.
@@ -173,6 +275,62 @@ function getClientIp(req) {
 // variables for production; this fallback only exists so local/dev runs
 // don't crash, and is now at least consistent within itself.
 const JWT_SECRET = process.env.JWT_SECRET || "dev-only-secret-change-me-in-production";
+
+// ================================
+// PII ENCRYPTION (Aadhaar / PAN / bank account / IFSC — at rest)
+// ================================
+// Seller applications collect real government ID and banking details.
+// Those four fields are encrypted (AES-256-GCM) before they're ever
+// written to the database, and only decrypted back when an authenticated,
+// authorized admin endpoint actually needs to display them. Everything
+// else about these fields (which endpoints see them, who's allowed to
+// call those endpoints) is unchanged — this only protects them if the
+// database itself is ever read outside the app (a leaked backup, DB
+// access misconfigured, etc).
+// Set PII_ENCRYPTION_KEY in your host's environment variables to a
+// random 64-character hex string (32 bytes) — e.g. generate one with:
+//   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+// If it's not set, these fields are stored in plaintext exactly as
+// before (so local/dev runs still work) and a warning is logged.
+const PII_ENCRYPTION_KEY = (() => {
+  const raw = process.env.PII_ENCRYPTION_KEY || "";
+  if (/^[0-9a-fA-F]{64}$/.test(raw)) return Buffer.from(raw, "hex");
+  return null;
+})();
+
+if (!PII_ENCRYPTION_KEY) {
+  console.warn(
+    "⚠️  PII_ENCRYPTION_KEY is not set (or isn't a 64-character hex string) — " +
+      "seller Aadhaar/PAN/bank details will be stored in PLAINTEXT. Set a random " +
+      "32-byte hex key in your host's environment variables before going live: " +
+      "node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
+  );
+}
+
+function encryptPII(plainText) {
+  const value = String(plainText || "");
+  if (!value || !PII_ENCRYPTION_KEY) return value;
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", PII_ENCRYPTION_KEY, iv);
+  const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+  return `enc:v1:${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted.toString("hex")}`;
+}
+
+function decryptPII(value) {
+  if (typeof value !== "string" || !value.startsWith("enc:v1:")) return value; // plaintext / legacy record — return as-is
+  if (!PII_ENCRYPTION_KEY) return value; // can't decrypt without the key — surface the raw (unreadable) value rather than crash
+  try {
+    const [, , ivHex, authTagHex, dataHex] = value.split(":");
+    const decipher = crypto.createDecipheriv("aes-256-gcm", PII_ENCRYPTION_KEY, Buffer.from(ivHex, "hex"));
+    decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
+    const decrypted = Buffer.concat([decipher.update(Buffer.from(dataHex, "hex")), decipher.final()]);
+    return decrypted.toString("utf8");
+  } catch (error) {
+    console.error("decryptPII failed:", error.message);
+    return value;
+  }
+}
 
 const BOSS_ACCOUNT = {
   username: process.env.ADMIN1_USERNAME || "admin1",
@@ -269,6 +427,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+
 // ================================
 // BLOCK SERVER-SIDE FILES FROM STATIC SERVING
 // ================================
@@ -283,6 +442,7 @@ app.use((req, res, next) => {
   if (BLOCKED_STATIC_PATHS.test(req.path)) return res.status(404).end();
   next();
 });
+
 // Serve website files
 app.use(
   express.static(__dirname, {
@@ -407,6 +567,16 @@ const signupLimiter = makeLimiter(60, 20, "Too many attempts. Please try again l
 // the admin — no reason to let one IP flood that inbox.
 const resetRequestLimiter = makeLimiter(60, 5, "Too many reset requests. Please try again later.");
 
+// Directory exports contain customer/seller contact data. Sub-admins must
+// complete an email OTP challenge before the server returns any export rows.
+const exportOtpLimiter = makeLimiter(15, 5, "Too many export verification attempts. Please wait and try again.");
+
+// Guest order tracking is unauthenticated by nature (no account to sign
+// into), so it's the one lookup endpoint most exposed to enumeration —
+// tight limit, and the handler below requires an exact phone+order-number
+// match rather than a partial/fuzzy search.
+const trackOrderLimiter = makeLimiter(15, 10, "Too many lookup attempts. Please wait a few minutes and try again.");
+
 // ================================
 // ADMIN LOGIN
 // ================================
@@ -519,6 +689,8 @@ app.get("/api/admin/me", requireAdmin, (req, res) => {
     username: req.admin.username,
     role: req.admin.role,
     designation: account ? (account.designation || null) : null,
+    email: account ? (account.email || null) : null,
+    phone: account ? (account.phone || null) : null,
     canDeleteProducts: !!(account && account.canDeleteProducts),
   });
 });
@@ -536,7 +708,26 @@ function normalizeMobile(raw) {
 }
 
 function isValidMobile(mobile) {
-  return /^[6-9]\d{9}$/.test(mobile); // 10-digit Indian mobile number
+  return /^[6-9]\d{9}$/.test(mobile); // 10-digit Indian mobile number for legacy mobile/password login
+}
+
+function normalizeWhatsAppNumber(countryCode, number) {
+  let cc = String(countryCode || "").replace(/\D/g, "");
+  let local = String(number || "").trim();
+  const rawDigits = local.replace(/\D/g, "");
+  // If the client sends a full international number (for example +9198...),
+  // do not accidentally prepend the selected country code a second time.
+  if (String(number || "").trim().startsWith("+") && rawDigits.length >= 7) {
+    const knownCodes = [
+      "1","7","20","27","30","31","32","33","34","36","39","40","41","43","44","45","46","47","48","49","51","52","53","54","55","56","57","58","60","61","62","63","64","65","66","81","82","84","86","90","91","92","93","94","95","98","211","212","213","216","218","220","221","222","223","224","225","226","227","228","229","230","231","232","233","234","235","236","237","238","239","240","241","242","243","244","245","248","249","250","251","252","253","254","255","256","257","258","260","261","262","263","264","265","266","267","268","269","290","291","297","298","299","350","351","352","353","354","355","356","357","358","359","370","371","372","373","374","375","376","377","378","379","380","381","382","383","385","386","387","389","420","421","423","500","501","502","503","504","505","506","507","508","509","590","591","592","593","594","595","596","597","598","599","670","672","673","674","675","676","677","678","679","680","681","682","683","685","686","687","688","689","690","691","692","850","852","853","855","856","880","886","960","961","962","963","964","965","966","967","968","970","971","972","973","974","975","976","977","992","993","994","995","996","998"
+    ].sort((a,b) => b.length - a.length);
+    const matched = knownCodes.find(code => rawDigits.startsWith(code));
+    if (matched) { cc = matched; local = rawDigits.slice(matched.length); }
+  } else {
+    local = rawDigits;
+  }
+  if (!/^\d{1,4}$/.test(cc) || local.length < 4 || local.length > 15) return "";
+  return "+" + cc + local;
 }
 
 app.post("/api/customer/register", signupLimiter, (req, res) => {
@@ -568,6 +759,7 @@ app.post("/api/customer/register", signupLimiter, (req, res) => {
     picture: "",
     cart: [],
     role: "customer",
+    marketingOptIn: true,
     shopTitle: "",
     sellerStatus: "none",
     createdAt: new Date().toISOString(),
@@ -592,6 +784,7 @@ app.post("/api/customer/register", signupLimiter, (req, res) => {
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
+      marketingOptIn: customer.marketingOptIn !== false,
     },
   });
 });
@@ -646,6 +839,7 @@ app.post("/api/customer/login", loginLimiter, (req, res) => {
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
+      marketingOptIn: customer.marketingOptIn !== false,
     },
   });
 });
@@ -678,6 +872,7 @@ app.post("/api/customer/google-login", loginLimiter, async (req, res) => {
       picture: profile.picture || "",
       cart: [],
       role: "customer",
+      marketingOptIn: true,
       shopTitle: "",
       sellerStatus: "none",
       createdAt: new Date().toISOString(),
@@ -705,7 +900,37 @@ app.post("/api/customer/google-login", loginLimiter, async (req, res) => {
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
-      needsProfileCompletion: !customer.mobile || !customer.passwordHash,
+      marketingOptIn: customer.marketingOptIn !== false,
+      needsProfileCompletion: !customer.mobile,
+    },
+  });
+});
+
+// Save a Google customer's WhatsApp number. No OTP/verification and no password are required.
+// The country calling code is stored with the number so international WhatsApp numbers work.
+app.post("/api/customer/save-whatsapp-number", requireCustomer, (req, res) => {
+  const mobile = normalizeWhatsAppNumber(req.body && req.body.countryCode, req.body && req.body.number);
+  if (!mobile) return res.status(400).json({ success: false, message: "Enter a valid WhatsApp number and country code." });
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
+
+  const duplicate = database.customers.find((c) => c.id !== customer.id && c.mobile === mobile);
+  if (duplicate) return res.status(409).json({ success: false, message: "This WhatsApp number is already linked to another customer account. Please use a different number." });
+
+  customer.mobile = mobile;
+  customer.whatsappNumber = mobile;
+  customer.whatsappNumberSavedAt = new Date().toISOString();
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    message: "WhatsApp number saved successfully.",
+    customer: {
+      id: customer.id, name: customer.name, email: customer.email || "", mobile: customer.mobile,
+      picture: customer.picture || "", role: customer.role, shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus, marketingOptIn: customer.marketingOptIn !== false, needsProfileCompletion: false,
     },
   });
 });
@@ -753,6 +978,7 @@ app.post("/api/customer/complete-account", requireCustomer, (req, res) => {
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
+      marketingOptIn: customer.marketingOptIn !== false,
       needsProfileCompletion: false,
     },
   });
@@ -771,9 +997,121 @@ app.get("/api/customer/me", requireCustomer, (req, res) => {
       role: c.role,
       shopTitle: c.shopTitle,
       sellerStatus: c.sellerStatus,
-      needsProfileCompletion: !c.mobile || !c.passwordHash,
+      marketingOptIn: c.marketingOptIn !== false,
+      needsProfileCompletion: !c.mobile,
     },
   });
+});
+
+
+// Customer marketing preference. This is account-scoped: a customer can only
+// change their own subscription state.
+app.put("/api/customer/marketing-preference", requireCustomer, (req, res) => {
+  const optIn = req.body && req.body.subscribed === true;
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
+  customer.marketingOptIn = optIn;
+  customer.marketingPreferenceUpdatedAt = new Date().toISOString();
+  writeDatabase(database);
+  res.json({ success: true, subscribed: optIn, message: optIn ? "You are subscribed to offers and product updates." : "You have been unsubscribed from promotional emails." });
+});
+
+app.get("/api/marketing/unsubscribe", (req, res) => {
+  const customerId = verifyMarketingToken(req.query && req.query.token);
+  if (!customerId) {
+    return res.status(400).send(`<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f9f2ee;padding:40px;text-align:center;color:#4a2a23;"><div style="max-width:520px;margin:auto;background:#fff;padding:28px;border-radius:16px;border:1px solid #ead8d0;"><h2>Unsubscribe link expired</h2><p>Please open your Design Makers account and use Profile → Email Preferences.</p><a href="/index.html" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:10px 16px;border-radius:9px;">Go to Design Makers</a></div></body></html>`);
+  }
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === customerId);
+  if (!customer) return res.status(404).send("Account not found.");
+  customer.marketingOptIn = false;
+  customer.marketingPreferenceUpdatedAt = new Date().toISOString();
+  writeDatabase(database);
+  res.send(`<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f9f2ee;padding:40px;text-align:center;color:#4a2a23;"><div style="max-width:520px;margin:auto;background:#fff;padding:28px;border-radius:16px;border:1px solid #ead8d0;"><div style="font-size:12px;letter-spacing:2px;font-weight:800;color:#a56a2a;">DESIGN MAKERS</div><h2>You're unsubscribed</h2><p>You won't receive promotional offers or new-product emails. Essential order, login and account emails are unaffected.</p><p>You can subscribe again anytime from <b>Profile → Email Preferences</b>.</p><a href="/index.html" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:10px 16px;border-radius:9px;">Back to Design Makers</a></div></body></html>`);
+});
+
+// ================================
+// ADMIN MARKETING CAMPAIGNS
+// ================================
+app.get("/api/admin/marketing/campaigns", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const campaigns = Array.isArray(database.marketingCampaigns) ? database.marketingCampaigns : [];
+  res.json({ success: true, campaigns: campaigns.slice().sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0)) });
+});
+
+app.get("/api/admin/marketing/customers", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const customers = (database.customers || []).filter(c => c.email).map(c => ({ id:c.id, name:c.name||"Customer", email:c.email, marketingOptIn:c.marketingOptIn !== false })).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  res.json({ success:true, customers });
+});
+
+app.get("/api/admin/marketing/recipients", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const customers = (database.customers || []).filter(c => c.email && c.marketingOptIn !== false);
+  const emails = [...new Set(customers.map(c => String(c.email).trim().toLowerCase()).filter(Boolean))];
+  res.json({ success: true, count: emails.length });
+});
+
+function normalizeCampaign(campaign, database, baseUrl) {
+  const type = ["new-products", "offer", "update"].includes(campaign.type) ? campaign.type : "update";
+  const selectedIds = Array.isArray(campaign.productIds) ? [...new Set(campaign.productIds.map(Number).filter(Number.isFinite))] : [];
+  const products = selectedIds.map(id => (database.products || []).find(p => Number(p.id) === id)).filter(Boolean).map(p => ({ id:p.id, name:p.name, price:p.price, image:p.image || "" }));
+  const title = String(campaign.title || "").trim().slice(0,160);
+  const heading = String(campaign.heading || title).trim().slice(0,200);
+  const message = String(campaign.message || "").trim().slice(0,5000);
+  if (!title || !message) throw new Error("Campaign title and message are required.");
+  if (type === "new-products" && !products.length) throw new Error("Select at least one product for a new-product announcement.");
+  const buttonUrl = String(campaign.buttonUrl||"").trim().slice(0,500);
+  if (buttonUrl && !/^https?:\/\//i.test(buttonUrl)) throw new Error("Button URL must start with http:// or https://.");
+  return { type,title,heading,message,productIds:selectedIds,products,buttonText:String(campaign.buttonText||"").trim().slice(0,60),buttonUrl,baseUrl };
+}
+
+function getMarketingBaseUrl(req) {
+  return String(process.env.PUBLIC_BASE_URL || process.env.BASE_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
+}
+
+app.post("/api/admin/marketing/test", requireAdmin, requireBoss, async (req, res) => {
+  try {
+    const database = readDatabase();
+    const campaign = normalizeCampaign(req.body || {}, database, getMarketingBaseUrl(req));
+    const to = ADMIN_NOTIFY_EMAIL || GMAIL_USER;
+    if (!to) return res.status(400).json({success:false,message:"ADMIN_NOTIFY_EMAIL or GMAIL_USER must be configured for test emails."});
+    const result = await sendMail(to, `[TEST] ${campaign.title}`, buildMarketingEmail(campaign, makeMarketingToken(0)));
+    if (!result.sent) return res.status(502).json({success:false,message:result.reason || "Test email could not be sent."});
+    res.json({success:true,message:`Test email sent to ${to}.`});
+  } catch(e) { res.status(400).json({success:false,message:e.message || "Could not create test email."}); }
+});
+
+app.post("/api/admin/marketing/send", requireAdmin, requireBoss, async (req, res) => {
+  try {
+    const database = readDatabase();
+    const campaign = normalizeCampaign(req.body || {}, database, getMarketingBaseUrl(req));
+    let customers;
+    if (req.body.audience === "selected") {
+      const ids = new Set((Array.isArray(req.body.customerIds) ? req.body.customerIds : []).map(Number));
+      customers = (database.customers || []).filter(c => ids.has(Number(c.id)) && c.email && c.marketingOptIn !== false);
+    } else {
+      customers = (database.customers || []).filter(c => c.email && c.marketingOptIn !== false);
+    }
+    const byEmail = new Map();
+    customers.forEach(c => { const email=String(c.email||"").trim().toLowerCase(); if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) byEmail.set(email,c); });
+    const recipients=[...byEmail.values()];
+    if (!recipients.length) return res.status(400).json({success:false,message:"No subscribed customers with valid email addresses were found."});
+    if (recipients.length > 5000) return res.status(400).json({success:false,message:"This campaign exceeds the 5,000-recipient safety limit. Use a proper bulk-email provider before sending a larger campaign."});
+    if (!Array.isArray(database.marketingCampaigns)) database.marketingCampaigns=[];
+    const record={id:getNextId(database.marketingCampaigns),type:campaign.type,title:campaign.title,heading:campaign.heading,message:campaign.message,productIds:campaign.productIds,buttonText:campaign.buttonText,buttonUrl:campaign.buttonUrl,audience:req.body.audience === "selected" ? "selected" : "all-subscribed",recipientCount:recipients.length,sent:0,failed:0,status:"sending",createdAt:new Date().toISOString(),sentAt:null};
+    database.marketingCampaigns.unshift(record); writeDatabase(database);
+    for(let i=0;i<recipients.length;i+=5){
+      const batch=recipients.slice(i,i+5);
+      const results=await Promise.all(batch.map(c=>sendMail(c.email,campaign.title,buildMarketingEmail(campaign,makeMarketingToken(c.id)))));
+      results.forEach(r=>{if(r.sent)record.sent++;else record.failed++;});
+      writeDatabase(database);
+    }
+    record.status=record.failed ? (record.sent ? "partial" : "failed") : "sent";
+    record.sentAt=new Date().toISOString(); writeDatabase(database);
+    res.json({success:true,campaign:{id:record.id,title:record.title,status:record.status,recipientCount:record.recipientCount,sent:record.sent,failed:record.failed}});
+  } catch(e) { console.error("Marketing campaign failed:",e); res.status(400).json({success:false,message:e.message || "Campaign failed."}); }
 });
 
 // Customer uploads / changes their profile picture (stored as a data URL).
@@ -842,6 +1180,62 @@ app.put("/api/customer/cart", requireCustomer, (req, res) => {
     return res.status(404).json({ success: false, message: "Account not found." });
   }
   customer.cart = clean;
+  writeDatabase(database);
+  res.json({ success: true });
+});
+
+// ================================
+// CUSTOMER EXTRAS: wishlist, recently-viewed, saved addresses
+// ================================
+// Previously these lived only in browser localStorage (see AUDIT-REPORT.md,
+// section 4) — functional on one device, but two devices for the same
+// account showed completely different wishlists/addresses. Synced here the
+// same way the cart already is: saved to the account, pulled and merged on
+// sign-in from any device.
+app.get("/api/customer/extras", requireCustomer, (req, res) => {
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  res.json({
+    success: true,
+    wishlist: (customer && Array.isArray(customer.wishlist)) ? customer.wishlist : [],
+    recentlyViewed: (customer && Array.isArray(customer.recentlyViewed)) ? customer.recentlyViewed : [],
+    addresses: (customer && Array.isArray(customer.addresses)) ? customer.addresses : [],
+  });
+});
+
+app.put("/api/customer/extras", requireCustomer, (req, res) => {
+  const { wishlist, recentlyViewed, addresses } = req.body || {};
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) {
+    return res.status(404).json({ success: false, message: "Account not found." });
+  }
+
+  if (wishlist !== undefined) {
+    if (!Array.isArray(wishlist)) {
+      return res.status(400).json({ success: false, message: "Wishlist must be a list." });
+    }
+    customer.wishlist = wishlist.map((n) => Number(n)).filter((n) => Number.isFinite(n)).slice(0, 100);
+  }
+  if (recentlyViewed !== undefined) {
+    if (!Array.isArray(recentlyViewed)) {
+      return res.status(400).json({ success: false, message: "Recently viewed must be a list." });
+    }
+    customer.recentlyViewed = recentlyViewed.map((n) => Number(n)).filter((n) => Number.isFinite(n)).slice(0, 12);
+  }
+  if (addresses !== undefined) {
+    if (!Array.isArray(addresses)) {
+      return res.status(400).json({ success: false, message: "Addresses must be a list." });
+    }
+    customer.addresses = addresses
+      .slice(0, 10)
+      .map((a) => ({
+        label: String((a && a.label) || "Address").slice(0, 40),
+        text: String((a && a.text) || "").slice(0, 300),
+      }))
+      .filter((a) => a.text);
+  }
+
   writeDatabase(database);
   res.json({ success: true });
 });
@@ -937,12 +1331,15 @@ app.post("/api/seller-applications", signupLimiter, async (req, res) => {
     state,
     pincode,
     aadhaarLast4: aadhaar.slice(-4),
-    aadhaarFull: aadhaar,
-    panNumber,
+    // aadhaarLast4 is kept in plaintext on purpose — it's what the
+    // duplicate-application check above matches against, and by itself
+    // (4 digits) it isn't sensitive the way the full number is.
+    aadhaarFull: encryptPII(aadhaar),
+    panNumber: encryptPII(panNumber),
     dob,
     gender,
-    bankAccountNumber,
-    ifscCode,
+    bankAccountNumber: encryptPII(bankAccountNumber),
+    ifscCode: encryptPII(ifscCode),
     upiId,
     gstNumber,
     aadhaarPhoto,
@@ -1060,49 +1457,8 @@ app.post("/api/seller/google-login", loginLimiter, async (req, res) => {
 // the admin panel; the boss reviews it and clicks a button to generate a
 // fresh password and email it to the seller.
 
-app.post("/api/seller/forgot-password", resetRequestLimiter, async (req, res) => {
-  const sellerId = String((req.body || {}).sellerId || "").trim();
-  if (!sellerId) {
-    return res.status(400).json({ success: false, message: "Enter your Seller ID." });
-  }
-
-  const database = readDatabase();
-  const seller = database.sellers.find((s) => s.sellerId === sellerId);
-  if (!seller) {
-    return res.status(404).json({ success: false, message: "We couldn't find that Seller ID." });
-  }
-
-  if (!Array.isArray(database.sellerPasswordResetRequests)) database.sellerPasswordResetRequests = [];
-
-  const alreadyPending = database.sellerPasswordResetRequests.some(
-    (r) => r.sellerRecordId === seller.id && r.status === "pending",
-  );
-
-  if (!alreadyPending) {
-    database.sellerPasswordResetRequests.push({
-      id: getNextId(database.sellerPasswordResetRequests),
-      sellerRecordId: seller.id,
-      sellerId: seller.sellerId,
-      name: seller.name,
-      shopTitle: seller.shopTitle,
-      email: seller.email,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    });
-    writeDatabase(database);
-
-    sendMail(
-      ADMIN_NOTIFY_EMAIL,
-      "Seller password reset request — Design Makers",
-      `<p>${seller.name} (${seller.sellerId}, ${seller.shopTitle}) has requested a password reset.</p>
-       <p>Resolve it from the admin panel's Sellers tab.</p>`,
-    );
-  }
-
-  res.json({
-    success: true,
-    message: "Your request has been sent to the admin — they'll contact you with a new password once it's resolved.",
-  });
+app.post("/api/seller/forgot-password", (req, res) => {
+  return res.status(403).json({ success: false, message: "Self-service password reset is disabled. Please contact Om/main admin manually." });
 });
 
 // Boss/admin: view pending seller password-reset requests.
@@ -1199,28 +1555,7 @@ function requireSeller(req, res, next) {
 // mustChangePassword, since after this call the seller has a password only
 // they know.
 app.post("/api/seller/change-password", requireSeller, (req, res) => {
-  const { currentPassword, newPassword } = req.body || {};
-  if (!currentPassword || !newPassword) {
-    return res.status(400).json({ success: false, message: "Current and new password are both required." });
-  }
-  if (String(newPassword).length < 6) {
-    return res.status(400).json({ success: false, message: "New password must be at least 6 characters." });
-  }
-
-  const database = readDatabase();
-  const seller = database.sellers.find((s) => s.id === req.seller.id);
-  if (!seller) return res.status(404).json({ success: false, message: "Seller account not found." });
-
-  if (!bcrypt.compareSync(currentPassword, seller.passwordHash)) {
-    return res.status(401).json({ success: false, message: "Current password is incorrect." });
-  }
-
-  seller.passwordHash = bcrypt.hashSync(newPassword, 10);
-  delete seller.mustChangePassword;
-  delete seller.pendingPlainPassword;
-  writeDatabase(database);
-
-  res.json({ success: true, message: "Password updated. Use your new password next time you log in." });
+  return res.status(403).json({ success: false, message: "Seller passwords are controlled by the main admin. Please contact Om to change your password." });
 });
 
 // ================================
@@ -1266,6 +1601,8 @@ app.get("/api/admin/customers", requireAdmin, (req, res) => {
       return {
         id: c.id,
         name: c.name,
+        email: c.email || null,
+        city: c.city || "",
         mobile: c.mobile || null,
         role: c.role,
         shopTitle: c.shopTitle,
@@ -1274,9 +1611,162 @@ app.get("/api/admin/customers", requireAdmin, (req, res) => {
         orderCount: theirOrders.length,
         // Older test/Google-era rows have no mobile — flag them so they can be cleaned up.
         legacy: !c.mobile,
+        marketingOptIn: c.marketingOptIn !== false,
       };
     });
   res.json({ success: true, customers, ...meta });
+});
+
+// ================================
+// DIRECTORY EXPORT SECURITY
+// ================================
+// The boss account can export directly. Sub-admins must receive a one-time
+// code at their registered email and verify it before the server returns any
+// customer/seller directory rows. Phone is stored as the second contact field
+// for the sub-admin, but it is not used for OTP delivery.
+function maskEmail(email) {
+  const value = String(email || "").trim();
+  const at = value.indexOf("@");
+  if (at <= 1) return "your registered email";
+  const local = value.slice(0, at);
+  const domain = value.slice(at + 1);
+  const shown = local.slice(0, Math.min(2, local.length));
+  return shown + "***@" + domain;
+}
+
+function hashExportSecret(value) {
+  return crypto.createHash("sha256").update(String(value || "")).digest("hex");
+}
+
+function cleanExportSecurity(database) {
+  const now = Date.now();
+  if (!Array.isArray(database.adminExportOtps)) database.adminExportOtps = [];
+  if (!Array.isArray(database.adminExportGrants)) database.adminExportGrants = [];
+  database.adminExportOtps = database.adminExportOtps.filter((x) => !x.expiresAt || new Date(x.expiresAt).getTime() > now);
+  database.adminExportGrants = database.adminExportGrants.filter((x) => !x.expiresAt || new Date(x.expiresAt).getTime() > now);
+}
+
+function validExportTarget(kind, format) {
+  return ["customers", "sellers"].includes(kind) && ["xlsx", "pdf"].includes(format);
+}
+
+function buildExportOtpEmail({ username, otp, kind, format }) {
+  const label = kind === "customers" ? "Customer Directory" : "Live Seller Directory";
+  const fileType = format === "xlsx" ? "Excel" : "PDF";
+  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;line-height:1.5;color:#2f2521;">
+    <h2 style="color:#8a1c42;margin-bottom:6px;">Design Makers export verification</h2>
+    <p>Hi ${escapeHtml(username)},</p>
+    <p>A download was requested for the <b>${label}</b> in <b>${fileType}</b> format.</p>
+    <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:18px 20px;margin:18px 0;text-align:center;">
+      <div style="font-size:12px;color:#8c7d78;">Your one-time verification code</div>
+      <div style="font-size:32px;letter-spacing:8px;font-weight:800;color:#8a1c42;margin-top:6px;">${otp}</div>
+      <div style="font-size:12px;color:#8c7d78;margin-top:8px;">Expires in 10 minutes. Do not share this code.</div>
+    </div>
+    <p>If you did not request this download, you can ignore this email.</p>
+    <p>— Design Makers</p>
+  </div>`;
+}
+
+app.post("/api/admin/export/request-otp", exportOtpLimiter, requireAdmin, async (req, res) => {
+  if (req.admin.role === "boss") {
+    return res.json({ success: true, requiresOtp: false });
+  }
+  const kind = String((req.body || {}).kind || "");
+  const format = String((req.body || {}).format || "");
+  if (!validExportTarget(kind, format)) {
+    return res.status(400).json({ success: false, message: "Invalid export request." });
+  }
+  const database = readDatabase();
+  cleanExportSecurity(database);
+  const account = database.admins.find((a) => a.username === req.admin.username);
+  if (!account) return res.status(403).json({ success: false, message: "Admin account not found." });
+  const email = String(account.email || "").trim().toLowerCase();
+  if (!email) {
+    return res.status(400).json({ success: false, message: "No registered email is set for your account. Ask Om to add your email and phone number in the Admins section." });
+  }
+  const otp = String(crypto.randomInt(100000, 1000000));
+  const requestId = crypto.randomUUID();
+  database.adminExportOtps.push({
+    requestId,
+    username: req.admin.username,
+    sessionId: req.admin.sessionId,
+    kind,
+    format,
+    otpHash: hashExportSecret(otp),
+    attempts: 0,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
+  });
+  writeDatabase(database);
+  const emailResult = await sendMail(email, "Design Makers export verification code", buildExportOtpEmail({ username: req.admin.username, otp, kind, format }));
+  if (!emailResult.sent) {
+    const db2 = readDatabase();
+    db2.adminExportOtps = (db2.adminExportOtps || []).filter((x) => x.requestId !== requestId);
+    writeDatabase(db2);
+    return res.status(503).json({ success: false, message: "Email delivery is not configured or failed. Please ask Om to configure the admin email service." });
+  }
+  res.json({ success: true, requestId, emailMasked: maskEmail(email), expiresInSeconds: 600 });
+});
+
+app.post("/api/admin/export/verify-otp", requireAdmin, (req, res) => {
+  if (req.admin.role === "boss") return res.json({ success: true, exportGrant: null });
+  const requestId = String((req.body || {}).requestId || "");
+  const otp = String((req.body || {}).otp || "").trim();
+  const database = readDatabase();
+  cleanExportSecurity(database);
+  const request = (database.adminExportOtps || []).find((x) => x.requestId === requestId && x.username === req.admin.username && x.sessionId === req.admin.sessionId);
+  if (!request) return res.status(400).json({ success: false, message: "This OTP request is invalid or expired." });
+  if (request.attempts >= 5) return res.status(429).json({ success: false, message: "Too many incorrect OTP attempts. Request a new code." });
+  request.attempts += 1;
+  if (!/^\d{6}$/.test(otp) || hashExportSecret(otp) !== request.otpHash) {
+    writeDatabase(database);
+    return res.status(401).json({ success: false, message: "Incorrect OTP. Please check your email and try again." });
+  }
+  database.adminExportOtps = database.adminExportOtps.filter((x) => x.requestId !== requestId);
+  const rawGrant = crypto.randomBytes(32).toString("hex");
+  database.adminExportGrants.push({
+    grantHash: hashExportSecret(rawGrant),
+    username: req.admin.username,
+    sessionId: req.admin.sessionId,
+    kind: request.kind,
+    format: request.format,
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    used: false,
+  });
+  writeDatabase(database);
+  res.json({ success: true, exportGrant: rawGrant });
+});
+
+function requireDirectoryExportAccess(req, kind) {
+  if (req.admin.role === "boss") return { ok: true };
+  const grant = String(req.headers["x-export-grant"] || "");
+  if (!grant) return { ok: false, status: 403, message: "Email verification is required before a sub-admin can download exports." };
+  const database = readDatabase();
+  cleanExportSecurity(database);
+  const item = (database.adminExportGrants || []).find((x) => x.grantHash === hashExportSecret(grant) && x.username === req.admin.username && x.sessionId === req.admin.sessionId && x.kind === kind && !x.used);
+  if (!item) return { ok: false, status: 403, message: "Export verification is missing, expired, or already used. Please verify again." };
+  item.used = true;
+  item.usedAt = new Date().toISOString();
+  writeDatabase(database);
+  return { ok: true };
+}
+
+// Flat customer export for authorized admins. Only fields needed for the
+// customer directory are returned; no passwords or internal secrets.
+app.get("/api/admin/customers/export", requireAdmin, (req, res) => {
+  const access = requireDirectoryExportAccess(req, "customers");
+  if (!access.ok) return res.status(access.status).json({ success: false, message: access.message });
+  const database = readDatabase();
+  const customers = (database.customers || [])
+    .slice()
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .map((c) => ({
+      name: c.name || "",
+      city: c.city || "",
+      email: c.email || "",
+      mobile: c.mobile || "",
+    }));
+  res.json({ success: true, customers });
 });
 
 // Full details for one customer, including their order history.
@@ -1311,6 +1801,7 @@ app.get("/api/admin/customers/:id", requireAdmin, (req, res) => {
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
+      marketingOptIn: customer.marketingOptIn !== false,
       createdAt: customer.createdAt,
       legacy: !customer.mobile,
       orders: theirOrders,
@@ -1414,6 +1905,7 @@ app.get("/api/admin/sellers", requireAdmin, (req, res) => {
         email: s.email,
         phone: s.phone,
         altPhone: s.altPhone || "",
+        whatsappNumber: s.whatsappNumber || s.phone || "",
         shopTitle: s.shopTitle,
         businessType: s.businessType || "",
         businessAddress: s.businessAddress || "",
@@ -1421,12 +1913,14 @@ app.get("/api/admin/sellers", requireAdmin, (req, res) => {
         state: s.state || "",
         pincode: s.pincode || "",
         aadhaarLast4: s.aadhaarLast4 || "",
-        aadhaarFull: s.aadhaarFull || "",
-        panNumber: s.panNumber || "",
+        // Decrypted here, at the point of an authorized admin actually
+        // viewing it — see PII_ENCRYPTION_KEY above. Never stored decrypted.
+        aadhaarFull: decryptPII(s.aadhaarFull || ""),
+        panNumber: decryptPII(s.panNumber || ""),
         dob: s.dob || "",
         gender: s.gender || "",
-        bankAccountNumber: s.bankAccountNumber || "",
-        ifscCode: s.ifscCode || "",
+        bankAccountNumber: decryptPII(s.bankAccountNumber || ""),
+        ifscCode: decryptPII(s.ifscCode || ""),
         upiId: s.upiId || "",
         gstNumber: s.gstNumber || "",
         notes: s.notes || "",
@@ -1455,6 +1949,26 @@ app.get("/api/admin/sellers", requireAdmin, (req, res) => {
         })),
       };
     });
+  res.json({ success: true, sellers });
+});
+
+// Flat live-seller export for authorized admins. Deliberately limited to the
+// business/contact fields requested for the directory export.
+app.get("/api/admin/sellers/export", requireAdmin, (req, res) => {
+  const access = requireDirectoryExportAccess(req, "sellers");
+  if (!access.ok) return res.status(access.status).json({ success: false, message: access.message });
+  const database = readDatabase();
+  const sellers = (database.sellers || [])
+    .slice()
+    .filter((s) => !s.banned)
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .map((s) => ({
+      companyName: s.shopTitle || "",
+      name: s.name || "",
+      city: s.city || "",
+      mobile: s.phone || "",
+      email: s.email || "",
+    }));
   res.json({ success: true, sellers });
 });
 
@@ -1570,6 +2084,7 @@ app.put("/api/admin/sellers/:id", requireAdmin, (req, res) => {
   const name = body.name !== undefined ? String(body.name).trim() : seller.name;
   const email = body.email !== undefined ? String(body.email).trim() : seller.email;
   const phone = body.phone !== undefined ? String(body.phone).trim() : seller.phone;
+  const whatsappNumber = body.whatsappNumber !== undefined ? String(body.whatsappNumber).trim() : (seller.whatsappNumber || seller.phone || "");
   const shopTitle = body.shopTitle !== undefined ? String(body.shopTitle).trim() : seller.shopTitle;
   // Optional — a base64 data URL, same as the seller's own
   // profile-update-request photo field. Only replaced if a new one is sent.
@@ -1588,6 +2103,7 @@ app.put("/api/admin/sellers/:id", requireAdmin, (req, res) => {
   }
 
   const changes = { name, email, phone, shopTitle, photo };
+  if (req.admin.role === "boss") changes.whatsappNumber = whatsappNumber;
 
   if (req.admin.role !== "boss") {
     seller.pendingSellerEdit = {
@@ -1782,12 +2298,14 @@ app.get("/api/admin/seller-applications", requireAdmin, requireBoss, (req, res) 
       state: a.state || "",
       pincode: a.pincode || "",
       aadhaarLast4: a.aadhaarLast4,
-      aadhaarFull: a.aadhaarFull || "",
-      panNumber: a.panNumber || "",
+      // Decrypted here, at the point of an authorized admin actually
+      // viewing it — see PII_ENCRYPTION_KEY above. Never stored decrypted.
+      aadhaarFull: decryptPII(a.aadhaarFull || ""),
+      panNumber: decryptPII(a.panNumber || ""),
       dob: a.dob || "",
       gender: a.gender || "",
-      bankAccountNumber: a.bankAccountNumber || "",
-      ifscCode: a.ifscCode || "",
+      bankAccountNumber: decryptPII(a.bankAccountNumber || ""),
+      ifscCode: decryptPII(a.ifscCode || ""),
       upiId: a.upiId || "",
       gstNumber: a.gstNumber || "",
       aadhaarPhoto: a.aadhaarPhoto,
@@ -1856,7 +2374,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
 
   // Admin chooses, per-approval, whether the seller gets a normal password
   // or a one-time password that forces them to set their own on first login.
-  const passwordMode = (req.body || {}).passwordMode === "otp" ? "otp" : "password";
+  const passwordMode = "password";
 
   const nextNum = getNextId(database.sellers);
   const sellerId = generateSellerId(nextNum);
@@ -1873,6 +2391,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
     email: application.email,
     phone: application.phone,
     altPhone: application.altPhone || "",
+    whatsappNumber: application.whatsappNumber || application.phone || "",
     shopTitle: application.shopTitle,
     businessType: application.businessType || "",
     businessAddress: application.businessAddress || "",
@@ -1894,7 +2413,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
     banned: false,
     // Only true for the OTP flow — cleared automatically the moment the
     // seller sets their own new password after their first login.
-    mustChangePassword: passwordMode === "otp",
+    mustChangePassword: false,
   };
   database.sellers.push(seller);
   application.status = "approved";
@@ -1965,6 +2484,8 @@ app.get("/api/admin/admins", requireAdmin, requireBoss, (req, res) => {
     username: a.username,
     role: "admin",
     designation: a.designation || null,
+    email: a.email || null,
+    phone: a.phone || null,
     canDeleteProducts: !!a.canDeleteProducts,
     locked: !!a.locked,
     failedAttempts: a.failedAttempts || 0,
@@ -1975,6 +2496,8 @@ app.get("/api/admin/admins", requireAdmin, requireBoss, (req, res) => {
     username: BOSS_ACCOUNT.username,
     role: "boss",
     designation: null,
+    email: null,
+    phone: null,
     canDeleteProducts: true,
     locked: false,
     failedAttempts: 0,
@@ -2040,11 +2563,19 @@ app.delete("/api/admin/roles/:name", requireAdmin, requireBoss, (req, res) => {
 app.post("/api/admin/admins", requireAdmin, requireBoss, (req, res) => {
   const username = String((req.body || {}).username || "").trim();
   const password = String((req.body || {}).password || "");
+  const email = String((req.body || {}).email || "").trim().toLowerCase();
+  const phone = String((req.body || {}).phone || "").trim();
   const designation = String((req.body || {}).designation || "").trim();
   const canDeleteFlag = !!(req.body || {}).canDeleteProducts;
 
-  if (!username || !password) {
-    return res.status(400).json({ success: false, message: "Username and password are required." });
+  if (!username || !password || !email || !phone) {
+    return res.status(400).json({ success: false, message: "Username, password, registered email and phone number are required." });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ success: false, message: "Enter a valid registered email address." });
+  }
+  if (phone.replace(/\D/g, "").length < 7) {
+    return res.status(400).json({ success: false, message: "Enter a valid phone number." });
   }
   if (username === BOSS_ACCOUNT.username) {
     return res.status(400).json({ success: false, message: "That username is reserved for the boss account." });
@@ -2060,9 +2591,14 @@ app.post("/api/admin/admins", requireAdmin, requireBoss, (req, res) => {
   if (database.admins.some((a) => a.username === username)) {
     return res.status(400).json({ success: false, message: "That username already exists." });
   }
+  if (database.admins.some((a) => String(a.email || "").toLowerCase() === email)) {
+    return res.status(400).json({ success: false, message: "That email is already registered to another sub-admin." });
+  }
 
   database.admins.push({
     username,
+    email,
+    phone,
     passwordHash: bcrypt.hashSync(password, 10),
     designation: designation || null,
     canDeleteProducts: canDeleteFlag,
@@ -2073,6 +2609,31 @@ app.post("/api/admin/admins", requireAdmin, requireBoss, (req, res) => {
   writeDatabase(database);
 
   res.status(201).json({ success: true, message: "Sub-admin created." });
+});
+
+// Boss can maintain the two contact fields required for sub-admin export verification.
+app.put("/api/admin/admins/:username/contact", requireAdmin, requireBoss, (req, res) => {
+  if (req.params.username === BOSS_ACCOUNT.username) {
+    return res.status(403).json({ success: false, message: "The boss account contact details are managed through server configuration." });
+  }
+  const database = readDatabase();
+  const account = database.admins.find((a) => a.username === req.params.username);
+  if (!account) return res.status(404).json({ success: false, message: "Admin not found." });
+  const email = String((req.body || {}).email || "").trim().toLowerCase();
+  const phone = String((req.body || {}).phone || "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ success: false, message: "Enter a valid registered email address." });
+  }
+  if (phone.replace(/\D/g, "").length < 7) {
+    return res.status(400).json({ success: false, message: "Enter a valid phone number." });
+  }
+  if (database.admins.some((a) => a.username !== account.username && String(a.email || "").toLowerCase() === email)) {
+    return res.status(400).json({ success: false, message: "That email is already registered to another sub-admin." });
+  }
+  account.email = email;
+  account.phone = phone;
+  writeDatabase(database);
+  res.json({ success: true, email, phone });
 });
 
 app.put("/api/admin/admins/:username/permissions", requireAdmin, requireBoss, (req, res) => {
@@ -2225,6 +2786,20 @@ function validateProductInput(body) {
   // (e.g. "Diwali Blast — today only!"). Capped so it can't blow out the layout.
   const saleMessage = String(body.saleMessage || "").trim().slice(0, 80);
 
+  // Product-level inventory entered directly while creating/editing the product.
+  // Sized products keep stock separately for each size; non-sized products use stockQty.
+  const incomingVariantStock = body.variantStock && typeof body.variantStock === "object" && !Array.isArray(body.variantStock)
+    ? body.variantStock : {};
+  const variantStock = {};
+  sizes.forEach((size) => {
+    const n = Number(incomingVariantStock[size]);
+    variantStock[size] = Number.isInteger(n) && n >= 0 ? n : 0;
+  });
+  const stockQtyRaw = Number(body.stockQty);
+  const stockQty = Number.isInteger(stockQtyRaw) && stockQtyRaw >= 0 ? stockQtyRaw : 0;
+  const thresholdRaw = Number(body.lowStockThreshold);
+  const lowStockThreshold = Number.isInteger(thresholdRaw) && thresholdRaw >= 0 ? thresholdRaw : 5;
+
   // Optional sale expiry. Admin can send an explicit end timestamp (from a
   // datetime picker) or a quick duration in hours (e.g. 24). If neither is
   // sent, the sale simply has no timer and stays on until turned off by hand.
@@ -2252,6 +2827,11 @@ function validateProductInput(body) {
       customizationEnabled: Boolean(body.customizationEnabled),
       sizes,
       moq,
+      stockQty,
+      variantStock,
+      stockConfigured: true,
+      variantStockConfigured: Object.fromEntries(sizes.map((size) => [size, true])),
+      lowStockThreshold,
       discounts,
       onSale,
       salePercent,
@@ -2276,6 +2856,159 @@ function isSaleActive(product) {
 }
 
 // ================================
+// INVENTORY / STOCK MANAGEMENT
+// ================================
+
+app.get("/api/admin/inventory", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  ensureProductCodes(database);
+  writeDatabase(database);
+  res.json({ success: true, rows: getInventoryRows(database) });
+});
+
+app.post("/api/admin/inventory/import", requireAdmin, (req, res) => {
+  try {
+    const database = readDatabase();
+    ensureProductCodes(database);
+    const rows = Array.isArray(req.body && req.body.rows) ? req.body.rows : [];
+    const confirm = Boolean(req.body && req.body.confirm);
+    if (!rows.length) return res.status(400).json({ success: false, message: "No inventory rows were provided." });
+
+    const errors = [];
+    const preview = [];
+    const seen = new Set();
+
+    rows.forEach((row, index) => {
+      const code = String(row.productCode || "").trim();
+      const variant = String(row.variant || "").trim();
+      const stock = Number(row.newStock);
+      const suppliedCurrent = row.currentStock === "" || row.currentStock === null || row.currentStock === undefined
+        ? null
+        : Number(row.currentStock);
+      const key = `${code}::${variant}`;
+
+      if (!code) return errors.push(`Row ${index + 2}: Product ID is missing.`);
+      if (seen.has(key)) return errors.push(`Row ${index + 2}: Duplicate Product ID + Variant row.`);
+      seen.add(key);
+      if (!Number.isInteger(stock) || stock < 0) return errors.push(`Row ${index + 2}: New Stock must be a whole number 0 or greater.`);
+      if (suppliedCurrent !== null && (!Number.isInteger(suppliedCurrent) || suppliedCurrent < 0)) {
+        return errors.push(`Row ${index + 2}: Current Stock must be a whole number 0 or greater.`);
+      }
+
+      const product = (database.products || []).find((p) => p.productCode === code && !p.isGiftAddon);
+      if (!product) return errors.push(`Row ${index + 2}: Product ID ${code} was not found.`);
+
+      const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+      if (sizes.length) {
+        if (!variant) return errors.push(`Row ${index + 2}: Size/Variant is required for ${code}.`);
+        if (!sizes.includes(variant)) return errors.push(`Row ${index + 2}: Variant "${variant}" is not valid for ${code}.`);
+      } else if (variant) {
+        return errors.push(`Row ${index + 2}: ${code} has no size/variant stock.`);
+      }
+
+      const actualCurrent = getStockForVariant(product, variant);
+      const conflict = suppliedCurrent !== null && suppliedCurrent !== actualCurrent;
+      preview.push({
+        productCode: code,
+        productName: product.name || "",
+        variant,
+        currentStock: actualCurrent,
+        excelCurrentStock: suppliedCurrent,
+        newStock: stock,
+        conflict,
+      });
+    });
+
+    if (errors.length) return res.status(400).json({ success: false, message: errors.join(" "), preview });
+
+    const conflicts = preview.filter((r) => r.conflict);
+    if (!confirm) {
+      return res.json({ success: true, preview, conflicts, canConfirm: conflicts.length === 0 });
+    }
+
+    // Re-check live stock at confirmation time. The admin may have left the
+    // preview open while a customer order changed inventory.
+    const liveConflicts = [];
+    preview.forEach((row) => {
+      const product = database.products.find((p) => p.productCode === row.productCode && !p.isGiftAddon);
+      if (!product) {
+        liveConflicts.push({ ...row, reason: "Product no longer exists." });
+        return;
+      }
+      const liveCurrent = getStockForVariant(product, row.variant);
+      if (row.excelCurrentStock !== null && liveCurrent !== row.excelCurrentStock) {
+        liveConflicts.push({ ...row, currentStock: liveCurrent, reason: "Stock changed after export/preview." });
+      }
+    });
+    if (liveConflicts.length) {
+      return res.status(409).json({
+        success: false,
+        code: "INVENTORY_CONFLICT",
+        message: "Stock changed since this Excel was exported. Refresh/export again and review the affected rows.",
+        conflicts: liveConflicts,
+        preview,
+      });
+    }
+
+    preview.forEach((row) => {
+      const product = database.products.find((p) => p.productCode === row.productCode && !p.isGiftAddon);
+      if (!product) return;
+      const beforeQty = getStockForVariant(product, row.variant);
+      setStockForVariant(product, row.variant, row.newStock);
+      product.stockConfigured = true;
+      if (product.lowStockThreshold == null) product.lowStockThreshold = 5;
+      notifyBackInStockForVariant(database, product, row.variant, beforeQty, row.newStock);
+    });
+    writeDatabase(database);
+    return res.json({ success: true, updates: preview.map((r) => ({ productCode: r.productCode, variant: r.variant, previousStock: r.currentStock, newStock: r.newStock })) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to import inventory." });
+  }
+});
+
+app.put("/api/admin/inventory/:productCode", requireAdmin, (req, res) => {
+  try {
+    const database = readDatabase();
+    const code = String(req.params.productCode || "").trim();
+    const product = (database.products || []).find((p) => p.productCode === code && !p.isGiftAddon);
+    if (!product) return res.status(404).json({ success: false, message: "Product not found." });
+    const variant = String((req.body && req.body.variant) || "").trim();
+    const stock = Number(req.body && req.body.stock);
+    const threshold = Number(req.body && req.body.lowStockThreshold);
+    if (!Number.isInteger(stock) || stock < 0) return res.status(400).json({ success: false, message: "Stock must be a whole number 0 or greater." });
+    const beforeQty = getStockForVariant(product, variant);
+    setStockForVariant(product, variant, stock);
+    product.stockConfigured = true;
+    product.lowStockThreshold = Number.isFinite(threshold) && threshold >= 0 ? Math.floor(threshold) : Math.max(0, Number(product.lowStockThreshold ?? 5) || 5);
+    notifyBackInStockForVariant(database, product, variant, beforeQty, stock);
+    writeDatabase(database);
+    res.json({ success: true, rows: getInventoryRows(database) });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to update stock." });
+  }
+});
+
+app.get("/api/inventory/availability", (req, res) => {
+  try {
+    const database = readDatabase();
+    const ids = String(req.query.ids || "").split(",").map(Number).filter(Number.isFinite);
+    const wanted = ids.length ? new Set(ids) : null;
+    const availability = {};
+    (database.products || []).forEach((product) => {
+      if (!product.active || product.approved === false || product.hidden || (wanted && !wanted.has(Number(product.id)))) return;
+      availability[product.id] = { stockQty: Math.max(0, Number(product.stockQty) || 0), stockConfigured: product.stockConfigured !== false, variantStockConfigured: product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {}, lowStockThreshold: Math.max(0, Number(product.lowStockThreshold ?? 5) || 5), variantStock: product.variantStock && typeof product.variantStock === "object" ? product.variantStock : {} };
+    });
+    res.set("Cache-Control", "no-store");
+    res.json({ success: true, availability });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to load stock availability." });
+  }
+});
+
+// ================================
 // SECURE SERVER-SIDE ORDER PRICING
 // ================================
 // Never trust a total sent from the browser — recompute every line from the
@@ -2294,11 +3027,57 @@ function isGiftAddonDateEligible(date = new Date()) {
   return GIFT_ADDON.eligibleDaysOfMonth.includes(getISTDayOfMonth(date));
 }
 
-function calculateSecurePricing(items, products) {
+
+function normalizeGiftCode(raw) {
+  return String(raw || "").trim().toUpperCase().replace(/\s+/g, "");
+}
+
+function findGiftCode(database, rawCode) {
+  const code = normalizeGiftCode(rawCode);
+  if (!code) return null;
+  return (database.giftCodes || []).find((g) => String(g.code || "").toUpperCase() === code) || null;
+}
+
+function validateGiftCode(database, rawCode, customerId, baseAmount, guestPhone = null) {
+  const code = normalizeGiftCode(rawCode);
+  if (!code) return { valid: false, discount: 0, message: "Enter a gift code." };
+  const gift = findGiftCode(database, code);
+  if (!gift || gift.active === false) return { valid: false, discount: 0, message: "Invalid or inactive gift code." };
+  const now = Date.now();
+  if (gift.startsAt && now < new Date(gift.startsAt).getTime()) return { valid: false, discount: 0, message: "This gift code is not active yet." };
+  if (gift.expiresAt && now > new Date(gift.expiresAt).getTime()) return { valid: false, discount: 0, message: "This gift code has expired." };
+  const minOrder = Number(gift.minOrder || 0);
+  if (baseAmount < minOrder) return { valid: false, discount: 0, message: `This code requires a minimum order of ₹${Math.round(minOrder)}.` };
+  const usageLimit = Number(gift.usageLimit || 0);
+  if (usageLimit > 0 && Number(gift.usedCount || 0) >= usageLimit) return { valid: false, discount: 0, message: "This gift code has reached its usage limit." };
+  const perCustomer = Number(gift.perCustomerLimit || 0);
+  if (perCustomer > 0) {
+    // A logged-in customer is tracked by their account id. A guest checkout
+    // has no account id (customerId is null) — this codebase already treats
+    // the order phone number as a guest's identity elsewhere (see the phone
+    // helper below), so re-use that here too. Without this fallback, the
+    // same person could keep checking out as a guest to reuse a one-per-
+    // customer code indefinitely, since a null customerId always skipped
+    // this check entirely.
+    const usageKey = customerId ? String(customerId) : (guestPhone ? `phone:${guestPhone}` : null);
+    if (usageKey) {
+      const usedByCustomer = Number(gift.usageByCustomer && gift.usageByCustomer[usageKey] || 0);
+      if (usedByCustomer >= perCustomer) return { valid: false, discount: 0, message: "You have already used this gift code." };
+    }
+  }
+  let discount = gift.type === "fixed" ? Number(gift.value || 0) : baseAmount * (Number(gift.value || 0) / 100);
+  if (Number(gift.maxDiscount || 0) > 0) discount = Math.min(discount, Number(gift.maxDiscount));
+  discount = Math.max(0, Math.min(discount, baseAmount));
+  return { valid: true, gift, code, discount: Math.round(discount * 100) / 100, message: "Gift code applied." };
+}
+
+function calculateSecurePricing(items, products, giftCode = "", customerId = null, database = null, guestPhone = null) {
   const errors = [];
   const pricedItems = [];
   let subtotal = 0;
   let discountTotal = 0;
+  let listedSubtotal = 0;
+  let saleDiscountTotal = 0;
 
   if (!Array.isArray(items) || items.length === 0) {
     return { errors: ["Your cart is empty."], pricedItems, subtotal: 0, discountTotal: 0, total: 0 };
@@ -2310,6 +3089,24 @@ function calculateSecurePricing(items, products) {
     if (!product || !product.active) {
       errors.push(`Item ${idx + 1}: product not found or no longer available.`);
       return;
+    }
+
+    // Mirror the same public-eligibility rule enforced on the storefront list
+    // and single-product endpoints: a product still pending admin approval,
+    // deliberately hidden, or belonging to a banned/suspended seller must
+    // never be purchasable — even if someone reaches this function by
+    // calling /api/orders directly with a product ID they found or guessed,
+    // bypassing the storefront UI and product-detail page entirely.
+    if (product.approved === false || product.hidden) {
+      errors.push(`Item ${idx + 1}: product not found or no longer available.`);
+      return;
+    }
+    if (product.sellerId && database) {
+      const productSeller = (database.sellers || []).find((s) => s.id === product.sellerId);
+      if (productSeller && productSeller.banned) {
+        errors.push(`Item ${idx + 1}: product not found or no longer available.`);
+        return;
+      }
     }
 
     const qty = Number(item.qty);
@@ -2343,10 +3140,14 @@ function calculateSecurePricing(items, products) {
       if (qty >= tier.minQty && tier.percent > discountPct) discountPct = tier.percent;
     });
 
+    const lineListedSubtotal = product.price * qty;
     const lineSubtotal = effectivePrice * qty;
+    const lineSaleDiscount = Math.max(0, lineListedSubtotal - lineSubtotal);
     const lineDiscount = lineSubtotal * (discountPct / 100);
     const lineTotal = Math.round((lineSubtotal - lineDiscount) * 100) / 100;
 
+    listedSubtotal += lineListedSubtotal;
+    saleDiscountTotal += lineSaleDiscount;
     subtotal += lineSubtotal;
     discountTotal += lineDiscount;
 
@@ -2378,9 +3179,20 @@ function calculateSecurePricing(items, products) {
     }
   }
 
-  const total = Math.round((subtotal - discountTotal) * 100) / 100;
-
-  return { errors, pricedItems, subtotal, discountTotal, total };
+  const preGiftTotal = Math.round((subtotal - discountTotal) * 100) / 100;
+  let giftDiscount = 0;
+  let appliedGiftCode = null;
+  if (giftCode) {
+    if (!database) errors.push("Gift code service is unavailable.");
+    else {
+      const result = validateGiftCode(database, giftCode, customerId, preGiftTotal, guestPhone);
+      if (!result.valid) errors.push(result.message);
+      else { giftDiscount = result.discount; appliedGiftCode = result.code; }
+    }
+  }
+  const total = Math.round(Math.max(0, preGiftTotal - giftDiscount) * 100) / 100;
+  const totalDiscount = Math.max(0, Math.round((listedSubtotal - total) * 100) / 100);
+  return { errors, pricedItems, listedSubtotal, saleDiscountTotal, subtotal, discountTotal, giftDiscount, appliedGiftCode, totalDiscount, total };
 }
 
 // ================================
@@ -2393,13 +3205,258 @@ function normalizePhone(phone) {
   return String(phone || "").replace(/\D/g, "").slice(-10);
 }
 
+// Internal-only product code. Never returned by public product APIs.
+function productCodePrefix(category) {
+  const c = String(category || "").toLowerCase();
+  if (c.includes("t-shirt") || c.includes("tshirt") || c.includes("tee")) return "TS";
+  if (c.includes("mug")) return "MUG";
+  if (c.includes("frame")) return "FRM";
+  if (c.includes("cushion")) return "CUS";
+  if (c.includes("keychain") || c.includes("key chain")) return "KEY";
+  if (c.includes("bottle")) return "BOT";
+  if (c.includes("cover") || c.includes("phone")) return "COV";
+  const cleaned = c.replace(/[^a-z0-9]/g, "").slice(0, 3).toUpperCase();
+  return cleaned || "PRD";
+}
+
+function ensureProductCodes(database) {
+  const counters = {};
+  (database.products || []).forEach((product) => {
+    if (product.isGiftAddon) return;
+    if (product.productCode) {
+      const m = String(product.productCode).match(/^DM-([A-Z0-9]+)-(\d+)$/);
+      if (m) counters[m[1]] = Math.max(counters[m[1]] || 0, Number(m[2]));
+      return;
+    }
+    const prefix = productCodePrefix(product.category);
+    counters[prefix] = counters[prefix] || 0;
+    let code;
+    do {
+      counters[prefix] += 1;
+      code = `DM-${prefix}-${String(counters[prefix]).padStart(3, "0")}`;
+    } while ((database.products || []).some((p) => p.productCode === code));
+    product.productCode = code;
+  });
+}
+
+function generateOrderNumber(database) {
+  const used = new Set((database.orders || []).map((o) => String(o.orderNumber || "")));
+  for (let i = 0; i < 50; i++) {
+    const candidate = `DM-${crypto.randomInt(10000000, 99999999)}`;
+    if (!used.has(candidate)) return candidate;
+  }
+  let n = Number(String(Date.now()).slice(-8));
+  while (used.has(`DM-${n}`)) n = (n + 1) % 100000000;
+  return `DM-${String(n).padStart(8, "0")}`;
+}
+
+function getStockForVariant(product, size) {
+  if (!product) return 0;
+  // BUGFIX: a product that hasn't been through the admin's first inventory
+  // import yet (stockConfigured === false) must stay sellable at its
+  // migration default (stockQty = 999999) — that's the whole point of the
+  // database.js migration comment ("this deploy cannot suddenly make the
+  // live catalog unavailable"). Returning 0 here instead made EVERY
+  // existing product in the live catalog look permanently out of stock the
+  // moment this deploy went live, blocking every checkout until the admin
+  // manually entered stock for the entire catalog.
+  if (product.stockConfigured === false) return Math.max(0, Number(product.stockQty) || 0);
+  const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+  const variantStock = product.variantStock && typeof product.variantStock === "object" ? product.variantStock : {};
+
+  // A product with sizes is always tracked at the exact selected size.
+  // Never fall back to a product-level stock number for a sized product.
+  if (sizes.length) {
+    if (!size || !sizes.includes(size)) return 0;
+    const configured = product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {};
+    if (configured[size] !== true) return 0;
+    return Math.max(0, Number(variantStock[size]) || 0);
+  }
+
+  return Math.max(0, Number(product.stockQty) || 0);
+}
+
+function setStockForVariant(product, size, value) {
+  const qty = Math.max(0, Math.floor(Number(value) || 0));
+  if (size && product.sizes && product.sizes.length) {
+    product.variantStock = product.variantStock && typeof product.variantStock === "object" ? product.variantStock : {};
+    product.variantStockConfigured = product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {};
+    product.variantStock[size] = qty;
+    product.variantStockConfigured[size] = true;
+  } else {
+    product.stockQty = qty;
+  }
+}
+
+// ================================
+// BACK-IN-STOCK NOTIFICATION DELIVERY
+// ================================
+// The "Notify Me" preference is stored server-side (see the
+// /api/customer/back-in-stock endpoints below) so it can actually be acted
+// on here, whenever a product's stock is written. Subscriptions are
+// one-shot: once an email goes out, the subscription is removed — this is
+// "notify me the next time it's back", not an ongoing watch. If the
+// customer has no email on file (mobile-only signup, no Google login),
+// the subscription is still removed on restock — there's genuinely
+// nothing to deliver to, and leaving a dead subscription around forever
+// would just be silent debt.
+function deliverBackInStockNotifications(database, product, sizesNewlyAvailable) {
+  if (!sizesNewlyAvailable || !sizesNewlyAvailable.size) return;
+  if (!Array.isArray(database.backInStockSubscriptions) || !database.backInStockSubscriptions.length) return;
+  const remaining = [];
+  const toNotify = [];
+  database.backInStockSubscriptions.forEach((sub) => {
+    if (sub.productId === product.id && sizesNewlyAvailable.has(String(sub.size || ""))) toNotify.push(sub);
+    else remaining.push(sub);
+  });
+  if (!toNotify.length) return;
+  database.backInStockSubscriptions = remaining;
+  toNotify.forEach((sub) => {
+    const customer = (database.customers || []).find((c) => c.id === sub.customerId);
+    if (!customer || !customer.email) return;
+    const sizeText = sub.size ? ` (${sub.size})` : "";
+    sendMail(
+      customer.email,
+      `Back in stock: ${product.name}${sizeText}`,
+      `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;">
+         <h2 style="color:#8a1c42;margin-bottom:6px;">🔔 It's back in stock!</h2>
+         <p style="margin:0 0 10px;"><strong>${product.name}${sizeText}</strong> is available again.</p>
+         <p style="font-size:0.85em;color:#8c7d78;">You're getting this because you asked to be notified on Design Makers. This alert has now been used up — if you'd like to be notified again in future, just tap Notify Me again.</p>
+       </div>`,
+    ).catch((err) => console.error("Back-in-stock email failed:", err.message));
+  });
+}
+
+// Whole-product before/after diff — used where we have full snapshots of
+// the product both before and after an edit (direct admin edit, and a
+// seller's edit going live at admin approval), rather than a single
+// variant's before/after quantity.
+function notifyBackInStockForProduct(database, beforeProduct, afterProduct) {
+  if (!beforeProduct || !afterProduct) return;
+  const sizes = Array.isArray(afterProduct.sizes) ? afterProduct.sizes : [];
+  const newlyAvailable = new Set();
+  if (sizes.length) {
+    sizes.forEach((size) => {
+      const before = Math.max(0, Number((beforeProduct.variantStock || {})[size]) || 0);
+      const after = Math.max(0, Number((afterProduct.variantStock || {})[size]) || 0);
+      if (before <= 0 && after > 0) newlyAvailable.add(String(size));
+    });
+  } else {
+    const before = Math.max(0, Number(beforeProduct.stockQty) || 0);
+    const after = Math.max(0, Number(afterProduct.stockQty) || 0);
+    if (before <= 0 && after > 0) newlyAvailable.add("");
+  }
+  deliverBackInStockNotifications(database, afterProduct, newlyAvailable);
+}
+
+// Single-variant before/after — used by the inventory endpoints, which
+// already compute a specific variant's before/after quantity directly.
+function notifyBackInStockForVariant(database, product, size, beforeQty, afterQty) {
+  if (Math.max(0, Number(beforeQty) || 0) > 0 || Math.max(0, Number(afterQty) || 0) <= 0) return;
+  deliverBackInStockNotifications(database, product, new Set([String(size || "")]));
+}
+
+function getInventoryRows(database) {
+  const rows = [];
+  (database.products || []).forEach((product) => {
+    if (product.isGiftAddon) return;
+    const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+    const variantStock = product.variantStock && typeof product.variantStock === "object" ? product.variantStock : {};
+    const variantConfigured = product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {};
+    const common = {
+      productId: product.id,
+      productCode: product.productCode || "",
+      productName: product.name || "",
+      stockConfigured: product.stockConfigured !== false,
+      lowStockThreshold: Math.max(0, Number(product.lowStockThreshold ?? 5) || 5),
+    };
+    if (sizes.length) {
+      // Every size gets its own inventory row, even before stock has been
+      // entered. Missing variant stock means zero/unconfigured, never the
+      // product-level stock.
+      sizes.forEach((size) => rows.push({
+        ...common,
+        variant: size,
+        currentStock: product.stockConfigured === false || variantConfigured[size] !== true ? null : Math.max(0, Number(variantStock[size]) || 0),
+      }));
+    } else {
+      rows.push({
+        ...common,
+        variant: "",
+        currentStock: product.stockConfigured === false ? null : Math.max(0, Number(product.stockQty) || 0),
+      });
+    }
+  });
+  return rows;
+}
+
+let inventoryOrderQueue = Promise.resolve();
+function withInventoryLock(task) {
+  const run = inventoryOrderQueue.then(task, task);
+  inventoryOrderQueue = run.catch(() => {});
+  return run;
+}
+
 // ================================
 // ADMIN PRODUCT MANAGEMENT
 // ================================
 
 // List ALL products (including inactive) for the dashboard
+
+// ================================
+// GIFT CODES — MAIN ADMIN ONLY
+// ================================
+app.get("/api/admin/gift-codes", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const codes = (database.giftCodes || []).map(({ usageByCustomer, ...g }) => g);
+  res.json({ success: true, codes });
+});
+
+app.post("/api/admin/gift-codes", requireAdmin, requireBoss, (req, res) => {
+  const body = req.body || {};
+  const code = normalizeGiftCode(body.code);
+  const type = body.type === "fixed" ? "fixed" : "percent";
+  const value = Number(body.value);
+  const minOrder = Math.max(0, Number(body.minOrder || 0));
+  const maxDiscount = Math.max(0, Number(body.maxDiscount || 0));
+  const usageLimit = Math.max(0, Math.floor(Number(body.usageLimit || 0)));
+  const perCustomerLimit = Math.max(0, Math.floor(Number(body.perCustomerLimit || 0)));
+  if (!/^[A-Z0-9_-]{3,30}$/.test(code)) return res.status(400).json({ success:false, message:"Gift code must be 3-30 characters (letters, numbers, _ or -)." });
+  if (!Number.isFinite(value) || value <= 0 || (type === "percent" && value > 100)) return res.status(400).json({ success:false, message:"Enter a valid discount value." });
+  const startsAt = body.startsAt ? new Date(body.startsAt).toISOString() : new Date().toISOString();
+  const expiresAt = body.expiresAt ? new Date(body.expiresAt).toISOString() : null;
+  if (expiresAt && new Date(expiresAt) <= new Date(startsAt)) return res.status(400).json({ success:false, message:"Expiry must be after the start date." });
+  const database = readDatabase();
+  if (!Array.isArray(database.giftCodes)) database.giftCodes = [];
+  if (database.giftCodes.some(g => String(g.code).toUpperCase() === code)) return res.status(409).json({ success:false, message:"That gift code already exists." });
+  database.giftCodes.push({ id: getNextId(database.giftCodes), code, type, value, minOrder, maxDiscount, usageLimit, perCustomerLimit, startsAt, expiresAt, active: true, usedCount: 0, usageByCustomer: {}, createdAt: new Date().toISOString(), createdBy: req.admin.username });
+  writeDatabase(database);
+  res.status(201).json({ success:true, message:"Gift code created." });
+});
+
+app.patch("/api/admin/gift-codes/:id", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const gift = (database.giftCodes || []).find(g => Number(g.id) === Number(req.params.id));
+  if (!gift) return res.status(404).json({ success:false, message:"Gift code not found." });
+  if (typeof req.body.active === "boolean") gift.active = req.body.active;
+  if (typeof req.body.expiresAt === "string" && req.body.expiresAt) gift.expiresAt = new Date(req.body.expiresAt).toISOString();
+  writeDatabase(database);
+  res.json({ success:true, message:"Gift code updated." });
+});
+
+app.delete("/api/admin/gift-codes/:id", requireAdmin, requireBoss, (req, res) => {
+  const database = readDatabase();
+  const before = (database.giftCodes || []).length;
+  database.giftCodes = (database.giftCodes || []).filter(g => Number(g.id) !== Number(req.params.id));
+  if (database.giftCodes.length === before) return res.status(404).json({ success:false, message:"Gift code not found." });
+  writeDatabase(database);
+  res.json({ success:true });
+});
+
 app.get("/api/admin/products", requireAdmin, (req, res) => {
   const database = readDatabase();
+  ensureProductCodes(database);
+  writeDatabase(database);
   res.json({ success: true, products: database.products });
 });
 
@@ -2412,7 +3469,14 @@ app.post("/api/admin/products", requireAdmin, (req, res) => {
   }
 
   const database = readDatabase();
-  const newProduct = { id: getNextId(database.products), sellerId: null, approved: true, ...product };
+  ensureProductCodes(database);
+  const prefix = productCodePrefix(product.category);
+  let max = 0;
+  (database.products || []).forEach((p) => {
+    const m = String(p.productCode || "").match(new RegExp("^DM-" + prefix + "-(\\d+)$"));
+    if (m) max = Math.max(max, Number(m[1]));
+  });
+  const newProduct = { id: getNextId(database.products), sellerId: null, approved: true, productCode: `DM-${prefix}-${String(max + 1).padStart(3, "0")}`, stockQty: 0, lowStockThreshold: 5, variantStock: {}, ...product };
   database.products.push(newProduct);
   writeDatabase(database);
 
@@ -2434,10 +3498,23 @@ app.post("/api/seller/products", requireSeller, (req, res) => {
   }
 
   const database = readDatabase();
+  ensureProductCodes(database);
+  const prefix = productCodePrefix(product.category);
+  let max = 0;
+  (database.products || []).forEach((p) => {
+    const m = String(p.productCode || "").match(new RegExp("^DM-" + prefix + "-(\\d+)$"));
+    if (m) max = Math.max(max, Number(m[1]));
+  });
   const newProduct = {
     id: getNextId(database.products),
     sellerId: req.seller.id,
     approved: false, // waits for admin approval before showing on the storefront
+    productCode: `DM-${prefix}-${String(max + 1).padStart(3, "0")}`,
+    stockQty: 0,
+    stockConfigured: true,
+    lowStockThreshold: 5,
+    variantStock: {},
+    sellerWhatsappNumber: req.seller.whatsappNumber || req.seller.phone || "",
     ...product,
   };
   database.products.push(newProduct);
@@ -2510,28 +3587,167 @@ app.put("/api/seller/products/:id", requireSeller, (req, res) => {
   });
 });
 
+
+// ================================
+// SELLER FULFILMENT / ORDER STAGES
+// ================================
+const SELLER_FULFILMENT_STAGES = ["Processing", "Ready to Ship", "Shipped", "Out for Delivery", "Delivered"];
+const SELLER_DECISIONS = ["pending", "accepted", "declined", "taken_over"];
+
+function itemFulfilmentKey(item, index) {
+  return String(item.productId || "product") + "::" + String(item.size || "") + "::" + String(index);
+}
+
+function ensureSellerFulfilment(database, order) {
+  if (!Array.isArray(order.sellerFulfilment)) order.sellerFulfilment = [];
+  const now = new Date().toISOString();
+  const existing = new Map(order.sellerFulfilment.map(x => [x.key, x]));
+  (order.items || []).forEach((item, index) => {
+    const product = database.products.find(p => p.id === Number(item.productId));
+    if (!product || !product.sellerId) return;
+    const key = itemFulfilmentKey(item, index);
+    if (!existing.has(key)) {
+      const rec = { key, productId: item.productId, sellerId: product.sellerId, decision: "pending", stage: "Order Received", updatedAt: order.createdAt || now, updatedBy: "system" };
+      order.sellerFulfilment.push(rec);
+      existing.set(key, rec);
+    } else {
+      const rec = existing.get(key);
+      rec.productId = item.productId;
+      rec.sellerId = product.sellerId;
+      if (!rec.decision) rec.decision = "pending";
+      if (!rec.stage) rec.stage = "Order Received";
+    }
+  });
+  return order.sellerFulfilment;
+}
+
+function getSellerFulfilment(database, order) {
+  return ensureSellerFulfilment(database, order).map(x => ({ ...x }));
+}
+
+function deriveCustomerFulfilmentStage(order, records) {
+  if (order.status === "Cancelled") return "Cancelled";
+  const stages = (records || []).map(r => r.stage || "Order Received");
+  if (!stages.length) return order.status === "Delivered" ? "Delivered" : (order.status || "Order Received");
+  if (stages.every(s => s === "Delivered")) return "Delivered";
+  if (stages.some(s => s === "Out for Delivery")) return "Out for Delivery";
+  if (stages.some(s => s === "Shipped")) return "Shipped";
+  if (stages.some(s => s === "Ready to Ship")) return "Ready to Ship";
+  if (stages.some(s => s === "Processing")) return "Processing";
+  return "Order Received";
+}
+
+async function notifyAdminsSellerDecision(database, order, seller, decision, reason) {
+  const subject = decision === "declined"
+    ? `Seller declined order ${order.orderNumber} — action required`
+    : `Seller accepted order ${order.orderNumber}`;
+  const body = decision === "declined"
+    ? `<p><b>${seller.shopTitle || seller.name}</b> declined part of order <b>${order.orderNumber}</b>.</p><p>Reason: ${String(reason || "Not provided").replace(/[<>&\"]/g, "")}</p><p>Open Admin → Orders to review and take over the fulfilment if required.</p>`
+    : `<p><b>${seller.shopTitle || seller.name}</b> accepted order <b>${order.orderNumber}</b>.</p>`;
+  try { await sendMail(ADMIN_NOTIFY_EMAIL, subject, body); } catch (e) { console.error("Seller decision admin email failed:", e.message); }
+}
+
+app.post("/api/seller/orders/:id/decision", requireSeller, async (req, res) => {
+  const database = readDatabase();
+  const order = database.orders.find(o => o.id === Number(req.params.id));
+  if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+  const decision = String((req.body || {}).decision || "").toLowerCase();
+  const reason = String((req.body || {}).reason || "").trim().slice(0, 500);
+  if (!["accepted", "declined"].includes(decision)) return res.status(400).json({ success: false, message: "Invalid seller decision." });
+  const records = ensureSellerFulfilment(database, order).filter(r => r.sellerId === req.seller.id);
+  if (!records.length) return res.status(403).json({ success: false, message: "This order does not contain your products." });
+  if (decision === "declined" && !reason) return res.status(400).json({ success: false, message: "Please provide a reason for declining the order." });
+  const now = new Date().toISOString();
+  records.forEach(r => {
+    if (r.decision === "taken_over") return;
+    r.decision = decision;
+    r.declineReason = decision === "declined" ? reason : null;
+    r.stage = decision === "accepted" ? "Processing" : "Order Received";
+    r.updatedAt = now;
+    r.updatedBy = `seller:${req.seller.id}`;
+  });
+  writeDatabase(database);
+  notifyAdminsSellerDecision(database, order, req.seller, decision, reason).catch(() => {});
+  res.json({ success: true, message: decision === "accepted" ? "Order accepted." : "Order declined. Design Makers has been notified.", order: sellerOrderPayload(database, order, req.seller) });
+});
+
+app.put("/api/seller/orders/:id/stage", requireSeller, (req, res) => {
+  const database = readDatabase();
+  const order = database.orders.find(o => o.id === Number(req.params.id));
+  if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+  const stage = String((req.body || {}).stage || "");
+  if (!SELLER_FULFILMENT_STAGES.includes(stage)) return res.status(400).json({ success: false, message: "Invalid fulfilment stage." });
+  const records = ensureSellerFulfilment(database, order).filter(r => r.sellerId === req.seller.id);
+  if (!records.length) return res.status(403).json({ success: false, message: "This order does not contain your products." });
+  if (records.some(r => r.decision === "declined")) return res.status(403).json({ success: false, message: "This order was declined and is awaiting admin takeover." });
+  const now = new Date().toISOString();
+  records.forEach(r => { if (r.decision === "accepted") { r.stage = stage; r.updatedAt = now; r.updatedBy = `seller:${req.seller.id}`; } });
+  writeDatabase(database);
+  res.json({ success: true, order: sellerOrderPayload(database, order, req.seller) });
+});
+
+function sellerOrderPayload(database, order, seller) {
+  ensureSellerFulfilment(database, order);
+  const myProductIds = new Set(database.products.filter(p => p.sellerId === seller.id).map(p => p.id));
+  const items = (order.items || []).filter(i => myProductIds.has(i.productId));
+  const keys = new Set(items.map((item, idx) => itemFulfilmentKey(item, (order.items || []).indexOf(item))));
+  const fulfilment = (order.sellerFulfilment || []).filter(r => r.sellerId === seller.id && keys.has(r.key));
+  const sellerTotal = Math.round(items.reduce((sum, item) => sum + (Number(item.lineTotal) || 0), 0) * 100) / 100;
+  // Gift orders: the seller only needs to know (a) it's a gift, so they
+  // don't slip an invoice/price note into the package, and (b) whether the
+  // price should be hidden on any packing slip. The recipient's name and
+  // the customer's personal gift message are not needed for fulfilment and
+  // are withheld here — only the customer's own view and the admin panel
+  // (which needs the full picture for support) get those fields.
+  const gift = order.gift && order.gift.isGift
+    ? { isGift: true, hidePrice: !!order.gift.hidePrice }
+    : { isGift: false };
+  return { ...order, items, sellerTotal, sellerFulfilment: fulfilment, gift };
+}
+
+// Main admin can take over only the seller's lines that were declined.
+app.put("/api/admin/orders/:id/seller-takeover", requireAdmin, async (req, res) => {
+  const database = readDatabase();
+  const order = database.orders.find(o => o.id === Number(req.params.id));
+  if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+  const sellerId = Number((req.body || {}).sellerId);
+  if (!sellerId) return res.status(400).json({ success: false, message: "Seller is required." });
+  const records = ensureSellerFulfilment(database, order).filter(r => r.sellerId === sellerId && r.decision === "declined");
+  if (!records.length) return res.status(400).json({ success: false, message: "No declined seller items are available for takeover." });
+  const now = new Date().toISOString();
+  records.forEach(r => { r.decision = "taken_over"; r.fulfilledBy = "design_makers"; r.stage = "Processing"; r.updatedAt = now; r.updatedBy = `admin:${req.admin.username || req.admin.id || "admin"}`; });
+  // Customer-facing order remains normal; never expose the seller rejection.
+  order.sellerTakeovers = Array.isArray(order.sellerTakeovers) ? order.sellerTakeovers : [];
+  order.sellerTakeovers.push({ sellerId, at: now, by: req.admin.username || req.admin.id || "admin", action: "takeover" });
+  writeDatabase(database);
+  res.json({ success: true, message: "Design Makers has taken over the declined seller items.", order });
+});
+
+app.put("/api/admin/orders/:id/seller-stage", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const order = database.orders.find(o => o.id === Number(req.params.id));
+  if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+  const sellerId = Number((req.body || {}).sellerId);
+  const stage = String((req.body || {}).stage || "");
+  if (!sellerId || !SELLER_FULFILMENT_STAGES.includes(stage)) return res.status(400).json({ success: false, message: "Seller and valid stage are required." });
+  const records = ensureSellerFulfilment(database, order).filter(r => r.sellerId === sellerId && ["accepted", "taken_over"].includes(r.decision));
+  if (!records.length) return res.status(400).json({ success: false, message: "No active fulfilment for that seller is available." });
+  const now = new Date().toISOString();
+  records.forEach(r => { r.stage = stage; r.updatedAt = now; r.updatedBy = `admin:${req.admin.username || req.admin.id || "admin"}`; });
+  writeDatabase(database);
+  res.json({ success: true, order });
+});
+
 // Orders that include at least one of this seller's products. Each order
 // keeps its normal shape, but `items` is filtered down to just this
 // seller's lines so a seller never sees another seller's line items.
 app.get("/api/seller/orders", requireSeller, (req, res) => {
   const database = readDatabase();
-  const myProductIds = new Set(
-    database.products.filter((p) => p.sellerId === req.seller.id).map((p) => p.id),
-  );
-
   const orders = database.orders
-    .map((order) => {
-      const myItems = (order.items || []).filter((item) => myProductIds.has(item.productId));
-      if (!myItems.length) return null;
-      // A single order can contain products from more than one seller, so
-      // order.total (the whole order) is NOT this seller's revenue — only
-      // the lines that are actually theirs count.
-      const sellerTotal = Math.round(myItems.reduce((sum, item) => sum + (item.lineTotal || 0), 0) * 100) / 100;
-      return { ...order, items: myItems, sellerTotal };
-    })
+    .map(order => { const p = sellerOrderPayload(database, order, req.seller); return p.items.length ? p : null; })
     .filter(Boolean)
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
+    .sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  writeDatabase(database);
   res.json({ success: true, orders });
 });
 
@@ -2678,8 +3894,10 @@ app.put("/api/admin/products/:id/approve", requireAdmin, (req, res) => {
   const database = readDatabase();
   const product = database.products.find((p) => p.id === Number(req.params.id));
   if (!product) return res.status(404).json({ success: false, message: "Product not found." });
+  const beforeProduct = product.pendingSnapshot || product;
   product.approved = true;
   delete product.pendingSnapshot;
+  notifyBackInStockForProduct(database, beforeProduct, product);
   writeDatabase(database);
   res.json({ success: true, message: "Product approved and now live.", product });
 });
@@ -3005,6 +4223,10 @@ app.put("/api/admin/products/:id", requireAdmin, (req, res) => {
     product.buyBadgePercent = database.products[index].buyBadgePercent ?? 10;
   }
 
+  // Snapshot before the boss's edit is applied, so a stock change here can
+  // be checked against pending back-in-stock subscriptions below.
+  const beforeProduct = { ...database.products[index] };
+
   // The boss's edits apply immediately. A sub-admin's edit is held as a
   // proposal on the product (pendingAdminEdit) — the live product is left
   // untouched until the boss reviews and approves it.
@@ -3025,9 +4247,28 @@ app.put("/api/admin/products/:id", requireAdmin, (req, res) => {
 
   database.products[index] = { ...database.products[index], ...product, id };
   delete database.products[index].pendingAdminEdit;
+  notifyBackInStockForProduct(database, beforeProduct, database.products[index]);
   writeDatabase(database);
 
   res.json({ success: true, product: database.products[index] });
+});
+
+// Hide/show a product on the storefront. Deliberately separate from the
+// full product-edit endpoint above (no boss-approval hold) and from
+// permanent delete below (no canDeleteProducts gate) — this is a
+// reversible visibility toggle, not a destructive or business-rule
+// change, so every admin (boss and every sub-admin) can use it regardless
+// of their delete permission. A hidden product is excluded from the
+// public storefront/API the same way an unapproved or seller-banned
+// product already is (see the isPubliclyEligible checks elsewhere).
+app.put("/api/admin/products/:id/hidden", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const id = Number(req.params.id);
+  const product = database.products.find((p) => p.id === id);
+  if (!product) return res.status(404).json({ success: false, message: "Product not found." });
+  product.hidden = !!(req.body && req.body.hidden);
+  writeDatabase(database);
+  res.json({ success: true, id: product.id, hidden: product.hidden });
 });
 
 // A sub-admin's proposed edit to an already-live product, waiting on the
@@ -3132,11 +4373,175 @@ app.get("/", (req, res) => {
 // front-end reads the numeric id and ignores the slug. Serving the same
 // index.html here (not a redirect) is what lets a pasted link — WhatsApp,
 // a new tab, anywhere — open straight into that product instead of 404ing.
+//
+// The URLs and client-side behavior are unchanged from before — the only
+// addition is that the <head> tags (title/description/OG/canonical/
+// JSON-LD) sent for these two routes are now filled in with the real
+// product's own data server-side, instead of the site-wide defaults, so a
+// pasted WhatsApp/social link actually shows the product's name, photo and
+// price in the preview instead of the generic "Design Makers" card.
 app.get("/product/:id", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  sendProductPage(req, res, req.params.id, null);
 });
 app.get("/product/:id/:slug", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  sendProductPage(req, res, req.params.id, req.params.slug);
+});
+
+let indexHtmlTemplateCache = null;
+function getIndexHtmlTemplate() {
+  // Cached in memory after the first read — the file on disk doesn't
+  // change at runtime, so there's no need to hit the filesystem on every
+  // single product-page request.
+  if (indexHtmlTemplateCache === null) {
+    indexHtmlTemplateCache = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+  }
+  return indexHtmlTemplateCache;
+}
+
+function sendProductPage(req, res, idParam, slugParam) {
+  try {
+    const productId = Number(idParam);
+    const database = readDatabase();
+    const product = Number.isFinite(productId)
+      ? database.products.find((p) => p.id === productId && p.active && p.approved !== false && !p.hidden)
+      : null;
+
+    if (!product) {
+      // Unknown/inactive product: still serve the normal page (the
+      // frontend already shows its own "product not found" state) with
+      // the site-wide default meta tags, exactly as before this change.
+      return res.sendFile(path.join(__dirname, "index.html"));
+    }
+
+    const canonicalUrl = `${SITE_URL}/product/${product.id}/${slugifyProductName(product.name)}`;
+    const description = String(product.description || "").trim().slice(0, 160) ||
+      `${product.name} — customized and delivered by Design Makers.`;
+    const storedImages = Array.isArray(product.images) && product.images.length
+      ? product.images
+      : (product.image ? [product.image] : []);
+    const firstImage = storedImages[0];
+    const imageUrl = firstImage
+      ? (typeof firstImage === "string" && firstImage.startsWith("data:image/")
+          ? `${SITE_URL}/product-image/${product.id}/0`
+          : firstImage)
+      : `${SITE_URL}/Logo.png`;
+    const title = `${product.name} — Design Makers`;
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.name,
+      description,
+      image: [imageUrl],
+      category: product.category || undefined,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "INR",
+        price: product.price,
+        availability: product.active ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        url: canonicalUrl,
+      },
+    };
+
+    let html = getIndexHtmlTemplate();
+    html = html.replace(
+      "<title>Design Makers - Personalized Gifts</title>",
+      `<title>${escapeHtml(title)}</title>`,
+    );
+    html = html.replace(
+      /<meta name="description" content="[^"]*" \/>/,
+      `<meta name="description" content="${escapeHtml(description)}" />`,
+    );
+    html = html.replace(
+      /<link rel="canonical" href="[^"]*" \/>/,
+      `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
+    );
+    html = html.replace(
+      /<meta property="og:type" content="[^"]*" \/>/,
+      `<meta property="og:type" content="product" />`,
+    );
+    html = html.replace(
+      /<meta property="og:title" content="[^"]*" \/>/,
+      `<meta property="og:title" content="${escapeHtml(title)}" />`,
+    );
+    html = html.replace(
+      /<meta property="og:description" content="[^"]*" \/>/,
+      `<meta property="og:description" content="${escapeHtml(description)}" />`,
+    );
+    html = html.replace(
+      /<meta property="og:image" content="[^"]*" \/>/,
+      `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`,
+    );
+    html = html.replace(
+      /<meta property="og:url" content="[^"]*" \/>/,
+      `<meta property="og:url" content="${escapeHtml(canonicalUrl)}" />`,
+    );
+    html = html.replace(
+      "<!--SEO_JSONLD-->",
+      `<script type="application/ld+json">${escapeJsonForHtml(jsonLd)}</script>`,
+    );
+
+    res.set("Content-Type", "text/html");
+    res.send(html);
+  } catch (error) {
+    console.error("Product page SEO render failed, falling back to default page:", error.message);
+    res.sendFile(path.join(__dirname, "index.html"));
+  }
+}
+
+// ================================
+// SEO: robots.txt + sitemap.xml
+// ================================
+
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain").send(
+    [
+      "User-agent: *",
+      "Allow: /",
+      "Disallow: /admin",
+      "Disallow: /seller",
+      "Disallow: /api/",
+      "",
+      `Sitemap: ${SITE_URL}/sitemap.xml`,
+      "",
+    ].join("\n"),
+  );
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  try {
+    const database = readDatabase();
+    const bannedSellerIds = new Set(
+      (database.sellers || []).filter((s) => s.banned).map((s) => s.id),
+    );
+    const urls = [
+      { loc: `${SITE_URL}/`, priority: "1.0" },
+      { loc: `${SITE_URL}/sellerapplication`, priority: "0.3" },
+    ];
+    (database.products || [])
+      .filter(
+        (p) =>
+          p.active &&
+          p.approved !== false &&
+          !p.hidden &&
+          !(p.sellerId && bannedSellerIds.has(p.sellerId)),
+      )
+      .forEach((p) => {
+        urls.push({ loc: `${SITE_URL}/product/${p.id}/${slugifyProductName(p.name)}`, priority: "0.8" });
+      });
+
+    const xml =
+      `<?xml version="1.0" encoding="UTF-8"?>\n` +
+      `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+      urls.map((u) => `  <url><loc>${escapeHtml(u.loc)}</loc><priority>${u.priority}</priority></url>`).join("\n") +
+      `\n</urlset>`;
+
+    res.set("Content-Type", "application/xml");
+    res.send(xml);
+  } catch (error) {
+    console.error(error);
+    res.status(500).type("text/plain").send("");
+  }
 });
 
 // ================================
@@ -3217,11 +4622,23 @@ app.get("/api/products", (req, res) => {
           return src;
         }).filter(Boolean);
 
+        const { productCode, sellerId, sellerWhatsappNumber, ...publicProduct } = product;
         return {
-          ...product,
-          // Strip the large base64 payloads from the public response only.
+          ...publicProduct,
+          supportWhatsappUrl: buildWhatsAppUrl(
+            product.sellerId
+              ? ((database.sellers || []).find((seller) => seller.id === product.sellerId)?.whatsappNumber ||
+                 (database.sellers || []).find((seller) => seller.id === product.sellerId)?.phone ||
+                 "")
+              : ""
+          ),
           image: imageUrls[0] || "",
           images: imageUrls,
+          stockQty: Math.max(0, Number(product.stockQty) || 0),
+          stockConfigured: product.stockConfigured !== false,
+          lowStockThreshold: Math.max(0, Number(product.lowStockThreshold ?? 5) || 5),
+          variantStock: product.variantStock && typeof product.variantStock === "object" ? product.variantStock : {},
+          variantStockConfigured: product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {},
           saleActive: isSaleActive(product),
           popular: popularIds.has(product.id),
           trending: trendingIds.has(product.id),
@@ -3248,6 +4665,21 @@ app.get("/api/products/:id", (req, res) => {
       return res.status(404).json({ success: false, message: "Product not found." });
     }
 
+    // Enforce the exact same public-eligibility rule the storefront list
+    // endpoint (GET /api/products) already applies. Without this, a direct
+    // request to this single-product endpoint — by URL, by API, or by
+    // guessing/incrementing a product ID — could view (and, via /api/orders,
+    // even purchase) a product that is inactive, still pending admin
+    // approval, deliberately hidden, or belongs to a banned/suspended
+    // seller. Frontend hiding alone is not enough; this must be enforced
+    // here too.
+    const seller = product.sellerId ? (database.sellers || []).find((s) => s.id === product.sellerId) : null;
+    const sellerBanned = !!(seller && seller.banned);
+    const isPubliclyEligible = product.active && product.approved !== false && !product.hidden && !sellerBanned;
+    if (!isPubliclyEligible) {
+      return res.status(404).json({ success: false, message: "Product not found." });
+    }
+
     const storedImages = Array.isArray(product.images) && product.images.length
       ? product.images
       : (product.image ? [product.image] : []);
@@ -3257,12 +4689,20 @@ app.get("/api/products/:id", (req, res) => {
       }
       return src;
     }).filter(Boolean);
+    const { productCode, sellerId, sellerWhatsappNumber, ...publicProduct } = product;
+    const productSeller = product.sellerId ? (database.sellers || []).find((seller) => seller.id === product.sellerId) : null;
     res.json({
       success: true,
       product: {
-        ...product,
+        ...publicProduct,
+        supportWhatsappUrl: buildWhatsAppUrl(productSeller?.whatsappNumber || productSeller?.phone || ""),
         image: imageUrls[0] || "",
         images: imageUrls,
+        stockQty: Math.max(0, Number(product.stockQty) || 0),
+        stockConfigured: product.stockConfigured !== false,
+        lowStockThreshold: Math.max(0, Number(product.lowStockThreshold ?? 5) || 5),
+        variantStock: product.variantStock && typeof product.variantStock === "object" ? product.variantStock : {},
+        variantStockConfigured: product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {},
         saleActive: isSaleActive(product),
       },
     });
@@ -3345,6 +4785,39 @@ app.post("/api/products/:id/reviews", requireCustomer, (req, res) => {
 
   const rating = Number((req.body || {}).rating);
   const text = String((req.body || {}).text || "").trim().slice(0, 1000);
+  const photoData = String((req.body || {}).photoData || "");
+  if (photoData) {
+    const headerMatch = photoData.match(/^data:image\/(png|jpe?g|webp);base64,/);
+    if (!headerMatch) {
+      return res.status(400).json({ success: false, message: "Invalid review photo format." });
+    }
+    if (photoData.length > 2_100_000) {
+      return res.status(413).json({ success: false, message: "Review photo is too large. Please use a smaller image." });
+    }
+    // The header above only checks the label the browser *claims* — a file
+    // can be renamed/relabelled with any declared type. Confirm the actual
+    // bytes start with the real magic number for that format before trusting it.
+    let buf;
+    try {
+      buf = Buffer.from(photoData.slice(headerMatch[0].length), "base64");
+    } catch (e) {
+      return res.status(400).json({ success: false, message: "Invalid review photo data." });
+    }
+    const declaredType = headerMatch[1].toLowerCase();
+    const isPng = buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47;
+    const isJpeg = buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+    const isWebp =
+      buf.length >= 12 &&
+      buf.slice(0, 4).toString("ascii") === "RIFF" &&
+      buf.slice(8, 12).toString("ascii") === "WEBP";
+    const matches =
+      (declaredType === "png" && isPng) ||
+      ((declaredType === "jpg" || declaredType === "jpeg") && isJpeg) ||
+      (declaredType === "webp" && isWebp);
+    if (!matches) {
+      return res.status(400).json({ success: false, message: "That file doesn't look like a real image. Please upload a genuine photo." });
+    }
+  }
   if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
     return res.status(400).json({ success: false, message: "Rating must be between 1 and 5." });
   }
@@ -3366,6 +4839,7 @@ app.post("/api/products/:id/reviews", requireCustomer, (req, res) => {
     customerName: req.customer.name,
     rating,
     text,
+    photoData: photoData || "",
     createdAt: new Date().toISOString(),
   };
   database.reviews.push(review);
@@ -3451,108 +4925,231 @@ function getOptionalCustomerId(req) {
   }
 }
 
-app.post("/api/orders", async (req, res) => {
+// Duplicate-order guard — catches the case the frontend's button-disable
+// can't: two near-simultaneous requests racing each other (a second tab,
+// a retried request after a slow/flaky response, etc). Keyed on phone +
+// the exact items ordered, NOT on time alone, so it only ever collapses
+// an accidental resubmit of the *same* cart within a short window — a
+// customer placing a genuinely new or later order is never blocked.
+// In-memory is fine here: this app already runs (and is documented to
+// only be safe running) as a single instance, same as the rate limiters
+// above.
+const recentOrderSubmissions = new Map(); // fingerprint -> { orderId, expiresAt }
+const ORDER_DEDUPE_WINDOW_MS = 8000;
+
+function pruneRecentOrderSubmissions() {
+  const now = Date.now();
+  for (const [key, val] of recentOrderSubmissions) {
+    if (val.expiresAt < now) recentOrderSubmissions.delete(key);
+  }
+}
+
+function orderFingerprint(phone, items) {
+  const normalizedItems = (items || [])
+    .map((it) => {
+      const extra = {};
+      ["customization", "custom", "options", "personalization", "uploadedImage", "uploadedImageUrl"].forEach((key) => {
+        if (it && it[key] !== undefined) extra[key] = it[key];
+      });
+      return JSON.stringify({
+        productId: it && it.productId,
+        size: it && it.size ? it.size : "",
+        qty: it && it.qty,
+        extra,
+      });
+    })
+    .sort()
+    .join("|");
+  return crypto.createHash("sha256").update(phone + "::" + normalizedItems).digest("hex");
+}
+
+
+app.post("/api/customer/gift-codes/validate", requireCustomer, (req, res) => {
   try {
     const database = readDatabase();
-    const { customer, items } = req.body || {};
-
-    const phone = normalizePhone(customer && customer.phone);
-    const name = customer && String(customer.name || "").trim();
-    // Delivery address — free-text, shown to the admin and (for a
-    // single-seller order) emailed straight to the seller, since this is a
-    // COD business and someone needs to know where to actually deliver.
-    const address = customer && String(customer.address || "").trim();
-
-    if (!phone || phone.length < 10) {
-      return res.status(400).json({ success: false, message: "A valid 10-digit phone number is required." });
-    }
-    if (!name) {
-      return res.status(400).json({ success: false, message: "Name is required." });
-    }
-    if (!address) {
-      return res.status(400).json({ success: false, message: "Delivery address is required." });
-    }
-
-    // Price the order from the real product data — the client's numbers are never trusted.
-    const pricing = calculateSecurePricing(items, database.products);
-    if (pricing.errors.length) {
-      return res.status(400).json({ success: false, message: pricing.errors.join(" ") });
-    }
-
-    const newOrder = {
-      id: getNextId(database.orders),
-      orderNumber: "DM-" + Date.now().toString().slice(-8),
-      customer: { name, phone, address },
-      customerId: getOptionalCustomerId(req),
-      items: pricing.pricedItems,
-      subtotal: Math.round(pricing.subtotal * 100) / 100,
-      discount: Math.round(pricing.discountTotal * 100) / 100,
-      total: pricing.total,
-      paymentMethod: "COD",
-      // paymentStatus is separate from fulfillment `status` below — this
-      // tracks whether money has actually been confirmed, independent of
-      // where the order is in New/Processing/Shipped/etc. Right now it's
-      // flipped to "paid" manually by an admin once the WhatsApp order
-      // message is actually received (see markOrderPaid() + the
-      // /api/admin/orders/:id/mark-paid route). When an online payment
-      // gateway is added later, its webhook calls the same markOrderPaid()
-      // function instead of a human clicking the button — no other code
-      // needs to change.
-      paymentStatus: "pending",
-      paidAt: null,
-      status: "New",
-      createdAt: new Date().toISOString(),
-    };
-
-    database.orders.push(newOrder);
-    writeDatabase(database);
-
-    // Notify the seller by email, but only when every item in the order
-    // belongs to the SAME seller — a mixed cart (their product alongside
-    // someone else's, or an admin-listed product with no seller) still
-    // routes through the shop's own WhatsApp/admin flow as before, since
-    // there's no single seller to hand the whole order to.
-    notifySellerOfOrder(database, newOrder).catch((err) => {
-      console.error("Seller order-notification email failed:", err.message);
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Order created successfully.",
-      order: newOrder,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Unable to create order." });
+    const items = Array.isArray(req.body && req.body.items) ? req.body.items : [];
+    const pricing = calculateSecurePricing(items, database.products, "", getOptionalCustomerId(req), database);
+    if (pricing.errors.length) return res.status(400).json({ success: false, message: pricing.errors.join(" ") });
+    const result = validateGiftCode(database, req.body && req.body.code, getOptionalCustomerId(req), pricing.total);
+    if (!result.valid) return res.status(400).json({ success: false, message: result.message });
+    return res.json({ success: true, code: result.code, discount: result.discount, total: Math.round((pricing.total - result.discount) * 100) / 100, message: result.message });
+  } catch (e) {
+    console.error("Gift code validation failed:", e.message);
+    return res.status(500).json({ success: false, message: "Unable to validate gift code right now." });
   }
 });
 
-// Emails the seller when a freshly-placed order is made up entirely of
-// their own products, so they find out about a sale — and where to ship
-// it — without waiting on the admin to relay it from WhatsApp.
+app.post("/api/customer/back-in-stock", requireCustomer, (req, res) => {
+  const database = readDatabase();
+  const productId = Number((req.body || {}).productId);
+  const size = String((req.body || {}).size || "").trim();
+  const product = database.products.find((p) => p.id === productId);
+  if (!product) return res.status(404).json({ success: false, message: "Product not found." });
+  if (!Array.isArray(database.backInStockSubscriptions)) database.backInStockSubscriptions = [];
+  const already = database.backInStockSubscriptions.some(
+    (s) => s.customerId === req.customer.id && s.productId === productId && (s.size || "") === size,
+  );
+  if (already) return res.json({ success: true, alreadySubscribed: true, message: "You're already set to be notified for this item." });
+  database.backInStockSubscriptions.push({
+    id: getNextId(database.backInStockSubscriptions),
+    customerId: req.customer.id,
+    productId,
+    size,
+    createdAt: new Date().toISOString(),
+  });
+  writeDatabase(database);
+  res.json({
+    success: true,
+    message: req.customer.email
+      ? "We'll email you the moment it's back in stock."
+      : "Saved — but there's no email on your account yet, so we won't be able to deliver the alert. Add one from your profile.",
+  });
+});
+
+app.delete("/api/customer/back-in-stock", requireCustomer, (req, res) => {
+  const database = readDatabase();
+  const productId = Number((req.body || {}).productId);
+  const size = String((req.body || {}).size || "").trim();
+  if (!Array.isArray(database.backInStockSubscriptions)) database.backInStockSubscriptions = [];
+  const before = database.backInStockSubscriptions.length;
+  database.backInStockSubscriptions = database.backInStockSubscriptions.filter(
+    (s) => !(s.customerId === req.customer.id && s.productId === productId && (s.size || "") === size),
+  );
+  writeDatabase(database);
+  res.json({ success: true, removed: before !== database.backInStockSubscriptions.length });
+});
+
+app.get("/api/customer/back-in-stock", requireCustomer, (req, res) => {
+  const database = readDatabase();
+  const mine = (database.backInStockSubscriptions || []).filter((s) => s.customerId === req.customer.id);
+  res.json({ success: true, subscriptions: mine.map(({ productId, size }) => ({ productId, size })) });
+});
+
+app.post("/api/orders", async (req, res) => {
+  return withInventoryLock(async () => {
+    try {
+      const database = readDatabase();
+      ensureProductCodes(database);
+      const { customer, items, giftCode, gift } = req.body || {};
+      const phone = normalizePhone(customer && customer.phone);
+      const name = customer && String(customer.name || "").trim();
+      const address = customer && String(customer.address || "").trim();
+      if (!phone || phone.length < 10) return res.status(400).json({ success: false, message: "A valid 10-digit phone number is required." });
+      if (!name) return res.status(400).json({ success: false, message: "Name is required." });
+      if (!address) return res.status(400).json({ success: false, message: "Delivery address is required." });
+
+      pruneRecentOrderSubmissions();
+      const fingerprint = orderFingerprint(phone, items) + "::gift:" + normalizeGiftCode(giftCode);
+      const existingSubmission = recentOrderSubmissions.get(fingerprint);
+      if (existingSubmission) {
+        const existingOrder = database.orders.find((o) => o.id === existingSubmission.orderId);
+        if (existingOrder) return res.status(200).json({ success: true, message: "Order already placed.", order: existingOrder, duplicate: true });
+      }
+
+      const pricing = calculateSecurePricing(items, database.products, giftCode, getOptionalCustomerId(req), database, phone);
+      if (pricing.errors.length) return res.status(400).json({ success: false, message: pricing.errors.join(" ") });
+
+      const stockPlan = [];
+      const stockErrors = [];
+      for (const item of pricing.pricedItems) {
+        const product = database.products.find((p) => p.id === Number(item.productId));
+        if (!product || product.isGiftAddon) continue;
+        const available = getStockForVariant(product, item.size);
+        if (available < item.qty) stockErrors.push(`${product.name}${item.size ? ` (${item.size})` : ""}: only ${available} ${available === 1 ? "unit is" : "units are"} available.`);
+        else stockPlan.push({ product, size: item.size || "", qty: item.qty, before: available });
+      }
+      if (stockErrors.length) return res.status(409).json({ success: false, code: "OUT_OF_STOCK", message: stockErrors.join(" ") });
+
+      const deducted = [];
+      try {
+        stockPlan.forEach(({ product, size, qty, before }) => { setStockForVariant(product, size, before - qty); deducted.push({ product, size, before }); });
+        const newOrder = {
+          id: getNextId(database.orders),
+          orderNumber: generateOrderNumber(database),
+          customer: { name, phone, address },
+          customerId: getOptionalCustomerId(req),
+          items: pricing.pricedItems,
+          listedSubtotal: Math.round(pricing.listedSubtotal * 100) / 100,
+          subtotal: Math.round(pricing.subtotal * 100) / 100,
+          discount: Math.round(pricing.discountTotal * 100) / 100,
+          totalDiscount: Math.round(pricing.totalDiscount * 100) / 100,
+          giftCode: pricing.appliedGiftCode || null,
+          giftDiscount: Math.round((pricing.giftDiscount || 0) * 100) / 100,
+          gift: gift && gift.isGift ? { isGift: true, recipientName: String(gift.recipientName || "").trim().slice(0,120), message: String(gift.message || "").trim().slice(0,300), hidePrice: Boolean(gift.hidePrice) } : { isGift: false },
+          total: pricing.total,
+          paymentMethod: "COD",
+          paymentStatus: "pending",
+          paidAt: null,
+          status: "New",
+          statusHistory: [{ status: "New", at: new Date().toISOString() }],
+          sellerFulfilment: [],
+          inventoryDeducted: true,
+          inventoryRestored: false,
+          createdAt: new Date().toISOString(),
+        };
+        database.orders.push(newOrder);
+        ensureSellerFulfilment(database, newOrder);
+        if (pricing.appliedGiftCode) {
+          const gift = findGiftCode(database, pricing.appliedGiftCode);
+          if (gift) {
+            gift.usedCount = Number(gift.usedCount || 0) + 1;
+            if (!gift.usageByCustomer) gift.usageByCustomer = {};
+            const cid = getOptionalCustomerId(req);
+            const usageKey = cid ? String(cid) : `phone:${phone}`;
+            gift.usageByCustomer[usageKey] = Number(gift.usageByCustomer[usageKey] || 0) + 1;
+          }
+        }
+        writeDatabase(database);
+        recentOrderSubmissions.set(fingerprint, { orderId: newOrder.id, expiresAt: Date.now() + ORDER_DEDUPE_WINDOW_MS });
+        notifySellerOfOrder(database, newOrder).catch((err) => console.error("Seller order-notification email failed:", err.message));
+        return res.status(201).json({ success: true, message: "Order created successfully.", order: newOrder });
+      } catch (error) {
+        deducted.forEach(({ product, size, before }) => setStockForVariant(product, size, before));
+        throw error;
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ success: false, message: "Unable to create order." });
+    }
+  });
+});
+
+// Emails every seller who has at least one item in a freshly-placed order,
+// so each finds out about their own sale — and where to ship it — without
+// waiting on the admin to relay it from WhatsApp. The customer still places
+// ONE order regardless of how many sellers are in the cart (that's decided
+// earlier, in POST /api/orders — this function only fans out notifications
+// after the fact); each seller here only ever sees their own items and
+// their own share of the total, never another seller's.
 async function notifySellerOfOrder(database, order) {
-  const sellerIds = new Set();
-  let hasNonSellerItem = false;
+  const itemsBySeller = new Map(); // sellerId -> items[]
 
   (order.items || []).forEach((item) => {
     const product = database.products.find((p) => p.id === item.productId);
     if (product && product.sellerId) {
-      sellerIds.add(product.sellerId);
-    } else {
-      hasNonSellerItem = true;
+      if (!itemsBySeller.has(product.sellerId)) itemsBySeller.set(product.sellerId, []);
+      itemsBySeller.get(product.sellerId).push(item);
     }
   });
 
-  if (hasNonSellerItem || sellerIds.size !== 1) return;
+  for (const [sellerId, items] of itemsBySeller) {
+    const seller = database.sellers.find((s) => s.id === sellerId);
+    if (!seller || !seller.email) continue;
 
-  const seller = database.sellers.find((s) => s.id === [...sellerIds][0]);
-  if (!seller || !seller.email) return;
+    const sellerTotal = Math.round(items.reduce((sum, item) => sum + (item.lineTotal || 0), 0) * 100) / 100;
 
-  await sendMail(
-    seller.email,
-    `New order for ${seller.shopTitle} — ${order.orderNumber}`,
-    buildSellerNewOrderEmail({ seller, order }),
-  );
+    try {
+      await sendMail(
+        seller.email,
+        `New order for ${seller.shopTitle} — ${order.orderNumber}`,
+        buildSellerNewOrderEmail({ seller, order: { ...order, items, sellerTotal } }),
+      );
+    } catch (err) {
+      // One seller's email failing to send should never stop the others
+      // in the same mixed-seller order from being notified.
+      console.error(`Seller order-notification email failed for seller ${sellerId}:`, err.message);
+    }
+  }
 }
 
 function buildSellerNewOrderEmail({ seller, order }) {
@@ -3578,6 +5175,282 @@ function buildSellerNewOrderEmail({ seller, order }) {
        <p style="margin-top:18px;">— Team Design Makers</p>
      </div>`;
 }
+
+// ================================
+// CUSTOMER: MY ORDERS
+// ================================
+
+function customerOrderPayload(database, order, customer) {
+  const items = (order.items || []).map((it) => {
+    const product = database.products.find((p) => p.id === Number(it.productId));
+    let image = it.image || "";
+    if (!image && product) {
+      const hasImages = (Array.isArray(product.images) && product.images.length) || product.image;
+      if (hasImages) image = "/product-image/" + product.id + "/0";
+    }
+    return {
+      name: it.name,
+      size: it.size || "",
+      qty: it.qty,
+      lineTotal: it.lineTotal,
+      price: it.price,
+      salePrice: it.salePrice || null,
+      originalPrice: it.price,
+      image,
+    };
+  });
+  const listedSubtotal = Number(order.listedSubtotal);
+  const safeListedSubtotal = Number.isFinite(listedSubtotal)
+    ? listedSubtotal
+    : items.reduce((sum, it) => sum + (Number(it.originalPrice) || 0) * (Number(it.qty) || 0), 0);
+  const total = Number(order.total) || 0;
+  const totalDiscount = Number.isFinite(Number(order.totalDiscount))
+    ? Number(order.totalDiscount)
+    : Math.max(0, Math.round((safeListedSubtotal - total) * 100) / 100);
+  return {
+    id: order.id,
+    orderNumber: order.orderNumber,
+    createdAt: order.createdAt,
+    status: order.status || "New",
+    statusHistory: Array.isArray(order.statusHistory) ? order.statusHistory : [{ status: order.status || "New", at: order.createdAt }],
+    fulfilmentStage: deriveCustomerFulfilmentStage(order, getSellerFulfilment(database, order)),
+    itemFulfilment: (order.items || []).map((it, idx) => {
+      const product = database.products.find(p => p.id === Number(it.productId));
+      const key = itemFulfilmentKey(it, idx);
+      const rec = (order.sellerFulfilment || []).find(r => r.key === key);
+      return { productId: it.productId, size: it.size || "", stage: rec ? (rec.stage || "Order Received") : (order.status || "Order Received") };
+    }),
+    listedSubtotal: Math.round(safeListedSubtotal * 100) / 100,
+    subtotal: order.subtotal || 0,
+    discount: order.discount || 0,
+    totalDiscount,
+    total,
+    paymentMethod: order.paymentMethod || "COD",
+    paymentStatus: order.paymentStatus || "pending",
+    customer: {
+      name: order.customer?.name || customer.name || "",
+      phone: order.customer?.phone || customer.mobile || "",
+      address: order.customer?.address || "",
+    },
+    // The customer placed this order, so they get back exactly what they
+    // entered at checkout — recipient name, message, and hide-price choice.
+    gift: order.gift && order.gift.isGift
+      ? { isGift: true, recipientName: order.gift.recipientName || "", message: order.gift.message || "", hidePrice: !!order.gift.hidePrice }
+      : { isGift: false },
+    items,
+  };
+}
+
+app.get("/api/customer/orders", requireCustomer, (req, res) => {
+  const database = readDatabase();
+  const customer = req.customer;
+  const orders = (database.orders || [])
+    .filter((o) => o.customerId === customer.id || (customer.mobile && o.customer && o.customer.phone === customer.mobile))
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .map((o) => customerOrderPayload(database, o, customer));
+  res.json({ success: true, orders });
+});
+
+app.get("/api/customer/orders/:id", requireCustomer, (req, res) => {
+  const database = readDatabase();
+  const customer = req.customer;
+  const order = (database.orders || []).find((o) =>
+    String(o.id) === String(req.params.id) &&
+    (o.customerId === customer.id || (customer.mobile && o.customer && o.customer.phone === customer.mobile))
+  );
+  if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+  res.json({ success: true, order: customerOrderPayload(database, order, customer) });
+});
+
+// ================================
+// GUEST ORDER TRACKING (no account needed)
+// ================================
+// A guest checkout has no login to come back to, so the only way to check
+// status later was WhatsApp support (AUDIT-REPORT.md, section 9). This adds
+// a direct lookup — requires the exact phone number AND exact order number
+// together (not a search), so a phone number alone can't page through
+// someone else's orders.
+app.post("/api/orders/track", trackOrderLimiter, (req, res) => {
+  const phone = String((req.body || {}).phone || "").replace(/\D/g, "").slice(-10);
+  const orderNumber = String((req.body || {}).orderNumber || "").trim();
+  if (!phone || phone.length < 10 || !orderNumber) {
+    return res.status(400).json({ success: false, message: "Enter both your 10-digit phone number and order number." });
+  }
+
+  const database = readDatabase();
+  const order = (database.orders || []).find((o) => {
+    const orderPhone = String(o.customer?.phone || "").replace(/\D/g, "").slice(-10);
+    const orderNum = String(o.orderNumber || "");
+    return orderPhone === phone && orderNum.toLowerCase() === orderNumber.toLowerCase();
+  });
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: "No order found for that phone number and order number." });
+  }
+  res.json({ success: true, order: customerOrderPayload(database, order, {}) });
+});
+
+// ================================
+// CUSTOMER: CALLBACK REQUEST
+// ================================
+// The website records a lightweight callback request, not a phone call.
+// The customer is then connected to the existing Design Makers WhatsApp.
+
+
+
+function buildAdminCallbackRequestEmail(request) {
+  const orderLine = request.orderNumber
+    ? `<p style="margin:0 0 8px;"><b>Order:</b> ${request.orderNumber}</p>`
+    : `<p style="margin:0 0 8px;color:#8c7d78;">General enquiry (no order attached)</p>`;
+  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
+       <h2 style="color:#8a1c42;margin-bottom:4px;">🔔 New callback request</h2>
+       <p>A customer has submitted a callback request through WhatsApp.</p>
+       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
+         <p style="margin:0 0 8px;"><b>Request ID:</b> ${request.requestId}</p>
+         <p style="margin:0 0 8px;"><b>Name:</b> ${request.name || "Not provided"}</p>
+         <p style="margin:0 0 8px;"><b>Phone:</b> ${request.phone || "Not provided"}</p>
+         ${orderLine}
+         <p style="margin:0;"><b>Reason:</b> ${request.reason}</p>
+       </div>
+       <p style="font-size:0.85em;color:#8c7d78;">Open the admin panel's Callback notifications (bell icon) to mark this as contacted/completed.</p>
+       <p style="margin-top:18px;">— Design Makers Website</p>
+     </div>`;
+}
+
+app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
+  try {
+    const customer = req.customer;
+    const reason = String((req.body && req.body.reason) || "").trim().slice(0, 500);
+    if (!reason) {
+      return res.status(400).json({ success: false, message: "Please enter a reason for the callback." });
+    }
+
+    const database = readDatabase();
+    if (!Array.isArray(database.callbackRequests)) database.callbackRequests = [];
+
+    let order = null;
+    const rawOrderId = req.body && req.body.orderId ? String(req.body.orderId).trim() : "";
+    if (rawOrderId) {
+      order = (database.orders || []).find((o) =>
+        (String(o.id) === rawOrderId || String(o.orderNumber || "") === rawOrderId) &&
+        (o.customerId === customer.id || (customer.mobile && o.customer && o.customer.phone === customer.mobile))
+      );
+      if (!order) return res.status(403).json({ success: false, message: "That order does not belong to your account." });
+    }
+
+    // Prevent accidental duplicate submissions without blocking a legitimate
+    // later request. If an identical open request was just created, reuse it.
+    const now = Date.now();
+    const duplicate = database.callbackRequests.find((r) =>
+      r.customerId === customer.id &&
+      ["New", "Contacted"].includes(r.status) &&
+      String(r.reason || "").trim() === reason &&
+      String(r.orderNumber || "") === String(order?.orderNumber || "") &&
+      now - new Date(r.createdAt || 0).getTime() < 60 * 1000
+    );
+
+    let request = duplicate;
+    if (!request) {
+      const numericId = getNextId(database.callbackRequests);
+      request = {
+        id: numericId,
+        requestId: `CR-${String(numericId).padStart(6, "0")}`,
+        customerId: customer.id,
+        name: customer.name || "",
+        phone: customer.mobile || "",
+        orderId: order ? order.id : null,
+        orderNumber: order ? (order.orderNumber || `DM-${order.id}`) : null,
+        reason,
+        source: "WhatsApp",
+        status: "New",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        completedAt: null,
+        readBy: [],
+      };
+      database.callbackRequests.push(request);
+      writeDatabase(database);
+      // Fire-and-forget — a slow/failed email should never block the customer's
+      // request from succeeding or delay the WhatsApp redirect below.
+      sendMail(
+        ADMIN_NOTIFY_EMAIL,
+        `New callback request — ${request.requestId}`,
+        buildAdminCallbackRequestEmail(request),
+      ).catch((err) => console.error("Admin callback-request email failed:", err.message));
+    }
+
+    const message = order
+      ? `Hi Design Makers, I would like a callback regarding my order ${request.orderNumber}.\n\nReason: ${reason}`
+      : `Hi Design Makers, I would like a callback regarding my enquiry.\n\nReason: ${reason}`;
+    const whatsappUrl = `${DESIGN_MAKERS_WHATSAPP}?text=${encodeURIComponent(message)}`;
+
+    res.json({
+      success: true,
+      requestId: request.requestId,
+      message: "Callback request submitted. WhatsApp is opening now.",
+      whatsappUrl,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to submit your callback request. Please try again." });
+  }
+});
+
+// Admin notification feed for callback requests. readBy is per-admin so one
+// admin viewing a notification does not silently mark it read for everyone.
+app.get("/api/admin/callback-requests", requireAdmin, (req, res) => {
+  try {
+    const database = readDatabase();
+    const username = String(req.admin?.username || "").trim();
+    const requests = (database.callbackRequests || []).slice().sort((a, b) => {
+      const au = Array.isArray(a.readBy) && a.readBy.includes(username) ? 1 : 0;
+      const bu = Array.isArray(b.readBy) && b.readBy.includes(username) ? 1 : 0;
+      if (au !== bu) return au - bu;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+    const unreadCount = requests.filter((r) => !(Array.isArray(r.readBy) && r.readBy.includes(username))).length;
+    res.json({ success: true, requests, unreadCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to load callback notifications." });
+  }
+});
+
+app.put("/api/admin/callback-requests/:id/read", requireAdmin, (req, res) => {
+  try {
+    const database = readDatabase();
+    const request = (database.callbackRequests || []).find((r) => String(r.id) === String(req.params.id));
+    if (!request) return res.status(404).json({ success: false, message: "Callback request not found." });
+    if (!Array.isArray(request.readBy)) request.readBy = [];
+    const username = String(req.admin?.username || "").trim();
+    if (username && !request.readBy.includes(username)) request.readBy.push(username);
+    request.updatedAt = new Date().toISOString();
+    writeDatabase(database);
+    res.json({ success: true, request });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to mark this notification as read." });
+  }
+});
+
+app.put("/api/admin/callback-requests/:id/status", requireAdmin, (req, res) => {
+  try {
+    const allowed = new Set(["New", "Contacted", "Completed", "Cancelled"]);
+    const status = String(req.body?.status || "").trim();
+    if (!allowed.has(status)) return res.status(400).json({ success: false, message: "Invalid callback status." });
+    const database = readDatabase();
+    const request = (database.callbackRequests || []).find((r) => String(r.id) === String(req.params.id));
+    if (!request) return res.status(404).json({ success: false, message: "Callback request not found." });
+    request.status = status;
+    request.updatedAt = new Date().toISOString();
+    request.completedAt = status === "Completed" ? new Date().toISOString() : null;
+    writeDatabase(database);
+    res.json({ success: true, request });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Unable to update callback request." });
+  }
+});
 
 // ================================
 // ADMIN: DOWNLOAD DATA BACKUP
@@ -3623,6 +5496,10 @@ app.get("/api/admin/orders", requireAdmin, (req, res) => {
   const { slice, meta } = paginate(req, sorted);
   const orders = slice.map((order) => ({
     ...order,
+    sellerFulfilment: getSellerFulfilment(database, order).map(r => {
+      const seller = database.sellers.find(s => s.id === r.sellerId);
+      return { ...r, sellerName: seller ? (seller.shopTitle || seller.name) : "Unknown seller" };
+    }),
     // Tag each line item with who it came from — a seller's shop title,
     // or null for products listed directly by an admin — so the admin
     // panel can show whose products are actually being ordered.
@@ -3680,29 +5557,54 @@ app.put("/api/admin/orders/:id/mark-paid", requireAdmin, (req, res) => {
 });
 
 app.put("/api/admin/orders/:id/status", requireAdmin, (req, res) => {
-  const database = readDatabase();
-  const id = Number(req.params.id);
-  const { status } = req.body || {};
+  return withInventoryLock(async () => {
+    const database = readDatabase();
+    const id = Number(req.params.id);
+    const { status } = req.body || {};
+    if (!ORDER_STATUSES.includes(status)) return res.status(400).json({ success: false, message: "Invalid status." });
+    const order = database.orders.find((o) => o.id === id);
+    if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+    if (order.status === status) return res.json({ success: true, order });
+    if (order.status === "Cancelled" && status !== "Cancelled" && req.admin.role !== "boss") return res.status(403).json({ success: false, message: "Only the main admin can re-activate a cancelled order." });
 
-  if (!ORDER_STATUSES.includes(status)) {
-    return res.status(400).json({ success: false, message: "Invalid status." });
-  }
+    const previousStatus = order.status || "New";
+    if (status === "Cancelled" && previousStatus !== "Cancelled" && order.inventoryDeducted && !order.inventoryRestored) {
+      (order.items || []).forEach((item) => {
+        const product = database.products.find((p) => p.id === Number(item.productId));
+        if (!product || product.isGiftAddon) return;
+        const beforeQty = getStockForVariant(product, item.size);
+        const afterQty = beforeQty + Number(item.qty || 0);
+        setStockForVariant(product, item.size, afterQty);
+        // Cancellation is a restock path too (0 -> available), same as the
+        // inventory-panel and bulk-import paths above — Back-in-Stock
+        // subscribers should be notified here as well (Fix #05).
+        notifyBackInStockForVariant(database, product, item.size, beforeQty, afterQty);
+      });
+      order.inventoryRestored = true;
+    }
 
-  const order = database.orders.find((o) => o.id === id);
-  if (!order) {
-    return res.status(404).json({ success: false, message: "Order not found." });
-  }
+    if (previousStatus === "Cancelled" && status !== "Cancelled" && order.inventoryRestored) {
+      const failures = [], plan = [];
+      (order.items || []).forEach((item) => {
+        const product = database.products.find((p) => p.id === Number(item.productId));
+        if (!product || product.isGiftAddon) return;
+        const available = getStockForVariant(product, item.size);
+        const qty = Number(item.qty || 0);
+        if (available < qty) failures.push(`${product.name}${item.size ? ` (${item.size})` : ""}: requires ${qty}, only ${available} available.`);
+        else plan.push({ product, size: item.size || "", qty, before: available });
+      });
+      if (failures.length) return res.status(409).json({ success: false, code: "OUT_OF_STOCK", message: "Cannot reactivate this order. " + failures.join(" ") });
+      plan.forEach(({ product, size, qty, before }) => setStockForVariant(product, size, before - qty));
+      order.inventoryRestored = false;
+      order.inventoryDeducted = true;
+    }
 
-  // Re-activating a cancelled order (moving it out of "Cancelled") is
-  // restricted to the main admin (boss) account.
-  if (order.status === "Cancelled" && status !== "Cancelled" && req.admin.role !== "boss") {
-    return res.status(403).json({ success: false, message: "Only the main admin can re-activate a cancelled order." });
-  }
-
-  order.status = status;
-  writeDatabase(database);
-
-  res.json({ success: true, order });
+    order.status = status;
+    order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [{ status: previousStatus, at: order.createdAt }];
+    order.statusHistory.push({ status, at: new Date().toISOString() });
+    writeDatabase(database);
+    return res.json({ success: true, order });
+  });
 });
 
 // ================================
@@ -3800,8 +5702,73 @@ app.use((err, req, res, next) => {
 // START SERVER
 // ================================
 
+function ensureDemoSeller() {
+  const database = readDatabase();
+  const existing = (database.sellers || []).find((s) => s.sellerId === "DM-SLR-DEMO");
+  if (existing) {
+    let changed = false;
+    if (!existing.whatsappNumber) { existing.whatsappNumber = "6299195149"; changed = true; }
+    if (!existing.photo) {
+      try {
+        const logoPath = path.join(__dirname, "God-of-DM-DP.png");
+        if (fs.existsSync(logoPath)) {
+          existing.photo = `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}`;
+          changed = true;
+        }
+      } catch (_) {}
+    }
+    if (changed) writeDatabase(database);
+    return;
+  }
+  const logoPath = path.join(__dirname, "God-of-DM-DP.png");
+  let photo = "";
+  try {
+    if (fs.existsSync(logoPath)) photo = `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}`;
+  } catch (_) {}
+  const seller = {
+    id: getNextId(database.sellers || []),
+    sellerId: "DM-SLR-DEMO",
+    passwordHash: bcrypt.hashSync("GodOfDM#2026", 10),
+    name: "God of DM",
+    email: "oyeaom@gmail.com",
+    phone: "6299195149",
+    whatsappNumber: "6299195149",
+    altPhone: "",
+    shopTitle: "God of DM",
+    businessType: "Demo Seller",
+    businessAddress: "",
+    city: "",
+    state: "",
+    pincode: "",
+    aadhaarLast4: "1032",
+    aadhaarFull: encryptPII("895915971032"),
+    panNumber: "",
+    dob: "",
+    gender: "",
+    bankAccountNumber: "",
+    ifscCode: "",
+    upiId: "",
+    gstNumber: "",
+    notes: "Demo seller created for WhatsApp routing testing.",
+    photo,
+    applicationId: null,
+    createdAt: new Date().toISOString(),
+    banned: false,
+    mustChangePassword: false,
+  };
+  database.sellers = database.sellers || [];
+  database.sellers.push(seller);
+  writeDatabase(database);
+  console.log("Demo seller created: DM-SLR-DEMO (God of DM)");
+}
+
 connectDB()
   .then(() => {
+    try {
+      ensureDemoSeller();
+    } catch (err) {
+      console.error("Demo seller seed failed (non-fatal):", err.message);
+    }
     try {
       const database = readDatabase();
       const seeded = autoSeedCategoryProducts(database);

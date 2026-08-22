@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Design Makers - Personalized Gifts</title>
+    <meta name="description" content="Design Makers — personalized photo mugs, cushions, keychains and gifts, customized just for you and delivered. Order easily via WhatsApp, Cash on Delivery." />
+    <link rel="canonical" href="https://designmakers.site/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Design Makers" />
+    <meta property="og:title" content="Design Makers - Personalized Gifts" />
+    <meta property="og:description" content="Personalized photo mugs, cushions, keychains and gifts, customized just for you and delivered. Order easily via WhatsApp, Cash on Delivery." />
+    <meta property="og:image" content="https://designmakers.site/Logo.png" />
+    <meta property="og:url" content="https://designmakers.site/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!--SEO_JSONLD-->
     <link rel="icon" type="image/png" href="Logo.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,6 +32,7 @@
         --muted: #8c7d78;
         --glow: rgba(138,28,66,0.30);
         --surface: #ffffff;
+        --text-on-primary: #ffffff;
       }
       /* ===== Festival themes — admin-controlled, applied as a body class ===== */
       body.theme-rakshabandhan {
@@ -34,6 +45,7 @@
         --ink: #ffeace;
         --muted: #caa87e;
         --glow: rgba(212,175,55,0.5);
+        --text-on-primary: #2a1710;
       }
 
       
@@ -799,6 +811,22 @@
       }
       footer a { color: var(--rosewood); text-decoration: none; font-weight: 600; margin: 0 8px; }
 
+      /* ===== Customer extras: wishlist / recent / back-in-stock / gift ===== */
+      .dm-wishlist-btn{border:1px solid var(--blush-line);background:var(--surface);color:var(--rosewood);border-radius:10px;padding:10px 13px;cursor:pointer;font-weight:800;}
+      .dm-wishlist-btn.active{background:var(--blush);border-color:var(--gold);}
+      .dm-customer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+      .dm-mini-product{border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);overflow:hidden;}
+      .dm-mini-product img{width:100%;height:130px;object-fit:cover;background:var(--blush);display:block;}
+      .dm-mini-product-body{padding:10px;}
+      .dm-mini-product-name{font-weight:800;font-size:.9rem;min-height:36px;}
+      .dm-mini-actions{display:flex;gap:7px;margin-top:9px;}
+      .dm-mini-actions button{flex:1;padding:8px 9px;border-radius:9px;border:1px solid var(--blush-line);background:var(--surface);color:var(--rosewood);font-weight:800;cursor:pointer;}
+      .dm-gift-box{border:1px solid var(--blush-line);border-radius:12px;padding:12px;margin:10px 0;background:rgba(255,255,255,.5);}
+      .dm-gift-box label{display:flex;gap:8px;align-items:center;font-weight:800;color:var(--ink);cursor:pointer;}
+      .dm-address-row{border:1px solid var(--blush-line);border-radius:11px;padding:10px;margin:7px 0;display:flex;gap:8px;align-items:flex-start;}
+      .dm-address-row input{margin-top:4px;}
+      .dm-address-row .address-text{flex:1;font-size:.84rem;line-height:1.4;}
+      .dm-photo-preview{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1px solid var(--blush-line);display:none;}
       /* ===== Product Modal ===== */
       .overlay {
         display: none;
@@ -902,6 +930,41 @@
 
       /* ===== Split-panel auth (login / signup) modal ===== */
       .auth-modal { max-width: 720px; overflow: hidden; }
+      .auth-modal.order-view-wide { max-width: 1080px; width: min(1080px, 96vw); }
+      .account-section-tabs { display:flex; gap:8px; margin:0 0 16px; border-bottom:1px solid var(--blush-line); padding-bottom:10px; }
+      .account-section-tab { border:1px solid var(--blush-line); background:var(--surface); color:var(--ink); border-radius:999px; padding:8px 14px; cursor:pointer; font-weight:700; font-size:.82rem; }
+      .account-section-tab.active { background:var(--rosewood); color:var(--text-on-primary); border-color:var(--rosewood); }
+      .dm-order-list-card { border:1px solid var(--blush-line); border-radius:14px; padding:14px; margin-bottom:10px; background:var(--surface); cursor:pointer; transition:.18s ease; }
+      .dm-order-list-card:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(138,28,66,.08); }
+      .dm-order-detail-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(260px,.75fr); gap:14px; }
+      .dm-order-detail-card { border:1px solid var(--blush-line); border-radius:16px; background:var(--surface); padding:16px; }
+      .dm-order-id-box { background:var(--blush); border:1px solid var(--blush-line); border-radius:12px; padding:11px 13px; font-weight:900; color:var(--rosewood); letter-spacing:.4px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+      .dm-order-timeline { display:flex; align-items:flex-start; gap:0; margin-top:18px; }
+      .dm-order-step { flex:1; text-align:center; position:relative; font-size:11px; color:var(--muted); }
+      .dm-order-step:not(:last-child)::after { content:""; position:absolute; top:11px; left:50%; width:100%; height:2px; background:var(--line); z-index:0; }
+      .dm-order-step.done:not(:last-child)::after { background:#25a65a; }
+      .dm-order-dot { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 7px; background:var(--line); color:#fff; position:relative; z-index:1; font-size:12px; font-weight:800; }
+      .dm-order-step.done .dm-order-dot { background:#25a65a; }
+      .dm-order-step.current .dm-order-dot { background:var(--rosewood); box-shadow:0 0 0 5px rgba(138,28,66,.10); }
+      .dm-order-step.done .dm-order-label { color:var(--ink); font-weight:800; }
+      .dm-order-item { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--blush-line); align-items:center; }
+      .dm-order-item:last-child { border-bottom:0; }
+      .dm-order-item-img { width:64px; height:64px; border-radius:10px; overflow:hidden; background:var(--blush); flex:0 0 64px; display:flex; align-items:center; justify-content:center; }
+      .dm-order-item-img img { width:100%; height:100%; object-fit:cover; }
+      .dm-order-whatsapp { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:11px 14px; border-radius:10px; background:color-mix(in srgb, #1c7a34 82%, transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.25); box-shadow:0 4px 18px rgba(0,0,0,.14); color:#fff; text-decoration:none; font-weight:800; }
+      .dm-order-back { border:0; background:transparent; color:var(--rosewood); font-weight:800; cursor:pointer; padding:0; }
+      .dm-order-list-meta { color:var(--muted); font-size:.8rem; margin-top:4px; }
+      .dm-order-status-pill { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px; font-size:.75rem; font-weight:800; }
+      .dm-order-status-pill.active { background:var(--blush); color:var(--rosewood); }
+      .dm-order-status-pill.done { background:#eaf8ef; color:#1c7a34; }
+      .dm-order-status-pill.cancelled { background:#fdeceb; color:#b42318; }
+      .dm-order-empty { text-align:center; padding:30px 12px; color:var(--muted); }
+      .dm-order-summary-title { color:var(--rosewood); font-weight:900; margin-bottom:12px; }
+      .dm-order-delivery-line { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--blush-line); font-size:.86rem; line-height:1.45; }
+      .dm-order-delivery-line:last-child { border-bottom:0; }
+      .dm-price-row { display:flex; justify-content:space-between; gap:12px; padding:6px 0; font-size:.9rem; }
+      .dm-price-row.total { border-top:1px dashed var(--blush-line); margin-top:6px; padding-top:12px; font-weight:900; font-size:1.02rem; color:var(--rosewood); }
+      @media (max-width:760px) { .dm-order-detail-grid { grid-template-columns:1fr; } .dm-order-timeline { overflow-x:auto; min-width:560px; } .dm-order-detail-card { padding:13px; } }
       .auth-brand {
         flex: 1 1 45%;
         background: linear-gradient(150deg, var(--rosewood) 0%, var(--rosewood-dark) 100%);
@@ -972,29 +1035,75 @@
         box-shadow: 0 3px 10px rgba(138,28,66,0.22);
       }
 
-      .qty-row { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+      /* Accessible, premium quantity selector — keeps the existing brand palette. */
+      .qty-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+        margin-top: 8px;
+        padding: 4px;
+        min-height: 46px;
+        border: 1px solid color-mix(in srgb, var(--blush-line) 86%, var(--gold) 14%);
+        border-radius: 14px;
+        background: color-mix(in srgb, var(--surface) 94%, var(--blush) 6%);
+        box-shadow: 0 2px 10px rgba(42,35,31,.06);
+      }
       .qty-btn {
-        width: 36px; height: 36px;
-        border-radius: 6px;
-        border: 1.5px solid var(--blush-line);
-        background: var(--surface);
-        font-size: 17px;
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        background: color-mix(in srgb, var(--blush) 76%, var(--surface) 24%);
+        color: var(--ink);
+        font-size: 18px;
+        line-height: 1;
         cursor: pointer;
         font-weight: 700;
-        color: var(--rosewood);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .16s ease, border-color .16s ease, transform .12s ease, box-shadow .16s ease;
       }
+      .qty-btn:hover:not(:disabled) {
+        background: color-mix(in srgb, var(--blush-line) 68%, var(--surface) 32%);
+        border-color: color-mix(in srgb, var(--blush-line) 76%, var(--gold) 24%);
+        box-shadow: 0 2px 7px rgba(42,35,31,.08);
+      }
+      .qty-btn:active:not(:disabled) { transform: scale(.95); }
+      .qty-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .qty-btn:disabled { opacity: .45; cursor: not-allowed; }
       .qty-val {
         font-size: 16px;
-        font-weight: 700;
-        width: 60px;
+        font-weight: 800;
+        width: 58px;
+        height: 38px;
         text-align: center;
-        border: 1.5px solid var(--blush-line);
-        border-radius: 6px;
-        padding: 8px 4px;
+        border: 0;
+        border-left: 1px solid color-mix(in srgb, var(--blush-line) 72%, transparent);
+        border-right: 1px solid color-mix(in srgb, var(--blush-line) 72%, transparent);
+        border-radius: 0;
+        padding: 7px 4px;
+        background: transparent;
         color: var(--ink);
         font-family: inherit;
       }
-      .qty-val:focus { outline: none; border-color: var(--gold); }
+      .qty-val:focus { outline: none; background: color-mix(in srgb, var(--blush) 42%, transparent); }
+      .qty-val:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; border-radius: 4px; }
+
+      /* Product-modal readability pass: preserve the existing theme, strengthen only text that was too faint. */
+      .modal-desc { color: color-mix(in srgb, var(--ink) 68%, var(--muted) 32%); }
+      .modal-moq { color: color-mix(in srgb, var(--ink) 64%, var(--muted) 36%); }
+      .field-label { color: color-mix(in srgb, var(--ink) 88%, var(--rosewood) 12%); }
+      .modal-reviews .field-label { font-weight: 800; }
+      .modal-moq, .modal-desc, .field-label { text-shadow: none; }
+
+      /* Keep the correction compatible with the festive theme without replacing its colours. */
+      body.theme-rakshabandhan .modal-desc { color: #f0d9c0; }
+      body.theme-rakshabandhan .modal-moq { color: #e5c8a8; }
+      body.theme-rakshabandhan .field-label { color: #f2d8bc; }
+      body.theme-rakshabandhan .qty-row { background: #2a0d0d; border-color: rgba(255,218,183,.24); }
+      body.theme-rakshabandhan .qty-btn { background: #3b1815; color: #ffe9d2; border-color: rgba(255,218,183,.16); }
+      body.theme-rakshabandhan .qty-btn:hover:not(:disabled) { background: #4a211b; border-color: rgba(255,218,183,.28); }
+      body.theme-rakshabandhan .qty-val { color: #ffe9d2; border-color: rgba(255,218,183,.18); }
       /* Hide the native up/down spinner so it doesn't clash with our −/+ buttons */
       .qty-val::-webkit-outer-spin-button,
       .qty-val::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -1018,9 +1127,12 @@
 
       .add-cart-btn {
         width: 100%;
-        background: var(--rosewood);
-        color: white;
-        border: none;
+        background: color-mix(in srgb, var(--rosewood) 82%, transparent);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid color-mix(in srgb, var(--text-on-primary) 25%, transparent);
+        box-shadow: 0 4px 18px rgba(0,0,0,0.14);
+        color: var(--text-on-primary);
         padding: 15px;
         border-radius: 8px;
         font-size: 15.5px;
@@ -1075,11 +1187,18 @@
       .cart-footer { padding: 20px; border-top: 1px solid var(--blush-line); }
       .cart-total-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; color: var(--muted); }
       .cart-total-row.grand { font-size: 18px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: "Playfair Display", serif; }
+      .gift-code-box { margin: 12px 0; padding: 12px; border: 1px solid var(--blush-line); border-radius: 10px; background: rgba(255,255,255,.55); }
+      .gift-code-row { display:flex; gap:8px; }
+      .gift-code-row input { flex:1; margin:0; text-transform:uppercase; }
+      .gift-code-msg { font-size:12px; margin-top:7px; min-height:16px; }
       .checkout-btn {
         width: 100%;
-        background: #25D366;
+        background: color-mix(in srgb, #1c7a34 82%, transparent);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,.25);
+        box-shadow: 0 4px 18px rgba(0,0,0,.14);
         color: white;
-        border: none;
         padding: 15px;
         border-radius: 8px;
         font-size: 15.5px;
@@ -1388,9 +1507,8 @@
           font-weight: 600;
           cursor: pointer;
         }
-        .mobile-action-bar .call-btn { background: var(--blush); color: var(--rosewood); }
-        .mobile-action-bar .wa-btn { background: #25D366; color: white; }
-        .mobile-action-bar .cart-btn { background: var(--rosewood); color: white; }
+          .mobile-action-bar .wa-btn { background: color-mix(in srgb, #1c7a34 82%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.25); color: white; }
+        .mobile-action-bar .cart-btn { background: var(--rosewood); color: var(--text-on-primary); }
         body { padding-bottom: 74px; }
       }
 
@@ -1947,7 +2065,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         background: rgba(182,61,97,.14) !important;
         color: #8e4549 !important;
       }
-    </style>
+    
+      /* Mandatory Google-login WhatsApp number popup */
+      #googleWhatsappNumberOverlay { z-index: 10050; }
+      #googleWhatsappNumberOverlay .auth-modal { max-width: 460px; }
+      .dm-phone-row { display:grid; grid-template-columns: 150px 1fr; gap:8px; }
+      .dm-phone-code, .dm-phone-number { width:100%; }
+      @media (max-width:520px){ .dm-phone-row{grid-template-columns:125px 1fr;} }
+</style>
     <!-- Toggleable dark-mode skin: disabled by default via media="not all",
          flipped to media="all" by the shared theme JS when dark mode is on.
          Built from the site's own (previously dormant) blue-accented
@@ -1977,6 +2102,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         --muted: var(--dm-dark-muted);
         --surface: var(--dm-dark-surface);
         --glow: var(--dm-dark-glow);
+        --text-on-primary: #2a1420;
       }
       /* ===== FINAL CUSTOMER LIQUID GLASS THEME ===== */
       body { background:#05070a !important; color:#f5f7fb; }
@@ -2077,7 +2203,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.dark-mode footer { color: rgba(255,255,255,.55) !important; border-top: 1px solid rgba(255,255,255,.1) !important; background: transparent !important; }
       body.dark-mode footer a { color:#8cc8ff !important; }
       body.dark-mode .mobile-action-bar { background: rgba(10,14,20,.94) !important; border-color: rgba(255,255,255,.1) !important; }
-      body.dark-mode .mobile-action-bar .call-btn { background: rgba(255,255,255,.08) !important; color:#fff !important; }
       body.dark-mode .overlay { background: rgba(0,0,0,.65) !important; }
       body.dark-mode .modal-close { background: rgba(255,255,255,.08) !important; border-color: rgba(255,255,255,.14) !important; color: #fff !important; }
       body.dark-mode .hot-banner { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; border: 1px solid rgba(255,255,255,.10) !important; }
@@ -2494,7 +2619,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
     </footer>
 
     <div class="mobile-action-bar">
-      <button class="call-btn" onclick="window.open('tel:+917004847813')">📞 Call</button>
       <button class="wa-btn" onclick="window.open('https://wa.me/7004847813','_blank')"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>WhatsApp</button>
       <button class="cart-btn" onclick="openCart()">🛍 Cart</button>
     </div>
@@ -2520,6 +2644,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           <div class="modal-price" id="modalPrice"></div>
           <div id="modalSaleNote" style="display:none;font-size:0.85em;color:#1c7a34;margin-top:-8px;margin-bottom:8px;"></div>
           <div class="modal-moq" id="modalMoq"></div>
+          <div id="modalStockNote" style="font-size:.9em;font-weight:800;margin:6px 0 12px;display:none;"></div>
 
           <div id="sizeSection" style="display:none;">
             <div class="field-label">Select Size</div>
@@ -2528,9 +2653,9 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
           <div class="field-label">Quantity</div>
           <div class="qty-row">
-            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+            <button type="button" class="qty-btn" onclick="changeQty(-1)" aria-label="Decrease quantity">−</button>
             <input type="number" class="qty-val" id="qtyVal" value="1" min="1" oninput="onQtyInput(this.value)" onblur="onQtyBlur()" />
-            <button class="qty-btn" onclick="changeQty(1)">+</button>
+            <button type="button" class="qty-btn" onclick="changeQty(1)" aria-label="Increase quantity">+</button>
           </div>
 
           <div class="discount-tiers" id="discountTiers" style="display:none;">
@@ -2543,7 +2668,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
           <div class="modal-error" id="modalError"></div>
 
-          <button class="add-cart-btn" id="addCartBtn" onclick="addToCart()">Add to Cart</button>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <button type="button" id="productWishlistBtn" class="dm-wishlist-btn" onclick="toggleWishlistCurrentProduct()" aria-label="Add product to wishlist">♡ Wishlist</button>
+            <button type="button" id="productNotifyBtn" class="dm-wishlist-btn" onclick="toggleBackInStockCurrentProduct()" style="display:none;">🔔 Notify me</button>
+          </div>
+          <button type="button" id="productWhatsappBtn" class="add-cart-btn" onclick="chatAboutCurrentProduct()" style="width:100%;margin:0 0 8px;background:color-mix(in srgb, #1c7a34 82%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);color:#fff;">💬 Chat with us on WhatsApp</button>
+
+          <div style="display:flex;gap:8px;align-items:stretch;">
+            <button class="add-cart-btn" id="addCartBtn" onclick="addToCart()" style="flex:1;">Add to Cart</button>
+            <button class="add-cart-btn" id="buyNowBtn" onclick="buyNowFromProduct()" style="flex:1;background:var(--rosewood-dark,#65142f);">Buy Now</button>
+          </div>
 
           <div class="modal-reviews" style="margin-top:24px;border-top:1px solid var(--blush-line);padding-top:16px;">
             <div class="field-label">Reviews</div>
@@ -2557,6 +2691,9 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                 <option value="1">★☆☆☆☆ (1)</option>
               </select>
               <textarea id="reviewText" class="checkout-input" placeholder="Share a quick remark about this product" style="width:100%;min-height:60px;margin-bottom:8px;"></textarea>
+              <label style="display:block;font-size:.82rem;font-weight:700;margin:0 0 6px;">Add a product photo (optional)</label>
+              <input type="file" id="reviewPhotoInput" accept="image/png,image/jpeg,image/webp" class="checkout-input" style="padding:8px;margin-bottom:8px;" onchange="previewReviewPhoto(event)">
+              <img id="reviewPhotoPreview" class="dm-photo-preview" alt="Review photo preview">
               <div class="modal-error" id="reviewError"></div>
               <button class="add-cart-btn" onclick="submitReview()">Post review</button>
             </div>
@@ -2583,8 +2720,22 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         <div class="checkout-fields" id="addressFields" style="display:none;margin-bottom:12px;">
           <textarea id="custAddress" class="checkout-input" rows="3" placeholder="Full delivery address — house/flat no., street, area, city, state, PIN code" style="width:100%;resize:vertical;font-family:inherit;"></textarea>
         </div>
+        <div class="dm-gift-box">
+          <label><input type="checkbox" id="isGiftOrder" onchange="toggleGiftFields()"> 🎁 This is a gift</label>
+          <div id="giftFields" style="display:none;margin-top:10px;">
+            <input type="text" id="giftRecipientName" class="checkout-input" placeholder="Recipient name" style="width:100%;margin-bottom:8px;">
+            <textarea id="giftMessage" class="checkout-input" maxlength="300" placeholder="Gift message" rows="2" style="width:100%;resize:vertical;margin-bottom:8px;"></textarea>
+            <label style="font-size:.82rem;color:var(--muted);"><input type="checkbox" id="hideGiftPrice"> Hide price from recipient</label>
+          </div>
+        </div>
         <div class="cart-total-row"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
         <div class="cart-total-row"><span>Bulk discount</span><span id="cartDiscount">−₹0</span></div>
+        <div class="gift-code-box">
+          <div style="font-weight:700;color:var(--rosewood);margin-bottom:7px;">🎁 Have a Gift Code?</div>
+          <div class="gift-code-row"><input id="giftCodeInput" class="checkout-input" maxlength="30" placeholder="Enter gift code" autocomplete="off" /><button class="btn small" type="button" id="giftCodeApplyBtn" onclick="applyGiftCode()">Apply</button></div>
+          <div id="giftCodeMessage" class="gift-code-msg"></div>
+        </div>
+        <div class="cart-total-row" id="giftCodeDiscountRow" style="display:none;"><span>Gift code discount</span><span id="giftCodeDiscount">−₹0</span></div>
         <div class="cart-total-row grand"><span>Total</span><span id="cartTotal">₹0</span></div>
         <div class="cod-note">💵 Payment: <strong>Cash on Delivery</strong> — pay when your order arrives</div>
         <div id="waPreviewBox" style="display:none;font-size:12px;color:#2b2b2b;background:#dcf8c6;border:1px solid #b6e6a1;border-radius:8px;padding:10px 12px;margin-bottom:12px;white-space:pre-wrap;word-break:break-word;max-height:180px;overflow-y:auto;font-family:monospace;">
@@ -2611,7 +2762,68 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       </div>
     </div>
 
+    <!-- CALLBACK REQUEST MODAL -->
+    <div class="overlay" id="callbackRequestOverlay" onclick="closeCallbackRequestModal(event)">
+      <div class="modal" style="max-width:520px;width:min(520px,94vw);" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeCallbackRequestModal()">✕</button>
+        <div class="modal-body">
+          <div style="font-size:1.15rem;font-weight:900;color:var(--rosewood);margin-bottom:6px;">Submit a Callback Request</div>
+          <div id="callbackRequestContext" style="font-size:.82rem;color:var(--muted);margin-bottom:14px;"></div>
+          <textarea id="callbackModalReason" class="checkout-input" maxlength="500" placeholder="Tell us why you'd like a callback..." style="width:100%;min-height:110px;resize:vertical;margin-bottom:10px;"></textarea>
+          <div class="modal-error" id="callbackModalError" style="display:none;"></div>
+          <button class="add-cart-btn" id="callbackModalBtn" onclick="submitCallbackModal()">Submit a Callback Request</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GUEST ORDER TRACKING (no account needed) -->
+    <div class="overlay" id="trackOrderOverlay" onclick="closeTrackOrderModal(event)">
+      <div class="modal" style="max-width:480px;width:min(480px,94vw);" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeTrackOrderModal()">✕</button>
+        <div class="modal-body">
+          <div style="font-size:1.15rem;font-weight:900;color:var(--rosewood);margin-bottom:6px;">Track your order</div>
+          <div style="font-size:.82rem;color:var(--muted);margin-bottom:14px;">Enter the WhatsApp number and order number used at checkout.</div>
+          <input type="tel" id="trackOrderPhone" class="checkout-input" placeholder="WhatsApp number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
+          <input type="text" id="trackOrderNumber" class="checkout-input" placeholder="Order number (e.g. DM-1024)" style="width:100%;margin-bottom:10px;" />
+          <div class="modal-error" id="trackOrderError" style="display:none;"></div>
+          <button class="add-cart-btn" id="trackOrderBtn" onclick="submitTrackOrder()">Track order</button>
+          <div id="trackOrderResult" style="margin-top:16px;"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- ACCOUNT MODAL (sign in / profile / seller status) -->
+    <!-- MANDATORY GOOGLE-LOGIN WHATSAPP NUMBER POPUP -->
+    <div class="overlay" id="googleWhatsappNumberOverlay">
+      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="googleWhatsappNumberTitle">
+        <h2 class="modal-title" id="googleWhatsappNumberTitle" style="margin-bottom:6px;">Add your WhatsApp number</h2>
+        <p class="modal-desc" style="margin-bottom:18px;">You signed in with Google. Please add your WhatsApp number to continue. This number will be saved to your account. No OTP or verification is required.</p>
+        <div class="dm-phone-row">
+          <select id="googleWhatsappCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
+          <input type="tel" id="googleWhatsappNumber" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="numeric" autocomplete="tel-national" />
+        </div>
+        <div style="font-size:0.76rem;color:var(--muted);margin:7px 0 10px;">🌍 Select the country code for your WhatsApp number. No OTP is required.</div>
+        <div class="modal-error" id="googleWhatsappNumberError" style="display:none;"></div>
+        <button class="add-cart-btn" id="googleWhatsappNumberBtn" onclick="saveGoogleWhatsappNumber()">Save WhatsApp number</button>
+      </div>
+    </div>
+
+    <!-- EDIT SAVED WHATSAPP NUMBER -->
+    <div class="overlay" id="editWhatsappNumberOverlay" onclick="closeEditWhatsappNumberModal(event)">
+      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="editWhatsappNumberTitle">
+        <button class="modal-close" type="button" onclick="closeEditWhatsappNumberModal()">✕</button>
+        <h2 class="modal-title" id="editWhatsappNumberTitle" style="margin-bottom:6px;">Edit WhatsApp number</h2>
+        <p class="modal-desc" style="margin-bottom:18px;">Update the WhatsApp number saved to your account. No OTP or verification is required.</p>
+        <div class="dm-phone-row">
+          <select id="editWhatsappCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
+          <input type="tel" id="editWhatsappNumber" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="tel" autocomplete="tel-national" />
+        </div>
+        <div style="font-size:0.76rem;color:var(--muted);margin:7px 0 10px;">🌍 Enter the number with <strong>+</strong> and country code for automatic country detection, or choose the country code manually.</div>
+        <div class="modal-error" id="editWhatsappNumberError" style="display:none;"></div>
+        <button class="add-cart-btn" id="editWhatsappNumberBtn" onclick="saveEditedWhatsappNumber()">Save WhatsApp number</button>
+      </div>
+    </div>
+
     <div class="overlay" id="accountOverlay" onclick="closeAccountModal(event)">
       <div class="modal auth-modal" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeAccountModal()">✕</button>
@@ -2661,6 +2873,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                 Don't have an account?
                 <a href="javascript:void(0)" onclick="showRegisterForm()" style="color:var(--rosewood);font-weight:700;">Sign up</a>
               </p>
+              <p style="font-size:0.85em;margin-top:6px;">
+                Ordered as a guest?
+                <a href="javascript:void(0)" onclick="openTrackOrderModal()" style="color:var(--rosewood);font-weight:700;">Track your order</a>
+              </p>
             </div>
 
             <!-- CREATE ACCOUNT FORM -->
@@ -2682,6 +2898,13 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
           <div id="accountSignedIn" style="display:none;">
             <h2 class="modal-title" style="margin-bottom:6px;">My account</h2>
+            <div class="account-section-tabs">
+              <button class="account-section-tab active" id="accountProfileTab" onclick="showAccountSection('profile')">Profile</button>
+              <button class="account-section-tab" id="accountOrdersTab" onclick="showAccountSection('orders')">My Orders</button>
+              <button class="account-section-tab" id="accountWishlistTab" onclick="showAccountSection('wishlist')">❤️ Wishlist</button>
+              <button class="account-section-tab" id="accountAddressesTab" onclick="showAccountSection('addresses')">📍 Addresses</button>
+            </div>
+            <div id="accountProfileView">
             <div style="display:flex;align-items:center;gap:14px;margin:12px 0 18px;">
               <div>
                 <img id="accountPic" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--blush-line);display:none;" />
@@ -2690,27 +2913,64 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
               <div>
                 <div id="accountName" style="font-weight:700;font-size:1.05em;"></div>
                 <div id="accountMobile" style="font-size:0.9em;color:var(--muted);"></div>
-                <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.82em;color:var(--rosewood);font-weight:600;">Change photo</a>
+                <div style="display:flex;gap:10px;align-items:center;margin-top:4px;">
+                  <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()" style="font-size:0.82em;color:var(--rosewood);font-weight:700;">Edit WhatsApp number</a>
+                  <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.82em;color:var(--rosewood);font-weight:600;">Change photo</a>
+                </div>
                 <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
                 <div id="profilePicError" style="font-size:0.78em;color:#a3002a;display:none;margin-top:4px;"></div>
               </div>
             </div>
 
             <div id="accountCompletionBox" style="display:none;margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
-              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Complete your account</div>
-              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">You signed in with Google. Add your WhatsApp number and a password so you can also log in normally and receive order updates.</div>
-              <input type="tel" id="completeAccountMobile" class="checkout-input" placeholder="WhatsApp mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:6px;" />
-              <div style="font-size:0.76rem;color:var(--muted);margin:0 0 9px;">📱 10-digit Indian mobile number</div>
-              <input type="password" id="completeAccountPassword" class="checkout-input" placeholder="Create password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
-              <input type="password" id="completeAccountPasswordConfirm" class="checkout-input" placeholder="Confirm password" style="width:100%;margin-bottom:10px;" />
+              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Add your WhatsApp number</div>
+              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">Your Google account is connected. Add your WhatsApp number so we can use it for order updates and support.</div>
+              <div class="dm-phone-row">
+                <select id="completeAccountCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
+                <input type="tel" id="completeAccountMobile" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="numeric" autocomplete="tel-national" />
+              </div>
+              <div style="font-size:0.76rem;color:var(--muted);margin:6px 0 9px;">🌍 Select your country code and enter your WhatsApp number. No OTP is required.</div>
               <div class="modal-error" id="completeAccountError" style="display:none;"></div>
-              <button class="add-cart-btn" id="completeAccountBtn" onclick="completeCustomerAccount()">Save account details</button>
+              <button class="add-cart-btn" id="completeAccountBtn" onclick="completeCustomerAccount()">Save WhatsApp number</button>
             </div>
 
             <div id="sellerStatusBox" style="margin-bottom:14px;"></div>
+            <div id="marketingPreferenceBox" style="margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
+              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">📧 Offers &amp; Product Updates</div>
+              <div id="marketingPreferenceText" style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:10px;">Loading email preference…</div>
+              <button class="add-cart-btn" id="marketingPreferenceBtn" onclick="toggleMarketingPreference()" style="width:auto;padding:9px 14px;">Loading…</button>
+              <div id="marketingPreferenceStatus" style="font-size:0.78rem;margin-top:7px;min-height:16px;"></div>
+            </div>
+
+
+            <div style="margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
+              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Need assistance?</div>
+              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">Tell us why you'd like a callback. We'll record your request and connect you to WhatsApp.</div>
+              <button class="add-cart-btn" onclick="openCallbackRequestModal()">Submit a Callback Request</button>
+            </div>
 
             <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-bottom:10px;"></button>
             <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="signOutCustomer()">Sign out</button>
+            </div>
+            <div id="accountWishlistView" style="display:none;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div><h3 style="margin:0;color:var(--rosewood);">❤️ My Wishlist</h3><div style="font-size:.8rem;color:var(--muted);">Products you want to remember for later.</div></div></div>
+              <div id="wishlistList" class="dm-customer-grid"></div>
+              <div style="margin-top:20px;"><h3 style="margin:0 0 10px;color:var(--rosewood);">👀 Recently Viewed</h3><div id="recentlyViewedList" class="dm-customer-grid"></div></div>
+            </div>
+            <div id="accountAddressesView" style="display:none;">
+              <h3 style="margin:0 0 6px;color:var(--rosewood);">📍 Saved Addresses</h3>
+              <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">Save Home, Office or other delivery addresses for faster checkout.</div>
+              <div id="savedAddressesList"></div>
+              <button class="add-cart-btn" style="margin-top:8px;" onclick="addSavedAddress()">+ Add Address</button>
+            </div>
+            <div id="accountOrdersView" style="display:none;">
+              <div id="customerOrdersHeader" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
+                <div><h3 style="margin:0;color:var(--rosewood);">My Orders</h3><div style="font-size:.8rem;color:var(--muted);">Your orders and live status updates</div></div>
+                <button class="btn small secondary" onclick="loadCustomerOrders()">↻ Refresh</button>
+              </div>
+              <div id="customerOrdersList"><div class="modal-desc">Loading orders…</div></div>
+              <div id="customerOrderDetail" style="display:none;"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -2818,6 +3078,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       // Cart persists on the device (localStorage) and, when signed in, on the
       // customer's account too — so it survives logout and follows them to any device.
       let cart = loadCartLocal(); // { productId, name, price, size, qty, discounts, image }
+      let appliedGiftCode = "";
+      let giftCodeDiscount = 0;
 
       function loadCartLocal() {
         try { const v = JSON.parse(localStorage.getItem("dm_cart") || "[]"); return Array.isArray(v) ? v : []; }
@@ -2888,6 +3150,38 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         return token ? { Authorization: "Bearer " + token } : {};
       }
 
+      // BUGFIX: formatOrderDate() is called in 4 places (WhatsApp order-help
+      // message, product enquiry message, My Orders list, order detail view)
+      // but was never defined anywhere in the page — every one of those
+      // would throw "formatOrderDate is not defined" and break mid-render.
+      function formatOrderDate(value, includeTime) {
+        const d = value instanceof Date ? value : new Date(value);
+        if (isNaN(d.getTime())) return "";
+        const opts = { day: "numeric", month: "short", year: "numeric" };
+        if (includeTime) { opts.hour = "numeric"; opts.minute = "2-digit"; }
+        return d.toLocaleDateString("en-IN", opts);
+      }
+
+      // BUGFIX: showToast() was called from several places (stock-limit
+      // warnings, popup-blocked notice, callback-request confirmation) but
+      // was never defined anywhere in the page, so those messages silently
+      // did nothing. Minimal self-contained toast — no markup dependency.
+      let toastTimer = null;
+      function showToast(message) {
+        let el = document.getElementById("dmToast");
+        if (!el) {
+          el = document.createElement("div");
+          el.id = "dmToast";
+          el.style.cssText = "position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#2b2b2b;color:#fff;padding:11px 20px;border-radius:24px;font-size:0.88rem;box-shadow:0 4px 18px rgba(0,0,0,0.25);z-index:9999;opacity:0;transition:opacity .2s ease;max-width:90vw;text-align:center;";
+          document.body.appendChild(el);
+        }
+        el.textContent = message;
+        requestAnimationFrame(() => { el.style.opacity = "1"; });
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { el.style.opacity = "0"; }, 2600);
+      }
+
+
       function showLoginForm() {
         document.getElementById("authFormTitle").textContent = "Log in";
         document.getElementById("authFormDesc").textContent = "Log in with your WhatsApp number and password.";
@@ -2942,15 +3236,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           localStorage.setItem("dm_customer_token", data.token);
           currentCustomer = data.customer;
           renderAccountState();
-          // If this is a new Google account, keep the modal open so the
-          // customer can immediately add WhatsApp + password instead of
-          // landing in a half-complete account.
-          if (currentCustomer.needsProfileCompletion) {
-            document.getElementById("accountOverlay").classList.add("open");
+          closeAccountModal();
+          if (!currentCustomer.mobile) {
+            openGoogleWhatsappNumberPopup();
           } else {
-            closeAccountModal();
+            restoreAccountCart(); restoreAccountExtras();
           }
-          restoreAccountCart();
         } catch (error) {
           errorEl.textContent = "Network error. Please try again.";
           errorEl.style.display = "block";
@@ -3004,7 +3295,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           currentCustomer = data.customer;
           renderAccountState();
           closeAccountModal();
-          restoreAccountCart();
+          restoreAccountCart(); restoreAccountExtras();
           document.getElementById("loginMobile").value = "";
           document.getElementById("loginPassword").value = "";
         } catch (error) {
@@ -3060,7 +3351,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           currentCustomer = data.customer;
           renderAccountState();
           closeAccountModal();
-          restoreAccountCart();
+          restoreAccountCart(); restoreAccountExtras();
           document.getElementById("registerName").value = "";
           document.getElementById("registerMobile").value = "";
           document.getElementById("registerPassword").value = "";
@@ -3071,61 +3362,172 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
       }
 
-      async function completeCustomerAccount() {
-        const errorEl = document.getElementById("completeAccountError");
-        const btn = document.getElementById("completeAccountBtn");
-        const mobile = document.getElementById("completeAccountMobile").value.trim();
-        const password = document.getElementById("completeAccountPassword").value;
-        const confirm = document.getElementById("completeAccountPasswordConfirm").value;
+      const DM_COUNTRY_CODES = [
+        ["+1","United States / Canada"],["+7","Russia / Kazakhstan"],["+20","Egypt"],["+27","South Africa"],["+30","Greece"],["+31","Netherlands"],["+32","Belgium"],["+33","France"],["+34","Spain"],["+36","Hungary"],["+39","Italy"],["+40","Romania"],["+41","Switzerland"],["+43","Austria"],["+44","United Kingdom"],["+45","Denmark"],["+46","Sweden"],["+47","Norway"],["+48","Poland"],["+49","Germany"],["+51","Peru"],["+52","Mexico"],["+53","Cuba"],["+54","Argentina"],["+55","Brazil"],["+56","Chile"],["+57","Colombia"],["+58","Venezuela"],["+60","Malaysia"],["+61","Australia"],["+62","Indonesia"],["+63","Philippines"],["+64","New Zealand"],["+65","Singapore"],["+66","Thailand"],["+81","Japan"],["+82","South Korea"],["+84","Vietnam"],["+86","China"],["+90","Türkiye"],["+91","India"],["+92","Pakistan"],["+93","Afghanistan"],["+94","Sri Lanka"],["+95","Myanmar"],["+98","Iran"],["+211","South Sudan"],["+212","Morocco"],["+213","Algeria"],["+216","Tunisia"],["+218","Libya"],["+220","Gambia"],["+221","Senegal"],["+222","Mauritania"],["+223","Mali"],["+224","Guinea"],["+225","Côte d’Ivoire"],["+226","Burkina Faso"],["+227","Niger"],["+228","Togo"],["+229","Benin"],["+230","Mauritius"],["+231","Liberia"],["+232","Sierra Leone"],["+233","Ghana"],["+234","Nigeria"],["+235","Chad"],["+236","Central African Republic"],["+237","Cameroon"],["+238","Cape Verde"],["+239","São Tomé and Príncipe"],["+240","Equatorial Guinea"],["+241","Gabon"],["+242","Republic of the Congo"],["+243","DR Congo"],["+244","Angola"],["+245","Guinea-Bissau"],["+248","Seychelles"],["+249","Sudan"],["+250","Rwanda"],["+251","Ethiopia"],["+252","Somalia"],["+253","Djibouti"],["+254","Kenya"],["+255","Tanzania"],["+256","Uganda"],["+257","Burundi"],["+258","Mozambique"],["+260","Zambia"],["+261","Madagascar"],["+262","Réunion / Mayotte"],["+263","Zimbabwe"],["+264","Namibia"],["+265","Malawi"],["+266","Lesotho"],["+267","Botswana"],["+268","Eswatini"],["+269","Comoros"],["+290","Saint Helena"],["+291","Eritrea"],["+297","Aruba"],["+298","Faroe Islands"],["+299","Greenland"],["+350","Gibraltar"],["+351","Portugal"],["+352","Luxembourg"],["+353","Ireland"],["+354","Iceland"],["+355","Albania"],["+356","Malta"],["+357","Cyprus"],["+358","Finland"],["+359","Bulgaria"],["+370","Lithuania"],["+371","Latvia"],["+372","Estonia"],["+373","Moldova"],["+374","Armenia"],["+375","Belarus"],["+376","Andorra"],["+377","Monaco"],["+378","San Marino"],["+380","Ukraine"],["+381","Serbia"],["+382","Montenegro"],["+383","Kosovo"],["+385","Croatia"],["+386","Slovenia"],["+387","Bosnia and Herzegovina"],["+389","North Macedonia"],["+420","Czechia"],["+421","Slovakia"],["+423","Liechtenstein"],["+500","Falkland Islands"],["+501","Belize"],["+502","Guatemala"],["+503","El Salvador"],["+504","Honduras"],["+505","Nicaragua"],["+506","Costa Rica"],["+507","Panama"],["+509","Haiti"],["+590","Guadeloupe / Saint Barthélemy"],["+591","Bolivia"],["+592","Guyana"],["+593","Ecuador"],["+594","French Guiana"],["+595","Paraguay"],["+597","Suriname"],["+598","Uruguay"],["+599","Caribbean Netherlands / Curaçao"],["+670","Timor-Leste"],["+672","Australian External Territories"],["+673","Brunei"],["+674","Nauru"],["+675","Papua New Guinea"],["+676","Tonga"],["+677","Solomon Islands"],["+678","Vanuatu"],["+679","Fiji"],["+680","Palau"],["+681","Wallis and Futuna"],["+682","Cook Islands"],["+683","Niue"],["+685","Samoa"],["+686","Kiribati"],["+687","New Caledonia"],["+688","Tuvalu"],["+689","French Polynesia"],["+690","Tokelau"],["+691","Micronesia"],["+692","Marshall Islands"],["+850","North Korea"],["+852","Hong Kong"],["+853","Macau"],["+855","Cambodia"],["+856","Laos"],["+880","Bangladesh"],["+886","Taiwan"],["+960","Maldives"],["+961","Lebanon"],["+962","Jordan"],["+963","Syria"],["+964","Iraq"],["+965","Kuwait"],["+966","Saudi Arabia"],["+967","Yemen"],["+968","Oman"],["+970","Palestine"],["+971","United Arab Emirates"],["+972","Israel"],["+973","Bahrain"],["+974","Qatar"],["+975","Bhutan"],["+976","Mongolia"],["+977","Nepal"],["+992","Tajikistan"],["+993","Turkmenistan"],["+994","Azerbaijan"],["+995","Georgia"],["+996","Kyrgyzstan"],["+998","Uzbekistan"]
+      ];
+
+      function populateCountryCodes() {
+        ["googleWhatsappCountryCode","completeAccountCountryCode","editWhatsappCountryCode"].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el || el.options.length) return;
+          DM_COUNTRY_CODES.forEach(([code,name]) => {
+            const opt=document.createElement("option"); opt.value=code; opt.textContent=code+" "+name; el.appendChild(opt);
+          });
+          el.value="+91";
+        });
+      }
+
+      // Auto-detect a country calling code when the customer enters an
+      // international number. This is deterministic for numbers beginning
+      // with + or a full international dialing prefix. A local number alone
+      // cannot reveal its country, so the currently selected code is kept.
+      function detectCountryCodeFromNumber(rawValue) {
+        let raw = String(rawValue || "").trim();
+        if (!raw) return "";
+        const hadPlus = raw.startsWith("+");
+        let digits = raw.replace(/\D/g, "");
+        if (!hadPlus && digits.length <= 10) return "";
+        const matches = DM_COUNTRY_CODES
+          .map(([code]) => code.replace(/\D/g, ""))
+          .filter(code => digits.startsWith(code))
+          .sort((a,b) => b.length - a.length);
+        return matches.length ? "+" + matches[0] : "";
+      }
+
+      function autoSelectCountryCode(inputEl, selectEl) {
+        if (!inputEl || !selectEl) return;
+        const detected = detectCountryCodeFromNumber(inputEl.value);
+        if (detected && Array.from(selectEl.options).some(o => o.value === detected)) {
+          selectEl.value = detected;
+          const digits = inputEl.value.replace(/\D/g, "");
+          const ccDigits = detected.replace(/\D/g, "");
+          if (inputEl.value.trim().startsWith("+") || digits.length > 10) {
+            const local = digits.startsWith(ccDigits) ? digits.slice(ccDigits.length) : digits;
+            inputEl.value = local;
+          }
+        }
+      }
+
+      function bindAutoCountryDetection() {
+        const pairs = [
+          ["googleWhatsappNumber","googleWhatsappCountryCode"],
+          ["completeAccountMobile","completeAccountCountryCode"],
+          ["editWhatsappNumber","editWhatsappCountryCode"]
+        ];
+        pairs.forEach(([inputId, selectId]) => {
+          const input = document.getElementById(inputId);
+          const select = document.getElementById(selectId);
+          if (!input || !select || input.dataset.dmAutoCountryBound === "1") return;
+          input.dataset.dmAutoCountryBound = "1";
+          input.addEventListener("input", () => autoSelectCountryCode(input, select));
+          input.addEventListener("paste", () => setTimeout(() => autoSelectCountryCode(input, select), 0));
+        });
+      }
+
+      function openGoogleWhatsappNumberPopup() {
+        populateCountryCodes();
+        bindAutoCountryDetection();
+        const overlay=document.getElementById("googleWhatsappNumberOverlay");
+        if (overlay) { overlay.classList.add("open"); document.getElementById("googleWhatsappNumber").focus(); }
+      }
+
+      async function saveGoogleWhatsappNumber() {
+        const errorEl=document.getElementById("googleWhatsappNumberError");
+        const btn=document.getElementById("googleWhatsappNumberBtn");
+        const code=document.getElementById("googleWhatsappCountryCode").value;
+        const number=document.getElementById("googleWhatsappNumber").value.replace(/\D/g,"");
+        errorEl.style.display="none";
+        if (number.length < 4 || number.length > 15) { errorEl.textContent="Enter a valid WhatsApp number."; errorEl.style.display="block"; return; }
+        btn.disabled=true; btn.textContent="Saving...";
+        try {
+          const res=await fetch("/api/customer/save-whatsapp-number", { method:"POST", headers:{"Content-Type":"application/json", ...authHeaders()}, body:JSON.stringify({countryCode:code, number}) });
+          const data=await res.json();
+          if (!data.success) { errorEl.textContent=data.message||"Could not save your WhatsApp number."; errorEl.style.display="block"; return; }
+          currentCustomer=data.customer;
+          document.getElementById("googleWhatsappNumber").value="";
+          document.getElementById("googleWhatsappNumberOverlay").classList.remove("open");
+          renderAccountState();
+          restoreAccountCart(); restoreAccountExtras();
+        } catch(e) { errorEl.textContent="Network error. Please try again."; errorEl.style.display="block"; }
+        finally { btn.disabled=false; btn.textContent="Save WhatsApp number"; }
+      }
+
+      function openEditWhatsappNumberModal() {
+        if (!currentCustomer) return;
+        populateCountryCodes();
+        bindAutoCountryDetection();
+        const input = document.getElementById("editWhatsappNumber");
+        const select = document.getElementById("editWhatsappCountryCode");
+        const saved = String(currentCustomer.whatsappNumber || currentCustomer.mobile || "");
+        const digits = saved.replace(/\D/g, "");
+        const detected = detectCountryCodeFromNumber(saved);
+        if (detected && Array.from(select.options).some(o => o.value === detected)) {
+          select.value = detected;
+          input.value = digits.slice(detected.replace(/\D/g, "").length);
+        } else {
+          input.value = digits;
+        }
+        document.getElementById("editWhatsappNumberError").style.display = "none";
+        document.getElementById("editWhatsappNumberOverlay").classList.add("open");
+        setTimeout(() => input.focus(), 30);
+      }
+
+      function closeEditWhatsappNumberModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        const overlay = document.getElementById("editWhatsappNumberOverlay");
+        if (overlay) overlay.classList.remove("open");
+      }
+
+      async function saveEditedWhatsappNumber() {
+        const input = document.getElementById("editWhatsappNumber");
+        const select = document.getElementById("editWhatsappCountryCode");
+        const errorEl = document.getElementById("editWhatsappNumberError");
+        const btn = document.getElementById("editWhatsappNumberBtn");
+        const detected = detectCountryCodeFromNumber(input.value);
+        if (detected && Array.from(select.options).some(o => o.value === detected)) select.value = detected;
+        const code = select.value;
+        const number = input.value.replace(/\D/g, "");
         errorEl.style.display = "none";
-
-        if (!/^[6-9]\d{9}$/.test(mobile)) {
-          errorEl.textContent = "Enter a valid 10-digit WhatsApp mobile number.";
+        if (number.length < 4 || number.length > 15) {
+          errorEl.textContent = "Enter a valid WhatsApp number.";
           errorEl.style.display = "block";
           return;
         }
-        if (password.length < 6) {
-          errorEl.textContent = "Password should be at least 6 characters.";
-          errorEl.style.display = "block";
-          return;
-        }
-        if (password !== confirm) {
-          errorEl.textContent = "Passwords don't match.";
-          errorEl.style.display = "block";
-          return;
-        }
-
         btn.disabled = true;
         btn.textContent = "Saving...";
         try {
-          const res = await fetch("/api/customer/complete-account", {
+          const res = await fetch("/api/customer/save-whatsapp-number", {
             method: "POST",
             headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({ mobile, password }),
+            body: JSON.stringify({ countryCode: code, number })
           });
           const data = await res.json();
           if (!data.success) {
-            errorEl.textContent = data.message || "Could not complete your account.";
+            errorEl.textContent = data.message || "Could not save your WhatsApp number.";
             errorEl.style.display = "block";
             return;
           }
-
           currentCustomer = data.customer;
-          document.getElementById("completeAccountMobile").value = "";
-          document.getElementById("completeAccountPassword").value = "";
-          document.getElementById("completeAccountPasswordConfirm").value = "";
+          document.getElementById("editWhatsappNumberOverlay").classList.remove("open");
           renderAccountState();
-          restoreAccountCart();
-          closeAccountModal();
         } catch (e) {
           errorEl.textContent = "Network error. Please try again.";
           errorEl.style.display = "block";
         } finally {
           btn.disabled = false;
-          btn.textContent = "Save account details";
+          btn.textContent = "Save WhatsApp number";
         }
       }
 
+      // BUGFIX: this whole block (session restore, sign-out, profile photo
+      // upload, and the account-panel renderer) was present in the previous
+      // deploy but got dropped while this update was put together, even
+      // though the HTML (account button, account panel, photo upload input)
+      // and every call site for these functions were still in the page.
+      // Net effect before this fix: the Account button did nothing at all
+      // (openAccountModal was undefined), nobody could stay signed in across
+      // a refresh (loadCustomerSession never ran), and sign-out/photo-upload
+      // both threw "is not defined" the moment they were used.
       async function loadCustomerSession() {
         const token = getCustomerToken();
         if (!token) return;
@@ -3135,7 +3537,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           if (data.success) {
             currentCustomer = data.customer;
             renderAccountState();
-            restoreAccountCart();
+            restoreAccountCart(); restoreAccountExtras();
           } else {
             localStorage.removeItem("dm_customer_token");
           }
@@ -3226,7 +3628,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           if (btnIcon) btnIcon.style.display = "none";
         } else {
           if (btnPic) btnPic.style.display = "none";
-          if (btnIcon) { btnIcon.style.display = ""; btnIcon.textContent = currentCustomer ? "🙂" : "👤"; }
+          if (btnIcon) { btnIcon.style.display = ""; }
         }
 
         const signedOutBox = document.getElementById("accountSignedOut");
@@ -3242,12 +3644,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         signedOutBox.style.display = "none";
         signedInBox.style.display = "block";
         document.getElementById("accountName").textContent = currentCustomer.name || "Customer";
+        renderMarketingPreference();
         const mobileEl = document.getElementById("accountMobile");
         mobileEl.textContent = currentCustomer.mobile ? currentCustomer.mobile : "WhatsApp number not added yet";
         const completionBox = document.getElementById("accountCompletionBox");
         if (completionBox) {
           completionBox.style.display = currentCustomer.needsProfileCompletion ? "block" : "none";
-          if (currentCustomer.mobile) document.getElementById("completeAccountMobile").value = currentCustomer.mobile;
+          const mobileInput = document.getElementById("completeAccountMobile");
+          if (mobileInput && currentCustomer.mobile) mobileInput.value = currentCustomer.mobile;
         }
         const accPic = document.getElementById("accountPic");
         const accPh = document.getElementById("accountPicPlaceholder");
@@ -3262,20 +3666,66 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           }
         }
 
-        // Selling is a separate application + login (Seller ID/password by
-        // separate application + login, not tied to this account — so we just point to it.
+        // Selling is a separate application + login (Seller ID/password),
+        // not tied to this customer account — so we just point to it.
         const statusBox = document.getElementById("sellerStatusBox");
         const actionBtn = document.getElementById("sellerActionBtn");
         const isSeller = !!getSellerToken();
-        statusBox.innerHTML = isSeller
-          ? "<span style='color:#1c7a34;font-weight:600;'>You're logged in as a seller</span>"
-          : "";
+        if (statusBox) {
+          statusBox.innerHTML = isSeller
+            ? "<span style='color:#1c7a34;font-weight:600;'>You're logged in as a seller</span>"
+            : "";
+        }
         // "Become a Seller" is intentionally hidden from customers — sellers are
-        // invited via the shareable link (see #sell handler below). This button
-        // only appears for someone already logged in as a seller.
-        actionBtn.textContent = "Open Seller Dashboard";
-        actionBtn.style.display = isSeller ? "block" : "none";
-        actionBtn.disabled = false;
+        // invited via the shareable link. This button only appears for someone
+        // already logged in as a seller.
+        if (actionBtn) {
+          actionBtn.textContent = "Open Seller Dashboard";
+          actionBtn.style.display = isSeller ? "block" : "none";
+          actionBtn.disabled = false;
+        }
+      }
+
+      function renderMarketingPreference() {
+        const box = document.getElementById("marketingPreferenceBox");
+        const text = document.getElementById("marketingPreferenceText");
+        const btn = document.getElementById("marketingPreferenceBtn");
+        const status = document.getElementById("marketingPreferenceStatus");
+        if (!box || !text || !btn || !currentCustomer) return;
+        const subscribed = currentCustomer.marketingOptIn !== false;
+        text.textContent = subscribed
+          ? "You're subscribed to offers, new products and promotional updates."
+          : "You're currently not receiving promotional emails. You can subscribe again anytime.";
+        btn.textContent = subscribed ? "Unsubscribe" : "Subscribe Again";
+        btn.style.background = subscribed ? "transparent" : "";
+        btn.style.color = subscribed ? "var(--rosewood)" : "";
+        btn.style.border = subscribed ? "1px solid var(--rosewood)" : "";
+        status.textContent = "";
+      }
+
+      async function toggleMarketingPreference() {
+        if (!currentCustomer) return;
+        const next = currentCustomer.marketingOptIn === false;
+        const btn = document.getElementById("marketingPreferenceBtn");
+        const status = document.getElementById("marketingPreferenceStatus");
+        if (btn) btn.disabled = true;
+        if (status) { status.style.color = "var(--muted)"; status.textContent = "Saving…"; }
+        try {
+          const res = await fetch("/api/customer/marketing-preference", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + getCustomerToken() },
+            body: JSON.stringify({ subscribed: next }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) throw new Error(data.message || "Could not update email preference.");
+          currentCustomer.marketingOptIn = !!data.subscribed;
+          renderMarketingPreference();
+          if (status) { status.style.color = "var(--success)"; status.textContent = data.message || "Preference updated."; }
+        } catch (e) {
+          if (status) { status.style.color = "#a3002a"; status.textContent = e.message || "Could not update preference."; }
+        } finally {
+          if (btn) btn.disabled = false;
+        }
       }
 
       function onSellerActionBtn() {
@@ -3298,8 +3748,136 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         document.getElementById("accountOverlay").classList.remove("open");
       }
 
+      async function completeCustomerAccount() {
+        // Backward-compatible entry point for the old account completion UI.
+        populateCountryCodes();
+        const code=document.getElementById("completeAccountCountryCode").value;
+        const number=document.getElementById("completeAccountMobile").value.replace(/\D/g,"");
+        const errorEl=document.getElementById("completeAccountError");
+        if (number.length < 4 || number.length > 15) { errorEl.textContent="Enter a valid WhatsApp number."; errorEl.style.display="block"; return; }
+        const btn=document.getElementById("completeAccountBtn"); btn.disabled=true; btn.textContent="Saving...";
+        try {
+          const res=await fetch("/api/customer/save-whatsapp-number", {method:"POST",headers:{"Content-Type":"application/json",...authHeaders()},body:JSON.stringify({countryCode:code,number})});
+          const data=await res.json();
+          if(!data.success){errorEl.textContent=data.message||"Could not save your WhatsApp number.";errorEl.style.display="block";return;}
+          currentCustomer=data.customer; renderAccountState(); closeAccountModal(); restoreAccountCart(); restoreAccountExtras();
+        } catch(e){errorEl.textContent="Network error. Please try again.";errorEl.style.display="block";}
+        finally{btn.disabled=false;btn.textContent="Save WhatsApp number";}
+      }
 
-      // SELLER LOGIN (ID + password, separate from customer login)
+      // BUGFIX: the "Submit a Callback Request" button and modal (added for
+      // the /api/customer/callback-request feature) had markup and a server
+      // route, but no JS ever wired them together — clicking the button
+      // threw "openCallbackRequestModal is not defined" and did nothing.
+      function openCallbackRequestModal() {
+        if (!currentCustomer) { openAccountModal(); return; }
+        const ctx = document.getElementById("callbackRequestContext");
+        if (ctx) ctx.textContent = "We'll get in touch on WhatsApp about your account.";
+        const reasonEl = document.getElementById("callbackModalReason");
+        if (reasonEl) reasonEl.value = "";
+        const errEl = document.getElementById("callbackModalError");
+        if (errEl) { errEl.textContent = ""; errEl.style.display = "none"; }
+        const overlay = document.getElementById("callbackRequestOverlay");
+        if (overlay) overlay.classList.add("open");
+      }
+      function closeCallbackRequestModal(event) {
+        if (event && event.target && event.target.id !== "callbackRequestOverlay") return;
+        const overlay = document.getElementById("callbackRequestOverlay");
+        if (overlay) overlay.classList.remove("open");
+      }
+      async function submitCallbackModal() {
+        const reasonEl = document.getElementById("callbackModalReason");
+        const errEl = document.getElementById("callbackModalError");
+        const btn = document.getElementById("callbackModalBtn");
+        const reason = String((reasonEl && reasonEl.value) || "").trim();
+        if (!reason) { errEl.textContent = "Please tell us why you'd like a callback."; errEl.style.display = "block"; return; }
+        errEl.style.display = "none";
+        btn.disabled = true; btn.textContent = "Submitting...";
+        try {
+          const res = await fetch("/api/customer/callback-request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ reason }),
+          });
+          const data = await res.json();
+          if (!data.success) { errEl.textContent = data.message || "Could not submit your request."; errEl.style.display = "block"; return; }
+          closeCallbackRequestModal();
+          showToast("Request submitted — connecting you to WhatsApp.");
+          window.open(DESIGN_MAKERS_WHATSAPP_WEB, "_blank");
+        } catch (e) {
+          errEl.textContent = "Network error. Please try again.";
+          errEl.style.display = "block";
+        } finally {
+          btn.disabled = false; btn.textContent = "Submit a Callback Request";
+        }
+      }
+
+      // ================================
+      // GUEST ORDER TRACKING (no account needed)
+      // ================================
+      function openTrackOrderModal() {
+        const overlay = document.getElementById("trackOrderOverlay");
+        if (!overlay) return;
+        document.getElementById("trackOrderResult").innerHTML = "";
+        const errEl = document.getElementById("trackOrderError");
+        if (errEl) { errEl.textContent = ""; errEl.style.display = "none"; }
+        overlay.classList.add("open");
+      }
+      function closeTrackOrderModal(event) {
+        if (event && event.target && event.target.id !== "trackOrderOverlay") return;
+        const overlay = document.getElementById("trackOrderOverlay");
+        if (overlay) overlay.classList.remove("open");
+      }
+      async function submitTrackOrder() {
+        const phoneEl = document.getElementById("trackOrderPhone");
+        const orderNumEl = document.getElementById("trackOrderNumber");
+        const errEl = document.getElementById("trackOrderError");
+        const resultEl = document.getElementById("trackOrderResult");
+        const btn = document.getElementById("trackOrderBtn");
+        const phone = String((phoneEl && phoneEl.value) || "").replace(/\D/g, "");
+        const orderNumber = String((orderNumEl && orderNumEl.value) || "").trim();
+        resultEl.innerHTML = "";
+        if (phone.length < 10 || !orderNumber) {
+          errEl.textContent = "Enter both your 10-digit WhatsApp number and order number.";
+          errEl.style.display = "block";
+          return;
+        }
+        errEl.style.display = "none";
+        btn.disabled = true; btn.textContent = "Searching...";
+        try {
+          const res = await fetch("/api/orders/track", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone, orderNumber }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) {
+            errEl.textContent = data.message || "No order found for that phone number and order number.";
+            errEl.style.display = "block";
+            return;
+          }
+          const order = data.order;
+          const items = Array.isArray(order.items) ? order.items : [];
+          const stage = order.fulfilmentStage || order.status || "Order Received";
+          resultEl.innerHTML =
+            '<div class="card" style="padding:14px;border:1px solid var(--blush-line);border-radius:14px;">' +
+            '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">' +
+            '<strong style="color:var(--rosewood);">' + escapeHtml(order.orderNumber || "") + '</strong>' +
+            '<span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
+            '<div style="margin-top:8px;font-size:.84rem;color:var(--ink);">' +
+            escapeHtml(items.map((i) => (i.name || "Product") + (i.size ? " · " + i.size : "") + " × " + Number(i.qty || 0)).join(" • ")) +
+            '</div>' +
+            '<div style="margin-top:8px;font-weight:800;color:var(--rosewood);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
+            renderCustomerStageTimeline(stage) +
+            '</div>';
+        } catch (e) {
+          errEl.textContent = "Network error. Please try again.";
+          errEl.style.display = "block";
+        } finally {
+          btn.disabled = false; btn.textContent = "Track order";
+        }
+      }
+
       // ================================
       function getSellerToken() {
         return localStorage.getItem("sellerToken") || "";
@@ -3563,6 +4141,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         errorEl.style.display = "none";
         const rating = Number(document.getElementById("reviewRating").value);
         const text = document.getElementById("reviewText").value.trim();
+        const photoData = (document.getElementById("reviewPhotoPreview") || {}).src || "";
         if (!text) {
           errorEl.textContent = "Please write a short remark.";
           errorEl.style.display = "block";
@@ -3572,7 +4151,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           const res = await fetch("/api/products/" + currentProduct.id + "/reviews", {
             method: "POST",
             headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({ rating, text }),
+            body: JSON.stringify({ rating, text, photoData: photoData && photoData.startsWith("data:image/") ? photoData : "" }),
           });
           const data = await res.json();
           if (!data.success) {
@@ -3581,6 +4160,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             return;
           }
           document.getElementById("reviewText").value = "";
+          const rp=document.getElementById("reviewPhotoInput"); if(rp)rp.value=""; const rpp=document.getElementById("reviewPhotoPreview"); if(rpp){rpp.src="";rpp.style.display="none";}
           loadReviews(currentProduct.id);
         } catch (error) {
           errorEl.textContent = "Could not post review. Please try again.";
@@ -3839,6 +4419,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           // (?product=123), jump straight to that product now that
           // allProducts is populated.
           openProductFromUrlIfPresent();
+          startStockPolling();
         } catch (err) {
           statusEl.textContent = "Could not load products. Please refresh.";
         }
@@ -4233,6 +4814,64 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         );
       }
 
+      function getDisplayStock(p, size) {
+        if (!p) return { qty: 0, text: "Out of Stock", color: "#b42318" };
+        // BUGFIX: products the admin hasn't run through inventory setup yet
+        // must stay purchasable (server sends their real stockQty, default
+        // 999999) instead of being shown/blocked as out of stock — matches
+        // the backend's deploy-safe migration.
+        if (p.stockConfigured === false) {
+          const legacyQty = Math.max(0, Number(p.stockQty) || 0);
+          return legacyQty > 0 ? { qty: legacyQty, text: "In Stock", color: "#1c7a34" } : { qty: 0, text: "Out of Stock", color: "#b42318" };
+        }
+        const variants = p.variantStock && typeof p.variantStock === "object" ? p.variantStock : {};
+        const variantConfigured = p.variantStockConfigured && typeof p.variantStockConfigured === "object" ? p.variantStockConfigured : {};
+        const sizes = Array.isArray(p.sizes) ? p.sizes : [];
+        let qty;
+        if (sizes.length) {
+          if (!size || !sizes.includes(size)) return { qty: 0, text: "Select a size", color: "#8c7d78" };
+          if (variantConfigured[size] !== true) return { qty: 0, text: "Stock not entered for this size", color: "#b54708" };
+          qty = Math.max(0, Number(variants[size]) || 0);
+        } else {
+          qty = Math.max(0, Number(p.stockQty) || 0);
+        }
+        const threshold = Number(p.lowStockThreshold || 5);
+        if (qty <= 0) return { qty: 0, text: "Out of Stock", color: "#b42318" };
+        if (qty <= threshold) return { qty, text: "🔥 Only " + qty + " left in stock", color: "#b54708" };
+        return { qty, text: "In Stock", color: "#1c7a34" };
+      }
+      let stockPollTimer = null;
+      async function refreshStockAvailability() {
+        if (!allProducts.length) return;
+        try {
+          const ids = allProducts.map(p => p.id).join(",");
+          const res = await fetch("/api/inventory/availability?ids=" + encodeURIComponent(ids), { cache: "no-store" });
+          const data = await res.json(); if (!data.success) return;
+          Object.keys(data.availability || {}).forEach(id => { const p=allProducts.find(x=>String(x.id)===String(id)); if(p) Object.assign(p,data.availability[id]); });
+          document.querySelectorAll("[data-stock-for]").forEach(el=>{const p=allProducts.find(x=>String(x.id)===String(el.getAttribute("data-stock-for")));if(p){const st=(p.sizes&&p.sizes.length)?{text:"Select size for stock",color:"#8c7d78"}:getDisplayStock(p);el.textContent=st.text;el.style.color=st.color;}});
+          if(currentProduct){const live=allProducts.find(x=>x.id===currentProduct.id);if(live){currentProduct=live;updateProductStockUi();}}
+          if(document.getElementById("cartDrawer")?.classList.contains("open")) renderCart();
+        } catch(e) {}
+      }
+      function startStockPolling(){if(stockPollTimer)clearInterval(stockPollTimer);refreshStockAvailability();stockPollTimer=setInterval(refreshStockAvailability,8000);}
+      function updateProductStockUi(){
+        if(!currentProduct)return;
+        const st=getDisplayStock(currentProduct,currentSize); const note=document.getElementById("modalStockNote");
+        if(note){note.textContent=st.text;note.style.color=st.color;note.style.display="block";}
+        const buy=document.getElementById("buyNowBtn"), add=document.getElementById("addCartBtn");
+        const hasRequiredSize = !(currentProduct.sizes && currentProduct.sizes.length) || Boolean(currentSize);
+        const canBuy=hasRequiredSize && st.qty>0 && st.qty>=(currentProduct.moq||1);
+        if(buy)buy.style.display=canBuy?"block":"none"; if(add)add.style.display="block";
+        const qi=document.getElementById("qtyVal"); if(qi&&st.qty>0)qi.max=String(st.qty);
+        const notify=document.getElementById("productNotifyBtn");
+        if(notify){
+          const shouldShow=hasRequiredSize && st.qty===0;
+          notify.style.display=shouldShow?"inline-block":"none";
+          notify.textContent=isBackstockRequested()?"🔔 Alert set":"🔔 Notify me";
+          notify.classList.toggle("active",isBackstockRequested());
+        }
+      }
+
       function buildProductCard(p, opts) {
         const useBuyBadge = Boolean(opts && opts.buyBadge);
         const bestDiscount = (p.discounts || []).slice(-1)[0];
@@ -4257,9 +4896,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             : (bestDiscount ? '<span class="discount-badge">Up to ' + bestDiscount.percent + '% off</span>' : "");
         }
 
+        const stock = (p.sizes && p.sizes.length)
+          ? { qty: null, text: "Select size for stock", color: "#8c7d78" }
+          : getDisplayStock(p);
+        const stockHtml = '<div class="product-meta" data-stock-for="' + p.id + '" style="margin-top:4px;font-weight:800;color:' + stock.color + ';">' + stock.text + '</div>';
         return (
           '<div class="product-card" onclick="openProductModal(' + p.id + ')">' +
-            '<div class="product-img">' +
+            '<div class="product-img" style="position:relative;">' +
+              '<button type="button" aria-label="Add to wishlist" onclick="event.stopPropagation();toggleWishlistById(' + p.id + ')" style="position:absolute;right:9px;top:9px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid var(--blush-line);background:rgba(255,255,255,.9);color:var(--rosewood);font-size:18px;cursor:pointer;">' + (isWishlisted(p.id) ? '♥' : '♡') + '</button>' +
               badgeHtml +
               imgHtml +
             "</div>" +
@@ -4268,6 +4912,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
               '<div class="product-name">' + escapeHtml(p.name) + "</div>" +
               priceHtml +
               '<div class="product-meta">MOQ: ' + (p.moq || 1) + (p.sizes && p.sizes.length ? " · Sizes available" : "") + "</div>" +
+              stockHtml +
             "</div>" +
           "</div>"
         );
@@ -4404,6 +5049,94 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
       }
 
+      // Product WhatsApp support: if the signed-in customer has already ordered
+      // this product, open WhatsApp with the relevant order context. Otherwise
+      // treat it as a product enquiry. Product IDs remain internal and are never
+      // included in the customer-facing message.
+      const DESIGN_MAKERS_WHATSAPP_WEB = "https://wa.me/917004847813";
+
+      function buildProductWhatsappMessage(product, order) {
+        const url = buildProductUrl(product);
+        const listedPrice = Number(product.price || 0);
+        const currentPrice = Number(getSalePrice(product) || listedPrice);
+        const discount = Math.max(0, listedPrice - currentPrice);
+        const size = currentSize || "Not selected";
+        const qty = Math.max(1, Number(currentQty || 1));
+
+        if (order) {
+          const items = (order.items || []).map(item => {
+            const parts = [item.name || "Product"];
+            if (item.size) parts.push("Size: " + item.size);
+            parts.push("Qty: " + Number(item.qty || 0));
+            parts.push("₹" + fmtINR(Number(item.lineTotal || 0)));
+            return "- " + parts.join(" | ");
+          }).join("\n");
+          return [
+            "Hi Design Makers, I need help regarding my order.",
+            "",
+            "Order ID: " + (order.orderNumber || ("DM-" + order.id)),
+            "Order Date: " + formatOrderDate(order.createdAt, false),
+            "Order Status: " + (order.status || "New"),
+            "Order Total: ₹" + fmtINR(Number(order.total || 0)),
+            "",
+            "Order Items:",
+            items || "- Order details unavailable",
+          ].join("\n");
+        }
+
+        const enquiryDate = formatOrderDate(new Date(), false);
+        return [
+          "Hi Design Makers, I have an enquiry about this product.",
+          "",
+          "Product: " + (product.name || "Product"),
+          "Listed Price: ₹" + fmtINR(listedPrice),
+          "Current Price: ₹" + fmtINR(currentPrice),
+          "Discount: ₹" + fmtINR(discount),
+          "Selected Size: " + size,
+          "Quantity: " + qty,
+          "Enquiry Date: " + enquiryDate,
+          "Product Link: " + url,
+        ].join("\n");
+      }
+
+      async function chatAboutCurrentProduct() {
+        if (!currentProduct) return;
+        const btn = document.getElementById("productWhatsappBtn");
+        const original = btn ? btn.innerHTML : "";
+        if (btn) { btn.disabled = true; btn.innerHTML = "Opening WhatsApp…"; }
+        try {
+          let matchedOrder = null;
+          if (getCustomerToken()) {
+            try {
+              const res = await fetch("/api/customer/orders", {
+                headers: { Authorization: "Bearer " + getCustomerToken() },
+                cache: "no-store",
+              });
+              const data = await res.json().catch(() => ({}));
+              if (res.ok && data.success) {
+                const orders = Array.isArray(data.orders) ? data.orders : [];
+                const matches = orders.filter(order =>
+                  (order.items || []).some(item => String(item.productId) === String(currentProduct.id))
+                );
+                // Prefer the most recent order containing this product.
+                matches.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+                matchedOrder = matches[0] || null;
+              }
+            } catch (_) {
+              matchedOrder = null;
+            }
+          }
+
+          const message = buildProductWhatsappMessage(currentProduct, matchedOrder);
+          const destination = (matchedOrder && matchedOrder.items || []).find(item => String(item.productId) === String(currentProduct.id))?.supportWhatsappUrl || currentProduct.supportWhatsappUrl || DESIGN_MAKERS_WHATSAPP_WEB;
+          const url = destination + "?text=" + encodeURIComponent(message);
+          const win = window.open(url, "_blank", "noopener");
+          if (!win && typeof showToast === "function") showToast("Popup blocked. Please allow popups to open WhatsApp.");
+        } finally {
+          if (btn) { btn.disabled = false; btn.innerHTML = original; }
+        }
+      }
+
       // Share button: on phones (and Windows/Edge/Chrome on desktop) this
       // opens the device's own native Share sheet — WhatsApp, Instagram,
       // Gmail, Copy link, everything the OS already supports, no need to
@@ -4492,10 +5225,13 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
 
         document.getElementById("qtyVal").value = currentQty;
+        updateProductStockUi();
 
         renderDiscountTiers(p, currentQty);
         loadReviews(p.id);
-
+        addRecentlyViewed(p.id);
+        updateWishlistButton();
+        updateProductStockUi();
         document.getElementById("productOverlay").classList.add("open");
       }
 
@@ -4569,11 +5305,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         currentSize = size;
         document.querySelectorAll(".size-chip").forEach((c) => c.classList.remove("selected"));
         el.classList.add("selected");
+        updateProductStockUi();
       }
 
       function changeQty(delta) {
         const moq = currentProduct.moq || 1;
         const next = currentQty + delta;
+        const stock = getDisplayStock(currentProduct, currentSize);
+        if (stock.qty > 0 && next > stock.qty) { document.getElementById("modalError").textContent = "Only " + stock.qty + " left in stock."; return; }
         if (next < moq) {
           document.getElementById("modalError").textContent = "Minimum order quantity is " + moq + ".";
           return;
@@ -4612,6 +5351,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         renderDiscountTiers(currentProduct, currentQty);
       }
 
+      function buyNowFromProduct(){
+        if(!currentProduct)return;
+        const stock=getDisplayStock(currentProduct,currentSize);
+        if(stock.qty===0)return;
+        if(stock.qty>0&&currentQty>stock.qty){document.getElementById("modalError").textContent="Only "+stock.qty+" left in stock.";return;}
+        addToCart();
+      }
+
       function addToCart() {
         if (!currentProduct) return;
 
@@ -4625,6 +5372,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           document.getElementById("modalError").textContent = "Please select a size.";
           return;
         }
+        const stock = getDisplayStock(currentProduct, currentSize);
+        if (stock.qty > 0 && currentQty > stock.qty) { document.getElementById("modalError").textContent = "Only " + stock.qty + " left in stock."; return; }
 
         const existing = cart.find(
           (item) => item.productId === currentProduct.id && item.size === currentSize
@@ -4764,6 +5513,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             const imgHtml = cartImage
               ? '<img src="' + escapeHtml(cartImage) + '" />'
               : "🎁";
+            const stock = getDisplayStock(liveProduct, item.size);
+            const unavailable = stock.qty !== null && stock.qty < item.qty;
 
             return (
               '<div class="cart-item">' +
@@ -4773,6 +5524,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                   (item.size ? '<div class="cart-item-meta">Size: ' + escapeHtml(item.size) + "</div>" : "") +
                   (item.onSale ? '<div class="cart-item-meta" style="color:#1c7a34;">On sale: ₹' + fmtINR(item.price) + ' <span style="text-decoration:line-through;color:#b5849c;">₹' + fmtINR(item.originalPrice) + '</span></div>' : "") +
                   (discountPct ? '<div class="cart-item-meta" style="color:#e6006e;">' + discountPct + "% bulk discount applied</div>" : "") +
+                  (stock.qty !== null ? '<div class="cart-item-meta" style="font-weight:800;color:' + (stock.qty === 0 ? '#b42318' : (stock.qty <= 5 ? '#b54708' : '#1c7a34')) + ';">' + (stock.qty === 0 ? '🔴 Currently out of stock' : ('Available now: ' + stock.qty)) + '</div>' : '') +
+                  (unavailable ? '<div class="cart-item-meta" style="color:#b42318;font-weight:800;">Please reduce quantity before checkout.</div>' : '') +
                   '<div class="cart-item-controls">' +
                     '<button onclick="updateCartQty(' + idx + ', -1)">−</button>' +
                     '<span>' + item.qty + "</span>" +
@@ -4787,6 +5540,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           .join("") + renderGiftAddonRow(giftAddonEligible);
 
         renderCartTotals();
+        updateCheckoutStockState();
+      }
+
+      function updateCheckoutStockState() {
+        const btn = document.getElementById("checkoutBtn"); if (!btn) return;
+        const issues = cart.filter(item => { if (item.productId === GIFT_ADDON_PRODUCT_ID) return false; const p = allProducts.find(x => x.id === item.productId); const st = getDisplayStock(p, item.size); return st.qty !== null && st.qty < item.qty; });
+        btn.disabled = issues.length > 0;
+        const label = document.getElementById("checkoutBtnLabel"); if (label) label.textContent = issues.length ? "Review unavailable items" : "Checkout on WhatsApp";
       }
 
       function renderCartTotals() {
@@ -4802,12 +5563,59 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         });
 
         const discountAmt = subtotal - afterDiscount;
+        const finalTotal = Math.max(0, afterDiscount - Number(giftCodeDiscount || 0));
 
         document.getElementById("cartSubtotal").textContent = "₹" + fmtINR(subtotal);
         document.getElementById("cartDiscount").textContent = "−₹" + fmtINR(discountAmt);
-        document.getElementById("cartTotal").textContent = "₹" + fmtINR(afterDiscount);
+        const giftRow = document.getElementById("giftCodeDiscountRow");
+        if (giftRow) giftRow.style.display = giftCodeDiscount > 0 ? "flex" : "none";
+        const giftEl = document.getElementById("giftCodeDiscount");
+        if (giftEl) giftEl.textContent = "−₹" + fmtINR(giftCodeDiscount);
+        document.getElementById("cartTotal").textContent = "₹" + fmtINR(finalTotal);
 
-        updateWaPreview(subtotal, discountAmt, afterDiscount);
+        updateWaPreview(subtotal, discountAmt + Number(giftCodeDiscount || 0), finalTotal);
+      }
+
+      async function applyGiftCode() {
+        if (!currentCustomer) {
+          document.getElementById("giftCodeMessage").textContent = "Please sign in before applying a gift code.";
+          return;
+        }
+        const input = document.getElementById("giftCodeInput");
+        const msg = document.getElementById("giftCodeMessage");
+        const btn = document.getElementById("giftCodeApplyBtn");
+        const code = String(input.value || "").trim().toUpperCase();
+        msg.style.color = ""; msg.textContent = "";
+        if (!code) { msg.textContent = "Enter a gift code."; return; }
+        btn.disabled = true; btn.textContent = "Checking...";
+        try {
+          const res = await fetch("/api/customer/gift-codes/validate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ code, items: cart.map(i => ({ productId:i.productId, size:i.size, qty:i.qty })) })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.success) {
+            appliedGiftCode = ""; giftCodeDiscount = 0;
+            msg.style.color = "#b42318"; msg.textContent = data.message || "Invalid gift code.";
+            renderCartTotals();
+            return;
+          }
+          appliedGiftCode = data.code;
+          giftCodeDiscount = Number(data.discount || 0);
+          msg.style.color = "#16794a"; msg.textContent = "✓ " + data.message + " — saved ₹" + fmtINR(giftCodeDiscount);
+          input.value = data.code;
+          renderCartTotals();
+        } catch (e) {
+          msg.style.color = "#b42318"; msg.textContent = "Could not check the gift code. Please try again.";
+        } finally { btn.disabled = false; btn.textContent = "Apply"; }
+      }
+
+      function clearAppliedGiftCode() {
+        appliedGiftCode = ""; giftCodeDiscount = 0;
+        const msg = document.getElementById("giftCodeMessage"); if (msg) msg.textContent = "";
+        const input = document.getElementById("giftCodeInput"); if (input) input.value = "";
+        renderCartTotals();
       }
 
       // Live-updating preview of the exact WhatsApp message that will be sent —
@@ -4843,7 +5651,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         lines.push("*Subtotal:* ₹" + fmtINR(subtotal));
         if (discountAmt > 0) lines.push("*Bulk discount:* −₹" + fmtINR(discountAmt));
         lines.push("*Total:* ₹" + fmtINR(total));
-        lines.push("*Payment:* Cash on Delivery (COD)");
+        if (giftOrder) {
+            lines.push("*Gift order:* Yes");
+            if (giftRecipientName) lines.push("*Gift recipient:* " + giftRecipientName);
+            if (giftMessage) lines.push("*Gift message:* " + giftMessage);
+          }
+          lines.push("*Payment:* Cash on Delivery (COD)");
 
         textEl.textContent = lines.join("\n");
         box.style.display = "block";
@@ -4856,6 +5669,11 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const next = item.qty + delta;
 
         if (next < moq) return;
+        if (delta > 0) {
+          const stock = getDisplayStock(product, item.size);
+          if (stock.qty <= 0) { showToast("This item is currently out of stock."); return; }
+          if (next > stock.qty) { showToast("Only " + stock.qty + " available for this item."); return; }
+        }
 
         item.qty = next;
         updateCartCount();
@@ -4931,6 +5749,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const name = String(currentCustomer.name || "").trim();
         const phone = String(currentCustomer.mobile || "").replace(/\D/g, "");
         const address = String((document.getElementById("custAddress") || {}).value || "").trim();
+        const giftOrder = !!document.getElementById("isGiftOrder")?.checked;
+        const giftRecipientName = String(document.getElementById("giftRecipientName")?.value || "").trim();
+        const giftMessage = String(document.getElementById("giftMessage")?.value || "").trim();
+        const hideGiftPrice = !!document.getElementById("hideGiftPrice")?.checked;
 
         if (!name) {
           errorEl.textContent = "Please enter your name.";
@@ -4948,6 +5770,9 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           return;
         }
 
+        const stockIssues = cart.filter(item => { if (item.productId === GIFT_ADDON_PRODUCT_ID) return false; const p = allProducts.find(x => x.id === item.productId); const st = getDisplayStock(p, item.size); return st.qty !== null && st.qty < item.qty; });
+        if (stockIssues.length) { errorEl.textContent = "Some items in your cart are no longer available in that quantity. Please review your cart."; errorEl.style.display = "block"; renderCart(); return; }
+
         const btn = document.getElementById("checkoutBtn");
         const btnLabel = document.getElementById("checkoutBtnLabel");
         btn.disabled = true;
@@ -4959,6 +5784,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             headers: { "Content-Type": "application/json", ...authHeaders() },
             body: JSON.stringify({
               customer: { name, phone, address },
+              giftCode: appliedGiftCode || "",
+              gift: giftOrder ? { isGift: true, recipientName: giftRecipientName, message: giftMessage, hidePrice: hideGiftPrice } : { isGift: false },
               items: cart.map((item) => ({ productId: item.productId, size: item.size, qty: item.qty })),
             }),
           });
@@ -4967,6 +5794,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           if (!data.success) {
             errorEl.textContent = data.message || "Could not place your order. Please try again.";
             errorEl.style.display = "block";
+            if (data.code === "OUT_OF_STOCK") { await refreshStockAvailability(); renderCart(); }
             return;
           }
 
@@ -4997,6 +5825,9 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           if (order.discount > 0) {
             lines.push("*Bulk discount:* −₹" + fmtINR(order.discount));
           }
+          if (order.giftDiscount > 0) {
+            lines.push("*Gift code (" + (order.giftCode || "") + "):* −₹" + fmtINR(order.giftDiscount));
+          }
           lines.push("*Total:* ₹" + fmtINR(order.total));
           lines.push("*Payment:* Cash on Delivery (COD)");
 
@@ -5008,11 +5839,13 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           try { localStorage.setItem("dm_last_address", address); } catch (e) {}
 
           cart = [];
+          appliedGiftCode = ""; giftCodeDiscount = 0;
           updateCartCount();
           saveCart();
           closeCart();
 
           window.open("https://wa.me/7004847813?text=" + encodeURIComponent(message), "_blank");
+          await refreshStockAvailability();
         } catch (err) {
           errorEl.textContent = "Network error — please check your connection and try again.";
           errorEl.style.display = "block";
@@ -5026,7 +5859,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       loadCustomerSession();
       updateCartCount(); // reflect any cart restored from this device
 
-      // Old shareable link: https://designmakers.shop/#sell (or ?sell=1) used
+      // Old shareable link: https://designmakers.site/#sell (or ?sell=1) used
       // to pop the seller application form open on this page. It now lives
       // at its own address — send anyone who still has the old link there.
       const _sellParams = new URLSearchParams(window.location.search);
@@ -5112,6 +5945,277 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         var on = saved === "1";
         applyDarkMode(on);
       })();
-    </script>
+    
+      // ================================
+      // ================================
+      // CUSTOMER EXTRAS
+      // ================================
+      const DM_WISHLIST_KEY = "dm_wishlist_v1";
+      const DM_RECENT_KEY = "dm_recent_v1";
+      const DM_ADDRESS_KEY = "dm_addresses_v1";
+      const DM_BACKSTOCK_KEY = "dm_backstock_v1";
+      // Saved addresses are personal delivery details. Without this, two
+      // different customers signing into the same shared/family device
+      // would see and edit each other's saved addresses, because the
+      // storage key was identical for every visitor to the browser. When a
+      // customer is signed in, their addresses are keyed to their account
+      // id; signed-out/guest browsing keeps the old shared key (there's no
+      // account to scope to, and nothing sensitive is saved before sign-in).
+      function dmScopedKey(base) {
+        return (currentCustomer && currentCustomer.id) ? (base + ":cust:" + currentCustomer.id) : base;
+      }
+      function dmRead(key, fallback){ try { const v=JSON.parse(localStorage.getItem(key)||"null"); return v==null?fallback:v; } catch(e){ return fallback; } }
+      function dmWrite(key,val){ try{localStorage.setItem(key,JSON.stringify(val));}catch(e){} }
+
+      // Wishlist / recently-viewed / saved addresses persist on the device
+      // (localStorage) and, when signed in, on the customer's account too —
+      // same pattern as the cart — so they follow the customer to any device
+      // instead of being stuck on the one browser they were created in.
+      let _extrasSyncTimer = null;
+      function syncExtrasToServer(){
+        if (!currentCustomer) return;
+        clearTimeout(_extrasSyncTimer);
+        _extrasSyncTimer = setTimeout(() => {
+          fetch("/api/customer/extras", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({
+              wishlist: dmRead(dmScopedKey(DM_WISHLIST_KEY), []),
+              recentlyViewed: dmRead(dmScopedKey(DM_RECENT_KEY), []),
+              addresses: dmRead(dmScopedKey(DM_ADDRESS_KEY), []),
+            }),
+          }).catch(() => {});
+        }, 600);
+      }
+
+      // After sign-in, pull the account's saved extras, merge with whatever
+      // is already on this device (device-local items keep priority/order),
+      // persist the combined result back to the account, then re-render.
+      async function restoreAccountExtras() {
+        if (!currentCustomer) return;
+        try {
+          const res = await fetch("/api/customer/extras", { headers: authHeaders() });
+          const data = await res.json();
+          if (!data.success) return;
+
+          const localWishlist = dmRead(dmScopedKey(DM_WISHLIST_KEY), []).map(Number).filter(Number.isFinite);
+          const mergedWishlist = [...localWishlist];
+          (data.wishlist || []).forEach((id) => { if (!mergedWishlist.includes(Number(id))) mergedWishlist.push(Number(id)); });
+
+          const localRecent = dmRead(dmScopedKey(DM_RECENT_KEY), []).map(Number).filter(Number.isFinite);
+          const mergedRecent = [...localRecent];
+          (data.recentlyViewed || []).forEach((id) => { if (!mergedRecent.includes(Number(id))) mergedRecent.push(Number(id)); });
+
+          const localAddresses = dmRead(dmScopedKey(DM_ADDRESS_KEY), []);
+          const mergedAddresses = [...localAddresses];
+          (data.addresses || []).forEach((a) => {
+            if (!mergedAddresses.some((x) => x.text === a.text)) mergedAddresses.push(a);
+          });
+
+          dmWrite(dmScopedKey(DM_WISHLIST_KEY), mergedWishlist.slice(0, 100));
+          dmWrite(dmScopedKey(DM_RECENT_KEY), mergedRecent.slice(0, 12));
+          dmWrite(dmScopedKey(DM_ADDRESS_KEY), mergedAddresses.slice(0, 10));
+
+          syncExtrasToServer();
+          renderWishlist();
+          renderSavedAddresses();
+          renderProducts(allProducts);
+        } catch (e) {}
+      }
+
+      function wishlistIds(){ return dmRead(dmScopedKey(DM_WISHLIST_KEY),[]).map(Number).filter(Number.isFinite); }
+      function isWishlisted(id){ return wishlistIds().includes(Number(id)); }
+      function toggleWishlistById(id){ const ids=wishlistIds(); const n=Number(id); const i=ids.indexOf(n); if(i>=0)ids.splice(i,1);else ids.unshift(n); dmWrite(dmScopedKey(DM_WISHLIST_KEY),ids.slice(0,100)); syncExtrasToServer(); renderProducts(allProducts); renderWishlist(); showToast(i>=0?"Removed from wishlist":"Added to wishlist ❤️"); }
+      function toggleWishlistCurrentProduct(){ if(!currentProduct)return; const ids=wishlistIds(); const id=Number(currentProduct.id); const i=ids.indexOf(id); if(i>=0)ids.splice(i,1);else ids.unshift(id); dmWrite(dmScopedKey(DM_WISHLIST_KEY),ids.slice(0,100)); syncExtrasToServer(); updateWishlistButton(); renderWishlist(); showToast(i>=0?"Removed from wishlist":"Added to wishlist ❤️"); }
+      function updateWishlistButton(){ const b=document.getElementById("productWishlistBtn"); if(!b||!currentProduct)return; const on=isWishlisted(currentProduct.id); b.classList.toggle("active",on); b.textContent=on?"♥ Wishlisted":"♡ Wishlist"; }
+      function addRecentlyViewed(id){ const ids=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(Number).filter(Number.isFinite).filter(x=>x!==Number(id)); ids.unshift(Number(id)); dmWrite(dmScopedKey(DM_RECENT_KEY),ids.slice(0,12)); syncExtrasToServer(); }
+      function getProductByIdLocal(id){ return allProducts.find(p=>Number(p.id)===Number(id)); }
+      function miniProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;">🎁</div>')+'<div class="dm-mini-product-body"><div class="dm-mini-product-name">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
+      function renderWishlist(){ const box=document.getElementById("wishlistList"), recent=document.getElementById("recentlyViewedList"); if(!box)return; const ws=wishlistIds().map(getProductByIdLocal).filter(Boolean); box.innerHTML=ws.length?ws.map(miniProductCard).join(""): '<div class="modal-desc">Your wishlist is empty. Tap ♡ on any product to save it here.</div>'; if(recent){ const rs=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(getProductByIdLocal).filter(Boolean); recent.innerHTML=rs.length?rs.map(miniProductCard).join(""): '<div class="modal-desc">Products you view will appear here.</div>'; } }
+      function quickAddProduct(id){ const p=getProductByIdLocal(id); if(!p)return; currentProduct=p; currentSize=(p.sizes&&p.sizes.length)?p.sizes[0]:null; currentQty=p.moq||1; addToCart(); }
+      async function toggleBackInStockCurrentProduct(){
+        if(!currentProduct)return;
+        const key=String(currentProduct.id)+"::"+String(currentSize||"");
+        const arr=dmRead(dmScopedKey(DM_BACKSTOCK_KEY),[]);
+        const i=arr.indexOf(key);
+        const subscribing = i < 0;
+        if(i>=0){arr.splice(i,1);} else {arr.push(key);}
+        dmWrite(dmScopedKey(DM_BACKSTOCK_KEY),arr);
+        updateProductStockUi();
+        // The local list above drives the button state and the in-browser
+        // "still here when it's back" toast (checkBackInStockAlerts). Actual
+        // email delivery requires a signed-in customer, since that's the
+        // only way to know who to email — this call is what makes the
+        // subscription real rather than just a local checkbox.
+        const token = getCustomerToken();
+        if (!token) { showToast(subscribing ? "We'll remind you when this variant is back in stock." : "Back-in-stock alert removed."); return; }
+        try {
+          const res = await fetch("/api/customer/back-in-stock", {
+            method: subscribing ? "POST" : "DELETE",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ productId: currentProduct.id, size: currentSize || "" }),
+          });
+          const data = await res.json().catch(() => ({}));
+          showToast((data && data.message) || (subscribing ? "We'll remind you when this variant is back in stock." : "Back-in-stock alert removed."));
+        } catch (e) {
+          showToast(subscribing ? "We'll remind you when this variant is back in stock." : "Back-in-stock alert removed.");
+        }
+      }
+      function isBackstockRequested(){ if(!currentProduct)return false; return dmRead(dmScopedKey(DM_BACKSTOCK_KEY),[]).includes(String(currentProduct.id)+"::"+String(currentSize||"")); }
+      function renderSavedAddresses(){ const box=document.getElementById("savedAddressesList"); if(!box)return; const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); box.innerHTML=arr.length?arr.map((a,i)=>'<div class="dm-address-row"><input type="radio" name="savedAddress" '+(i===0?'checked':'')+' onchange="selectSavedAddress('+i+')"><div class="address-text"><strong>'+escapeHtml(a.label||"Address")+'</strong><br>'+escapeHtml(a.text||"")+'</div><button class="btn small secondary" onclick="removeSavedAddress('+i+')">Remove</button></div>').join(""):'<div class="modal-desc">No saved addresses yet.</div>'; }
+      function addSavedAddress(){ const text=prompt("Enter your full delivery address:"); if(!text||!text.trim())return; const label=prompt("Label (Home / Office / Other):","Home")||"Address"; const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); arr.unshift({label:label.trim(),text:text.trim()}); dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr.slice(0,10)); syncExtrasToServer(); renderSavedAddresses(); }
+      function removeSavedAddress(i){ const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); arr.splice(i,1); dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses(); }
+      function selectSavedAddress(i){ const a=dmRead(dmScopedKey(DM_ADDRESS_KEY),[])[i]; const el=document.getElementById("custAddress"); if(a&&el){el.value=a.text;try{localStorage.setItem("dm_last_address",a.text);}catch(e){} } }
+      function toggleGiftFields(){ const on=document.getElementById("isGiftOrder")?.checked; const box=document.getElementById("giftFields"); if(box)box.style.display=on?"block":"none"; }
+      function saveCurrentAddressIfUseful(){ const el=document.getElementById("custAddress"); if(!el||!el.value.trim())return; try{localStorage.setItem("dm_last_address",el.value.trim());}catch(e){} }
+      function buyAgainOrder(orderId){
+        const order=dmCustomerOrdersCache.find(o=>Number(o.id)===Number(orderId)); if(!order)return;
+        let added=0; const skipped=[];
+        (order.items||[]).forEach(it=>{
+          const p=getProductByIdLocal(it.productId);
+          if(!p){ skipped.push(it.name||"An item"); return; }
+          const stock=getDisplayStock(p,it.size||null);
+          if(stock.qty===0){ skipped.push(p.name+(it.size?" ("+it.size+")":"")); return; }
+          cart.push({productId:p.id,name:p.name,price:getSalePrice(p)||p.price,originalPrice:p.price,onSale:Boolean(getSalePrice(p)),image:p.image,size:it.size||null,qty:Math.min(Number(it.qty)||1,stock.qty>0?stock.qty:Number(it.qty)||1),discounts:p.discounts||[]});
+          added++;
+        });
+        if(added){
+          updateCartCount();saveCart();closeAccountModal();openCart();
+          if(skipped.length){
+            const list=skipped.length>3?(skipped.slice(0,3).join(", ")+", +"+(skipped.length-3)+" more"):skipped.join(", ");
+            showToast(added+" item"+(added>1?"s":"")+" added. Unavailable, skipped: "+list);
+          } else {
+            showToast("Items added to cart.");
+          }
+        } else {
+          const list=skipped.length>3?(skipped.slice(0,3).join(", ")+", +"+(skipped.length-3)+" more"):skipped.join(", ");
+          showToast(list?("Currently unavailable: "+list):"Those products are currently unavailable.");
+        }
+      }
+      function checkBackInStockAlerts(){ const arr=dmRead(dmScopedKey(DM_BACKSTOCK_KEY),[]); if(!arr.length)return; const available=[]; arr.forEach(key=>{const [pid,size]=key.split("::");const p=getProductByIdLocal(pid);if(!p)return;const st=getDisplayStock(p,size||null);if(st.qty>0){available.push(p.name+(size?" — "+size:""));}}); if(available.length){showToast("🔔 Back in stock: "+available[0]);} }
+      function previewReviewPhoto(event){ const f=event.target.files&&event.target.files[0], img=document.getElementById("reviewPhotoPreview"); if(!f||!img)return; if(f.size>1500000){event.target.value="";showToast("Please choose a photo under 1.5 MB.");return;} const r=new FileReader();r.onload=()=>{img.src=r.result;img.style.display="block";};r.readAsDataURL(f); }
+      // CUSTOMER: LIVE MY ORDERS / FULFILMENT
+      // ================================
+      const DM_FULFILMENT_STAGES = ["Order Received","Processing","Ready to Ship","Shipped","Out for Delivery","Delivered"];
+      let dmCustomerOrdersPoll = null;
+      let dmCustomerOrdersCache = [];
+
+      function showAccountSection(section) {
+        const profile = document.getElementById("accountProfileView");
+        const orders = document.getElementById("accountOrdersView");
+        const wishlist = document.getElementById("accountWishlistView");
+        const addresses = document.getElementById("accountAddressesView");
+        const profileTab = document.getElementById("accountProfileTab");
+        const ordersTab = document.getElementById("accountOrdersTab");
+        const wishlistTab = document.getElementById("accountWishlistTab");
+        const addressesTab = document.getElementById("accountAddressesTab");
+        if (profile) profile.style.display = section === "profile" ? "block" : "none";
+        if (orders) orders.style.display = section === "orders" ? "block" : "none";
+        if (wishlist) wishlist.style.display = section === "wishlist" ? "block" : "none";
+        if (addresses) addresses.style.display = section === "addresses" ? "block" : "none";
+        if (profileTab) profileTab.classList.toggle("active", section === "profile");
+        if (ordersTab) ordersTab.classList.toggle("active", section === "orders");
+        if (wishlistTab) wishlistTab.classList.toggle("active", section === "wishlist");
+        if (addressesTab) addressesTab.classList.toggle("active", section === "addresses");
+        if (section === "orders") { loadCustomerOrders(); startCustomerOrderLiveUpdates(); }
+        else stopCustomerOrderLiveUpdates();
+        if (section === "wishlist") renderWishlist();
+        if (section === "addresses") renderSavedAddresses();
+      }
+
+      function dmStageIndex(stage) {
+        const i = DM_FULFILMENT_STAGES.indexOf(stage);
+        return i < 0 ? 0 : i;
+      }
+
+      function renderCustomerStageTimeline(stage) {
+        const current = dmStageIndex(stage || "Order Received");
+        return '<div style="display:flex;gap:4px;align-items:flex-start;overflow-x:auto;padding:8px 0 3px;">' +
+          DM_FULFILMENT_STAGES.map((st, i) => {
+            const done = i < current, active = i === current;
+            return '<div style="min-width:82px;text-align:center;font-size:10px;color:' + (done || active ? '#7d465c' : '#a999a0') + ';font-weight:' + (active ? '800' : '600') + ';">' +
+              '<div style="width:20px;height:20px;border-radius:50%;margin:0 auto 5px;background:' + (done || active ? '#d8ad63' : '#eee6e9') + ';color:' + (done || active ? '#fff' : '#a999a0') + ';display:flex;align-items:center;justify-content:center;">' + (done ? '✓' : active ? '●' : '○') + '</div>' +
+              escapeHtml(st) + '</div>';
+          }).join('') + '</div>';
+      }
+
+      function renderCustomerOrderCard(order) {
+        const items = Array.isArray(order.items) ? order.items : [];
+        const itemStages = Array.isArray(order.itemFulfilment) ? order.itemFulfilment : [];
+        const stage = order.fulfilmentStage || order.status || "Order Received";
+        return '<div class="card" style="padding:16px;margin-bottom:12px;border:1px solid var(--blush-line);border-radius:16px;cursor:pointer;" onclick="openCustomerOrderDetail(' + Number(order.id) + ')">' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">' +
+          '<div><strong style="color:var(--rosewood);">' + escapeHtml(order.orderNumber || '') + '</strong><div style="font-size:.75rem;color:var(--muted);margin-top:3px;">' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div>' +
+          '<span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
+          '<div style="margin-top:10px;font-size:.84rem;color:var(--ink);">' + escapeHtml(items.map(i => (i.name || 'Product') + (i.size ? ' · ' + i.size : '') + ' × ' + Number(i.qty || 0)).join(' • ')) + '</div>' +
+          '<div style="margin-top:8px;font-weight:800;color:var(--rosewood);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
+          renderCustomerStageTimeline(stage) +
+          '<div style="margin-top:10px;"><button class="btn small secondary" onclick="event.stopPropagation();buyAgainOrder(' + Number(order.id) + ')">🔄 Buy Again</button></div>' +
+          '</div>';
+      }
+
+      async function loadCustomerOrders() {
+        const list = document.getElementById("customerOrdersList");
+        if (!list) return;
+        const token = getCustomerToken();
+        if (!token) { list.innerHTML = '<div class="modal-desc">Please sign in to view your orders.</div>'; return; }
+        try {
+          const res = await fetch("/api/customer/orders", { headers:{ Authorization:"Bearer "+token }, cache:"no-store" });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.success) throw new Error(data.message || "Unable to load orders.");
+          dmCustomerOrdersCache = Array.isArray(data.orders) ? data.orders : [];
+          list.innerHTML = dmCustomerOrdersCache.length ? dmCustomerOrdersCache.map(renderCustomerOrderCard).join('') : '<div class="modal-desc">No orders yet.</div>';
+        } catch (e) {
+          list.innerHTML = '<div class="modal-desc">Could not load your orders. <button class="link-btn" onclick="loadCustomerOrders()">Retry</button></div>';
+        }
+      }
+
+      function openCustomerOrderDetail(id) {
+        const order = dmCustomerOrdersCache.find(o => Number(o.id) === Number(id));
+        const box = document.getElementById("customerOrderDetail");
+        const list = document.getElementById("customerOrdersList");
+        if (!order || !box) return;
+        const stage = order.fulfilmentStage || order.status || "Order Received";
+        box.style.display = "block";
+        if (list) list.style.display = "none";
+        const itemStages = Array.isArray(order.itemFulfilment) ? order.itemFulfilment : [];
+        box.innerHTML = '<button class="btn small secondary" onclick="closeCustomerOrderDetail()" style="margin-bottom:12px;">← Back to Orders</button>' +
+          '<div class="card" style="padding:18px;border:1px solid var(--blush-line);border-radius:16px;">' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><h3 style="margin:0;color:var(--rosewood);">' + escapeHtml(order.orderNumber || '') + '</h3><div style="font-size:.78rem;color:var(--muted);margin-top:4px;">Order date: ' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div><span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
+          renderCustomerStageTimeline(stage) +
+          '<div style="margin-top:15px;font-weight:800;color:var(--rosewood);">Products</div>' +
+          (order.items || []).map((it, idx) => { const st = itemStages[idx]?.stage || stage; return '<div style="padding:10px 0;border-bottom:1px solid var(--line);"><div style="font-weight:700;">' + escapeHtml(it.name || 'Product') + '</div><div style="font-size:.78rem;color:var(--muted);">' + (it.size ? 'Size: '+escapeHtml(it.size)+' · ' : '') + 'Qty: '+Number(it.qty||0)+' · ₹'+fmtINR(Number(it.lineTotal||0))+'</div><div style="font-size:.76rem;color:#7d465c;margin-top:4px;">Stage: <strong>'+escapeHtml(st)+'</strong></div></div>'; }).join('') +
+          (order.gift && order.gift.isGift
+            ? '<div style="margin-top:14px;font-weight:800;color:var(--rosewood);">🎁 Gift Order</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' +
+              (order.gift.recipientName ? 'To: ' + escapeHtml(order.gift.recipientName) + '<br>' : '') +
+              (order.gift.message ? '“' + escapeHtml(order.gift.message) + '”<br>' : '') +
+              (order.gift.hidePrice ? 'Price hidden from recipient' : '') +
+              '</div>'
+            : '') +
+          '<div style="margin-top:14px;font-weight:800;color:var(--rosewood);">Delivery</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' + escapeHtml(order.customer?.name || '') + '<br>' + escapeHtml(order.customer?.phone || '') + '<br>' + escapeHtml(order.customer?.address || '') + '</div>' +
+          '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-weight:800;">Total: ₹' + fmtINR(Number(order.total || 0)) + '</div></div>';
+      }
+
+      function closeCustomerOrderDetail() {
+        const box = document.getElementById("customerOrderDetail");
+        const list = document.getElementById("customerOrdersList");
+        if (box) { box.style.display = "none"; box.innerHTML = ""; }
+        if (list) list.style.display = "block";
+      }
+
+      function startCustomerOrderLiveUpdates() {
+        if (dmCustomerOrdersPoll) clearInterval(dmCustomerOrdersPoll);
+        dmCustomerOrdersPoll = setInterval(() => {
+          const view = document.getElementById("accountOrdersView");
+          if (view && view.style.display !== "none") loadCustomerOrders();
+        }, 5000);
+      }
+      function stopCustomerOrderLiveUpdates() { if (dmCustomerOrdersPoll) { clearInterval(dmCustomerOrdersPoll); dmCustomerOrdersPoll = null; } }
+
+
+      document.addEventListener("DOMContentLoaded",()=>{
+        try{renderWishlist();renderSavedAddresses();checkBackInStockAlerts();}catch(e){}
+      });
+</script>
   </body>
 </html>
