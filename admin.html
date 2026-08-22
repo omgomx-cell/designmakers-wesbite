@@ -984,12 +984,12 @@
         <div class="tab-panel" id="tabInventory">
           <div class="card" style="margin-bottom:16px;">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
-              <div><h3 style="margin:0 0 6px;color:var(--gold-soft);">Inventory &amp; Stock</h3><p style="margin:0;color:var(--muted);font-size:13px;line-height:1.5;">Every product has its own internal Product ID. Use this tab to bulk maintain stock in Excel. Product IDs are for internal work only and are never shown to customers.</p></div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn small secondary" onclick="loadInventory()">↻ Refresh</button><button class="btn small secondary" onclick="copyInventoryForExcel()">Copy for Excel</button><button class="btn small" onclick="downloadInventoryCsv()">Export for Excel</button></div>
+              <div><h3 style="margin:0 0 6px;color:var(--gold-soft);">Inventory &amp; Stock</h3><p style="margin:0;color:var(--muted);font-size:13px;line-height:1.5;">Read-only stock overview. Every product has its own internal Product ID (for internal work only, never shown to customers). To change stock, go to <strong>Products → Edit Product → Size/Variant Stock</strong>.</p></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn small secondary" onclick="loadInventory()">↻ Refresh</button></div>
             </div>
           </div>
           <div class="card" style="margin-bottom:16px;">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;"><input id="inventorySearch" type="text" placeholder="Search Product ID or product name..." style="flex:1;min-width:240px;margin:0;" oninput="renderInventory()" /><button class="btn small" onclick="openInventoryPaste()">Paste Excel Stock</button></div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;"><input id="inventorySearch" type="text" placeholder="Search Product ID or product name..." style="flex:1;min-width:240px;margin:0;" oninput="renderInventory()" /></div>
             <div id="inventoryStats" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;"></div><div class="error" id="inventoryError"></div>
           </div>
           <div class="card" style="padding:0;overflow:auto;"><table style="width:100%;border-collapse:collapse;min-width:820px;"><thead><tr style="background:var(--blush);text-align:left;"><th style="padding:12px 14px;">Product ID</th><th style="padding:12px 14px;">Product</th><th style="padding:12px 14px;">Variant</th><th style="padding:12px 14px;">Current Stock</th><th style="padding:12px 14px;">Status</th><th style="padding:12px 14px;">Low Stock At</th></tr></thead><tbody id="inventoryTableBody"><tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">Loading inventory...</td></tr></tbody></table></div>
@@ -1344,18 +1344,6 @@
           <button class="btn" id="saveProductBtn" onclick="saveProduct()"><span id="saveProductBtnText">Save Product</span></button>
           <button class="btn secondary" onclick="closeModal()">Cancel</button>
         </div>
-      </div>
-    </div>
-
-    <!-- INVENTORY EXCEL PASTE MODAL -->
-    <div id="inventoryPasteOverlay" class="seller-modal-overlay">
-      <div class="modal-card" style="max-width:720px;">
-        <h2 style="margin-bottom:6px;">Paste Stock from Excel</h2>
-        <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-top:0;">Copy the exported inventory table from Excel and paste it below. Edit only the <strong>New Stock</strong> column. Product ID is internal and must not be changed.</p>
-        <textarea id="inventoryPasteText" placeholder="Product ID&#9;Product Name&#9;Variant&#9;Current Stock&#9;New Stock&#10;DM-TS-001&#9;Black T-Shirt&#9;M&#9;20&#9;50" style="width:100%;min-height:220px;font-family:monospace;font-size:12px;"></textarea>
-        <div id="inventoryPastePreview" style="display:none;margin-top:12px;border:1px solid var(--blush-line);border-radius:10px;overflow:auto;max-height:260px;"></div>
-        <div id="inventoryPasteError" class="error" style="margin-top:8px;"></div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;"><button class="btn secondary" onclick="closeInventoryPaste()">Cancel</button><button class="btn" id="inventoryPreviewBtn" onclick="importInventoryPaste()">Review Changes</button></div>
       </div>
     </div>
 
@@ -1892,7 +1880,7 @@
       const DM_TAB_TITLES = {
         overview: ["Dashboard", "Overview & Stats"],
         products: ["Products", "Catalog & pricing"],
-        inventory: ["Inventory", "Stock & Excel bulk updates"],
+        inventory: ["Inventory", "Read-only stock overview"],
         orders: ["Orders", "Track & fulfil orders"],
         homepage: ["Homepage Sections", "Storefront highlights"],
         sellerlist: ["Live Sellers", "Approved sellers & their products"],
@@ -1962,7 +1950,12 @@
         if (el) el.textContent = getDmGreeting();
       }
 
-      // ---------- INVENTORY / EXCEL BULK STOCK ----------
+      // ---------- INVENTORY (READ-ONLY STOCK OVERVIEW) ----------
+      // Stock is edited only from Products → Edit Product → Size/Variant
+      // Stock. This tab is a read-only view of what's stored there —
+      // there is no separate stock-editing workflow here, and no
+      // Excel import/export for stock (removed by design: Product
+      // Editing is the single authoritative place stock is written).
       let inventoryRows = [];
       async function loadInventory() {
         const body = document.getElementById("inventoryTableBody");
@@ -1992,99 +1985,6 @@
         if (!rows.length) { body.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--muted);">No inventory rows found.</td></tr>'; return; }
         body.innerHTML = rows.map(r => { const st = inventoryStatus(r); return '<tr style="border-top:1px solid var(--line);"><td style="padding:12px 14px;font-weight:800;color:var(--rosewood);">' + escapeHtml(r.productCode || "—") + '</td><td style="padding:12px 14px;">' + escapeHtml(r.productName || "—") + '</td><td style="padding:12px 14px;">' + escapeHtml(r.variant || "Default") + '</td><td style="padding:12px 14px;font-weight:800;">' + (r.currentStock === null ? "—" : Number(r.currentStock).toLocaleString("en-IN")) + '</td><td style="padding:12px 14px;"><span class="badge ' + st.cls + '">' + st.icon + ' ' + escapeHtml(st.text) + '</span></td><td style="padding:12px 14px;">' + Number(r.lowStockThreshold || 5) + '</td></tr>'; }).join("");
       }
-      function inventoryTsv() { const header=["Product ID","Product Name","Variant","Current Stock","New Stock","Low Stock Alert"]; const lines=inventoryRows.map(r=>[r.productCode,r.productName,r.variant||"",r.currentStock===null?"":r.currentStock,r.currentStock===null?"":r.currentStock,r.lowStockThreshold||5].map(v=>String(v??"").replace(/\t|\r?\n/g," ")).join("\t")); return [header.join("\t"),...lines].join("\n"); }
-      async function copyInventoryForExcel() { const text=inventoryTsv(); try { await navigator.clipboard.writeText(text); } catch(e) { const ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove(); } showToast("Inventory copied — paste it directly into Excel."); }
-      function downloadInventoryCsv() { const blob=new Blob(["\ufeff"+inventoryTsv()],{type:"text/tab-separated-values;charset=utf-8"}); const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="design-makers-inventory.tsv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500); }
-      let inventoryImportRows = [];
-      let inventoryImportPreviewed = false;
-      function openInventoryPaste(){
-        document.getElementById("inventoryPasteOverlay").classList.add("open");
-        document.getElementById("inventoryPasteText").value="";
-        document.getElementById("inventoryPasteError").textContent="";
-        document.getElementById("inventoryPastePreview").style.display="none";
-        document.getElementById("inventoryPastePreview").innerHTML="";
-        document.getElementById("inventoryPreviewBtn").textContent="Review Changes";
-        inventoryImportRows=[];
-        inventoryImportPreviewed=false;
-      }
-      function closeInventoryPaste(){document.getElementById("inventoryPasteOverlay").classList.remove("open");}
-      function parseInventoryPaste(text){
-        const lines=String(text||"").split(/\r?\n/).filter(line=>line.trim());
-        if(lines.length<2)return[];
-        const delim=lines[0].includes("\t")?"\t":",";
-        const clean=v=>String(v||"").trim().replace(/^"|"$/g,"");
-        const headers=lines[0].split(delim).map(clean).map(x=>x.toLowerCase());
-        const codeIdx=headers.findIndex(x=>x==="product id"||x==="product code");
-        const variantIdx=headers.findIndex(x=>x==="variant"||x==="size");
-        const currentIdx=headers.findIndex(x=>x==="current stock"||x==="current");
-        const newIdx=headers.findIndex(x=>x==="new stock"||x==="stock"||x==="quantity");
-        if(codeIdx<0||newIdx<0)throw new Error("Excel must contain Product ID and New Stock columns.");
-        return lines.slice(1).map(line=>{
-          const cells=line.split(delim).map(clean);
-          return {productCode:cells[codeIdx]||"",variant:variantIdx>=0?(cells[variantIdx]||""):"",currentStock:currentIdx>=0?(cells[currentIdx]||""):null,newStock:cells[newIdx]||""};
-        }).filter(r=>r.productCode);
-      }
-      function renderInventoryImportPreview(preview, conflicts){
-        const box=document.getElementById("inventoryPastePreview");
-        if(!box)return;
-        const rows=preview||[];
-        const conflictKeys=new Set((conflicts||[]).map(r=>r.productCode+"::"+r.variant));
-        box.style.display="block";
-        box.innerHTML='<table style="width:100%;border-collapse:collapse;min-width:640px;font-size:12px;"><thead><tr style="background:var(--blush);text-align:left;">'+
-          '<th style="padding:9px;">Product ID</th><th style="padding:9px;">Product</th><th style="padding:9px;">Size</th><th style="padding:9px;">Current</th><th style="padding:9px;">New</th><th style="padding:9px;">Check</th></tr></thead><tbody>'+
-          rows.map(r=>{const conflict=conflictKeys.has(r.productCode+"::"+r.variant);return '<tr style="border-top:1px solid var(--line);background:'+(conflict?'#fff1f0':'transparent')+';">'+
-            '<td style="padding:9px;font-weight:800;color:var(--rosewood);">'+escapeHtml(r.productCode)+'</td>'+
-            '<td style="padding:9px;">'+escapeHtml(r.productName||"")+'</td>'+
-            '<td style="padding:9px;">'+escapeHtml(r.variant||"Default")+'</td>'+
-            '<td style="padding:9px;font-weight:700;">'+escapeHtml(String(r.currentStock))+'</td>'+
-            '<td style="padding:9px;font-weight:900;">'+escapeHtml(String(r.newStock))+'</td>'+
-            '<td style="padding:9px;font-weight:800;color:'+(conflict?'#b42318':'#1c7a34')+';">'+(conflict?'⚠ Stock changed':'✓ Ready')+'</td>'+
-          '</tr>';}).join('')+'</tbody></table>';
-      }
-      async function importInventoryPaste(){
-        const error=document.getElementById("inventoryPasteError");
-        error.textContent="";
-        try{
-          if(!inventoryImportPreviewed){
-            const rows=parseInventoryPaste(document.getElementById("inventoryPasteText").value);
-            if(!rows.length)throw new Error("No valid rows found.");
-            inventoryImportRows=rows;
-            const res=await fetch("/api/admin/inventory/import",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({rows,confirm:false})});
-            const data=await res.json();
-            if(!data.success)throw new Error(data.message||"Could not review inventory.");
-            renderInventoryImportPreview(data.preview||[],data.conflicts||[]);
-            if((data.conflicts||[]).length){
-              error.textContent="Stock conflict found. Export the inventory again, then edit the fresh file before importing.";
-              error.style.display="block";
-              document.getElementById("inventoryPreviewBtn").textContent="Review Again";
-              inventoryImportPreviewed=false;
-              return;
-            }
-            error.style.display="none";
-            document.getElementById("inventoryPreviewBtn").textContent="Confirm Stock Update";
-            inventoryImportPreviewed=true;
-            return;
-          }
-
-          const res=await fetch("/api/admin/inventory/import",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+token},body:JSON.stringify({rows:inventoryImportRows,confirm:true})});
-          const data=await res.json();
-          if(!data.success){
-            if(data.code==="INVENTORY_CONFLICT"){
-              renderInventoryImportPreview(data.preview||[],data.conflicts||[]);
-              error.textContent=data.message||"Stock changed. Export again and retry.";
-              error.style.display="block";
-              inventoryImportPreviewed=false;
-              document.getElementById("inventoryPreviewBtn").textContent="Review Changes";
-              return;
-            }
-            throw new Error(data.message||"Inventory update failed.");
-          }
-          closeInventoryPaste();
-          await loadInventory();
-          showToast((data.updates||[]).length+" stock row(s) updated successfully.");
-        }catch(e){error.textContent=e.message||"Could not import stock.";error.style.display="block";}
-      }
-
       // ---------- EXECUTIVE OVERVIEW ----------
       async function loadAdminOverview() {
         const ids = ["ovRevenue","ovOrders","ovCustomers","ovProducts","ovPending","ovSellers","ovRecentOrders","ovQueue","ovTopProducts","ovInventoryHealth"];

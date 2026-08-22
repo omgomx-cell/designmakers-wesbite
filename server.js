@@ -2859,135 +2859,21 @@ function isSaleActive(product) {
 // INVENTORY / STOCK MANAGEMENT
 // ================================
 
+// This is the ONLY inventory route left. It is READ-ONLY — it just reads
+// back the stock already stored on each product document. There is no
+// Excel/Sheets import, paste, or export for stock anywhere in this app.
+// The single authoritative place stock is written is the product editor:
+// Admin/Seller → Products → Edit Product → Size/Variant Stock, which goes
+// through validateProductInput() and the /api/admin/products/:id and
+// /api/seller/products/:id routes (with their own negative-stock and
+// ownership checks). This endpoint exists purely to power a read-only
+// overview (the admin Inventory tab, and the Overview dashboard's stock
+// health widget) — it never mutates stock.
 app.get("/api/admin/inventory", requireAdmin, (req, res) => {
   const database = readDatabase();
   ensureProductCodes(database);
   writeDatabase(database);
   res.json({ success: true, rows: getInventoryRows(database) });
-});
-
-app.post("/api/admin/inventory/import", requireAdmin, (req, res) => {
-  try {
-    const database = readDatabase();
-    ensureProductCodes(database);
-    const rows = Array.isArray(req.body && req.body.rows) ? req.body.rows : [];
-    const confirm = Boolean(req.body && req.body.confirm);
-    if (!rows.length) return res.status(400).json({ success: false, message: "No inventory rows were provided." });
-
-    const errors = [];
-    const preview = [];
-    const seen = new Set();
-
-    rows.forEach((row, index) => {
-      const code = String(row.productCode || "").trim();
-      const variant = String(row.variant || "").trim();
-      const stock = Number(row.newStock);
-      const suppliedCurrent = row.currentStock === "" || row.currentStock === null || row.currentStock === undefined
-        ? null
-        : Number(row.currentStock);
-      const key = `${code}::${variant}`;
-
-      if (!code) return errors.push(`Row ${index + 2}: Product ID is missing.`);
-      if (seen.has(key)) return errors.push(`Row ${index + 2}: Duplicate Product ID + Variant row.`);
-      seen.add(key);
-      if (!Number.isInteger(stock) || stock < 0) return errors.push(`Row ${index + 2}: New Stock must be a whole number 0 or greater.`);
-      if (suppliedCurrent !== null && (!Number.isInteger(suppliedCurrent) || suppliedCurrent < 0)) {
-        return errors.push(`Row ${index + 2}: Current Stock must be a whole number 0 or greater.`);
-      }
-
-      const product = (database.products || []).find((p) => p.productCode === code && !p.isGiftAddon);
-      if (!product) return errors.push(`Row ${index + 2}: Product ID ${code} was not found.`);
-
-      const sizes = Array.isArray(product.sizes) ? product.sizes : [];
-      if (sizes.length) {
-        if (!variant) return errors.push(`Row ${index + 2}: Size/Variant is required for ${code}.`);
-        if (!sizes.includes(variant)) return errors.push(`Row ${index + 2}: Variant "${variant}" is not valid for ${code}.`);
-      } else if (variant) {
-        return errors.push(`Row ${index + 2}: ${code} has no size/variant stock.`);
-      }
-
-      const actualCurrent = getStockForVariant(product, variant);
-      const conflict = suppliedCurrent !== null && suppliedCurrent !== actualCurrent;
-      preview.push({
-        productCode: code,
-        productName: product.name || "",
-        variant,
-        currentStock: actualCurrent,
-        excelCurrentStock: suppliedCurrent,
-        newStock: stock,
-        conflict,
-      });
-    });
-
-    if (errors.length) return res.status(400).json({ success: false, message: errors.join(" "), preview });
-
-    const conflicts = preview.filter((r) => r.conflict);
-    if (!confirm) {
-      return res.json({ success: true, preview, conflicts, canConfirm: conflicts.length === 0 });
-    }
-
-    // Re-check live stock at confirmation time. The admin may have left the
-    // preview open while a customer order changed inventory.
-    const liveConflicts = [];
-    preview.forEach((row) => {
-      const product = database.products.find((p) => p.productCode === row.productCode && !p.isGiftAddon);
-      if (!product) {
-        liveConflicts.push({ ...row, reason: "Product no longer exists." });
-        return;
-      }
-      const liveCurrent = getStockForVariant(product, row.variant);
-      if (row.excelCurrentStock !== null && liveCurrent !== row.excelCurrentStock) {
-        liveConflicts.push({ ...row, currentStock: liveCurrent, reason: "Stock changed after export/preview." });
-      }
-    });
-    if (liveConflicts.length) {
-      return res.status(409).json({
-        success: false,
-        code: "INVENTORY_CONFLICT",
-        message: "Stock changed since this Excel was exported. Refresh/export again and review the affected rows.",
-        conflicts: liveConflicts,
-        preview,
-      });
-    }
-
-    preview.forEach((row) => {
-      const product = database.products.find((p) => p.productCode === row.productCode && !p.isGiftAddon);
-      if (!product) return;
-      const beforeQty = getStockForVariant(product, row.variant);
-      setStockForVariant(product, row.variant, row.newStock);
-      product.stockConfigured = true;
-      if (product.lowStockThreshold == null) product.lowStockThreshold = 5;
-      notifyBackInStockForVariant(database, product, row.variant, beforeQty, row.newStock);
-    });
-    writeDatabase(database);
-    return res.json({ success: true, updates: preview.map((r) => ({ productCode: r.productCode, variant: r.variant, previousStock: r.currentStock, newStock: r.newStock })) });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Unable to import inventory." });
-  }
-});
-
-app.put("/api/admin/inventory/:productCode", requireAdmin, (req, res) => {
-  try {
-    const database = readDatabase();
-    const code = String(req.params.productCode || "").trim();
-    const product = (database.products || []).find((p) => p.productCode === code && !p.isGiftAddon);
-    if (!product) return res.status(404).json({ success: false, message: "Product not found." });
-    const variant = String((req.body && req.body.variant) || "").trim();
-    const stock = Number(req.body && req.body.stock);
-    const threshold = Number(req.body && req.body.lowStockThreshold);
-    if (!Number.isInteger(stock) || stock < 0) return res.status(400).json({ success: false, message: "Stock must be a whole number 0 or greater." });
-    const beforeQty = getStockForVariant(product, variant);
-    setStockForVariant(product, variant, stock);
-    product.stockConfigured = true;
-    product.lowStockThreshold = Number.isFinite(threshold) && threshold >= 0 ? Math.floor(threshold) : Math.max(0, Number(product.lowStockThreshold ?? 5) || 5);
-    notifyBackInStockForVariant(database, product, variant, beforeQty, stock);
-    writeDatabase(database);
-    res.json({ success: true, rows: getInventoryRows(database) });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Unable to update stock." });
-  }
 });
 
 app.get("/api/inventory/availability", (req, res) => {
