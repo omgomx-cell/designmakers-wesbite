@@ -677,7 +677,7 @@
         outline: none;
         font-size: 14.5px;
         font-family: "Inter", sans-serif;
-        color: var(--ink);
+        color: var(--dm-text);
       }
       .search-bar-close {
         background: none;
@@ -714,7 +714,7 @@
         background: var(--blush);
       }
       .search-result-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-      .search-result-name { font-size: 13.5px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .search-result-name { font-size: 13.5px; font-weight: 600; color: var(--dm-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .search-result-cat { font-size: 11.5px; color: var(--muted); }
       .search-empty { padding: 16px; text-align: center; color: var(--muted); font-size: 13px; }
 
@@ -822,7 +822,7 @@
       .dm-mini-actions{display:flex;gap:7px;margin-top:9px;}
       .dm-mini-actions button{flex:1;padding:8px 9px;border-radius:9px;border:1px solid var(--blush-line);background:var(--surface);color:var(--rosewood);font-weight:800;cursor:pointer;}
       .dm-gift-box{border:1px solid var(--blush-line);border-radius:12px;padding:12px;margin:10px 0;background:rgba(255,255,255,.5);}
-      .dm-gift-box label{display:flex;gap:8px;align-items:center;font-weight:800;color:var(--ink);cursor:pointer;}
+      .dm-gift-box label{display:flex;gap:8px;align-items:center;font-weight:800;color:var(--dm-text);cursor:pointer;}
       .dm-address-row{border:1px solid var(--blush-line);border-radius:11px;padding:10px;margin:7px 0;display:flex;gap:8px;align-items:flex-start;}
       .dm-address-row input{margin-top:4px;}
       .dm-address-row .address-text{flex:1;font-size:.84rem;line-height:1.4;}
@@ -932,7 +932,7 @@
       .auth-modal { max-width: 720px; overflow: hidden; }
       .auth-modal.order-view-wide { max-width: 1080px; width: min(1080px, 96vw); }
       .account-section-tabs { display:flex; gap:8px; margin:0 0 16px; border-bottom:1px solid var(--blush-line); padding-bottom:10px; }
-      .account-section-tab { border:1px solid var(--blush-line); background:var(--surface); color:var(--ink); border-radius:999px; padding:8px 14px; cursor:pointer; font-weight:700; font-size:.82rem; }
+      .account-section-tab { border:1px solid var(--blush-line); background:var(--surface); color:var(--dm-text); border-radius:999px; padding:8px 14px; cursor:pointer; font-weight:700; font-size:.82rem; }
       .account-section-tab.active { background:var(--rosewood); color:var(--text-on-primary); border-color:var(--rosewood); }
       .dm-order-list-card { border:1px solid var(--blush-line); border-radius:14px; padding:14px; margin-bottom:10px; background:var(--surface); cursor:pointer; transition:.18s ease; }
       .dm-order-list-card:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(138,28,66,.08); }
@@ -946,7 +946,7 @@
       .dm-order-dot { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 7px; background:var(--line); color:#fff; position:relative; z-index:1; font-size:12px; font-weight:800; }
       .dm-order-step.done .dm-order-dot { background:#25a65a; }
       .dm-order-step.current .dm-order-dot { background:var(--rosewood); box-shadow:0 0 0 5px rgba(138,28,66,.10); }
-      .dm-order-step.done .dm-order-label { color:var(--ink); font-weight:800; }
+      .dm-order-step.done .dm-order-label { color:var(--dm-text); font-weight:800; }
       .dm-order-item { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--blush-line); align-items:center; }
       .dm-order-item:last-child { border-bottom:0; }
       .dm-order-item-img { width:64px; height:64px; border-radius:10px; overflow:hidden; background:var(--blush); flex:0 0 64px; display:flex; align-items:center; justify-content:center; }
@@ -1014,7 +1014,7 @@
       .modal-price { font-size: 25px; font-weight: 700; color: var(--rosewood); margin-bottom: 4px; font-family: "Playfair Display", serif; }
       .modal-moq { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
 
-      .field-label { font-size: 12.5px; font-weight: 700; color: var(--ink); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+      .field-label { font-size: 12.5px; font-weight: 700; color: var(--dm-text); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.4px; }
       .size-options { display: flex; gap: 8px; flex-wrap: wrap; }
       .size-chip {
         border: 1.5px solid var(--blush-line);
@@ -1092,14 +1092,14 @@
       /* Product-modal readability pass: preserve the existing theme, strengthen only text that was too faint. */
       .modal-desc { color: color-mix(in srgb, var(--ink) 68%, var(--muted) 32%); }
       .modal-moq { color: color-mix(in srgb, var(--ink) 64%, var(--muted) 36%); }
-      .field-label { color: color-mix(in srgb, var(--ink) 88%, var(--rosewood) 12%); }
+      .field-label { color: color-mix(in srgb, var(--dm-text) 88%, var(--rosewood) 12%); }
       .modal-reviews .field-label { font-weight: 800; }
       .modal-moq, .modal-desc, .field-label { text-shadow: none; }
 
       /* Keep the correction compatible with the festive theme without replacing its colours. */
-      body.theme-rakshabandhan .modal-desc { color: #f0d9c0; }
-      body.theme-rakshabandhan .modal-moq { color: #e5c8a8; }
-      body.theme-rakshabandhan .field-label { color: #f2d8bc; }
+      body.theme-rakshabandhan .modal-desc { color: color-mix(in srgb, var(--dm-text) 68%, var(--dm-muted) 32%); }
+      body.theme-rakshabandhan .modal-moq { color: color-mix(in srgb, var(--dm-text) 64%, var(--dm-muted) 36%); }
+      body.theme-rakshabandhan .field-label { color: color-mix(in srgb, var(--dm-text) 88%, var(--rosewood) 12%); }
       body.theme-rakshabandhan .qty-row { background: #2a0d0d; border-color: rgba(255,218,183,.24); }
       body.theme-rakshabandhan .qty-btn { background: #3b1815; color: #ffe9d2; border-color: rgba(255,218,183,.16); }
       body.theme-rakshabandhan .qty-btn:hover:not(:disabled) { background: #4a211b; border-color: rgba(255,218,183,.28); }
@@ -1113,7 +1113,7 @@
       .tier-label { font-size: 11.5px; font-weight: 700; color: var(--rosewood); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.6px; }
       .tier-table { width: 100%; border-collapse: collapse; font-size: 13px; }
       .tier-table th { text-align: left; padding: 6px 8px; color: var(--muted); font-weight: 600; font-size: 11.5px; border-bottom: 1px solid var(--blush-line); }
-      .tier-table td { padding: 7px 8px; color: var(--ink); border-radius: 6px; }
+      .tier-table td { padding: 7px 8px; color: var(--dm-text); border-radius: 6px; }
       .tier-table tbody tr { cursor: pointer; }
       .tier-table tr.active-tier td {
         background: linear-gradient(135deg, rgba(138,28,66,0.90), rgba(184,134,63,0.45));
@@ -1186,7 +1186,7 @@
       .remove-btn { background: none; border: none; color: #a3002a; font-size: 12px; cursor: pointer; margin-top: 6px; padding: 0; }
       .cart-footer { padding: 20px; border-top: 1px solid var(--blush-line); }
       .cart-total-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 6px; color: var(--muted); }
-      .cart-total-row.grand { font-size: 18px; font-weight: 700; color: var(--ink); margin-top: 8px; font-family: "Playfair Display", serif; }
+      .cart-total-row.grand { font-size: 18px; font-weight: 700; color: var(--dm-text); margin-top: 8px; font-family: "Playfair Display", serif; }
       .gift-code-box { margin: 12px 0; padding: 12px; border: 1px solid var(--blush-line); border-radius: 10px; background: rgba(255,255,255,.55); }
       .gift-code-row { display:flex; gap:8px; }
       .gift-code-row input { flex:1; margin:0; text-transform:uppercase; }
@@ -1358,7 +1358,7 @@
         -webkit-backdrop-filter: blur(18px) saturate(160%);
         box-shadow: 0 8px 22px rgba(138,28,66,.08), inset 0 1px rgba(255,255,255,.7);
       }
-      .dm-dark-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 0.92em; font-weight: 600; color: var(--ink); }
+      .dm-dark-toggle-label { display: flex; align-items: center; gap: 8px; font-size: 0.92em; font-weight: 600; color: var(--dm-text); }
       .dm-toggle-switch { position: relative; display: inline-block; width: 44px; height: 25px; flex-shrink: 0; }
       .dm-toggle-switch input { opacity: 0; width: 0; height: 0; }
       .dm-toggle-slider {
@@ -2220,6 +2220,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       select option {
         color: #211b18 !important;
         background: #ffffff !important;
+      }
+      body.theme-rakshabandhan select,
+      body.theme-rakshabandhan select:focus {
+        color: var(--dm-text) !important;
       }
       body.dark-mode select,
       body.dark-mode select:focus {
@@ -3865,7 +3869,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">' +
             '<strong style="color:var(--rosewood);">' + escapeHtml(order.orderNumber || "") + '</strong>' +
             '<span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
-            '<div style="margin-top:8px;font-size:.84rem;color:var(--ink);">' +
+            '<div style="margin-top:8px;font-size:.84rem;color:var(--dm-text);">' +
             escapeHtml(items.map((i) => (i.name || "Product") + (i.size ? " · " + i.size : "") + " × " + Number(i.qty || 0)).join(" • ")) +
             '</div>' +
             '<div style="margin-top:8px;font-weight:800;color:var(--rosewood);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
@@ -6148,7 +6152,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">' +
           '<div><strong style="color:var(--rosewood);">' + escapeHtml(order.orderNumber || '') + '</strong><div style="font-size:.75rem;color:var(--muted);margin-top:3px;">' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div>' +
           '<span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
-          '<div style="margin-top:10px;font-size:.84rem;color:var(--ink);">' + escapeHtml(items.map(i => (i.name || 'Product') + (i.size ? ' · ' + i.size : '') + ' × ' + Number(i.qty || 0)).join(' • ')) + '</div>' +
+          '<div style="margin-top:10px;font-size:.84rem;color:var(--dm-text);">' + escapeHtml(items.map(i => (i.name || 'Product') + (i.size ? ' · ' + i.size : '') + ' × ' + Number(i.qty || 0)).join(' • ')) + '</div>' +
           '<div style="margin-top:8px;font-weight:800;color:var(--rosewood);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
           renderCustomerStageTimeline(stage) +
           '<div style="margin-top:10px;"><button class="btn small secondary" onclick="event.stopPropagation();buyAgainOrder(' + Number(order.id) + ')">🔄 Buy Again</button></div>' +
