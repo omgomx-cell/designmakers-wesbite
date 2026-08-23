@@ -1023,21 +1023,29 @@
                 </div>
               </div>
             </div>
-            <div class="card" style="margin-bottom:16px;">
-              <input id="invProductSearch" type="text" placeholder="Search this seller's products..." style="margin:0;" oninput="renderInventoryProducts()" />
+            <div class="card" style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+              <input id="invProductSearch" type="text" placeholder="Search this seller's products..." style="flex:2; min-width:200px; margin:0;" oninput="renderInventoryProducts()" />
+              <select id="invProductCategoryFilter" style="flex:1; min-width:160px; margin:0;" onchange="renderInventoryProducts()">
+                <option value="">All Categories</option>
+              </select>
+              <label style="margin:0; display:flex; align-items:center; gap:6px; font-size:13px; white-space:nowrap;">
+                <input type="checkbox" id="invShowInactive" style="width:auto; margin:0;" checked onchange="renderInventoryProducts()" />
+                Show inactive (not live on site)
+              </label>
               <div class="error" id="invProductsError"></div>
             </div>
             <div class="card" style="padding:0;overflow:auto;">
               <table style="width:100%;border-collapse:collapse;min-width:700px;">
                 <thead><tr style="background:var(--blush);text-align:left;">
                   <th style="padding:12px 14px;">Product</th>
+                  <th style="padding:12px 14px;">Status</th>
                   <th style="padding:12px 14px;">Variants</th>
                   <th style="padding:12px 14px;">Total Stock</th>
                   <th style="padding:12px 14px;">Low Stock</th>
                   <th style="padding:12px 14px;">Out of Stock</th>
                   <th style="padding:12px 14px;"></th>
                 </tr></thead>
-                <tbody id="invProductTableBody"><tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">Loading products...</td></tr></tbody>
+                <tbody id="invProductTableBody"><tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Loading products...</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -2127,36 +2135,71 @@
           '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Sellers</a> → ' + escapeHtml(name);
         document.getElementById("invProductsTitle").textContent = name + " — Products";
         document.getElementById("invProductSearch").value = "";
+        const catFilter = document.getElementById("invProductCategoryFilter");
+        if (catFilter) catFilter.value = "";
+        const showInactive = document.getElementById("invShowInactive");
+        if (showInactive) showInactive.checked = true;
         await loadInventoryProducts();
       }
 
       async function loadInventoryProducts() {
         const body = document.getElementById("invProductTableBody");
-        if (body) body.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">Loading products…</td></tr>';
+        if (body) body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Loading products…</td></tr>';
         const err = document.getElementById("invProductsError"); if (err) { err.textContent = ""; err.style.display = "none"; }
         try {
           const res = await fetch("/api/admin/inventory/sellers/" + encodeURIComponent(invCurrentSellerKey) + "/products", { headers: { Authorization: "Bearer " + token } });
           const data = await res.json();
           if (!data.success) throw new Error(data.message || "Unable to load products.");
           invProducts = data.products || [];
+          populateInventoryCategoryFilter();
           renderInventoryProducts();
         } catch (e) {
-          if (body) body.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#a3002a;">Could not load products.</td></tr>';
+          if (body) body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#a3002a;">Could not load products.</td></tr>';
           if (err) { err.textContent = e.message || "Unable to load products."; err.style.display = "block"; }
         }
+      }
+
+      // Fills the category dropdown with whatever categories this seller's
+      // products actually use, keeping the currently selected value if it's
+      // still valid after a reload.
+      function populateInventoryCategoryFilter() {
+        const select = document.getElementById("invProductCategoryFilter");
+        if (!select) return;
+        const current = select.value;
+        const categories = Array.from(new Set(invProducts.map(p => p.category || "Uncategorized"))).sort();
+        select.innerHTML = '<option value="">All Categories</option>' +
+          categories.map(c => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + '</option>').join("");
+        if (categories.includes(current)) select.value = current;
       }
 
       function renderInventoryProducts() {
         const body = document.getElementById("invProductTableBody"); if (!body) return;
         const q = String(document.getElementById("invProductSearch")?.value || "").trim().toLowerCase();
-        const rows = invProducts.filter(p => !q || String(p.name || "").toLowerCase().includes(q));
-        if (!rows.length) { body.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--muted);">No products found for this seller.</td></tr>'; return; }
+        const categoryFilter = document.getElementById("invProductCategoryFilter")?.value || "";
+        const showInactive = document.getElementById("invShowInactive")?.checked !== false;
+        const rows = invProducts
+          .filter(p => !q || String(p.name || "").toLowerCase().includes(q))
+          .filter(p => !categoryFilter || (p.category || "Uncategorized") === categoryFilter)
+          .filter(p => showInactive || p.active !== false)
+          // Live/active products (the ones actually on sale on the site)
+          // float to the top so stock updates for them are quick to find;
+          // inactive ones sit below, still reachable if "Show inactive" is on.
+          .sort((a, b) => {
+            const activeDiff = (b.active !== false ? 1 : 0) - (a.active !== false ? 1 : 0);
+            if (activeDiff !== 0) return activeDiff;
+            return String(a.name || "").localeCompare(String(b.name || ""));
+          });
+        if (!rows.length) { body.innerHTML = '<tr><td colspan="7" style="padding:24px;text-align:center;color:var(--muted);">No products match this search/filter.</td></tr>'; return; }
         body.innerHTML = rows.map(p => {
           const thumb = p.image
             ? '<img src="' + escapeHtml(p.image) + '" style="width:36px;height:36px;border-radius:8px;object-fit:cover;margin-right:8px;vertical-align:middle;" />'
             : '';
-          return '<tr style="border-top:1px solid var(--line);">' +
-            '<td style="padding:12px 14px;font-weight:700;">' + thumb + escapeHtml(p.name || "—") + '</td>' +
+          const statusBadge = p.active !== false
+            ? '<span class="badge status-delivered">🟢 Live</span>'
+            : '<span class="badge status-cancelled">⚪ Inactive</span>';
+          return '<tr style="border-top:1px solid var(--line);' + (p.active !== false ? '' : 'opacity:.6;') + '">' +
+            '<td style="padding:12px 14px;font-weight:700;">' + thumb + escapeHtml(p.name || "—") + '<div style="font-size:11px;color:var(--muted);font-weight:400;">' + escapeHtml(p.category || "Uncategorized") + '</div></td>' +
+            '<td style="padding:12px 14px;">' + statusBadge + '</td>' +
             '<td style="padding:12px 14px;">' + Number(p.variants || 0) + '</td>' +
             '<td style="padding:12px 14px;font-weight:700;">' + Number(p.totalStock || 0).toLocaleString("en-IN") + '</td>' +
             '<td style="padding:12px 14px;">' + (p.lowStockCount ? '<span class="badge status-processing">🟡 ' + p.lowStockCount + '</span>' : '—') + '</td>' +

@@ -3571,6 +3571,11 @@ function buildSellerProductSummaries(database, sellerKey) {
       name: p.name || "",
       productCode: p.productCode || "",
       image: (Array.isArray(p.images) && p.images[0]) || p.image || "",
+      category: p.category || "Uncategorized",
+      // "Live on the storefront" = approved by admin AND not switched off
+      // by the seller/admin. Used by the admin Inventory tab to sort/filter
+      // so stock updates for what's actually on sale surface first.
+      active: p.approved !== false && p.active !== false,
       variants: g.variants,
       totalStock: g.totalStock,
       lowStockCount: g.low,
