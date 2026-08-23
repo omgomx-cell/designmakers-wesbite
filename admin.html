@@ -982,17 +982,117 @@
 
         <!-- INVENTORY TAB -->
         <div class="tab-panel" id="tabInventory">
-          <div class="card" style="margin-bottom:16px;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
-              <div><h3 style="margin:0 0 6px;color:var(--gold-soft);">Inventory &amp; Stock</h3><p style="margin:0;color:var(--muted);font-size:13px;line-height:1.5;">Read-only stock overview. Every product has its own internal Product ID (for internal work only, never shown to customers). To change stock, go to <strong>Products → Edit Product → Size/Variant Stock</strong>.</p></div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn small secondary" onclick="loadInventory()">↻ Refresh</button></div>
+
+          <!-- PAGE 1: SELLER LIST -->
+          <div id="invPageSellers">
+            <div class="card" style="margin-bottom:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+                <div><h3 style="margin:0 0 6px;color:var(--gold-soft);">Inventory</h3><p style="margin:0;color:var(--muted);font-size:13px;line-height:1.5;">Select a seller to manage their inventory.</p></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn small secondary" onclick="loadInventorySellers()">↻ Refresh</button></div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:16px;">
+              <input id="invSellerSearch" type="text" placeholder="Search seller..." style="margin:0;" oninput="renderInventorySellers()" />
+              <div class="error" id="invSellersError"></div>
+            </div>
+            <div class="card" style="padding:0;overflow:auto;">
+              <table style="width:100%;border-collapse:collapse;min-width:760px;">
+                <thead><tr style="background:var(--blush);text-align:left;">
+                  <th style="padding:12px 14px;">Seller</th>
+                  <th style="padding:12px 14px;">Status</th>
+                  <th style="padding:12px 14px;">Products</th>
+                  <th style="padding:12px 14px;">Variants</th>
+                  <th style="padding:12px 14px;">Total Stock</th>
+                  <th style="padding:12px 14px;">Low Stock</th>
+                  <th style="padding:12px 14px;">Out of Stock</th>
+                  <th style="padding:12px 14px;"></th>
+                </tr></thead>
+                <tbody id="invSellerTableBody"><tr><td colspan="8" style="padding:20px;text-align:center;color:var(--muted);">Loading sellers...</td></tr></tbody>
+              </table>
             </div>
           </div>
-          <div class="card" style="margin-bottom:16px;">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;"><input id="inventorySearch" type="text" placeholder="Search Product ID or product name..." style="flex:1;min-width:240px;margin:0;" oninput="renderInventory()" /></div>
-            <div id="inventoryStats" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;"></div><div class="error" id="inventoryError"></div>
+
+          <!-- PAGE 2: SELLER'S PRODUCTS -->
+          <div id="invPageProducts" class="hidden">
+            <div class="card" style="margin-bottom:16px;">
+              <div id="invProductsBreadcrumb" style="font-size:12.5px;color:var(--muted);margin-bottom:8px;"></div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+                <div><h3 id="invProductsTitle" style="margin:0 0 6px;color:var(--gold-soft);"></h3><p style="margin:0;color:var(--muted);font-size:13px;">Manage products and stock for this seller.</p></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn small secondary" onclick="backToInventorySellers()">← Back to Sellers</button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:16px;">
+              <input id="invProductSearch" type="text" placeholder="Search this seller's products..." style="margin:0;" oninput="renderInventoryProducts()" />
+              <div class="error" id="invProductsError"></div>
+            </div>
+            <div class="card" style="padding:0;overflow:auto;">
+              <table style="width:100%;border-collapse:collapse;min-width:700px;">
+                <thead><tr style="background:var(--blush);text-align:left;">
+                  <th style="padding:12px 14px;">Product</th>
+                  <th style="padding:12px 14px;">Variants</th>
+                  <th style="padding:12px 14px;">Total Stock</th>
+                  <th style="padding:12px 14px;">Low Stock</th>
+                  <th style="padding:12px 14px;">Out of Stock</th>
+                  <th style="padding:12px 14px;"></th>
+                </tr></thead>
+                <tbody id="invProductTableBody"><tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">Loading products...</td></tr></tbody>
+              </table>
+            </div>
           </div>
-          <div class="card" style="padding:0;overflow:auto;"><table style="width:100%;border-collapse:collapse;min-width:820px;"><thead><tr style="background:var(--blush);text-align:left;"><th style="padding:12px 14px;">Product ID</th><th style="padding:12px 14px;">Product</th><th style="padding:12px 14px;">Variant</th><th style="padding:12px 14px;">Current Stock</th><th style="padding:12px 14px;">Status</th><th style="padding:12px 14px;">Low Stock At</th></tr></thead><tbody id="inventoryTableBody"><tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">Loading inventory...</td></tr></tbody></table></div>
+
+          <!-- PAGE 3: PRODUCT SIZE/VARIANT STOCK -->
+          <div id="invPageVariants" class="hidden">
+            <div class="card" style="margin-bottom:16px;">
+              <div id="invVariantsBreadcrumb" style="font-size:12.5px;color:var(--muted);margin-bottom:8px;"></div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+                <div><h3 id="invVariantsTitle" style="margin:0 0 6px;color:var(--gold-soft);"></h3><p id="invVariantsSeller" style="margin:0;color:var(--muted);font-size:13px;"></p></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button class="btn small secondary" onclick="backToInventoryProducts()">← Back to Products</button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:16px;">
+              <input id="invVariantSearch" type="text" placeholder="Search size/variant..." style="margin:0;" oninput="renderInventoryVariants()" />
+              <div class="error" id="invVariantsError"></div>
+            </div>
+            <div class="card" style="padding:0;overflow:auto;">
+              <table style="width:100%;border-collapse:collapse;min-width:820px;">
+                <thead><tr style="background:var(--blush);text-align:left;">
+                  <th style="padding:12px 14px;">Size/Variant</th>
+                  <th style="padding:12px 14px;">SKU</th>
+                  <th style="padding:12px 14px;">Price</th>
+                  <th style="padding:12px 14px;">MOQ</th>
+                  <th style="padding:12px 14px;">Stock</th>
+                  <th style="padding:12px 14px;">Reserved</th>
+                  <th style="padding:12px 14px;">Available</th>
+                  <th style="padding:12px 14px;">Status</th>
+                  <th style="padding:12px 14px;"></th>
+                </tr></thead>
+                <tbody id="invVariantTableBody"><tr><td colspan="9" style="padding:20px;text-align:center;color:var(--muted);">Loading variants...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- EDIT STOCK MODAL -->
+        <div id="invStockModalOverlay" class="seller-modal-overlay">
+          <div class="modal-card" style="max-width:420px;position:relative;">
+            <button type="button" onclick="closeEditStockModal()" aria-label="Close" style="position:absolute;right:12px;top:12px;border:0;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;">×</button>
+            <h2 id="invStockModalTitle" style="margin:0 0 4px;">Edit Stock</h2>
+            <p id="invStockModalSub" style="margin:0 0 16px;color:var(--muted);font-size:13px;"></p>
+            <label>Stock Quantity</label>
+            <input id="invStockInput" type="number" min="0" step="1" />
+            <label style="margin-top:10px;">Reason for adjustment (optional)</label>
+            <input id="invStockReasonInput" type="text" maxlength="200" placeholder="e.g. Restocked from supplier, damaged units removed..." />
+            <div class="error" id="invStockModalError"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+              <button class="btn small secondary" type="button" onclick="closeEditStockModal()">Cancel</button>
+              <button class="btn small" type="button" id="invStockSaveBtn" onclick="saveEditStock()">Save Stock</button>
+            </div>
+          </div>
         </div>
 
         <!-- ORDERS TAB -->
@@ -1269,20 +1369,13 @@
         <div class="row2">
           <div>
             <label>Sizes (comma separated)</label>
-            <input type="text" id="fSizes" placeholder="S, M, L, XL" onchange="renderProductStockEditor()" onblur="renderProductStockEditor()" />
+            <input type="text" id="fSizes" placeholder="S, M, L, XL" />
+            <div class="hint">Just the size/variant configuration for this product. Stock quantities are managed separately in the <strong>Inventory</strong> tab.</div>
           </div>
           <div>
             <label>MOQ (min order qty) *</label>
             <input type="number" id="fMoq" min="1" value="1" oninput="updatePricePreview()" />
           </div>
-        </div>
-
-        <div class="dm-stock-editor">
-          <label style="margin:0;color:var(--ink);font-size:13px;font-weight:750;">Stock by Size / Variant</label>
-          <div id="productStockEditor" class="dm-stock-grid"></div>
-          <label style="margin-top:10px;">Low-stock alert at</label>
-          <input type="number" id="fLowStockThreshold" min="0" step="1" value="5" />
-          <div class="dm-stock-note">Enter stock here while creating or editing the product. Sized products are tracked separately (S/M/L/XL etc.). When stock reaches the alert level, the storefront can show the low-stock message; at 0 the variant is out of stock.</div>
         </div>
 
         <label>Bulk Discounts</label>
@@ -1880,7 +1973,7 @@
       const DM_TAB_TITLES = {
         overview: ["Dashboard", "Overview & Stats"],
         products: ["Products", "Catalog & pricing"],
-        inventory: ["Inventory", "Read-only stock overview"],
+        inventory: ["Inventory", "Seller → Products → Stock"],
         orders: ["Orders", "Track & fulfil orders"],
         homepage: ["Homepage Sections", "Storefront highlights"],
         sellerlist: ["Live Sellers", "Approved sellers & their products"],
@@ -1915,7 +2008,7 @@
         document.getElementById("addProductFab").classList.toggle("hidden", tab !== "products");
 
         if (tab === "overview") loadAdminOverview();
-        if (tab === "inventory") loadInventory();
+        if (tab === "inventory") loadInventorySellers();
         if (tab === "orders" && !orders.length) loadOrders();
         if (tab === "homepage") {
           document.getElementById("homepageSectionsSaved").style.display = "none";
@@ -1957,34 +2050,223 @@
       // Excel import/export for stock (removed by design: Product
       // Editing is the single authoritative place stock is written).
       let inventoryRows = [];
-      async function loadInventory() {
-        const body = document.getElementById("inventoryTableBody");
-        if (body) body.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">Loading inventory…</td></tr>';
-        const err = document.getElementById("inventoryError"); if (err) { err.textContent = ""; err.style.display = "none"; }
-        try {
-          const res = await fetch("/api/admin/inventory", { headers: { Authorization: "Bearer " + token } });
-          const data = await res.json(); if (!data.success) throw new Error(data.message || "Unable to load inventory.");
-          inventoryRows = data.rows || []; renderInventory();
-        } catch (e) { if (body) body.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#a3002a;">Could not load inventory.</td></tr>'; if (err) { err.textContent = e.message || "Unable to load inventory."; err.style.display = "block"; } }
-      }
-      function inventoryStatus(row) {
-        if (row.stockConfigured === false || row.currentStock === null) return { text: "Needs stock entry", cls: "status-new", icon: "⚪" };
-        const n = Number(row.currentStock) || 0;
-        if (n <= 0) return { text: "Out of Stock", cls: "status-cancelled", icon: "🔴" };
-        if (n <= Number(row.lowStockThreshold || 5)) return { text: "Only " + n + " left", cls: "status-processing", icon: "🟡" };
+      // ---------- INVENTORY (Seller -> Products -> Size/Variant Stock) ----------
+      let invSellers = [];
+      let invCurrentSellerKey = null;
+      let invCurrentSellerName = "";
+      let invProducts = [];
+      let invCurrentProductId = null;
+      let invCurrentProduct = null; // full variant detail payload from the server
+      let invEditingVariant = null; // { size, stock } currently open in the Edit Stock modal
+
+      function invStatusBadge(status, extraText) {
+        if (status === "not_configured") return { text: "Needs stock entry", cls: "status-new", icon: "⚪" };
+        if (status === "out") return { text: "Out of Stock", cls: "status-cancelled", icon: "🔴" };
+        if (status === "low") return { text: extraText || "Low Stock", cls: "status-processing", icon: "🟡" };
         return { text: "In Stock", cls: "status-delivered", icon: "🟢" };
       }
-      function renderInventory() {
-        const body = document.getElementById("inventoryTableBody"); if (!body) return;
-        const q = String(document.getElementById("inventorySearch")?.value || "").trim().toLowerCase();
-        const rows = inventoryRows.filter(r => !q || String(r.productCode || "").toLowerCase().includes(q) || String(r.productName || "").toLowerCase().includes(q));
-        const configured = inventoryRows.filter(r => r.stockConfigured !== false && r.currentStock !== null);
-        const out = configured.filter(r => Number(r.currentStock) === 0).length;
-        const low = configured.filter(r => Number(r.currentStock) > 0 && Number(r.currentStock) <= Number(r.lowStockThreshold || 5)).length;
-        document.getElementById("inventoryStats").innerHTML = '<span class="badge status-delivered">🟢 ' + (configured.length - out - low) + ' In Stock</span> <span class="badge status-processing">🟡 ' + low + ' Low Stock</span> <span class="badge status-cancelled">🔴 ' + out + ' Out of Stock</span> <span class="badge gold">' + inventoryRows.length + ' Inventory Rows</span>';
-        if (!rows.length) { body.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--muted);">No inventory rows found.</td></tr>'; return; }
-        body.innerHTML = rows.map(r => { const st = inventoryStatus(r); return '<tr style="border-top:1px solid var(--line);"><td style="padding:12px 14px;font-weight:800;color:var(--rosewood);">' + escapeHtml(r.productCode || "—") + '</td><td style="padding:12px 14px;">' + escapeHtml(r.productName || "—") + '</td><td style="padding:12px 14px;">' + escapeHtml(r.variant || "Default") + '</td><td style="padding:12px 14px;font-weight:800;">' + (r.currentStock === null ? "—" : Number(r.currentStock).toLocaleString("en-IN")) + '</td><td style="padding:12px 14px;"><span class="badge ' + st.cls + '">' + st.icon + ' ' + escapeHtml(st.text) + '</span></td><td style="padding:12px 14px;">' + Number(r.lowStockThreshold || 5) + '</td></tr>'; }).join("");
+
+      function invShowPage(page) {
+        document.getElementById("invPageSellers").classList.toggle("hidden", page !== "sellers");
+        document.getElementById("invPageProducts").classList.toggle("hidden", page !== "products");
+        document.getElementById("invPageVariants").classList.toggle("hidden", page !== "variants");
       }
+
+      // ---- Page 1: Seller List ----
+      async function loadInventorySellers() {
+        invShowPage("sellers");
+        const body = document.getElementById("invSellerTableBody");
+        if (body) body.innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--muted);">Loading sellers…</td></tr>';
+        const err = document.getElementById("invSellersError"); if (err) { err.textContent = ""; err.style.display = "none"; }
+        try {
+          const res = await fetch("/api/admin/inventory/sellers", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Unable to load sellers.");
+          invSellers = data.sellers || [];
+          renderInventorySellers();
+        } catch (e) {
+          if (body) body.innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:#a3002a;">Could not load sellers.</td></tr>';
+          if (err) { err.textContent = e.message || "Unable to load sellers."; err.style.display = "block"; }
+        }
+      }
+
+      function renderInventorySellers() {
+        const body = document.getElementById("invSellerTableBody"); if (!body) return;
+        const q = String(document.getElementById("invSellerSearch")?.value || "").trim().toLowerCase();
+        const rows = invSellers.filter(s => !q || String(s.name || "").toLowerCase().includes(q));
+        if (!rows.length) { body.innerHTML = '<tr><td colspan="8" style="padding:24px;text-align:center;color:var(--muted);">No sellers found.</td></tr>'; return; }
+        body.innerHTML = rows.map(s => {
+          const statusBadge = s.status === "Suspended"
+            ? '<span class="badge status-cancelled">Suspended</span>'
+            : '<span class="badge status-delivered">Active</span>';
+          const logo = s.logo
+            ? '<img src="' + escapeHtml(s.logo) + '" style="width:32px;height:32px;border-radius:8px;object-fit:cover;margin-right:8px;vertical-align:middle;" />'
+            : '';
+          return '<tr style="border-top:1px solid var(--line);">' +
+            '<td style="padding:12px 14px;font-weight:700;">' + logo + escapeHtml(s.name || "—") + '</td>' +
+            '<td style="padding:12px 14px;">' + statusBadge + '</td>' +
+            '<td style="padding:12px 14px;">' + Number(s.totalProducts || 0) + '</td>' +
+            '<td style="padding:12px 14px;">' + Number(s.totalVariants || 0) + '</td>' +
+            '<td style="padding:12px 14px;font-weight:700;">' + Number(s.totalStock || 0).toLocaleString("en-IN") + '</td>' +
+            '<td style="padding:12px 14px;">' + (s.lowStockCount ? '<span class="badge status-processing">🟡 ' + s.lowStockCount + '</span>' : '—') + '</td>' +
+            '<td style="padding:12px 14px;">' + (s.outOfStockCount ? '<span class="badge status-cancelled">🔴 ' + s.outOfStockCount + '</span>' : '—') + '</td>' +
+            '<td style="padding:12px 14px;text-align:right;"><button class="btn small secondary" onclick="openSellerInventory(\'' + s.key + '\', ' + JSON.stringify(s.name).replace(/"/g, "&quot;") + ')">Open Inventory</button></td>' +
+          '</tr>';
+        }).join("");
+      }
+
+      // ---- Page 2: Seller's Products ----
+      function backToInventorySellers() { invShowPage("sellers"); }
+
+      async function openSellerInventory(key, name) {
+        invCurrentSellerKey = key;
+        invCurrentSellerName = name;
+        invShowPage("products");
+        document.getElementById("invProductsBreadcrumb").innerHTML =
+          '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Inventory</a> → ' +
+          '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Sellers</a> → ' + escapeHtml(name);
+        document.getElementById("invProductsTitle").textContent = name + " — Products";
+        document.getElementById("invProductSearch").value = "";
+        await loadInventoryProducts();
+      }
+
+      async function loadInventoryProducts() {
+        const body = document.getElementById("invProductTableBody");
+        if (body) body.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);">Loading products…</td></tr>';
+        const err = document.getElementById("invProductsError"); if (err) { err.textContent = ""; err.style.display = "none"; }
+        try {
+          const res = await fetch("/api/admin/inventory/sellers/" + encodeURIComponent(invCurrentSellerKey) + "/products", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Unable to load products.");
+          invProducts = data.products || [];
+          renderInventoryProducts();
+        } catch (e) {
+          if (body) body.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:#a3002a;">Could not load products.</td></tr>';
+          if (err) { err.textContent = e.message || "Unable to load products."; err.style.display = "block"; }
+        }
+      }
+
+      function renderInventoryProducts() {
+        const body = document.getElementById("invProductTableBody"); if (!body) return;
+        const q = String(document.getElementById("invProductSearch")?.value || "").trim().toLowerCase();
+        const rows = invProducts.filter(p => !q || String(p.name || "").toLowerCase().includes(q));
+        if (!rows.length) { body.innerHTML = '<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--muted);">No products found for this seller.</td></tr>'; return; }
+        body.innerHTML = rows.map(p => {
+          const thumb = p.image
+            ? '<img src="' + escapeHtml(p.image) + '" style="width:36px;height:36px;border-radius:8px;object-fit:cover;margin-right:8px;vertical-align:middle;" />'
+            : '';
+          return '<tr style="border-top:1px solid var(--line);">' +
+            '<td style="padding:12px 14px;font-weight:700;">' + thumb + escapeHtml(p.name || "—") + '</td>' +
+            '<td style="padding:12px 14px;">' + Number(p.variants || 0) + '</td>' +
+            '<td style="padding:12px 14px;font-weight:700;">' + Number(p.totalStock || 0).toLocaleString("en-IN") + '</td>' +
+            '<td style="padding:12px 14px;">' + (p.lowStockCount ? '<span class="badge status-processing">🟡 ' + p.lowStockCount + '</span>' : '—') + '</td>' +
+            '<td style="padding:12px 14px;">' + (p.outOfStockCount ? '<span class="badge status-cancelled">🔴 ' + p.outOfStockCount + '</span>' : '—') + '</td>' +
+            '<td style="padding:12px 14px;text-align:right;"><button class="btn small secondary" onclick="openProductVariants(' + Number(p.id) + ')">View Variants</button></td>' +
+          '</tr>';
+        }).join("");
+      }
+
+      // ---- Page 3: Product Size/Variant Stock ----
+      function backToInventoryProducts() { invShowPage("products"); }
+
+      async function openProductVariants(productId) {
+        invCurrentProductId = productId;
+        invShowPage("variants");
+        document.getElementById("invVariantSearch").value = "";
+        await loadInventoryVariants();
+      }
+
+      async function loadInventoryVariants() {
+        const body = document.getElementById("invVariantTableBody");
+        if (body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--muted);">Loading variants…</td></tr>';
+        const err = document.getElementById("invVariantsError"); if (err) { err.textContent = ""; err.style.display = "none"; }
+        try {
+          const res = await fetch("/api/admin/inventory/products/" + invCurrentProductId, { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Unable to load variants.");
+          invCurrentProduct = data.product;
+          document.getElementById("invVariantsBreadcrumb").innerHTML =
+            '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Inventory</a> → ' +
+            '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Sellers</a> → ' +
+            '<a href="javascript:void(0)" onclick="backToInventoryProducts()" style="color:var(--rosewood);">' + escapeHtml(invCurrentProduct.sellerName) + '</a> → ' + escapeHtml(invCurrentProduct.name);
+          document.getElementById("invVariantsTitle").textContent = invCurrentProduct.name;
+          document.getElementById("invVariantsSeller").textContent = "Seller: " + invCurrentProduct.sellerName;
+          renderInventoryVariants();
+        } catch (e) {
+          if (body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:#a3002a;">Could not load variants.</td></tr>';
+          if (err) { err.textContent = e.message || "Unable to load variants."; err.style.display = "block"; }
+        }
+      }
+
+      function renderInventoryVariants() {
+        const body = document.getElementById("invVariantTableBody"); if (!body || !invCurrentProduct) return;
+        const q = String(document.getElementById("invVariantSearch")?.value || "").trim().toLowerCase();
+        const rows = (invCurrentProduct.variants || []).filter(v => !q || String(v.size || "Default").toLowerCase().includes(q));
+        if (!rows.length) { body.innerHTML = '<tr><td colspan="9" style="padding:24px;text-align:center;color:var(--muted);">No variants found.</td></tr>'; return; }
+        body.innerHTML = rows.map(v => {
+          const st = invStatusBadge(v.status, v.status === "low" ? ("Only " + v.stock + " left") : "");
+          return '<tr style="border-top:1px solid var(--line);">' +
+            '<td style="padding:12px 14px;font-weight:700;">' + escapeHtml(v.size || "Default") + '</td>' +
+            '<td style="padding:12px 14px;color:var(--muted);">' + escapeHtml(v.sku || "—") + '</td>' +
+            '<td style="padding:12px 14px;">' + fmtINR(v.price) + '</td>' +
+            '<td style="padding:12px 14px;">' + Number(v.moq || 1) + '</td>' +
+            '<td style="padding:12px 14px;font-weight:800;">' + (v.configured ? Number(v.stock).toLocaleString("en-IN") : "—") + '</td>' +
+            '<td style="padding:12px 14px;">' + Number(v.reserved || 0) + '</td>' +
+            '<td style="padding:12px 14px;font-weight:700;">' + (v.configured ? Number(v.available).toLocaleString("en-IN") : "—") + '</td>' +
+            '<td style="padding:12px 14px;"><span class="badge ' + st.cls + '">' + st.icon + ' ' + escapeHtml(st.text) + '</span></td>' +
+            '<td style="padding:12px 14px;text-align:right;"><button class="btn small secondary" onclick="openEditStockModal(' + JSON.stringify(v.size || "").replace(/"/g, "&quot;") + ')">Edit</button></td>' +
+          '</tr>';
+        }).join("");
+      }
+
+      // ---- Edit Stock Modal ----
+      function openEditStockModal(size) {
+        const variant = (invCurrentProduct.variants || []).find(v => (v.size || "") === (size || ""));
+        if (!variant) return;
+        invEditingVariant = variant;
+        document.getElementById("invStockModalTitle").textContent = "Edit Stock — " + (variant.size || "Default");
+        document.getElementById("invStockModalSub").textContent = invCurrentProduct.name + (variant.sku ? " · " + variant.sku : "");
+        document.getElementById("invStockInput").value = variant.configured ? variant.stock : 0;
+        document.getElementById("invStockReasonInput").value = "";
+        document.getElementById("invStockModalError").textContent = "";
+        document.getElementById("invStockModalOverlay").classList.add("open");
+      }
+
+      function closeEditStockModal() {
+        document.getElementById("invStockModalOverlay").classList.remove("open");
+        invEditingVariant = null;
+      }
+
+      async function saveEditStock() {
+        const errEl = document.getElementById("invStockModalError");
+        errEl.textContent = "";
+        if (!invEditingVariant) return;
+        const stockVal = Number(document.getElementById("invStockInput").value);
+        if (!Number.isFinite(stockVal) || stockVal < 0) { errEl.textContent = "Enter a valid stock quantity (0 or more)."; return; }
+        const reason = document.getElementById("invStockReasonInput").value.trim();
+        const saveBtn = document.getElementById("invStockSaveBtn");
+        if (saveBtn.disabled) return;
+        saveBtn.disabled = true;
+        try {
+          const res = await fetch("/api/admin/inventory/products/" + invCurrentProductId + "/stock", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ size: invEditingVariant.size || "", stock: stockVal, reason }),
+          });
+          const data = await res.json();
+          if (!data.success) { errEl.textContent = data.message || "Could not update stock."; saveBtn.disabled = false; return; }
+          invCurrentProduct = data.product;
+          renderInventoryVariants();
+          closeEditStockModal();
+          // Keep Page 2's totals fresh for whenever the admin goes back.
+          loadInventoryProducts();
+        } catch (e) {
+          errEl.textContent = "Network error — please try again.";
+        } finally {
+          saveBtn.disabled = false;
+        }
+      }
+
       // ---------- EXECUTIVE OVERVIEW ----------
       async function loadAdminOverview() {
         const ids = ["ovRevenue","ovOrders","ovCustomers","ovProducts","ovPending","ovSellers","ovRecentOrders","ovQueue","ovTopProducts","ovInventoryHealth"];
@@ -4235,8 +4517,6 @@
         document.getElementById("fDescription").value = "";
         document.getElementById("fImageFiles").value = "";
         document.getElementById("fSizes").value = "";
-        document.getElementById("fLowStockThreshold").value = 5;
-        document.getElementById("productStockEditor").innerHTML = '';
         document.getElementById("fMoq").value = 1;
         document.getElementById("fOnSale").checked = false;
         document.getElementById("fSalePercent").value = "";
@@ -4545,38 +4825,6 @@
         return (document.getElementById(id).value || "").split(",").map(s => s.trim()).filter(Boolean);
       }
 
-      function renderProductStockEditor(stock = {}) {
-        const wrap = document.getElementById("productStockEditor");
-        if (!wrap) return;
-        if (!Object.keys(stock).length) {
-          wrap.querySelectorAll(".product-stock-input").forEach(input => { stock[input.dataset.size || "__default"] = Math.max(0, Math.floor(Number(input.value) || 0)); });
-        }
-        const sizes = getProductSizesFromInput("fSizes");
-        if (!sizes.length) {
-          const value = Number(stock.__default ?? stock.default ?? stock.stockQty ?? 0);
-          wrap.innerHTML = '<div class="dm-stock-item"><label>Default Stock</label><input type="number" min="0" step="1" class="product-stock-input" data-size="" value="' + (Number.isInteger(value) && value >= 0 ? value : 0) + '" /></div>';
-          return;
-        }
-        wrap.innerHTML = sizes.map(size => {
-          const value = Number(stock[size] ?? 0);
-          return '<div class="dm-stock-item"><label>' + escapeHtml(size) + ' Stock</label><input type="number" min="0" step="1" class="product-stock-input" data-size="' + escapeHtml(size) + '" value="' + (Number.isInteger(value) && value >= 0 ? value : 0) + '" /></div>';
-        }).join("");
-      }
-
-      function collectProductStock() {
-        const sizes = getProductSizesFromInput("fSizes");
-        const inputs = Array.from(document.querySelectorAll("#productStockEditor .product-stock-input"));
-        const variantStock = {};
-        let stockQty = 0;
-        inputs.forEach(input => {
-          const value = Math.max(0, Math.floor(Number(input.value) || 0));
-          const size = input.dataset.size || "";
-          if (size) variantStock[size] = value;
-          else stockQty = value;
-        });
-        return { stockQty, variantStock };
-      }
-
       function editProduct(id) {
         const p = products.find((x) => x.id === id);
         if (!p) return;
@@ -4591,8 +4839,6 @@
         document.getElementById("fDescription").value = p.description || "";
         document.getElementById("fImageFiles").value = "";
         document.getElementById("fSizes").value = (p.sizes || []).join(", ");
-        document.getElementById("fLowStockThreshold").value = Number(p.lowStockThreshold ?? 5);
-        renderProductStockEditor((p.sizes || []).length ? (p.variantStock || {}) : { stockQty: p.stockQty || 0 });
         document.getElementById("fMoq").value = p.moq || 1;
         document.getElementById("fOnSale").checked = Boolean(p.onSale);
         document.getElementById("fSalePercent").value = p.salePercent || "";
@@ -4660,9 +4906,6 @@
           return;
         }
 
-        const productStock = collectProductStock();
-        const lowStockThreshold = Math.max(0, Math.floor(Number(document.getElementById("fLowStockThreshold").value) || 0));
-
         const payload = {
           name,
           category: document.getElementById("fCategory").value.trim(),
@@ -4670,9 +4913,6 @@
           images: currentImages,
           price: Number(price),
           sizes: document.getElementById("fSizes").value,
-          stockQty: productStock.stockQty,
-          variantStock: productStock.variantStock,
-          lowStockThreshold,
           moq: Number(moq),
           discounts,
           onSale,

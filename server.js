@@ -2786,19 +2786,37 @@ function validateProductInput(body) {
   // (e.g. "Diwali Blast — today only!"). Capped so it can't blow out the layout.
   const saleMessage = String(body.saleMessage || "").trim().slice(0, 80);
 
-  // Product-level inventory entered directly while creating/editing the product.
-  // Sized products keep stock separately for each size; non-sized products use stockQty.
-  const incomingVariantStock = body.variantStock && typeof body.variantStock === "object" && !Array.isArray(body.variantStock)
-    ? body.variantStock : {};
-  const variantStock = {};
-  sizes.forEach((size) => {
-    const n = Number(incomingVariantStock[size]);
-    variantStock[size] = Number.isInteger(n) && n >= 0 ? n : 0;
-  });
-  const stockQtyRaw = Number(body.stockQty);
-  const stockQty = Number.isInteger(stockQtyRaw) && stockQtyRaw >= 0 ? stockQtyRaw : 0;
-  const thresholdRaw = Number(body.lowStockThreshold);
-  const lowStockThreshold = Number.isInteger(thresholdRaw) && thresholdRaw >= 0 ? thresholdRaw : 5;
+  // Stock is now owned by the Inventory tab, not the Products tab — the
+  // admin product form no longer sends stockQty/variantStock/
+  // lowStockThreshold at all. When these fields are absent from the body,
+  // they're deliberately left OUT of the returned `product` object below
+  // (rather than defaulted to 0) so that a save from the Products tab —
+  // `{ ...existingProduct, ...product }` on the PUT route — can never
+  // stomp existing stock back to zero. The seller product form
+  // (seller.html) still submits these fields directly and is untouched:
+  // when present, they're validated and applied exactly as before.
+  const stockFieldsProvided = body.stockQty !== undefined || body.variantStock !== undefined || body.lowStockThreshold !== undefined;
+  let stockPatch = {};
+  if (stockFieldsProvided) {
+    const incomingVariantStock = body.variantStock && typeof body.variantStock === "object" && !Array.isArray(body.variantStock)
+      ? body.variantStock : {};
+    const variantStock = {};
+    sizes.forEach((size) => {
+      const n = Number(incomingVariantStock[size]);
+      variantStock[size] = Number.isInteger(n) && n >= 0 ? n : 0;
+    });
+    const stockQtyRaw = Number(body.stockQty);
+    const stockQty = Number.isInteger(stockQtyRaw) && stockQtyRaw >= 0 ? stockQtyRaw : 0;
+    const thresholdRaw = Number(body.lowStockThreshold);
+    const lowStockThreshold = Number.isInteger(thresholdRaw) && thresholdRaw >= 0 ? thresholdRaw : 5;
+    stockPatch = {
+      stockQty,
+      variantStock,
+      stockConfigured: true,
+      variantStockConfigured: Object.fromEntries(sizes.map((size) => [size, true])),
+      lowStockThreshold,
+    };
+  }
 
   // Optional sale expiry. Admin can send an explicit end timestamp (from a
   // datetime picker) or a quick duration in hours (e.g. 24). If neither is
@@ -2827,11 +2845,7 @@ function validateProductInput(body) {
       customizationEnabled: Boolean(body.customizationEnabled),
       sizes,
       moq,
-      stockQty,
-      variantStock,
-      stockConfigured: true,
-      variantStockConfigured: Object.fromEntries(sizes.map((size) => [size, true])),
-      lowStockThreshold,
+      ...stockPatch,
       discounts,
       onSale,
       salePercent,
@@ -3251,6 +3265,10 @@ function getInventoryRows(database) {
     const variantConfigured = product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {};
     const common = {
       productId: product.id,
+      // Kept alongside productId (not replacing it) so every existing
+      // consumer of this row shape keeps working untouched — the new
+      // hierarchical Inventory tab is the only thing that reads sellerId.
+      sellerId: product.sellerId === undefined ? null : product.sellerId,
       productCode: product.productCode || "",
       productName: product.name || "",
       stockConfigured: product.stockConfigured !== false,
@@ -3282,6 +3300,210 @@ function withInventoryLock(task) {
   inventoryOrderQueue = run.catch(() => {});
   return run;
 }
+
+// ================================
+// HIERARCHICAL INVENTORY (Inventory tab: Seller -> Products -> Variant Stock)
+// Reuses getInventoryRows() / getStockForVariant() / setStockForVariant() —
+// the same source of truth the storefront and the older flat inventory
+// table already use — so stock numbers can never drift between them.
+// ================================
+
+// Same in-stock / low-stock / out-of-stock rule the existing flat
+// inventory table already uses (see inventoryStatus() in admin.html) —
+// mirrored here so the new hierarchical endpoints agree with it exactly.
+function inventoryRowStatus(row) {
+  if (row.stockConfigured === false || row.currentStock === null) return "not_configured";
+  const n = Number(row.currentStock) || 0;
+  if (n <= 0) return "out";
+  if (n <= Number(row.lowStockThreshold || 5)) return "low";
+  return "in_stock";
+}
+
+function sellerKeyFor(sellerId) {
+  return sellerId === null || sellerId === undefined ? "house" : String(sellerId);
+}
+
+// Groups the flat inventory rows by seller (a seller-less/admin-added
+// product is grouped under the "house" pseudo-seller) and rolls each
+// group up into the counts the Inventory -> Seller List page needs.
+function buildSellerInventorySummaries(database) {
+  const rows = getInventoryRows(database);
+  const bySeller = new Map();
+  rows.forEach((row) => {
+    const key = sellerKeyFor(row.sellerId);
+    if (!bySeller.has(key)) bySeller.set(key, { productIds: new Set(), variants: 0, totalStock: 0, low: 0, out: 0 });
+    const g = bySeller.get(key);
+    g.productIds.add(row.productId);
+    g.variants += 1;
+    const status = inventoryRowStatus(row);
+    if (status === "low") g.low += 1;
+    else if (status === "out") g.out += 1;
+    if (row.currentStock !== null) g.totalStock += Number(row.currentStock) || 0;
+  });
+
+  const sellerById = new Map((database.sellers || []).map((s) => [s.id, s]));
+  const out = [];
+  bySeller.forEach((g, key) => {
+    const seller = key === "house" ? null : sellerById.get(Number(key));
+    if (key !== "house" && !seller) return; // orphaned sellerId, skip
+    out.push({
+      key,
+      sellerId: seller ? seller.id : null,
+      name: seller ? (seller.shopTitle || seller.name) : "Design Makers (Direct)",
+      logo: seller ? (seller.photo || "") : "",
+      status: seller ? (seller.banned ? "Suspended" : "Active") : "Active",
+      totalProducts: g.productIds.size,
+      totalVariants: g.variants,
+      totalStock: g.totalStock,
+      lowStockCount: g.low,
+      outOfStockCount: g.out,
+    });
+  });
+  // House catalogue first, then sellers alphabetically by display name.
+  out.sort((a, b) => (a.key === "house" ? -1 : b.key === "house" ? 1 : a.name.localeCompare(b.name)));
+  return out;
+}
+
+function buildSellerProductSummaries(database, sellerKey) {
+  const rows = getInventoryRows(database).filter((r) => sellerKeyFor(r.sellerId) === sellerKey);
+  const byProduct = new Map();
+  rows.forEach((row) => {
+    if (!byProduct.has(row.productId)) byProduct.set(row.productId, { variants: 0, totalStock: 0, low: 0, out: 0 });
+    const g = byProduct.get(row.productId);
+    g.variants += 1;
+    const status = inventoryRowStatus(row);
+    if (status === "low") g.low += 1;
+    else if (status === "out") g.out += 1;
+    if (row.currentStock !== null) g.totalStock += Number(row.currentStock) || 0;
+  });
+  const productById = new Map((database.products || []).map((p) => [p.id, p]));
+  const out = [];
+  byProduct.forEach((g, productId) => {
+    const p = productById.get(productId);
+    if (!p) return;
+    out.push({
+      id: p.id,
+      name: p.name || "",
+      productCode: p.productCode || "",
+      image: (Array.isArray(p.images) && p.images[0]) || p.image || "",
+      variants: g.variants,
+      totalStock: g.totalStock,
+      lowStockCount: g.low,
+      outOfStockCount: g.out,
+    });
+  });
+  out.sort((a, b) => a.name.localeCompare(b.name));
+  return out;
+}
+
+function buildProductVariantDetail(database, productId) {
+  const product = (database.products || []).find((p) => p.id === productId && !p.isGiftAddon);
+  if (!product) return null;
+  const seller = product.sellerId ? (database.sellers || []).find((s) => s.id === product.sellerId) : null;
+  const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+  const rows = getInventoryRows(database).filter((r) => r.productId === productId);
+  const variants = rows.map((row) => {
+    const stock = row.currentStock === null ? 0 : Number(row.currentStock) || 0;
+    // No cart-hold/reservation system exists in this codebase today, so
+    // Reserved is always 0 and Available === Stock. If a reservation
+    // system is added later, wire its number in here.
+    const reserved = 0;
+    return {
+      size: row.variant || "",
+      sku: product.productCode ? product.productCode + (row.variant ? "-" + row.variant : "") : "",
+      price: Number(product.price) || 0,
+      moq: Number(product.moq) || 1,
+      stock,
+      reserved,
+      available: Math.max(0, stock - reserved),
+      status: inventoryRowStatus(row),
+      configured: row.currentStock !== null,
+      lowStockThreshold: row.lowStockThreshold,
+    };
+  });
+  return {
+    id: product.id,
+    name: product.name || "",
+    productCode: product.productCode || "",
+    image: (Array.isArray(product.images) && product.images[0]) || product.image || "",
+    sellerKey: sellerKeyFor(product.sellerId),
+    sellerName: seller ? (seller.shopTitle || seller.name) : "Design Makers (Direct)",
+    hasSizes: sizes.length > 0,
+    lowStockThreshold: Math.max(0, Number(product.lowStockThreshold ?? 5) || 5),
+    variants,
+  };
+}
+
+// ---- Inventory tab routes ----
+
+app.get("/api/admin/inventory/sellers", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  res.json({ success: true, sellers: buildSellerInventorySummaries(database) });
+});
+
+app.get("/api/admin/inventory/sellers/:key/products", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  res.json({ success: true, products: buildSellerProductSummaries(database, String(req.params.key)) });
+});
+
+app.get("/api/admin/inventory/products/:id", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const detail = buildProductVariantDetail(database, Number(req.params.id));
+  if (!detail) return res.status(404).json({ success: false, message: "Product not found." });
+  res.json({ success: true, product: detail });
+});
+
+// Dedicated, focused stock-only write — deliberately separate from the
+// full product-edit endpoint (PUT /api/admin/products/:id) so a stock
+// correction is instant for every admin/sub-admin the same way the
+// existing hide/show toggle is, instead of being queued behind the
+// boss-approval flow that whole-product catalogue edits go through.
+// Stock permission is unchanged from before this feature existed — any
+// signed-in admin could already change stock via the product edit form.
+app.put("/api/admin/inventory/products/:id/stock", requireAdmin, (req, res) => {
+  return withInventoryLock(() => {
+    const database = readDatabase();
+    const id = Number(req.params.id);
+    const product = (database.products || []).find((p) => p.id === id && !p.isGiftAddon);
+    if (!product) return res.status(404).json({ success: false, message: "Product not found." });
+
+    const size = req.body && req.body.size ? String(req.body.size) : "";
+    const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+    if (sizes.length && !sizes.includes(size)) {
+      return res.status(400).json({ success: false, message: "Unknown size/variant for this product." });
+    }
+    const newStock = req.body ? Number(req.body.stock) : NaN;
+    if (!Number.isFinite(newStock) || newStock < 0) {
+      return res.status(400).json({ success: false, message: "Enter a valid stock quantity (0 or more)." });
+    }
+
+    const before = getStockForVariant(product, size);
+    setStockForVariant(product, size, newStock);
+    product.stockConfigured = true;
+
+    const reason = req.body && req.body.reason ? String(req.body.reason).trim().slice(0, 200) : "";
+    product.stockAdjustments = Array.isArray(product.stockAdjustments) ? product.stockAdjustments : [];
+    product.stockAdjustments.unshift({
+      size: size || null,
+      before,
+      after: newStock,
+      reason,
+      by: req.admin.username,
+      at: new Date().toISOString(),
+    });
+    product.stockAdjustments = product.stockAdjustments.slice(0, 50);
+
+    notifyBackInStockForVariant(database, product, size, before, newStock);
+    writeDatabase(database);
+
+    res.json({
+      success: true,
+      message: "Stock updated.",
+      product: buildProductVariantDetail(database, id),
+      sellerSummary: buildSellerProductSummaries(database, sellerKeyFor(product.sellerId)).find((p) => p.id === id) || null,
+    });
+  });
+});
 
 // ================================
 // ADMIN PRODUCT MANAGEMENT
@@ -3362,7 +3584,12 @@ app.post("/api/admin/products", requireAdmin, (req, res) => {
     const m = String(p.productCode || "").match(new RegExp("^DM-" + prefix + "-(\\d+)$"));
     if (m) max = Math.max(max, Number(m[1]));
   });
-  const newProduct = { id: getNextId(database.products), sellerId: null, approved: true, productCode: `DM-${prefix}-${String(max + 1).padStart(3, "0")}`, stockQty: 0, lowStockThreshold: 5, variantStock: {}, ...product };
+  // stockConfigured starts false (not 0) so a brand-new product from the
+  // Products tab shows up in the Inventory tab as "needs stock entry"
+  // rather than silently looking out-of-stock — the admin now sets its
+  // real starting stock from Inventory -> Seller List -> Design Makers
+  // (Direct) -> this product, same as any other product.
+  const newProduct = { id: getNextId(database.products), sellerId: null, approved: true, productCode: `DM-${prefix}-${String(max + 1).padStart(3, "0")}`, stockQty: 0, stockConfigured: false, lowStockThreshold: 5, variantStock: {}, variantStockConfigured: {}, ...product };
   database.products.push(newProduct);
   writeDatabase(database);
 
