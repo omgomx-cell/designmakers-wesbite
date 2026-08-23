@@ -2140,56 +2140,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       .dm-phone-row { display:grid; grid-template-columns: 150px 1fr; gap:8px; }
       .dm-phone-code, .dm-phone-number { width:100%; }
       @media (max-width:520px){ .dm-phone-row{grid-template-columns:125px 1fr;} }
-
-      /* ===== Rakshabandhan theme priority patch =====
-         The "PREMIUM HOMEPAGE V2" skin above was added after the festival
-         theme rules and re-declares body/.site-header/.logo/.icon-btn/
-         .search-bar-panel/.hero/.hero-btn.secondary/.hero-trust-item with
-         its own !important colors. Because it comes later in this same
-         stylesheet, it was silently winning the cascade even when the
-         Rakshabandhan theme is active — so selecting it in admin never
-         actually changed the header/hero colors, and in a few spots left
-         dark text sitting on a dark background (invisible). These rules
-         repeat the same selectors at the same specificity but come after,
-         so they reclaim the win whenever body.theme-rakshabandhan is set. */
-      body.theme-rakshabandhan {
-        background: radial-gradient(circle at 78% 6%, rgba(212,175,55,.28), transparent 34%),
-                    radial-gradient(circle at 8% 28%, rgba(255,59,59,.14), transparent 36%),
-                    var(--cream) !important;
-        color: var(--ink) !important;
-      }
-      body.theme-rakshabandhan .site-header {
-        background: linear-gradient(135deg, var(--rosewood) 0%, var(--rosewood-dark) 100%) !important;
-        border: 1px solid var(--gold) !important;
-        border-bottom: 4px solid var(--gold) !important;
-        box-shadow: 0 3px 0 rgba(0,0,0,0.08) !important;
-        backdrop-filter: none !important;
-      }
-      body.theme-rakshabandhan .site-header .logo,
-      body.theme-rakshabandhan .site-header .logo span { color: #1a0505 !important; }
-      body.theme-rakshabandhan .site-header .icon-btn {
-        background: rgba(26,5,5,0.12) !important;
-        border: 1px solid rgba(26,5,5,0.25) !important;
-        color: #1a0505 !important;
-      }
-      body.theme-rakshabandhan .search-bar-panel { background: var(--cream) !important; }
-      body.theme-rakshabandhan .hero {
-        background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
-                    radial-gradient(circle at 80% 40%, rgba(212,175,55,.18), transparent 42%),
-                    var(--cream) !important;
-        border: 1px solid var(--blush-line) !important;
-      }
-      body.theme-rakshabandhan .hero h1,
-      body.theme-rakshabandhan .hero h1::first-line { color: var(--ink) !important; }
-      body.theme-rakshabandhan .hero p,
-      body.theme-rakshabandhan .hero-trust-item { color: var(--muted) !important; }
-      body.theme-rakshabandhan .hero-btn.secondary {
-        background: #2a0d0d !important;
-        color: var(--ink) !important;
-        border: 1px solid rgba(255,218,183,.24) !important;
-      }
-      body.theme-rakshabandhan .dm-hero-product-stage,
-      body.theme-rakshabandhan .dm-hero-product-stage * { color: var(--ink) !important; }
 </style>
     <!-- Toggleable dark-mode skin: disabled by default via media="not all",
          flipped to media="all" by the shared theme JS when dark mode is on.
