@@ -815,6 +815,7 @@
       .dm-wishlist-btn{border:1px solid var(--blush-line);background:var(--surface);color:var(--rosewood);border-radius:10px;padding:10px 13px;cursor:pointer;font-weight:800;}
       .dm-wishlist-btn.active{background:var(--blush);border-color:var(--gold);}
       .dm-customer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+      #wishlistList{max-height:52vh;overflow-y:auto;padding:2px 4px 2px 2px;}
       .dm-mini-product{border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);overflow:hidden;}
       .dm-mini-product img{width:100%;height:130px;object-fit:cover;background:var(--blush);display:block;}
       .dm-mini-product-body{padding:10px;}
@@ -934,6 +935,20 @@
       .account-section-tabs { display:flex; gap:8px; margin:0 0 16px; border-bottom:1px solid var(--blush-line); padding-bottom:10px; }
       .account-section-tab { border:1px solid var(--blush-line); background:var(--surface); color:var(--dm-text); border-radius:999px; padding:8px 14px; cursor:pointer; font-weight:700; font-size:.82rem; }
       .account-section-tab.active { background:var(--rosewood); color:var(--text-on-primary); border-color:var(--rosewood); }
+      .account-section-tab:hover { border-color:var(--rosewood); }
+      /* Profile polish: soft cards + a gold-rosewood gradient ring on the avatar */
+      #accountProfileView #accountPic,
+      #accountProfileView #accountPicPlaceholder {
+        box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--gold, #c99a4d);
+      }
+      #accountProfileView #accountName { font-size: 1.15em; }
+      #accountProfileView > div[style*="border-radius:14px"] {
+        box-shadow: 0 4px 18px rgba(138,28,66,0.06);
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+      }
+      #accountProfileView > div[style*="border-radius:14px"]:hover {
+        box-shadow: 0 8px 24px rgba(138,28,66,0.1);
+      }
       .dm-order-list-card { border:1px solid var(--blush-line); border-radius:14px; padding:14px; margin-bottom:10px; background:var(--surface); cursor:pointer; transition:.18s ease; }
       .dm-order-list-card:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(138,28,66,.08); }
       .dm-order-detail-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(260px,.75fr); gap:14px; }
@@ -1007,6 +1022,58 @@
         .auth-brand-logo { width: 58px; height: 58px; margin-bottom: 10px; }
         .auth-brand-name { font-size: 22px; }
         .auth-form { padding: 26px 22px; }
+      }
+
+      /* ===== Wishlist modal — reuses the auth-brand pattern, wider for two lists ===== */
+      .wishlist-modal { max-width: 900px; width: min(900px, 96vw); }
+      .wishlist-modal .auth-brand { flex: 0 0 300px; }
+      .wishlist-modal .auth-form { justify-content: flex-start; overflow-y: auto; max-height: 82vh; }
+      .dm-mini-product-imgwrap { position: relative; }
+      .dm-mini-remove { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.92); border: 1px solid var(--blush-line); color: var(--rosewood); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+      /* ===== Profile page — sidebar + main layout (signed-in account view) ===== */
+      .auth-modal.profile-mode { max-width: 1080px; width: min(1080px, 96vw); }
+      .auth-modal.profile-mode .auth-brand { display: none; }
+      .auth-modal.profile-mode .auth-form { flex: 1 1 100%; padding: 34px; justify-content: flex-start; }
+      .dm-profile-layout { display: flex; gap: 26px; align-items: flex-start; }
+      .dm-profile-sidebar { flex: 0 0 220px; display: flex; flex-direction: column; gap: 6px; }
+      .dm-profile-nav-item { display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid transparent; background: transparent; color: var(--ink); border-radius: 10px; padding: 11px 13px; font-weight: 700; font-size: 0.92rem; cursor: pointer; }
+      .dm-profile-nav-item:hover { background: var(--blush); }
+      .dm-profile-nav-item.active { background: var(--blush); color: var(--rosewood); border-color: var(--blush-line); }
+      .dm-refer-box { margin-top: 14px; background: var(--blush); border: 1px solid var(--blush-line); border-radius: 14px; padding: 18px 16px; text-align: center; }
+      .dm-refer-icon { font-size: 26px; margin-bottom: 6px; }
+      .dm-refer-title { font-weight: 800; color: var(--rosewood); margin-bottom: 4px; }
+      .dm-refer-sub { font-size: 0.78rem; color: var(--muted); line-height: 1.4; margin-bottom: 12px; }
+      .dm-refer-btn { width: 100%; padding: 9px; border-radius: 9px; border: 1px solid var(--rosewood); background: transparent; color: var(--rosewood); font-weight: 800; cursor: pointer; }
+      .dm-profile-main { flex: 1 1 auto; min-width: 0; }
+      .dm-welcome-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 1px solid var(--blush-line); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
+      .dm-welcome-info { flex: 1; min-width: 160px; }
+      .dm-welcome-hi { font-size: 0.85rem; color: var(--muted); }
+      .dm-welcome-name { font-family: "Playfair Display", serif; font-size: 1.3rem; font-weight: 800; color: var(--ink); }
+      .dm-welcome-contact { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+      .dm-edit-profile-btn { display: inline-block; padding: 8px 14px; border-radius: 9px; border: 1px solid var(--rosewood); color: var(--rosewood); font-weight: 700; font-size: 0.85rem; text-decoration: none; white-space: nowrap; }
+      .dm-quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 18px; }
+      .dm-quick-action-card { display: flex; align-items: center; gap: 12px; text-align: left; border: 1px solid var(--blush-line); border-radius: 14px; background: var(--surface); padding: 14px; cursor: pointer; }
+      .dm-quick-action-card:hover { box-shadow: 0 6px 18px rgba(138,28,66,0.08); }
+      .dm-qa-icon { width: 42px; height: 42px; border-radius: 50%; background: var(--blush); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+      .dm-qa-text { flex: 1; }
+      .dm-qa-title { font-weight: 800; font-size: 0.9rem; }
+      .dm-qa-sub { font-size: 0.76rem; color: var(--muted); margin-top: 1px; }
+      .dm-qa-arrow { color: var(--muted); font-size: 1.1rem; }
+      .dm-settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 4px; }
+      .dm-info-card { padding: 16px; border: 1px solid var(--blush-line); border-radius: 14px; background: rgba(255,255,255,0.72); }
+      .dm-info-card-title { font-weight: 800; font-size: 1rem; margin-bottom: 5px; }
+      .dm-info-card-text { font-size: 0.82rem; color: var(--muted); line-height: 1.45; margin-bottom: 12px; }
+      .dm-account-settings { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--blush-line); }
+      .dm-account-settings-title { font-weight: 800; margin-bottom: 10px; }
+      .dm-account-settings-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+      .dm-settings-link { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 1px solid var(--blush-line); background: var(--surface); border-radius: 12px; padding: 12px 14px; font-weight: 700; color: var(--ink); cursor: pointer; text-align: left; }
+      .dm-settings-link span { font-weight: 500; font-size: 0.76rem; color: var(--muted); }
+      .dm-settings-link:hover { border-color: var(--rosewood); }
+      @media (max-width: 760px) {
+        .dm-profile-layout { flex-direction: column; }
+        .dm-profile-sidebar { flex-direction: row; flex-wrap: wrap; width: 100%; }
+        .dm-refer-box { flex: 1 1 100%; }
       }
 
       .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
@@ -2387,6 +2454,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
             <img id="accountBtnPic" alt="" style="display:none;width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.9);box-shadow:0 1px 4px rgba(0,0,0,0.25);" />
           </button>
+          <button class="icon-btn" onclick="openWishlistModal()" title="Wishlist" id="wishlistHeaderBtn">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.2-4.5-9.7-8.9C0.6 8.6 2.1 5 5.6 5c2 0 3.6 1.2 4.5 2.7C11 6.2 12.6 5 14.6 5c3.5 0 5 3.6 3.3 7.1C15.4 16.5 12 21 12 21z"/></svg>
+            <span class="cart-count" id="wishlistCount">0</span>
+          </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7a1.5 1.5 0 0 1-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
             <span class="cart-count" id="cartCount">0</span>
@@ -2546,7 +2617,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
     </div>
 
     <div class="cat-cards-wrap">
-      <h2>Shop by category</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <h2 style="margin:0;">Shop by category</h2>
+        <select id="categoryQuickSelect" class="checkout-input" style="width:auto;max-width:220px;font-weight:700;" onchange="filterCategoryFromCard(this.value)" aria-label="Jump to a category">
+          <option value="">Quick jump: pick a category…</option>
+        </select>
+      </div>
       <div class="cat-carousel-wrap">
         <button class="cat-arrow cat-arrow-prev" id="catArrowPrev" onclick="scrollCategories(-1)" aria-label="Previous categories">‹</button>
         <div class="cat-carousel-track" id="catCards"></div>
@@ -2752,6 +2828,29 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       </div>
     </div>
 
+    <!-- WISHLIST MODAL — two-panel design (brand + wishlist), works for guests too (no login required) -->
+    <div class="overlay" id="wishlistOverlay" onclick="closeWishlistModal(event)">
+      <div class="modal auth-modal wishlist-modal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeWishlistModal()">✕</button>
+        <div class="auth-brand">
+          <div class="auth-brand-inner">
+            <img src="Logo.png" alt="Design Makers" class="auth-brand-logo" />
+            <div class="auth-brand-name">DESIGN MAKERS</div>
+            <div class="auth-brand-tag">Gifts That Feel Like Royalty</div>
+          </div>
+        </div>
+        <div class="auth-form wishlist-panel">
+          <h2 class="modal-title" style="margin-bottom:4px;">❤️ My Wishlist</h2>
+          <p class="modal-desc" style="margin-bottom:16px;">Products you want to remember for later.</p>
+          <div class="dm-customer-grid" id="wishlistDrawerItems"></div>
+          <div style="margin-top:26px;">
+            <h3 style="margin:0 0 10px;color:var(--rosewood);font-size:1rem;">👀 Recently Viewed</h3>
+            <div class="dm-customer-grid" id="wishlistDrawerRecent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- GIFT FOR HER / HIM POPUP — shows only that gender's linked products -->
     <div class="gender-modal-overlay" id="genderModalOverlay" onclick="closeGenderModal(event)">
       <div class="gender-modal" onclick="event.stopPropagation()">
@@ -2829,8 +2928,59 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       </div>
     </div>
 
+    <!-- FORGOT PASSWORD (email OTP) -->
+    <div class="overlay" id="forgotPasswordOverlay" onclick="closeForgotPasswordModal(event)">
+      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="forgotPasswordTitle">
+        <button class="modal-close" type="button" onclick="closeForgotPasswordModal()">✕</button>
+        <h2 class="modal-title" id="forgotPasswordTitle" style="margin-bottom:6px;">Reset your password</h2>
+
+        <!-- Step 1: mobile number -->
+        <div id="forgotPasswordStepMobile">
+          <p class="modal-desc" style="margin-bottom:18px;">Enter your registered mobile number — we'll email a verification code to the address saved on your account.</p>
+          <input type="tel" id="forgotPasswordMobile" class="checkout-input" placeholder="WhatsApp mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
+          <div class="modal-error" id="forgotPasswordMobileError" style="display:none;"></div>
+          <button class="add-cart-btn" id="forgotPasswordSendOtpBtn" onclick="submitForgotPasswordRequestOtp()">Send code</button>
+        </div>
+
+        <!-- Step 2: OTP + new password -->
+        <div id="forgotPasswordStepOtp" style="display:none;">
+          <p class="modal-desc" id="forgotPasswordOtpDesc" style="margin-bottom:18px;">Enter the 6-digit code we emailed you, along with your new password.</p>
+          <input type="text" id="forgotPasswordOtp" class="checkout-input" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
+          <input type="password" id="forgotPasswordNewPassword" class="checkout-input" placeholder="New password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
+          <input type="password" id="forgotPasswordConfirmPassword" class="checkout-input" placeholder="Confirm new password" style="width:100%;margin-bottom:10px;" />
+          <div class="modal-error" id="forgotPasswordOtpError" style="display:none;"></div>
+          <button class="add-cart-btn" id="forgotPasswordResetBtn" onclick="submitForgotPasswordVerifyOtp()">Reset password</button>
+          <p style="font-size:0.85em;margin-top:12px;">
+            <a href="javascript:void(0)" onclick="showForgotPasswordStepMobile()" style="color:var(--rosewood);font-weight:600;">Use a different mobile number</a>
+          </p>
+        </div>
+
+        <!-- No email on file -->
+        <div id="forgotPasswordStepNoEmail" style="display:none;">
+          <p class="modal-desc" style="margin-bottom:14px;">This account doesn't have an email saved yet, so we can't send a reset code. Please log in and add an email from your profile, or message us to reset it another way.</p>
+          <a href="https://wa.me/917004847813" target="_blank" rel="noopener" class="add-cart-btn" style="display:block;text-align:center;text-decoration:none;">Message us on WhatsApp</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="overlay" id="changePasswordOverlay" onclick="closeChangePasswordModal(event)">
+      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="changePasswordTitle">
+        <button class="modal-close" type="button" onclick="closeChangePasswordModal()">✕</button>
+        <h2 class="modal-title" id="changePasswordTitle" style="margin-bottom:6px;">Change password</h2>
+        <p class="modal-desc" id="changePasswordDesc" style="margin-bottom:18px;">Update the password used to log in with your mobile number.</p>
+        <div id="currentPasswordRow" style="margin-bottom:10px;">
+          <input type="password" id="currentPasswordInput" class="checkout-input" placeholder="Current password" style="width:100%;" />
+        </div>
+        <input type="password" id="newPasswordInput" class="checkout-input" placeholder="New password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
+        <input type="password" id="confirmNewPasswordInput" class="checkout-input" placeholder="Confirm new password" style="width:100%;margin-bottom:10px;" />
+        <div class="modal-error" id="changePasswordError" style="display:none;"></div>
+        <button class="add-cart-btn" id="changePasswordBtn" onclick="submitChangePassword()">Update password</button>
+      </div>
+    </div>
+
     <div class="overlay" id="accountOverlay" onclick="closeAccountModal(event)">
-      <div class="modal auth-modal" onclick="event.stopPropagation()">
+      <div class="modal auth-modal" id="accountModalBox" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeAccountModal()">✕</button>
 
         <!-- LEFT: brand panel -->
@@ -2872,7 +3022,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
               <div class="modal-error" id="googleLoginError" style="display:none;margin-top:8px;"></div>
 
               <p style="font-size:0.85em;margin-top:12px;color:var(--muted);">
-                Forgot your password? <a href="https://wa.me/917004847813" target="_blank" rel="noopener" style="color:var(--rosewood);font-weight:600;">Message us on WhatsApp</a> to reset it.
+                Forgot your password? <a href="javascript:void(0)" onclick="openForgotPasswordModal()" style="color:var(--rosewood);font-weight:600;">Reset it</a>
               </p>
               <p style="font-size:0.9em;margin-top:14px;">
                 Don't have an account?
@@ -2902,28 +3052,40 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           </div>
 
           <div id="accountSignedIn" style="display:none;">
-            <h2 class="modal-title" style="margin-bottom:6px;">My account</h2>
-            <div class="account-section-tabs">
-              <button class="account-section-tab active" id="accountProfileTab" onclick="showAccountSection('profile')">Profile</button>
-              <button class="account-section-tab" id="accountOrdersTab" onclick="showAccountSection('orders')">My Orders</button>
-              <button class="account-section-tab" id="accountWishlistTab" onclick="showAccountSection('wishlist')">❤️ Wishlist</button>
-              <button class="account-section-tab" id="accountAddressesTab" onclick="showAccountSection('addresses')">📍 Addresses</button>
-            </div>
+            <div class="dm-profile-layout">
+              <aside class="dm-profile-sidebar">
+                <button class="dm-profile-nav-item active" id="accountProfileTab" onclick="showAccountSection('profile')">🙂 Profile</button>
+                <button class="dm-profile-nav-item" id="accountOrdersTab" onclick="showAccountSection('orders')">🛍️ My Orders</button>
+                <button class="dm-profile-nav-item" id="accountWishlistTab" onclick="showAccountSection('wishlist')">❤️ Wishlist</button>
+                <button class="dm-profile-nav-item" id="accountAddressesTab" onclick="showAccountSection('addresses')">📍 Addresses</button>
+                <div class="dm-refer-box">
+                  <div class="dm-refer-icon">🎁</div>
+                  <div class="dm-refer-title">Refer &amp; Earn</div>
+                  <div class="dm-refer-sub">Refer your friends and earn exclusive rewards!</div>
+                  <button class="dm-refer-btn" onclick="openCallbackRequestModal()">Refer Now</button>
+                </div>
+              </aside>
+              <div class="dm-profile-main">
             <div id="accountProfileView">
-            <div style="display:flex;align-items:center;gap:14px;margin:12px 0 18px;">
-              <div>
+            <div class="dm-welcome-card">
+              <div class="dm-welcome-avatar">
                 <img id="accountPic" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--blush-line);display:none;" />
                 <div id="accountPicPlaceholder" style="width:64px;height:64px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:28px;">🙂</div>
               </div>
-              <div>
-                <div id="accountName" style="font-weight:700;font-size:1.05em;"></div>
-                <div id="accountMobile" style="font-size:0.9em;color:var(--muted);"></div>
-                <div style="display:flex;gap:10px;align-items:center;margin-top:4px;">
-                  <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()" style="font-size:0.82em;color:var(--rosewood);font-weight:700;">Edit WhatsApp number</a>
-                  <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.82em;color:var(--rosewood);font-weight:600;">Change photo</a>
+              <div class="dm-welcome-info">
+                <div class="dm-welcome-hi">Welcome back,</div>
+                <div class="dm-welcome-name" id="accountName"></div>
+                <div class="dm-welcome-contact">📞 <span id="accountMobile"></span></div>
+                <div class="dm-welcome-contact" id="accountEmailRow" style="display:none;">✉️ <span id="accountEmail"></span></div>
+                <div style="display:flex;gap:12px;align-items:center;margin-top:6px;">
+                  <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()" style="font-size:0.8em;color:var(--rosewood);font-weight:700;">Edit WhatsApp number</a>
+                  <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.8em;color:var(--rosewood);font-weight:600;">Change photo</a>
                 </div>
                 <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
                 <div id="profilePicError" style="font-size:0.78em;color:#a3002a;display:none;margin-top:4px;"></div>
+              </div>
+              <div class="dm-welcome-actions">
+                <a class="dm-edit-profile-btn" href="javascript:void(0)" onclick="openEditWhatsappNumberModal()">✎ Edit Profile</a>
               </div>
             </div>
 
@@ -2939,23 +3101,62 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
               <button class="add-cart-btn" id="completeAccountBtn" onclick="completeCustomerAccount()">Save WhatsApp number</button>
             </div>
 
+            <div id="accountAddEmailBox" style="display:none;margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
+              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Add your email</div>
+              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">Add an email so you can reset your password yourself if you're ever locked out.</div>
+              <input type="email" id="addEmailInput" class="checkout-input" placeholder="you@example.com" style="width:100%;margin-bottom:9px;" />
+              <div class="modal-error" id="addEmailError" style="display:none;"></div>
+              <button class="add-cart-btn" id="addEmailBtn" onclick="submitAddEmail()">Save email</button>
+            </div>
+
+            <div class="dm-quick-actions-grid">
+              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('orders')">
+                <div class="dm-qa-icon">🛍️</div>
+                <div class="dm-qa-text"><div class="dm-qa-title">My Orders</div><div class="dm-qa-sub">Track and view your orders</div></div>
+                <span class="dm-qa-arrow">›</span>
+              </button>
+              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('wishlist')">
+                <div class="dm-qa-icon">❤️</div>
+                <div class="dm-qa-text"><div class="dm-qa-title">Wishlist</div><div class="dm-qa-sub">View and manage your wishlist</div></div>
+                <span class="dm-qa-arrow">›</span>
+              </button>
+              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('addresses')">
+                <div class="dm-qa-icon">📍</div>
+                <div class="dm-qa-text"><div class="dm-qa-title">Addresses</div><div class="dm-qa-sub">Add, edit or remove your addresses</div></div>
+                <span class="dm-qa-arrow">›</span>
+              </button>
+              <button type="button" class="dm-quick-action-card" onclick="openCallbackRequestModal()">
+                <div class="dm-qa-icon">🎧</div>
+                <div class="dm-qa-text"><div class="dm-qa-title">Need Assistance?</div><div class="dm-qa-sub">Submit a callback request</div></div>
+                <span class="dm-qa-arrow">›</span>
+              </button>
+            </div>
+
             <div id="sellerStatusBox" style="margin-bottom:14px;"></div>
-            <div id="marketingPreferenceBox" style="margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
-              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">📧 Offers &amp; Product Updates</div>
-              <div id="marketingPreferenceText" style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:10px;">Loading email preference…</div>
-              <button class="add-cart-btn" id="marketingPreferenceBtn" onclick="toggleMarketingPreference()" style="width:auto;padding:9px 14px;">Loading…</button>
-              <div id="marketingPreferenceStatus" style="font-size:0.78rem;margin-top:7px;min-height:16px;"></div>
+
+            <div class="dm-settings-grid">
+              <div id="marketingPreferenceBox" class="dm-info-card">
+                <div class="dm-info-card-title">📧 Offers &amp; Product Updates</div>
+                <div id="marketingPreferenceText" class="dm-info-card-text">Loading email preference…</div>
+                <button class="add-cart-btn" id="marketingPreferenceBtn" onclick="toggleMarketingPreference()" style="width:auto;padding:9px 14px;">Loading…</button>
+                <div id="marketingPreferenceStatus" style="font-size:0.78rem;margin-top:7px;min-height:16px;"></div>
+              </div>
+              <div class="dm-info-card">
+                <div class="dm-info-card-title">🎧 Need assistance?</div>
+                <div class="dm-info-card-text">Tell us why you'd like a callback. We'll record your request and connect you to WhatsApp.</div>
+                <button class="add-cart-btn" onclick="openCallbackRequestModal()">Submit a Callback Request</button>
+              </div>
             </div>
 
-
-            <div style="margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
-              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Need assistance?</div>
-              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">Tell us why you'd like a callback. We'll record your request and connect you to WhatsApp.</div>
-              <button class="add-cart-btn" onclick="openCallbackRequestModal()">Submit a Callback Request</button>
+            <div class="dm-account-settings">
+              <div class="dm-account-settings-title">Account Settings</div>
+              <div class="dm-account-settings-row">
+                <button type="button" class="dm-settings-link" onclick="openChangePasswordModal()">🔒 Change Password<span>Update your account password</span></button>
+                <button type="button" class="dm-settings-link" onclick="signOutCustomer()">⎋ Sign Out<span>Logout from your account</span></button>
+              </div>
             </div>
 
-            <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-bottom:10px;"></button>
-            <button class="add-cart-btn" style="background:transparent;color:var(--rosewood);border:1px solid var(--rosewood);" onclick="signOutCustomer()">Sign out</button>
+            <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-top:14px;"></button>
             </div>
             <div id="accountWishlistView" style="display:none;">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div><h3 style="margin:0;color:var(--rosewood);">❤️ My Wishlist</h3><div style="font-size:.8rem;color:var(--muted);">Products you want to remember for later.</div></div></div>
@@ -2975,6 +3176,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
               </div>
               <div id="customerOrdersList"><div class="modal-desc">Loading orders…</div></div>
               <div id="customerOrderDetail" style="display:none;"></div>
+            </div>
+              </div>
             </div>
           </div>
         </div>
@@ -3483,6 +3686,199 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         if (overlay) overlay.classList.remove("open");
       }
 
+      let forgotPasswordRequestId = null;
+
+      function openForgotPasswordModal() {
+        document.getElementById("forgotPasswordMobile").value = "";
+        document.getElementById("forgotPasswordOtp").value = "";
+        document.getElementById("forgotPasswordNewPassword").value = "";
+        document.getElementById("forgotPasswordConfirmPassword").value = "";
+        forgotPasswordRequestId = null;
+        showForgotPasswordStepMobile();
+        document.getElementById("forgotPasswordOverlay").classList.add("open");
+        setTimeout(() => document.getElementById("forgotPasswordMobile").focus(), 30);
+      }
+
+      function closeForgotPasswordModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        const overlay = document.getElementById("forgotPasswordOverlay");
+        if (overlay) overlay.classList.remove("open");
+      }
+
+      function showForgotPasswordStepMobile() {
+        document.getElementById("forgotPasswordStepMobile").style.display = "block";
+        document.getElementById("forgotPasswordStepOtp").style.display = "none";
+        document.getElementById("forgotPasswordStepNoEmail").style.display = "none";
+        document.getElementById("forgotPasswordMobileError").style.display = "none";
+      }
+
+      async function submitForgotPasswordRequestOtp() {
+        const mobile = document.getElementById("forgotPasswordMobile").value.trim();
+        const errorEl = document.getElementById("forgotPasswordMobileError");
+        const btn = document.getElementById("forgotPasswordSendOtpBtn");
+        errorEl.style.display = "none";
+        if (!/^[6-9]\d{9}$/.test(mobile)) {
+          errorEl.textContent = "Enter a valid 10-digit mobile number.";
+          errorEl.style.display = "block";
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "Sending...";
+        try {
+          const res = await fetch("/api/customer/forgot-password/request-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mobile })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            if (data.message && data.message.toLowerCase().includes("no email is saved")) {
+              document.getElementById("forgotPasswordStepMobile").style.display = "none";
+              document.getElementById("forgotPasswordStepNoEmail").style.display = "block";
+              return;
+            }
+            errorEl.textContent = data.message || "Could not send a code. Please try again.";
+            errorEl.style.display = "block";
+            return;
+          }
+          forgotPasswordRequestId = data.requestId;
+          document.getElementById("forgotPasswordOtpDesc").textContent =
+            "Enter the 6-digit code we emailed to " + (data.emailMasked || "your registered email") + ", along with your new password.";
+          document.getElementById("forgotPasswordStepMobile").style.display = "none";
+          document.getElementById("forgotPasswordStepOtp").style.display = "block";
+          setTimeout(() => document.getElementById("forgotPasswordOtp").focus(), 30);
+        } catch (e) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Send code";
+        }
+      }
+
+      async function submitForgotPasswordVerifyOtp() {
+        const otp = document.getElementById("forgotPasswordOtp").value.trim();
+        const next = document.getElementById("forgotPasswordNewPassword").value;
+        const confirm = document.getElementById("forgotPasswordConfirmPassword").value;
+        const errorEl = document.getElementById("forgotPasswordOtpError");
+        const btn = document.getElementById("forgotPasswordResetBtn");
+        errorEl.style.display = "none";
+        if (!/^\d{6}$/.test(otp)) {
+          errorEl.textContent = "Enter the 6-digit code from your email.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!next || next.length < 6) {
+          errorEl.textContent = "New password should be at least 6 characters.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (next !== confirm) {
+          errorEl.textContent = "New passwords don't match.";
+          errorEl.style.display = "block";
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "Resetting...";
+        try {
+          const res = await fetch("/api/customer/forgot-password/verify-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ requestId: forgotPasswordRequestId, otp, newPassword: next })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not reset your password.";
+            errorEl.style.display = "block";
+            return;
+          }
+          closeForgotPasswordModal();
+          document.getElementById("loginPassword").value = "";
+          const loginError = document.getElementById("loginError");
+          if (loginError) {
+            loginError.textContent = "Password reset! Log in with your new password.";
+            loginError.style.display = "block";
+            loginError.style.color = "green";
+          }
+        } catch (e) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Reset password";
+        }
+      }
+
+      function openChangePasswordModal() {
+        if (!currentCustomer) return;
+        const hasPassword = !!currentCustomer.hasPassword;
+        document.getElementById("currentPasswordRow").style.display = hasPassword ? "block" : "none";
+        document.getElementById("changePasswordDesc").textContent = hasPassword
+          ? "Update the password used to log in with your mobile number."
+          : "Your account doesn't have a password yet — set one now to also log in with your mobile number.";
+        document.getElementById("currentPasswordInput").value = "";
+        document.getElementById("newPasswordInput").value = "";
+        document.getElementById("confirmNewPasswordInput").value = "";
+        document.getElementById("changePasswordError").style.display = "none";
+        document.getElementById("changePasswordOverlay").classList.add("open");
+        setTimeout(() => document.getElementById(hasPassword ? "currentPasswordInput" : "newPasswordInput").focus(), 30);
+      }
+
+      function closeChangePasswordModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        const overlay = document.getElementById("changePasswordOverlay");
+        if (overlay) overlay.classList.remove("open");
+      }
+
+      async function submitChangePassword() {
+        const hasPassword = !!(currentCustomer && currentCustomer.hasPassword);
+        const current = document.getElementById("currentPasswordInput").value;
+        const next = document.getElementById("newPasswordInput").value;
+        const confirm = document.getElementById("confirmNewPasswordInput").value;
+        const errorEl = document.getElementById("changePasswordError");
+        const btn = document.getElementById("changePasswordBtn");
+        errorEl.style.display = "none";
+        if (hasPassword && !current) {
+          errorEl.textContent = "Enter your current password.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (!next || next.length < 6) {
+          errorEl.textContent = "New password should be at least 6 characters.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (next !== confirm) {
+          errorEl.textContent = "New passwords don't match.";
+          errorEl.style.display = "block";
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "Updating...";
+        try {
+          const res = await fetch("/api/customer/change-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ currentPassword: current, newPassword: next })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not update your password.";
+            errorEl.style.display = "block";
+            return;
+          }
+          if (currentCustomer) currentCustomer.hasPassword = true;
+          closeChangePasswordModal();
+          showToast("Password updated ✔");
+        } catch (e) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Update password";
+        }
+      }
+
       async function saveEditedWhatsappNumber() {
         const input = document.getElementById("editWhatsappNumber");
         const select = document.getElementById("editWhatsappCountryCode");
@@ -3638,25 +4034,41 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
         const signedOutBox = document.getElementById("accountSignedOut");
         const signedInBox = document.getElementById("accountSignedIn");
+        const modalBox = document.getElementById("accountModalBox");
         if (!signedOutBox || !signedInBox) return;
 
         if (!currentCustomer) {
           signedOutBox.style.display = "block";
           signedInBox.style.display = "none";
+          if (modalBox) modalBox.classList.remove("profile-mode");
           return;
         }
 
         signedOutBox.style.display = "none";
         signedInBox.style.display = "block";
+        if (modalBox) modalBox.classList.add("profile-mode");
         document.getElementById("accountName").textContent = currentCustomer.name || "Customer";
         renderMarketingPreference();
         const mobileEl = document.getElementById("accountMobile");
         mobileEl.textContent = currentCustomer.mobile ? currentCustomer.mobile : "WhatsApp number not added yet";
+        const emailRow = document.getElementById("accountEmailRow");
+        const emailEl = document.getElementById("accountEmail");
+        if (emailRow && emailEl) {
+          if (currentCustomer.email) { emailEl.textContent = currentCustomer.email; emailRow.style.display = "flex"; }
+          else { emailRow.style.display = "none"; }
+        }
         const completionBox = document.getElementById("accountCompletionBox");
         if (completionBox) {
           completionBox.style.display = currentCustomer.needsProfileCompletion ? "block" : "none";
           const mobileInput = document.getElementById("completeAccountMobile");
           if (mobileInput && currentCustomer.mobile) mobileInput.value = currentCustomer.mobile;
+        }
+        const addEmailBox = document.getElementById("accountAddEmailBox");
+        if (addEmailBox) {
+          // Only nudge for a missing email once they already have a mobile
+          // number — a Google-only account without a mobile yet is already
+          // being asked to complete that step first (accountCompletionBox).
+          addEmailBox.style.display = (currentCustomer.needsEmail && currentCustomer.mobile) ? "block" : "none";
         }
         const accPic = document.getElementById("accountPic");
         const accPh = document.getElementById("accountPicPlaceholder");
@@ -3768,6 +4180,42 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           currentCustomer=data.customer; renderAccountState(); closeAccountModal(); restoreAccountCart(); restoreAccountExtras();
         } catch(e){errorEl.textContent="Network error. Please try again.";errorEl.style.display="block";}
         finally{btn.disabled=false;btn.textContent="Save WhatsApp number";}
+      }
+
+      async function submitAddEmail() {
+        const email = document.getElementById("addEmailInput").value.trim();
+        const errorEl = document.getElementById("addEmailError");
+        const btn = document.getElementById("addEmailBtn");
+        errorEl.style.display = "none";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errorEl.textContent = "Enter a valid email address.";
+          errorEl.style.display = "block";
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+        try {
+          const res = await fetch("/api/customer/add-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...authHeaders() },
+            body: JSON.stringify({ email })
+          });
+          const data = await res.json();
+          if (!data.success) {
+            errorEl.textContent = data.message || "Could not save your email.";
+            errorEl.style.display = "block";
+            return;
+          }
+          currentCustomer = data.customer;
+          document.getElementById("addEmailInput").value = "";
+          renderAccountState();
+        } catch (e) {
+          errorEl.textContent = "Network error. Please try again.";
+          errorEl.style.display = "block";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Save email";
+        }
       }
 
       // BUGFIX: the "Submit a Callback Request" button and modal (added for
@@ -4557,6 +5005,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             track.addEventListener("scroll", updateCatArrows);
             track.dataset.scrollBound = "1";
           }
+        }
+
+        // Quick-jump dropdown — same category list as the tile carousel, for
+        // people who'd rather pick from a list than scroll through tiles.
+        const select = document.getElementById("categoryQuickSelect");
+        if (select) {
+          const current = select.value;
+          select.innerHTML = '<option value="">Quick jump: pick a category…</option>' +
+            cats.map((c) => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + "</option>").join("");
+          if (cats.includes(current)) select.value = current;
         }
       }
 
@@ -5492,8 +5950,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       function renderCart() {
         const container = document.getElementById("cartItems");
         const footer = document.getElementById("cartFooter");
+        if (!container || !footer) return;
 
-        const giftAddonEligible = syncGiftAddonEligibility();
+        let giftAddonEligible = false;
+        try { giftAddonEligible = syncGiftAddonEligibility(); } catch (e) { console.error("syncGiftAddonEligibility failed:", e); }
 
         if (!cart.length) {
           container.innerHTML = '<div class="empty-cart">Your cart is empty.<br/>Browse our gifts and add something special 🎁</div>';
@@ -5502,50 +5962,59 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
 
         footer.style.display = "block";
-        updateCheckoutIdentity();
+        try { updateCheckoutIdentity(); } catch (e) { console.error("updateCheckoutIdentity failed:", e); }
 
         container.innerHTML = cart
           .map((item, idx) => {
-            if (item.productId === GIFT_ADDON_PRODUCT_ID) return ""; // rendered separately below, with a checkbox instead of qty controls
+            // A single malformed/legacy cart item should never take down the
+            // whole cart render (which used to leave the drawer looking like
+            // it "won't open" — renderCart() threw before openCart() could
+            // add the .open class). Skip just that item instead.
+            try {
+              if (item.productId === GIFT_ADDON_PRODUCT_ID) return ""; // rendered separately below, with a checkbox instead of qty controls
 
-            const discountPct = calcItemDiscount(item);
-            const lineTotal = item.price * item.qty * (1 - discountPct / 100);
-            // Resolve the photo from the live product list first (the saved
-            // cart may have an empty/stale image field), falling back to
-            // whatever the cart item itself carries.
-            const liveProduct = allProducts.find((p) => p.id === item.productId);
-            const cartImage = (liveProduct && liveProduct.image) || item.image || "";
-            const imgHtml = cartImage
-              ? '<img src="' + escapeHtml(cartImage) + '" />'
-              : "🎁";
-            const stock = getDisplayStock(liveProduct, item.size);
-            const unavailable = stock.qty !== null && stock.qty < item.qty;
+              const discountPct = calcItemDiscount(item);
+              const lineTotal = item.price * item.qty * (1 - discountPct / 100);
+              // Resolve the photo from the live product list first (the saved
+              // cart may have an empty/stale image field), falling back to
+              // whatever the cart item itself carries.
+              const liveProduct = allProducts.find((p) => p.id === item.productId);
+              const cartImage = (liveProduct && liveProduct.image) || item.image || "";
+              const imgHtml = cartImage
+                ? '<img src="' + escapeHtml(cartImage) + '" />'
+                : "🎁";
+              const stock = getDisplayStock(liveProduct, item.size);
+              const unavailable = stock.qty !== null && stock.qty < item.qty;
 
-            return (
-              '<div class="cart-item">' +
-                '<div class="cart-item-img">' + imgHtml + "</div>" +
-                '<div class="cart-item-info">' +
-                  '<div class="cart-item-name">' + escapeHtml(item.name) + "</div>" +
-                  (item.size ? '<div class="cart-item-meta">Size: ' + escapeHtml(item.size) + "</div>" : "") +
-                  (item.onSale ? '<div class="cart-item-meta" style="color:#1c7a34;">On sale: ₹' + fmtINR(item.price) + ' <span style="text-decoration:line-through;color:#b5849c;">₹' + fmtINR(item.originalPrice) + '</span></div>' : "") +
-                  (discountPct ? '<div class="cart-item-meta" style="color:#e6006e;">' + discountPct + "% bulk discount applied</div>" : "") +
-                  (stock.qty !== null ? '<div class="cart-item-meta" style="font-weight:800;color:' + (stock.qty === 0 ? '#b42318' : (stock.qty <= 5 ? '#b54708' : '#1c7a34')) + ';">' + (stock.qty === 0 ? '🔴 Currently out of stock' : ('Available now: ' + stock.qty)) + '</div>' : '') +
-                  (unavailable ? '<div class="cart-item-meta" style="color:#b42318;font-weight:800;">Please reduce quantity before checkout.</div>' : '') +
-                  '<div class="cart-item-controls">' +
-                    '<button onclick="updateCartQty(' + idx + ', -1)">−</button>' +
-                    '<span>' + item.qty + "</span>" +
-                    '<button onclick="updateCartQty(' + idx + ', 1)">+</button>' +
+              return (
+                '<div class="cart-item">' +
+                  '<div class="cart-item-img">' + imgHtml + "</div>" +
+                  '<div class="cart-item-info">' +
+                    '<div class="cart-item-name">' + escapeHtml(item.name) + "</div>" +
+                    (item.size ? '<div class="cart-item-meta">Size: ' + escapeHtml(item.size) + "</div>" : "") +
+                    (item.onSale ? '<div class="cart-item-meta" style="color:#1c7a34;">On sale: ₹' + fmtINR(item.price) + ' <span style="text-decoration:line-through;color:#b5849c;">₹' + fmtINR(item.originalPrice) + '</span></div>' : "") +
+                    (discountPct ? '<div class="cart-item-meta" style="color:#e6006e;">' + discountPct + "% bulk discount applied</div>" : "") +
+                    (stock.qty !== null ? '<div class="cart-item-meta" style="font-weight:800;color:' + (stock.qty === 0 ? '#b42318' : (stock.qty <= 5 ? '#b54708' : '#1c7a34')) + ';">' + (stock.qty === 0 ? '🔴 Currently out of stock' : ('Available now: ' + stock.qty)) + '</div>' : '') +
+                    (unavailable ? '<div class="cart-item-meta" style="color:#b42318;font-weight:800;">Please reduce quantity before checkout.</div>' : '') +
+                    '<div class="cart-item-controls">' +
+                      '<button onclick="updateCartQty(' + idx + ', -1)">−</button>' +
+                      '<span>' + item.qty + "</span>" +
+                      '<button onclick="updateCartQty(' + idx + ', 1)">+</button>' +
+                    "</div>" +
+                    '<button class="remove-btn" onclick="removeFromCart(' + idx + ')">Remove</button>' +
                   "</div>" +
-                  '<button class="remove-btn" onclick="removeFromCart(' + idx + ')">Remove</button>' +
-                "</div>" +
-                '<div class="cart-item-price">₹' + fmtINR(lineTotal) + "</div>" +
-              "</div>"
-            );
+                  '<div class="cart-item-price">₹' + fmtINR(lineTotal) + "</div>" +
+                "</div>"
+              );
+            } catch (e) {
+              console.error("Skipping one cart item that failed to render:", e, item);
+              return "";
+            }
           })
           .join("") + renderGiftAddonRow(giftAddonEligible);
 
-        renderCartTotals();
-        updateCheckoutStockState();
+        try { renderCartTotals(); } catch (e) { console.error("renderCartTotals failed:", e); }
+        try { updateCheckoutStockState(); } catch (e) { console.error("updateCheckoutStockState failed:", e); }
       }
 
       function updateCheckoutStockState() {
@@ -5694,14 +6163,29 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       }
 
       function openCart() {
-        renderCart();
-        document.getElementById("cartOverlay").classList.add("open");
-        document.getElementById("cartDrawer").classList.add("open");
+        // renderCart() used to run before the drawer's "open" class was
+        // added — if anything inside it threw, the drawer never showed at
+        // all and the cart looked completely broken. Now the drawer always
+        // opens; if rendering the items failed, we show a clear fallback
+        // message inside it instead of silently doing nothing.
+        try {
+          renderCart();
+        } catch (e) {
+          console.error("renderCart failed, opening cart anyway:", e);
+          const container = document.getElementById("cartItems");
+          if (container) container.innerHTML = '<div class="empty-cart">Could not load your cart items. Please refresh the page and try again.</div>';
+        }
+        const overlay = document.getElementById("cartOverlay");
+        const drawer = document.getElementById("cartDrawer");
+        if (overlay) overlay.classList.add("open");
+        if (drawer) drawer.classList.add("open");
       }
 
       function closeCart() {
-        document.getElementById("cartOverlay").classList.remove("open");
-        document.getElementById("cartDrawer").classList.remove("open");
+        const overlay = document.getElementById("cartOverlay");
+        const drawer = document.getElementById("cartDrawer");
+        if (overlay) overlay.classList.remove("open");
+        if (drawer) drawer.classList.remove("open");
       }
 
       // ---------- CHECKOUT: create the order server-side, then hand off to WhatsApp ----------
@@ -5863,6 +6347,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       loadProducts();
       loadCustomerSession();
       updateCartCount(); // reflect any cart restored from this device
+      updateWishlistCount(); // reflect any wishlist saved on this device
 
       // Old shareable link: https://designmakers.site/#sell (or ?sell=1) used
       // to pop the seller application form open on this page. It now lives
@@ -6036,7 +6521,37 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       function addRecentlyViewed(id){ const ids=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(Number).filter(Number.isFinite).filter(x=>x!==Number(id)); ids.unshift(Number(id)); dmWrite(dmScopedKey(DM_RECENT_KEY),ids.slice(0,12)); syncExtrasToServer(); }
       function getProductByIdLocal(id){ return allProducts.find(p=>Number(p.id)===Number(id)); }
       function miniProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;">🎁</div>')+'<div class="dm-mini-product-body"><div class="dm-mini-product-name">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
-      function renderWishlist(){ const box=document.getElementById("wishlistList"), recent=document.getElementById("recentlyViewedList"); if(!box)return; const ws=wishlistIds().map(getProductByIdLocal).filter(Boolean); box.innerHTML=ws.length?ws.map(miniProductCard).join(""): '<div class="modal-desc">Your wishlist is empty. Tap ♡ on any product to save it here.</div>'; if(recent){ const rs=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(getProductByIdLocal).filter(Boolean); recent.innerHTML=rs.length?rs.map(miniProductCard).join(""): '<div class="modal-desc">Products you view will appear here.</div>'; } }
+      // Wishlist cards need an explicit Remove action — miniProductCard (used for
+      // "Recently Viewed") intentionally has no remove button, which is why
+      // items could be added to the wishlist but never taken back out from
+      // the wishlist view itself. This card fixes that.
+      function wishlistProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product"><div class="dm-mini-product-imgwrap">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="openProductModal('+Number(p.id)+')">🎁</div>')+'<button type="button" class="dm-mini-remove" title="Remove from wishlist" onclick="event.stopPropagation();toggleWishlistById('+Number(p.id)+')">✕</button></div><div class="dm-mini-product-body"><div class="dm-mini-product-name" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
+      function updateWishlistCount(){ const el=document.getElementById("wishlistCount"); if(el) el.textContent = wishlistIds().length; }
+      function renderWishlist(){
+        const ws=wishlistIds().map(getProductByIdLocal).filter(Boolean);
+        const emptyMsg='<div class="modal-desc">Your wishlist is empty. Tap ♡ on any product to save it here.</div>';
+        const box=document.getElementById("wishlistList");
+        if(box) box.innerHTML=ws.length?ws.map(wishlistProductCard).join(""): emptyMsg;
+        const drawerBox=document.getElementById("wishlistDrawerItems");
+        if(drawerBox) drawerBox.innerHTML=ws.length?ws.map(wishlistProductCard).join(""): emptyMsg;
+        const rs=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(getProductByIdLocal).filter(Boolean);
+        const recentHtml=rs.length?rs.map(miniProductCard).join(""): '<div class="modal-desc">Products you view will appear here.</div>';
+        const recent=document.getElementById("recentlyViewedList");
+        if(recent) recent.innerHTML=recentHtml;
+        const drawerRecent=document.getElementById("wishlistDrawerRecent");
+        if(drawerRecent) drawerRecent.innerHTML=recentHtml;
+        updateWishlistCount();
+      }
+      function openWishlistModal(){
+        renderWishlist();
+        const overlay=document.getElementById("wishlistOverlay");
+        if(overlay) overlay.classList.add("open");
+      }
+      function closeWishlistModal(e){
+        if (e && e.target !== e.currentTarget) return;
+        const overlay=document.getElementById("wishlistOverlay");
+        if(overlay) overlay.classList.remove("open");
+      }
       function quickAddProduct(id){ const p=getProductByIdLocal(id); if(!p)return; currentProduct=p; currentSize=(p.sizes&&p.sizes.length)?p.sizes[0]:null; currentQty=p.moq||1; addToCart(); }
       async function toggleBackInStockCurrentProduct(){
         if(!currentProduct)return;

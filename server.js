@@ -577,6 +577,11 @@ const exportOtpLimiter = makeLimiter(15, 5, "Too many export verification attemp
 // match rather than a partial/fuzzy search.
 const trackOrderLimiter = makeLimiter(15, 10, "Too many lookup attempts. Please wait a few minutes and try again.");
 
+// Customer self-service "forgot password" OTP request: tight, since each
+// request emails the customer's inbox and (once verified) allows a full
+// password reset.
+const customerForgotPasswordLimiter = makeLimiter(60, 5, "Too many reset requests. Please try again later.");
+
 // ================================
 // ADMIN LOGIN
 // ================================
@@ -785,6 +790,8 @@ app.post("/api/customer/register", signupLimiter, (req, res) => {
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
       marketingOptIn: customer.marketingOptIn !== false,
+      needsEmail: !customer.email,
+      hasPassword: !!customer.passwordHash,
     },
   });
 });
@@ -840,6 +847,8 @@ app.post("/api/customer/login", loginLimiter, (req, res) => {
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
       marketingOptIn: customer.marketingOptIn !== false,
+      needsEmail: !customer.email,
+      hasPassword: !!customer.passwordHash,
     },
   });
 });
@@ -902,6 +911,7 @@ app.post("/api/customer/google-login", loginLimiter, async (req, res) => {
       sellerStatus: customer.sellerStatus,
       marketingOptIn: customer.marketingOptIn !== false,
       needsProfileCompletion: !customer.mobile,
+      hasPassword: !!customer.passwordHash,
     },
   });
 });
@@ -931,6 +941,7 @@ app.post("/api/customer/save-whatsapp-number", requireCustomer, (req, res) => {
       id: customer.id, name: customer.name, email: customer.email || "", mobile: customer.mobile,
       picture: customer.picture || "", role: customer.role, shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus, marketingOptIn: customer.marketingOptIn !== false, needsProfileCompletion: false,
+      hasPassword: !!customer.passwordHash,
     },
   });
 });
@@ -980,6 +991,7 @@ app.post("/api/customer/complete-account", requireCustomer, (req, res) => {
       sellerStatus: customer.sellerStatus,
       marketingOptIn: customer.marketingOptIn !== false,
       needsProfileCompletion: false,
+      hasPassword: !!customer.passwordHash,
     },
   });
 });
@@ -999,8 +1011,181 @@ app.get("/api/customer/me", requireCustomer, (req, res) => {
       sellerStatus: c.sellerStatus,
       marketingOptIn: c.marketingOptIn !== false,
       needsProfileCompletion: !c.mobile,
+      needsEmail: !!c.mobile && !c.email,
+      hasPassword: !!c.passwordHash,
     },
   });
+});
+
+// Self-service: a logged-in customer adds (or replaces) the email on their
+// account. Being logged in is the identity proof here — no OTP needed just
+// to attach an email, the same way a fresh signup doesn't need one either.
+// This is what makes the forgot-password OTP flow below safe: an email can
+// only ever be attached by someone who already controls the account.
+app.post("/api/customer/add-email", requireCustomer, (req, res) => {
+  const cleanEmail = String((req.body || {}).email || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return res.status(400).json({ success: false, message: "Enter a valid email address." });
+  }
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
+
+  const duplicate = database.customers.find((c) => c.id !== customer.id && c.email && c.email.toLowerCase() === cleanEmail);
+  if (duplicate) {
+    return res.status(409).json({ success: false, message: "This email is already linked to another account." });
+  }
+
+  customer.email = cleanEmail;
+  writeDatabase(database);
+
+  res.json({
+    success: true,
+    message: "Email saved successfully.",
+    customer: {
+      id: customer.id, name: customer.name, email: customer.email, mobile: customer.mobile,
+      picture: customer.picture || "", role: customer.role, shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus, marketingOptIn: customer.marketingOptIn !== false,
+      needsProfileCompletion: !customer.mobile, needsEmail: false, hasPassword: !!customer.passwordHash,
+    },
+  });
+});
+
+// ================================
+// CUSTOMER FORGOT PASSWORD (email OTP)
+// ================================
+// Unauthenticated by nature (that's the point — they're locked out), so
+// identity is proven by possession of the registered email inbox instead of
+// a session. Mobile number finds the account; the OTP only ever goes to
+// whatever email is already saved on that account (never one typed in on
+// the spot) — that's what closes the takeover hole a wide-open "type any
+// email" flow would have.
+function buildCustomerResetOtpEmail({ name, otp }) {
+  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;line-height:1.5;color:#2f2521;">
+    <h2 style="color:#8a1c42;margin-bottom:6px;">Design Makers password reset</h2>
+    <p>Hi ${escapeHtml(name || "there")},</p>
+    <p>Use the code below to reset your Design Makers account password. This code expires in 10 minutes.</p>
+    <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:18px 20px;margin:18px 0;text-align:center;">
+      <div style="font-size:12px;color:#8c7d78;">Your one-time verification code</div>
+      <div style="font-size:32px;letter-spacing:8px;font-weight:800;color:#8a1c42;margin-top:6px;">${otp}</div>
+    </div>
+    <p style="color:#8c7d78;font-size:13px;">If you didn't request this, you can safely ignore this email — your password won't change.</p>
+  </div>`;
+}
+
+function cleanCustomerResetOtps(database) {
+  const now = Date.now();
+  if (!Array.isArray(database.customerPasswordResetOtps)) database.customerPasswordResetOtps = [];
+  database.customerPasswordResetOtps = database.customerPasswordResetOtps.filter(
+    (x) => !x.expiresAt || new Date(x.expiresAt).getTime() > now,
+  );
+}
+
+app.post("/api/customer/forgot-password/request-otp", customerForgotPasswordLimiter, async (req, res) => {
+  const cleanMobile = normalizeMobile((req.body || {}).mobile);
+  if (!isValidMobile(cleanMobile)) {
+    return res.status(400).json({ success: false, message: "Enter a valid 10-digit mobile number." });
+  }
+
+  const database = readDatabase();
+  cleanCustomerResetOtps(database);
+  const customer = database.customers.find((c) => c.mobile === cleanMobile);
+
+  // Same response shape whether or not the account exists, so this can't be
+  // used to enumerate which mobile numbers have accounts.
+  if (!customer || !customer.email) {
+    return res.status(404).json({
+      success: false,
+      message: customer
+        ? "No email is saved on this account yet. Please log in and add one from your profile, or contact support to reset your password."
+        : "No account found for this number.",
+    });
+  }
+
+  const otp = String(crypto.randomInt(100000, 1000000));
+  const requestId = crypto.randomUUID();
+  database.customerPasswordResetOtps.push({
+    requestId,
+    customerId: customer.id,
+    otpHash: hashExportSecret(otp),
+    attempts: 0,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    createdAt: new Date().toISOString(),
+  });
+  writeDatabase(database);
+
+  const emailResult = await sendMail(
+    customer.email,
+    "Design Makers password reset code",
+    buildCustomerResetOtpEmail({ name: customer.name, otp }),
+  );
+  if (!emailResult.sent) {
+    const db2 = readDatabase();
+    db2.customerPasswordResetOtps = (db2.customerPasswordResetOtps || []).filter((x) => x.requestId !== requestId);
+    writeDatabase(db2);
+    return res.status(503).json({ success: false, message: "Could not send the verification email right now. Please try again shortly." });
+  }
+
+  res.json({ success: true, requestId, emailMasked: maskEmail(customer.email), expiresInSeconds: 600 });
+});
+
+app.post("/api/customer/forgot-password/verify-otp", customerForgotPasswordLimiter, (req, res) => {
+  const requestId = String((req.body || {}).requestId || "");
+  const otp = String((req.body || {}).otp || "").trim();
+  const newPassword = String((req.body || {}).newPassword || "");
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: "New password should be at least 6 characters." });
+  }
+
+  const database = readDatabase();
+  cleanCustomerResetOtps(database);
+  const request = (database.customerPasswordResetOtps || []).find((x) => x.requestId === requestId);
+  if (!request) return res.status(400).json({ success: false, message: "This code has expired or is invalid. Please request a new one." });
+  if (request.attempts >= 5) return res.status(429).json({ success: false, message: "Too many incorrect attempts. Please request a new code." });
+
+  if (!/^\d{6}$/.test(otp) || hashExportSecret(otp) !== request.otpHash) {
+    request.attempts += 1;
+    writeDatabase(database);
+    return res.status(401).json({ success: false, message: "Incorrect code. Please check your email and try again." });
+  }
+
+  const customer = database.customers.find((c) => c.id === request.customerId);
+  if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
+
+  customer.passwordHash = bcrypt.hashSync(newPassword, 10);
+  database.customerPasswordResetOtps = database.customerPasswordResetOtps.filter((x) => x.requestId !== requestId);
+  writeDatabase(database);
+
+  res.json({ success: true, message: "Password reset successfully. You can now log in with your new password." });
+});
+
+// Self-service password change for a logged-in customer. If the account
+// already has a password, the current one must be verified first. Google-only
+// accounts that never set a password can set one directly (no old password
+// to check yet).
+app.post("/api/customer/change-password", requireCustomer, (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
+  const cleanNew = String(newPassword || "");
+  if (cleanNew.length < 6) {
+    return res.status(400).json({ success: false, message: "New password should be at least 6 characters." });
+  }
+
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
+
+  if (customer.passwordHash) {
+    if (!currentPassword || !bcrypt.compareSync(String(currentPassword), customer.passwordHash)) {
+      return res.status(401).json({ success: false, message: "Current password is incorrect." });
+    }
+  }
+
+  customer.passwordHash = bcrypt.hashSync(cleanNew, 10);
+  writeDatabase(database);
+
+  res.json({ success: true, message: "Password updated successfully.", hasPassword: true });
 });
 
 
