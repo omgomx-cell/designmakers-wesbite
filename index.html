@@ -815,6 +815,7 @@
       .dm-wishlist-btn{border:1px solid var(--blush-line);background:var(--surface);color:var(--rosewood);border-radius:10px;padding:10px 13px;cursor:pointer;font-weight:800;}
       .dm-wishlist-btn.active{background:var(--blush);border-color:var(--gold);}
       .dm-customer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+      #wishlistList{max-height:52vh;overflow-y:auto;padding:2px 4px 2px 2px;}
       .dm-mini-product{border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);overflow:hidden;}
       .dm-mini-product img{width:100%;height:130px;object-fit:cover;background:var(--blush);display:block;}
       .dm-mini-product-body{padding:10px;}
@@ -934,6 +935,20 @@
       .account-section-tabs { display:flex; gap:8px; margin:0 0 16px; border-bottom:1px solid var(--blush-line); padding-bottom:10px; }
       .account-section-tab { border:1px solid var(--blush-line); background:var(--surface); color:var(--dm-text); border-radius:999px; padding:8px 14px; cursor:pointer; font-weight:700; font-size:.82rem; }
       .account-section-tab.active { background:var(--rosewood); color:var(--text-on-primary); border-color:var(--rosewood); }
+      .account-section-tab:hover { border-color:var(--rosewood); }
+      /* Profile polish: soft cards + a gold-rosewood gradient ring on the avatar */
+      #accountProfileView #accountPic,
+      #accountProfileView #accountPicPlaceholder {
+        box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--gold, #c99a4d);
+      }
+      #accountProfileView #accountName { font-size: 1.15em; }
+      #accountProfileView > div[style*="border-radius:14px"] {
+        box-shadow: 0 4px 18px rgba(138,28,66,0.06);
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+      }
+      #accountProfileView > div[style*="border-radius:14px"]:hover {
+        box-shadow: 0 8px 24px rgba(138,28,66,0.1);
+      }
       .dm-order-list-card { border:1px solid var(--blush-line); border-radius:14px; padding:14px; margin-bottom:10px; background:var(--surface); cursor:pointer; transition:.18s ease; }
       .dm-order-list-card:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(138,28,66,.08); }
       .dm-order-detail-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(260px,.75fr); gap:14px; }
@@ -2387,6 +2402,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
             <img id="accountBtnPic" alt="" style="display:none;width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.9);box-shadow:0 1px 4px rgba(0,0,0,0.25);" />
           </button>
+          <button class="icon-btn" onclick="openWishlistModal()" title="Wishlist" id="wishlistHeaderBtn">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.2-4.5-9.7-8.9C0.6 8.6 2.1 5 5.6 5c2 0 3.6 1.2 4.5 2.7C11 6.2 12.6 5 14.6 5c3.5 0 5 3.6 3.3 7.1C15.4 16.5 12 21 12 21z"/></svg>
+            <span class="cart-count" id="wishlistCount">0</span>
+          </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7a1.5 1.5 0 0 1-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
             <span class="cart-count" id="cartCount">0</span>
@@ -2546,7 +2565,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
     </div>
 
     <div class="cat-cards-wrap">
-      <h2>Shop by category</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <h2 style="margin:0;">Shop by category</h2>
+        <select id="categoryQuickSelect" class="checkout-input" style="width:auto;max-width:220px;font-weight:700;" onchange="filterCategoryFromCard(this.value)" aria-label="Jump to a category">
+          <option value="">Quick jump: pick a category…</option>
+        </select>
+      </div>
       <div class="cat-carousel-wrap">
         <button class="cat-arrow cat-arrow-prev" id="catArrowPrev" onclick="scrollCategories(-1)" aria-label="Previous categories">‹</button>
         <div class="cat-carousel-track" id="catCards"></div>
@@ -2750,6 +2774,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         <div class="checkout-error" id="checkoutError" style="display:none;"></div>
         <button class="checkout-btn" id="checkoutBtn" onclick="placeOrder()"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg><span id="checkoutBtnLabel">Checkout on WhatsApp</span></button>
       </div>
+    </div>
+
+    <!-- WISHLIST DRAWER — dedicated popup, works for guests too (no login required) -->
+    <div class="cart-overlay" id="wishlistOverlay" onclick="closeWishlistModal()"></div>
+    <div class="cart-drawer" id="wishlistDrawer">
+      <div class="cart-header">
+        <h2>❤️ Your Wishlist</h2>
+        <button class="modal-close" onclick="closeWishlistModal()" style="position:static;">✕</button>
+      </div>
+      <div class="cart-items" id="wishlistDrawerItems"></div>
     </div>
 
     <!-- GIFT FOR HER / HIM POPUP — shows only that gender's linked products -->
@@ -4558,6 +4592,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             track.dataset.scrollBound = "1";
           }
         }
+
+        // Quick-jump dropdown — same category list as the tile carousel, for
+        // people who'd rather pick from a list than scroll through tiles.
+        const select = document.getElementById("categoryQuickSelect");
+        if (select) {
+          const current = select.value;
+          select.innerHTML = '<option value="">Quick jump: pick a category…</option>' +
+            cats.map((c) => '<option value="' + escapeHtml(c) + '">' + escapeHtml(c) + "</option>").join("");
+          if (cats.includes(current)) select.value = current;
+        }
       }
 
       // ---------- Category carousel: arrow navigation + "keep focused tile in view" ----------
@@ -5492,8 +5536,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       function renderCart() {
         const container = document.getElementById("cartItems");
         const footer = document.getElementById("cartFooter");
+        if (!container || !footer) return;
 
-        const giftAddonEligible = syncGiftAddonEligibility();
+        let giftAddonEligible = false;
+        try { giftAddonEligible = syncGiftAddonEligibility(); } catch (e) { console.error("syncGiftAddonEligibility failed:", e); }
 
         if (!cart.length) {
           container.innerHTML = '<div class="empty-cart">Your cart is empty.<br/>Browse our gifts and add something special 🎁</div>';
@@ -5502,50 +5548,59 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
 
         footer.style.display = "block";
-        updateCheckoutIdentity();
+        try { updateCheckoutIdentity(); } catch (e) { console.error("updateCheckoutIdentity failed:", e); }
 
         container.innerHTML = cart
           .map((item, idx) => {
-            if (item.productId === GIFT_ADDON_PRODUCT_ID) return ""; // rendered separately below, with a checkbox instead of qty controls
+            // A single malformed/legacy cart item should never take down the
+            // whole cart render (which used to leave the drawer looking like
+            // it "won't open" — renderCart() threw before openCart() could
+            // add the .open class). Skip just that item instead.
+            try {
+              if (item.productId === GIFT_ADDON_PRODUCT_ID) return ""; // rendered separately below, with a checkbox instead of qty controls
 
-            const discountPct = calcItemDiscount(item);
-            const lineTotal = item.price * item.qty * (1 - discountPct / 100);
-            // Resolve the photo from the live product list first (the saved
-            // cart may have an empty/stale image field), falling back to
-            // whatever the cart item itself carries.
-            const liveProduct = allProducts.find((p) => p.id === item.productId);
-            const cartImage = (liveProduct && liveProduct.image) || item.image || "";
-            const imgHtml = cartImage
-              ? '<img src="' + escapeHtml(cartImage) + '" />'
-              : "🎁";
-            const stock = getDisplayStock(liveProduct, item.size);
-            const unavailable = stock.qty !== null && stock.qty < item.qty;
+              const discountPct = calcItemDiscount(item);
+              const lineTotal = item.price * item.qty * (1 - discountPct / 100);
+              // Resolve the photo from the live product list first (the saved
+              // cart may have an empty/stale image field), falling back to
+              // whatever the cart item itself carries.
+              const liveProduct = allProducts.find((p) => p.id === item.productId);
+              const cartImage = (liveProduct && liveProduct.image) || item.image || "";
+              const imgHtml = cartImage
+                ? '<img src="' + escapeHtml(cartImage) + '" />'
+                : "🎁";
+              const stock = getDisplayStock(liveProduct, item.size);
+              const unavailable = stock.qty !== null && stock.qty < item.qty;
 
-            return (
-              '<div class="cart-item">' +
-                '<div class="cart-item-img">' + imgHtml + "</div>" +
-                '<div class="cart-item-info">' +
-                  '<div class="cart-item-name">' + escapeHtml(item.name) + "</div>" +
-                  (item.size ? '<div class="cart-item-meta">Size: ' + escapeHtml(item.size) + "</div>" : "") +
-                  (item.onSale ? '<div class="cart-item-meta" style="color:#1c7a34;">On sale: ₹' + fmtINR(item.price) + ' <span style="text-decoration:line-through;color:#b5849c;">₹' + fmtINR(item.originalPrice) + '</span></div>' : "") +
-                  (discountPct ? '<div class="cart-item-meta" style="color:#e6006e;">' + discountPct + "% bulk discount applied</div>" : "") +
-                  (stock.qty !== null ? '<div class="cart-item-meta" style="font-weight:800;color:' + (stock.qty === 0 ? '#b42318' : (stock.qty <= 5 ? '#b54708' : '#1c7a34')) + ';">' + (stock.qty === 0 ? '🔴 Currently out of stock' : ('Available now: ' + stock.qty)) + '</div>' : '') +
-                  (unavailable ? '<div class="cart-item-meta" style="color:#b42318;font-weight:800;">Please reduce quantity before checkout.</div>' : '') +
-                  '<div class="cart-item-controls">' +
-                    '<button onclick="updateCartQty(' + idx + ', -1)">−</button>' +
-                    '<span>' + item.qty + "</span>" +
-                    '<button onclick="updateCartQty(' + idx + ', 1)">+</button>' +
+              return (
+                '<div class="cart-item">' +
+                  '<div class="cart-item-img">' + imgHtml + "</div>" +
+                  '<div class="cart-item-info">' +
+                    '<div class="cart-item-name">' + escapeHtml(item.name) + "</div>" +
+                    (item.size ? '<div class="cart-item-meta">Size: ' + escapeHtml(item.size) + "</div>" : "") +
+                    (item.onSale ? '<div class="cart-item-meta" style="color:#1c7a34;">On sale: ₹' + fmtINR(item.price) + ' <span style="text-decoration:line-through;color:#b5849c;">₹' + fmtINR(item.originalPrice) + '</span></div>' : "") +
+                    (discountPct ? '<div class="cart-item-meta" style="color:#e6006e;">' + discountPct + "% bulk discount applied</div>" : "") +
+                    (stock.qty !== null ? '<div class="cart-item-meta" style="font-weight:800;color:' + (stock.qty === 0 ? '#b42318' : (stock.qty <= 5 ? '#b54708' : '#1c7a34')) + ';">' + (stock.qty === 0 ? '🔴 Currently out of stock' : ('Available now: ' + stock.qty)) + '</div>' : '') +
+                    (unavailable ? '<div class="cart-item-meta" style="color:#b42318;font-weight:800;">Please reduce quantity before checkout.</div>' : '') +
+                    '<div class="cart-item-controls">' +
+                      '<button onclick="updateCartQty(' + idx + ', -1)">−</button>' +
+                      '<span>' + item.qty + "</span>" +
+                      '<button onclick="updateCartQty(' + idx + ', 1)">+</button>' +
+                    "</div>" +
+                    '<button class="remove-btn" onclick="removeFromCart(' + idx + ')">Remove</button>' +
                   "</div>" +
-                  '<button class="remove-btn" onclick="removeFromCart(' + idx + ')">Remove</button>' +
-                "</div>" +
-                '<div class="cart-item-price">₹' + fmtINR(lineTotal) + "</div>" +
-              "</div>"
-            );
+                  '<div class="cart-item-price">₹' + fmtINR(lineTotal) + "</div>" +
+                "</div>"
+              );
+            } catch (e) {
+              console.error("Skipping one cart item that failed to render:", e, item);
+              return "";
+            }
           })
           .join("") + renderGiftAddonRow(giftAddonEligible);
 
-        renderCartTotals();
-        updateCheckoutStockState();
+        try { renderCartTotals(); } catch (e) { console.error("renderCartTotals failed:", e); }
+        try { updateCheckoutStockState(); } catch (e) { console.error("updateCheckoutStockState failed:", e); }
       }
 
       function updateCheckoutStockState() {
@@ -5694,14 +5749,29 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       }
 
       function openCart() {
-        renderCart();
-        document.getElementById("cartOverlay").classList.add("open");
-        document.getElementById("cartDrawer").classList.add("open");
+        // renderCart() used to run before the drawer's "open" class was
+        // added — if anything inside it threw, the drawer never showed at
+        // all and the cart looked completely broken. Now the drawer always
+        // opens; if rendering the items failed, we show a clear fallback
+        // message inside it instead of silently doing nothing.
+        try {
+          renderCart();
+        } catch (e) {
+          console.error("renderCart failed, opening cart anyway:", e);
+          const container = document.getElementById("cartItems");
+          if (container) container.innerHTML = '<div class="empty-cart">Could not load your cart items. Please refresh the page and try again.</div>';
+        }
+        const overlay = document.getElementById("cartOverlay");
+        const drawer = document.getElementById("cartDrawer");
+        if (overlay) overlay.classList.add("open");
+        if (drawer) drawer.classList.add("open");
       }
 
       function closeCart() {
-        document.getElementById("cartOverlay").classList.remove("open");
-        document.getElementById("cartDrawer").classList.remove("open");
+        const overlay = document.getElementById("cartOverlay");
+        const drawer = document.getElementById("cartDrawer");
+        if (overlay) overlay.classList.remove("open");
+        if (drawer) drawer.classList.remove("open");
       }
 
       // ---------- CHECKOUT: create the order server-side, then hand off to WhatsApp ----------
@@ -5863,6 +5933,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       loadProducts();
       loadCustomerSession();
       updateCartCount(); // reflect any cart restored from this device
+      updateWishlistCount(); // reflect any wishlist saved on this device
 
       // Old shareable link: https://designmakers.site/#sell (or ?sell=1) used
       // to pop the seller application form open on this page. It now lives
@@ -6036,7 +6107,34 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       function addRecentlyViewed(id){ const ids=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(Number).filter(Number.isFinite).filter(x=>x!==Number(id)); ids.unshift(Number(id)); dmWrite(dmScopedKey(DM_RECENT_KEY),ids.slice(0,12)); syncExtrasToServer(); }
       function getProductByIdLocal(id){ return allProducts.find(p=>Number(p.id)===Number(id)); }
       function miniProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;">🎁</div>')+'<div class="dm-mini-product-body"><div class="dm-mini-product-name">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
-      function renderWishlist(){ const box=document.getElementById("wishlistList"), recent=document.getElementById("recentlyViewedList"); if(!box)return; const ws=wishlistIds().map(getProductByIdLocal).filter(Boolean); box.innerHTML=ws.length?ws.map(miniProductCard).join(""): '<div class="modal-desc">Your wishlist is empty. Tap ♡ on any product to save it here.</div>'; if(recent){ const rs=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(getProductByIdLocal).filter(Boolean); recent.innerHTML=rs.length?rs.map(miniProductCard).join(""): '<div class="modal-desc">Products you view will appear here.</div>'; } }
+      // Wishlist cards need an explicit Remove action — miniProductCard (used for
+      // "Recently Viewed") intentionally has no remove button, which is why
+      // items could be added to the wishlist but never taken back out from
+      // the wishlist view itself. This card fixes that.
+      function wishlistProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="openProductModal('+Number(p.id)+')">🎁</div>')+'<div class="dm-mini-product-body"><div class="dm-mini-product-name" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button><button onclick="toggleWishlistById('+Number(p.id)+')" style="background:transparent;color:var(--rosewood);border:1px solid var(--blush-line);">✕ Remove</button></div></div></div>'; }
+      function updateWishlistCount(){ const el=document.getElementById("wishlistCount"); if(el) el.textContent = wishlistIds().length; }
+      function renderWishlist(){
+        const ws=wishlistIds().map(getProductByIdLocal).filter(Boolean);
+        const emptyMsg='<div class="modal-desc">Your wishlist is empty. Tap ♡ on any product to save it here.</div>';
+        const box=document.getElementById("wishlistList");
+        if(box) box.innerHTML=ws.length?ws.map(wishlistProductCard).join(""): emptyMsg;
+        const drawerBox=document.getElementById("wishlistDrawerItems");
+        if(drawerBox) drawerBox.innerHTML=ws.length?ws.map(wishlistProductCard).join(""): emptyMsg;
+        const recent=document.getElementById("recentlyViewedList");
+        if(recent){ const rs=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(getProductByIdLocal).filter(Boolean); recent.innerHTML=rs.length?rs.map(miniProductCard).join(""): '<div class="modal-desc">Products you view will appear here.</div>'; }
+        updateWishlistCount();
+      }
+      function openWishlistModal(){
+        renderWishlist();
+        const overlay=document.getElementById("wishlistOverlay"), drawer=document.getElementById("wishlistDrawer");
+        if(overlay) overlay.classList.add("open");
+        if(drawer) drawer.classList.add("open");
+      }
+      function closeWishlistModal(){
+        const overlay=document.getElementById("wishlistOverlay"), drawer=document.getElementById("wishlistDrawer");
+        if(overlay) overlay.classList.remove("open");
+        if(drawer) drawer.classList.remove("open");
+      }
       function quickAddProduct(id){ const p=getProductByIdLocal(id); if(!p)return; currentProduct=p; currentSize=(p.sizes&&p.sizes.length)?p.sizes[0]:null; currentQty=p.moq||1; addToCart(); }
       async function toggleBackInStockCurrentProduct(){
         if(!currentProduct)return;
