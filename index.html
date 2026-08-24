@@ -94,7 +94,7 @@
         50%      { opacity: 1;   transform: translateX(-50%) scale(1.08); }
       }
       body.theme-rakshabandhan .hero > * { position: relative; z-index: 1; }
-      body.theme-rakshabandhan .hero > .rakhi-charm { position: absolute; z-index: 1; }
+      body.theme-rakshabandhan .hero > .rakhi-charm { position: absolute; z-index: 5; }
 
       .rakhi-charm { display: none; position: absolute; top: -6px; width: 72px; height: 118px; z-index: 1; pointer-events: none; }
       body.theme-rakshabandhan .rakhi-charm { display: block; }
@@ -105,7 +105,7 @@
       }
 
 
-      body.theme-rakshabandhan .hero > .rakhi-float-wrap { position: absolute; z-index: 1; }
+      body.theme-rakshabandhan .hero > .rakhi-float-wrap { position: absolute; z-index: 5; }
       .rakhi-float-wrap {
         display: none;
         position: absolute;
@@ -2027,8 +2027,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         box-shadow: none !important;
       }
       body.theme-rakshabandhan .hero::before,
-      body.theme-rakshabandhan .hero::after,
-      body.theme-rakshabandhan .hero > .rakhi-charm {
+      body.theme-rakshabandhan .hero::after {
         display: none !important;
       }
       @media  (max-width: 900px)  {
@@ -2583,6 +2582,69 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       .modal-thumb img {
         background: transparent;
       }
+
+      /* ===== Rakshabandhan premium decoration pack (added on request) =====
+         1. Gold shimmer sweep on the main CTA buttons that are actually
+            visible during the rakhi theme (mobile action bar cart button,
+            product modal Buy Now / Add to Cart).
+         2. Static gold corner-flourish framing on the hero banner and the
+            sister/brother category cards.
+         3. Gold underline under section headings that draws itself in the
+            first time the section scrolls into view (JS toggles a class,
+            see the script block near the closing </body>). */
+
+      /* Auto-loops (not hover-only) so it still shows on touch/mobile,
+         where the mobile action bar cart button is the main visible CTA. */
+      body.theme-rakshabandhan .mobile-action-bar .cart-btn,
+      body.theme-rakshabandhan #buyNowBtn,
+      body.theme-rakshabandhan .add-cart-btn:not(#productWhatsappBtn) {
+        position: relative;
+        overflow: hidden;
+      }
+      body.theme-rakshabandhan .mobile-action-bar .cart-btn::after,
+      body.theme-rakshabandhan #buyNowBtn::after,
+      body.theme-rakshabandhan .add-cart-btn:not(#productWhatsappBtn)::after {
+        content: "";
+        position: absolute;
+        top: 0; left: -60%;
+        width: 40%; height: 100%;
+        background: linear-gradient(115deg, transparent, rgba(255,255,255,.55), transparent);
+        transform: skewX(-20deg);
+        pointer-events: none;
+        animation: rakhiBtnShimmer 3.6s ease-in-out infinite;
+      }
+      @keyframes rakhiBtnShimmer {
+        0%, 55% { left: -60%; }
+        85%, 100% { left: 130%; }
+      }
+
+      .rakhi-corner-flourish {
+        position: absolute;
+        width: 46px; height: 46px;
+        pointer-events: none;
+        z-index: 4;
+        opacity: .85;
+      }
+      .rakhi-corner-flourish.tl { top: 14px; left: 14px; }
+      .rakhi-corner-flourish.br { bottom: 14px; right: 14px; transform: rotate(180deg); }
+      @media (max-width: 720px) {
+        .rakhi-corner-flourish { width: 30px; height: 30px; }
+        .rakhi-corner-flourish.tl { top: 8px; left: 8px; }
+        .rakhi-corner-flourish.br { bottom: 8px; right: 8px; }
+      }
+
+      body.theme-rakshabandhan .cat-cards-wrap h2::after,
+      body.theme-rakshabandhan .prod-section-wrap h2::after,
+      body.theme-rakshabandhan .sale-section-wrap h2::after {
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform .9s cubic-bezier(.22,.8,.2,1);
+      }
+      body.theme-rakshabandhan .cat-cards-wrap h2.rakhi-underline-in::after,
+      body.theme-rakshabandhan .prod-section-wrap h2.rakhi-underline-in::after,
+      body.theme-rakshabandhan .sale-section-wrap h2.rakhi-underline-in::after {
+        transform: scaleX(1);
+      }
     </style>
   </head>
   <body>
@@ -2716,6 +2778,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         <img class="festival-hero-img" src="rakhi-hero-desktop.webp" alt="Happy Raksha Bandhan. Design Makers, celebrating the bond of love.">
         <button class="festival-hero-hit festival-hero-hit-shop" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
         <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/7004847813','_blank')" aria-label="Chat on WhatsApp"></button>
+        <svg class="rakhi-corner-flourish tl" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
+        <svg class="rakhi-corner-flourish br" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
       </div>
     </div>
     <div class="gift-addon-banner" id="giftAddonBanner">
@@ -2751,9 +2823,29 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
     <div class="promo-banner-wrap festival-cat-wrap" id="rakhiCatWrap">
       <div class="promo-banner gift-banner festival-cat-card" onclick="openGenderModal('her')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('her');}">
         <img class="gift-banner-img" src="rakhi-gift-for-sister.webp" alt="For your sister — because she deserves the best" loading="lazy">
+        <svg class="rakhi-corner-flourish tl" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
+        <svg class="rakhi-corner-flourish br" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
       </div>
       <div class="promo-banner gift-banner festival-cat-card" onclick="openGenderModal('him')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('him');}">
         <img class="gift-banner-img" src="rakhi-gift-for-brother.webp" alt="For your brother — the one who always has you" loading="lazy">
+        <svg class="rakhi-corner-flourish tl" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
+        <svg class="rakhi-corner-flourish br" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
       </div>
     </div>
 
@@ -6554,6 +6646,33 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         setTimeout(() => { el.style.animation = ""; }, 60);
       }
 
+      // ===== Rakhi theme: gold underline draws in once a section heading
+      // scrolls into view (premium-pack addition). Safe no-op outside the
+      // rakhi theme since the CSS transform only applies under
+      // body.theme-rakshabandhan. =====
+      (function () {
+        const headingSelector = ".cat-cards-wrap h2, .prod-section-wrap h2, .sale-section-wrap h2";
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("rakhi-underline-in");
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.4 });
+
+        function observeHeadings() {
+          document.querySelectorAll(headingSelector).forEach((h) => io.observe(h));
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", observeHeadings);
+        } else {
+          observeHeadings();
+        }
+        // Product sections render their h2 dynamically after the products
+        // API responds, so also re-scan shortly after load to catch those.
+        setTimeout(observeHeadings, 1500);
+      })();
     </script>
     <script>
       // Shared dark-mode toggle — same localStorage key as the rest of the
