@@ -2230,6 +2230,63 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.theme-rakshabandhan .dm-qa-sub,
       body.theme-rakshabandhan .dm-qa-arrow,
       body.theme-rakshabandhan .dm-info-card-text { color: var(--dm-muted) !important; }
+
+      /* ===== Rakshabandhan cart drawer fix =====
+         Same stale-variable problem as the profile panel: an early "dark
+         surface" rule (near the top of this stylesheet) still sets
+         .cart-drawer's background to near-black (#2a0d0d) with light
+         cream text (var(--ink)) — built for the original dark version of
+         this theme. A later rule already fixed the cart drawer's actual
+         background to the light surface color, but never corrected the
+         text color that cascades down to it, so item names, prices, the
+         "Your Cart" heading, the COD note and the gift-code label were
+         all left in gold/cream, unreadable against the now-light drawer.
+         checkout-input (delivery address box, gift-code box, and every
+         other text field on the site) had the same dark-box/light-text
+         leftover — fixed here too so it matches the rest of the theme. */
+      body.theme-rakshabandhan .cart-drawer { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .cart-header h2 { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .cart-item-price { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .cod-note {
+        background: var(--dm-soft) !important;
+        color: var(--dm-accent-dark) !important;
+      }
+      body.theme-rakshabandhan .gift-code-box > div:first-child { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .checkout-input {
+        background: var(--dm-surface-solid, #fffdf9) !important;
+        color: var(--dm-text) !important;
+        border-color: var(--dm-border) !important;
+      }
+      body.theme-rakshabandhan .checkout-input::placeholder { color: var(--dm-muted) !important; opacity: 1; }
+      body.theme-rakshabandhan .cart-total-row { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan #checkoutIdentity {
+        color: var(--dm-accent-dark) !important;
+        background: var(--dm-soft) !important;
+        border-color: var(--dm-border) !important;
+      }
+
+      /* ===== Rakshabandhan product-quick-view modal fix =====
+         Same stale var(--rosewood)/var(--muted) issue (both resolve to
+         gold for this theme) reaching the product modal: price, the
+         subtitle/MOQ line, field labels ("QUANTITY", "REVIEWS"), the
+         Wishlist button and the share icon were all gold-on-cream. Also
+         squares the Add to Cart / Buy Now buttons with the maroon accent
+         used everywhere else, instead of the leftover gold. */
+      body.theme-rakshabandhan .modal-price { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .modal-desc,
+      body.theme-rakshabandhan .modal-moq { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan .field-label { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .dm-wishlist-btn {
+        color: var(--dm-accent-dark) !important;
+        border-color: var(--dm-border) !important;
+      }
+      body.theme-rakshabandhan .dm-wishlist-btn.active { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan #shareProductBtn { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .add-cart-btn:not(#productWhatsappBtn) {
+        background: linear-gradient(135deg, var(--dm-accent-dark), var(--dm-accent)) !important;
+        color: #fff !important;
+      }
+      body.theme-rakshabandhan #buyNowBtn { background: var(--dm-accent-dark) !important; }
 </style>
     <!-- Toggleable dark-mode skin: disabled by default via media="not all",
          flipped to media="all" by the shared theme JS when dark mode is on.
@@ -2843,7 +2900,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             <button type="button" id="productWishlistBtn" class="dm-wishlist-btn" onclick="toggleWishlistCurrentProduct()" aria-label="Add product to wishlist">♡ Wishlist</button>
             <button type="button" id="productNotifyBtn" class="dm-wishlist-btn" onclick="toggleBackInStockCurrentProduct()" style="display:none;">🔔 Notify me</button>
           </div>
-          <button type="button" id="productWhatsappBtn" class="add-cart-btn" onclick="chatAboutCurrentProduct()" style="width:100%;margin:0 0 8px;background:color-mix(in srgb, #1c7a34 82%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);color:#fff;">💬 Chat with us on WhatsApp</button>
+          <button type="button" id="productWhatsappBtn" class="add-cart-btn" onclick="chatAboutCurrentProduct()" style="width:100%;margin:0 0 8px;background:color-mix(in srgb, #1c7a34 82%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);color:#fff;"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>Chat with us on WhatsApp</button>
 
           <div style="display:flex;gap:8px;align-items:stretch;">
             <button class="add-cart-btn" id="addCartBtn" onclick="addToCart()" style="flex:1;">Add to Cart</button>
@@ -5456,7 +5513,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         return (
           '<div class="product-card" onclick="openProductModal(' + p.id + ')">' +
             '<div class="product-img" style="position:relative;">' +
-              '<button type="button" aria-label="Add to wishlist" onclick="event.stopPropagation();toggleWishlistById(' + p.id + ')" style="position:absolute;right:9px;top:9px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid var(--blush-line);background:rgba(255,255,255,.9);color:var(--rosewood);font-size:18px;cursor:pointer;">' + (isWishlisted(p.id) ? '♥' : '♡') + '</button>' +
+              '<button type="button" data-wishlist-id="' + p.id + '" aria-label="Add to wishlist" onclick="event.stopPropagation();toggleWishlistById(' + p.id + ')" style="position:absolute;right:9px;top:9px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid var(--blush-line);background:rgba(255,255,255,.9);color:var(--rosewood);font-size:18px;cursor:pointer;">' + (isWishlisted(p.id) ? '♥' : '♡') + '</button>' +
               badgeHtml +
               imgHtml +
             "</div>" +
@@ -6084,7 +6141,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                     (item.size ? '<div class="cart-item-meta">Size: ' + escapeHtml(item.size) + "</div>" : "") +
                     (item.onSale ? '<div class="cart-item-meta" style="color:#1c7a34;">On sale: ₹' + fmtINR(item.price) + ' <span style="text-decoration:line-through;color:#b5849c;">₹' + fmtINR(item.originalPrice) + '</span></div>' : "") +
                     (discountPct ? '<div class="cart-item-meta" style="color:#e6006e;">' + discountPct + "% bulk discount applied</div>" : "") +
-                    (stock.qty !== null ? '<div class="cart-item-meta" style="font-weight:800;color:' + (stock.qty === 0 ? '#b42318' : (stock.qty <= 5 ? '#b54708' : '#1c7a34')) + ';">' + (stock.qty === 0 ? '🔴 Currently out of stock' : ('Available now: ' + stock.qty)) + '</div>' : '') +
+                    (stock.qty === 0 ? '<div class="cart-item-meta" style="font-weight:800;color:#b42318;">🔴 Currently out of stock</div>' : (stock.qty !== null && stock.qty <= 5 ? '<div class="cart-item-meta" style="font-weight:800;color:#b54708;">Available now: ' + stock.qty + '</div>' : '')) +
                     (unavailable ? '<div class="cart-item-meta" style="color:#b42318;font-weight:800;">Please reduce quantity before checkout.</div>' : '') +
                     '<div class="cart-item-controls">' +
                       '<button onclick="updateCartQty(' + idx + ', -1)">−</button>' +
@@ -6604,13 +6661,27 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           syncExtrasToServer();
           renderWishlist();
           renderSavedAddresses();
-          renderProducts(allProducts);
+          refreshWishlistHearts();
         } catch (e) {}
       }
 
       function wishlistIds(){ return dmRead(dmScopedKey(DM_WISHLIST_KEY),[]).map(Number).filter(Number.isFinite); }
       function isWishlisted(id){ return wishlistIds().includes(Number(id)); }
-      function toggleWishlistById(id){ const ids=wishlistIds(); const n=Number(id); const i=ids.indexOf(n); if(i>=0)ids.splice(i,1);else ids.unshift(n); dmWrite(dmScopedKey(DM_WISHLIST_KEY),ids.slice(0,100)); syncExtrasToServer(); renderProducts(allProducts); renderWishlist(); showToast(i>=0?"Removed from wishlist":"Added to wishlist ❤️"); }
+      function toggleWishlistById(id){ const ids=wishlistIds(); const n=Number(id); const i=ids.indexOf(n); if(i>=0)ids.splice(i,1);else ids.unshift(n); dmWrite(dmScopedKey(DM_WISHLIST_KEY),ids.slice(0,100)); syncExtrasToServer(); refreshWishlistHearts(); renderWishlist(); showToast(i>=0?"Removed from wishlist":"Added to wishlist ❤️"); }
+      // Updates just the ♥/♡ glyph on whichever product cards are currently
+      // on screen (homepage sections, category popup, etc.) instead of
+      // calling renderProducts(allProducts) — that used to force the full,
+      // unfiltered product catalog into the homepage's #productsGrid, which
+      // is supposed to stay empty until a category is picked (see
+      // filterCategoryFromCard). Calling it here from a wishlist toggle, or
+      // after login in restoreAccountExtras(), was dumping every product
+      // onto the homepage as a side effect.
+      function refreshWishlistHearts(){
+        document.querySelectorAll("[data-wishlist-id]").forEach((btn) => {
+          const id = Number(btn.getAttribute("data-wishlist-id"));
+          btn.textContent = isWishlisted(id) ? "♥" : "♡";
+        });
+      }
       function toggleWishlistCurrentProduct(){ if(!currentProduct)return; const ids=wishlistIds(); const id=Number(currentProduct.id); const i=ids.indexOf(id); if(i>=0)ids.splice(i,1);else ids.unshift(id); dmWrite(dmScopedKey(DM_WISHLIST_KEY),ids.slice(0,100)); syncExtrasToServer(); updateWishlistButton(); renderWishlist(); showToast(i>=0?"Removed from wishlist":"Added to wishlist ❤️"); }
       function updateWishlistButton(){ const b=document.getElementById("productWishlistBtn"); if(!b||!currentProduct)return; const on=isWishlisted(currentProduct.id); b.classList.toggle("active",on); b.textContent=on?"♥ Wishlisted":"♡ Wishlist"; }
       function addRecentlyViewed(id){ const ids=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(Number).filter(Number.isFinite).filter(x=>x!==Number(id)); ids.unshift(Number(id)); dmWrite(dmScopedKey(DM_RECENT_KEY),ids.slice(0,12)); syncExtrasToServer(); }
