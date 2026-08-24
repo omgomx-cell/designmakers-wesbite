@@ -1995,8 +1995,52 @@
         const shell = document.getElementById("dmShell");
         if (shell) shell.classList.toggle("dm-sidebar-open");
       }
+
+      // ---------- BACK-BUTTON SUPPORT ----------
+      // Tab switches and the Inventory Seller -> Products -> Variants
+      // drill-down are all pure JS (show/hide), so they never touch the
+      // URL/history by default. That means the browser's Back button has
+      // nothing of ours to step through — it jumps straight out of /admin
+      // to whatever page was open before it (usually the storefront).
+      // We push one history entry per internal navigation step and
+      // restore it on popstate, so Back moves one step at a time inside
+      // admin instead of leaving it immediately.
+      let dmHistoryInitialized = false;
+      let dmApplyingHistoryState = false;
+      function dmPushHistoryState(state) {
+        if (dmApplyingHistoryState) return; // we're restoring a state, not creating a new one
+        if (!dmHistoryInitialized) {
+          dmHistoryInitialized = true;
+          history.replaceState(state, "");
+        } else {
+          history.pushState(state, "");
+        }
+      }
+      window.addEventListener("popstate", (e) => {
+        const state = e.state;
+        if (!state || !state.dmTab) return; // not one of ours (e.g. left admin entirely) — let the browser do its thing
+        dmApplyingHistoryState = true;
+        try {
+          switchTab(state.dmTab);
+          if (state.dmTab === "inventory") {
+            if (state.invPage === "variants" && state.invProductId) {
+              invCurrentSellerKey = state.invSellerKey || null;
+              invCurrentSellerName = state.invSellerName || "";
+              openProductVariants(state.invProductId);
+            } else if (state.invPage === "products" && state.invSellerKey) {
+              openSellerInventory(state.invSellerKey, state.invSellerName || "");
+            }
+            // invPage === "sellers" (or missing) needs nothing extra —
+            // switchTab("inventory") above already calls loadInventorySellers().
+          }
+        } finally {
+          dmApplyingHistoryState = false;
+        }
+      });
+
       function switchTab(tab) {
         currentTab = tab;
+        dmPushHistoryState({ dmTab: tab });
 
         ["overview", "products", "inventory", "orders", "homepage", "sellerlist", "sellers", "customers", "admins", "giftcodes", "marketing"].forEach((t) => {
           document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
@@ -2124,12 +2168,16 @@
       }
 
       // ---- Page 2: Seller's Products ----
-      function backToInventorySellers() { invShowPage("sellers"); }
+      function backToInventorySellers() {
+        invShowPage("sellers");
+        dmPushHistoryState({ dmTab: "inventory", invPage: "sellers" });
+      }
 
       async function openSellerInventory(key, name) {
         invCurrentSellerKey = key;
         invCurrentSellerName = name;
         invShowPage("products");
+        dmPushHistoryState({ dmTab: "inventory", invPage: "products", invSellerKey: key, invSellerName: name });
         document.getElementById("invProductsBreadcrumb").innerHTML =
           '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Inventory</a> → ' +
           '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Sellers</a> → ' + escapeHtml(name);
@@ -2210,11 +2258,15 @@
       }
 
       // ---- Page 3: Product Size/Variant Stock ----
-      function backToInventoryProducts() { invShowPage("products"); }
+      function backToInventoryProducts() {
+        invShowPage("products");
+        dmPushHistoryState({ dmTab: "inventory", invPage: "products", invSellerKey: invCurrentSellerKey, invSellerName: invCurrentSellerName });
+      }
 
       async function openProductVariants(productId) {
         invCurrentProductId = productId;
         invShowPage("variants");
+        dmPushHistoryState({ dmTab: "inventory", invPage: "variants", invSellerKey: invCurrentSellerKey, invSellerName: invCurrentSellerName, invProductId: productId });
         document.getElementById("invVariantSearch").value = "";
         await loadInventoryVariants();
       }
