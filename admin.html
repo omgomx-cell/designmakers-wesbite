@@ -2060,7 +2060,15 @@
         document.getElementById("addProductFab").classList.toggle("hidden", tab !== "products");
 
         if (tab === "overview") loadAdminOverview();
-        if (tab === "inventory") loadInventorySellers();
+        // Like the Orders tab below, don't re-hit the server every time
+        // this tab is clicked if we already have the data — just
+        // re-show what's cached. The "↻ Refresh" button on the page
+        // still lets the admin force a reload when they actually want
+        // up-to-date numbers.
+        if (tab === "inventory") {
+          invShowPage("sellers");
+          if (invSellers.length) renderInventorySellers(); else loadInventorySellers();
+        }
         if (tab === "orders" && !orders.length) loadOrders();
         if (tab === "homepage") {
           document.getElementById("homepageSectionsSaved").style.display = "none";
