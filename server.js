@@ -3833,24 +3833,20 @@ function buildSellerProductSummaries(database, sellerKey) {
   byProduct.forEach((g, productId) => {
     const p = productById.get(productId);
     if (!p) return;
-    // Deliberately NOT sending the product image here: images are stored
-    // as full-size base64 data URIs (often 100KB+ each), and this list
-    // can have many rows. Embedding every one would balloon the response
-    // and make the Inventory tab slow to load, especially on
-    // lower-bandwidth hosting — for a small thumbnail that isn't worth
-    // it. The Products tab (and the single-product variant detail below)
-    // still show the real image where it's actually needed.
+    // NOT sending the product image here: images are stored as full-size
+    // base64 data URIs (often 100KB+ each), and this list can have many
+    // rows. Embedding every one balloons the response and makes the
+    // Inventory tab slow (or stuck) to load, especially with many
+    // products or on lower-bandwidth hosting. The frontend already
+    // handles a missing image gracefully (skips the thumbnail). The
+    // Variant Stock page (buildProductVariantDetail below) still shows
+    // the real image where it's actually needed.
     out.push({
       id: p.id,
       name: p.name || "",
       productCode: p.productCode || "",
       category: p.category || "Uncategorized",
       price: Number(p.price) || 0,
-      // Small catalogue thumbnail (the same image already stored/served for
-      // this product elsewhere) so the seller's product list can show a
-      // real photo per the Inventory spec. Not a new upload path — just
-      // reusing product.image/product.images[0].
-      image: (Array.isArray(p.images) && p.images[0]) || p.image || "",
       // "Live on the storefront" = approved by admin AND not switched off
       // by the seller/admin. Used by the admin Inventory tab to sort/filter
       // so stock updates for what's actually on sale surface first.
