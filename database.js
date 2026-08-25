@@ -11,6 +11,19 @@ let mongoClient = null;
 let mongoCollection = null;
 let cachedData = null;
 
+// ================================
+// CUSTOMER MOBILE UNIQUENESS (race-condition-safe, cross-instance)
+// ================================
+// customers live as an array inside one big app_data document, so a normal
+// per-field unique index isn't available on them directly. Instead this
+// tiny dedicated collection holds exactly one row per normalized mobile
+// number with a real unique index — MongoDB itself rejects a second
+// insertOne() for the same mobile, atomically, even if two server
+// instances (or two requests on the same instance) call it at the exact
+// same time. That's what actually closes the registration race condition;
+// the in-memory array check elsewhere is just a cheap first-pass filter.
+let mobileLocksCollection = null;
+
 // The last products-array "fingerprint" that was actually persisted to
 // the `products` collection (see fingerprintProducts()/writeDatabase()
 // below) — used to skip re-saving the whole catalog when nothing about
@@ -809,6 +822,13 @@ async function connectDB() {
   mongoCollection = db.collection(COLLECTION_NAME);
   productsStore.init(db);
 
+  mobileLocksCollection = db.collection("customer_mobile_locks");
+  try {
+    await mobileLocksCollection.createIndex({ mobile: 1 }, { unique: true });
+  } catch (err) {
+    console.error("Failed to create unique index on customer_mobile_locks:", err.message);
+  }
+
   const existing = await mongoCollection.findOne({ _id: DOC_ID });
 
   if (existing) {
@@ -873,6 +893,54 @@ async function connectDB() {
   lastSavedProductsFingerprint = fingerprintProducts(cachedData.products);
 
   ensureShape(cachedData);
+
+  // One-time (safe to re-run every boot) backfill: give every existing
+  // customer that already has a mobile number a lock row, so brand-new
+  // registrations get blocked from colliding with them. Pre-existing
+  // duplicate accounts are left exactly as they are — if two old
+  // customers already share a number, only the first backfilled one
+  // claims the lock row; that's expected and does not error.
+  if (mobileLocksCollection && Array.isArray(cachedData.customers)) {
+    for (const c of cachedData.customers) {
+      if (!c.mobile) continue;
+      try {
+        await mobileLocksCollection.updateOne(
+          { mobile: c.mobile },
+          { $setOnInsert: { mobile: c.mobile, customerId: c.id, createdAt: new Date() } },
+          { upsert: true },
+        );
+      } catch (err) {
+        // Duplicate key / race on backfill is harmless — skip and move on.
+      }
+    }
+  }
+}
+
+// Atomically claim a mobile number for a customer. Returns true if this
+// call successfully claimed it (no one else has it), false if it's
+// already taken. Safe to call concurrently from multiple requests/instances.
+async function reserveCustomerMobile(mobile, customerId) {
+  if (!mobile) return true;
+  if (!mobileLocksCollection) return true; // Mongo not connected — app-level check still applies
+  try {
+    await mobileLocksCollection.insertOne({ mobile, customerId: customerId || null, createdAt: new Date() });
+    return true;
+  } catch (err) {
+    if (err && err.code === 11000) return false; // unique index collision = already taken
+    console.error("reserveCustomerMobile failed:", err.message);
+    return true; // don't hard-fail registration on an unrelated Mongo error
+  }
+}
+
+// Release a previously reserved mobile number (used to roll back a
+// reservation if registration/account update fails after reserving).
+async function releaseCustomerMobile(mobile) {
+  if (!mobile || !mobileLocksCollection) return;
+  try {
+    await mobileLocksCollection.deleteOne({ mobile });
+  } catch (err) {
+    console.error("releaseCustomerMobile failed:", err.message);
+  }
 }
 
 // Self-heal: older databases won't have these fields yet.
@@ -1275,4 +1343,6 @@ module.exports = {
   writeDatabase,
   getNextId,
   GIFT_ADDON,
+  reserveCustomerMobile,
+  releaseCustomerMobile,
 };

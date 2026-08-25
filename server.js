@@ -10,7 +10,7 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const compression = require("compression");
 
-const { connectDB, readDatabase, writeDatabase, getNextId, GIFT_ADDON } = require("./database");
+const { connectDB, readDatabase, writeDatabase, getNextId, GIFT_ADDON, reserveCustomerMobile, releaseCustomerMobile } = require("./database");
 
 const app = express();
 
@@ -105,7 +105,6 @@ async function sendMail(to, subject, html) {
   }
 }
 
-
 // ================================
 // CUSTOMER MARKETING / OFFERS
 // ================================
@@ -134,28 +133,129 @@ function verifyMarketingToken(token) {
   } catch (_) { return null; }
 }
 
-function marketingProductHtml(product, baseUrl) {
+// Builds the exact same absolute product URL the storefront itself builds
+// (see buildProductUrl() in index.html) — /product/<id>/<slug> — so a
+// marketing email link always opens the real product page, never the
+// homepage, even if the product name changes later (the id is what
+// actually resolves the product; the slug is cosmetic/SEO only).
+function marketingProductUrl(product, baseUrl) {
+  return `${baseUrl}/product/${encodeURIComponent(product.id)}/${slugifyProductName(product.name)}`;
+}
+
+// Renders one product card's inner HTML (image + name + price + button, all
+// individually clickable to the same product page). Kept separate from the
+// grid/table wrapper below so the same card markup works whether it's
+// sitting in a single-product hero cell, a 2/3-up row, or the 2x2 / 3+2
+// grids for 4 and 5 products.
+function marketingProductCardHtml(product, baseUrl, big) {
   const name = escapeHtml(product.name || "Product");
-  const price = Number(product.price || 0).toLocaleString("en-IN");
-  const href = `${baseUrl}/index.html?product=${encodeURIComponent(product.id)}`;
-  const image = typeof product.image === "string" && product.image.startsWith("data:image/") && product.image.length < 350000
-    ? `<img src="${product.image}" alt="${name}" style="width:100%;max-width:240px;height:180px;object-fit:cover;border-radius:12px;display:block;margin:0 auto 12px;">`
+  const href = marketingProductUrl(product, baseUrl);
+  const onSale = !!product.onSale && Number(product.salePercent) > 0 && (!product.saleEndsAt || Date.now() < Number(product.saleEndsAt));
+  const price = Number(product.price || 0);
+  const salePrice = onSale ? Math.round(price * (1 - Number(product.salePercent) / 100) * 100) / 100 : null;
+  const imgHeight = big ? 260 : 170;
+  // Gmail and most real email clients block/strip inline data:image base64
+  // sources, so the email must link to a normal HTTPS image URL instead.
+  // If the stored photo is a base64 data URI, point at the existing
+  // /product-image/:id/:index route (same one used for WhatsApp links)
+  // which serves the real bytes over HTTPS from the production domain.
+  // If it's already a hosted URL, use it as-is. Either way, no image data
+  // is duplicated or re-uploaded — this just reuses the existing storage.
+  const rawImage = typeof product.image === "string" ? product.image : "";
+  const imageUrl = rawImage
+    ? (rawImage.startsWith("data:image/")
+        ? `${baseUrl}/product-image/${encodeURIComponent(product.id)}/0`
+        : rawImage)
     : "";
-  return `<div style="display:inline-block;vertical-align:top;width:240px;max-width:100%;margin:8px;text-align:center;border:1px solid #ead8d0;border-radius:14px;padding:14px;background:#fffaf7;box-sizing:border-box;">${image}<div style="font-weight:800;color:#5b2b24;font-size:16px;line-height:1.3;">${name}</div><div style="font-weight:800;color:#a56a2a;font-size:18px;margin:7px 0 12px;">₹${price}</div><a href="${href}" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:9px 15px;border-radius:9px;font-weight:700;">View Product</a></div>`;
+  const image = imageUrl
+    ? `<img src="${escapeHtml(imageUrl)}" alt="${name}" width="100%" style="width:100%;height:${imgHeight}px;object-fit:cover;border-radius:12px;display:block;">`
+    : `<div style="width:100%;height:${imgHeight}px;border-radius:12px;background:#f4e9e2;color:#a68a82;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;">No image available</div>`;
+  const priceHtml = onSale
+    ? `<span style="text-decoration:line-through;color:#a68a82;font-size:13px;">₹${price.toLocaleString("en-IN")}</span> <span style="color:#a56a2a;font-weight:800;font-size:${big?20:18}px;">₹${salePrice.toLocaleString("en-IN")}</span> <span style="display:inline-block;background:#6b3028;color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;">${Math.round(Number(product.salePercent))}% OFF</span>`
+    : `<span style="color:#a56a2a;font-weight:800;font-size:${big?20:18}px;">₹${price.toLocaleString("en-IN")}</span>`;
+  return `<a href="${href}" style="display:block;text-decoration:none;margin-bottom:12px;">${image}</a>` +
+    `<a href="${href}" style="display:block;text-decoration:none;color:#5b2b24;font-weight:800;font-size:${big?18:16}px;line-height:1.3;margin-bottom:6px;">${name}</a>` +
+    `<div style="margin-bottom:12px;">${priceHtml}</div>` +
+    `<a href="${href}" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:9px 16px;border-radius:9px;font-weight:700;font-size:13px;">View Product</a>`;
+}
+
+// Wraps 1-5 product cards into an email-safe (table-based) responsive grid:
+//   1 -> one large hero card
+//   2 -> two balanced columns
+//   3 -> three balanced columns
+//   4 -> 2 x 2 grid
+//   5 -> 3-up row, then a balanced 2-up row
+// Every cell carries the "dm-col" class, which the <style> block in
+// buildMarketingEmail() collapses to a full-width single column under
+// 600px, so it always stacks cleanly on mobile regardless of layout.
+function marketingProductsGridHtml(products, baseUrl) {
+  if (!products.length) return "";
+  const cell = (p, big) => `<td class="dm-col" width="${big?100:Math.floor(100/Math.min(products.length,3))}%" valign="top" style="padding:8px;box-sizing:border-box;">` +
+    `<div style="border:1px solid #ead8d0;border-radius:14px;padding:16px;background:#fffaf7;text-align:left;height:100%;box-sizing:border-box;">${marketingProductCardHtml(p, baseUrl, big)}</div></td>`;
+  const row = (cells) => `<tr>${cells.join("")}</tr>`;
+  let rowsHtml;
+  if (products.length === 1) {
+    rowsHtml = row([cell(products[0], true)]);
+  } else if (products.length === 4) {
+    rowsHtml = row([cell(products[0]), cell(products[1])]) + row([cell(products[2]), cell(products[3])]);
+  } else if (products.length === 5) {
+    const three = `<tr>${products.slice(0,3).map(p => cell(p)).join("")}</tr>`;
+    const two = `<tr>${products.slice(3,5).map(p => `<td class="dm-col" width="50%" valign="top" style="padding:8px;box-sizing:border-box;"><div style="border:1px solid #ead8d0;border-radius:14px;padding:16px;background:#fffaf7;text-align:left;box-sizing:border-box;">${marketingProductCardHtml(p, baseUrl, false)}</div></td>`).join("")}</tr>`;
+    rowsHtml = three + two;
+  } else {
+    // 2 or 3 products: one balanced row.
+    rowsHtml = row(products.map(p => cell(p)));
+  }
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:18px 0;width:100%;">${rowsHtml}</table>`;
+}
+
+// Optional gift-code section. Only rendered when the admin attached a real,
+// currently-configured gift code to the campaign — never a hardcoded one,
+// and never an empty section when no code was selected.
+function marketingGiftCodeHtml(gift, buttonUrl, buttonText) {
+  if (!gift) return "";
+  const discountText = gift.type === "fixed" ? `₹${Number(gift.value).toLocaleString("en-IN")} OFF` : `${Number(gift.value)}% OFF`;
+  const minOrderText = Number(gift.minOrder) > 0 ? `<div style="font-size:12px;color:#806e68;margin-top:4px;">On orders above ₹${Number(gift.minOrder).toLocaleString("en-IN")}</div>` : "";
+  const href = buttonUrl || "";
+  const cta = href ? `<a href="${escapeHtml(href)}" style="display:inline-block;margin-top:12px;background:#6b3028;color:#fff;text-decoration:none;padding:10px 18px;border-radius:9px;font-weight:800;font-size:13px;">${escapeHtml(buttonText || "Shop Now")}</a>` : "";
+  return `<div style="margin:20px 0;padding:18px;border:2px dashed #c99a4f;border-radius:14px;text-align:center;background:#fdf6ec;">` +
+    `<div style="font-size:12px;letter-spacing:1.5px;font-weight:800;color:#a56a2a;margin-bottom:6px;">USE CODE</div>` +
+    `<div style="font-size:22px;font-weight:900;color:#6b3028;letter-spacing:2px;">${escapeHtml(gift.code)}</div>` +
+    `<div style="font-size:15px;font-weight:700;color:#5b2b24;margin-top:6px;">${discountText}</div>${minOrderText}${cta}</div>`;
 }
 
 function buildMarketingEmail(campaign, unsubscribeToken) {
-  const title = escapeHtml(campaign.title || "Design Makers Update");
   const subjectText = escapeHtml(campaign.heading || campaign.title || "Design Makers");
   const body = escapeHtml(campaign.message || "").replace(/\n/g, "<br>");
-  const products = Array.isArray(campaign.products) ? campaign.products : [];
+  const products = Array.isArray(campaign.products) ? campaign.products.slice(0, 5) : [];
   const baseUrl = String(campaign.baseUrl || "").replace(/\/$/, "");
-  const cards = products.length ? `<div style="text-align:center;margin:14px -4px;">${products.map(p => marketingProductHtml(p, baseUrl)).join("")}</div>` : "";
-  const button = campaign.buttonUrl ? `<p style="text-align:center;margin:22px 0;"><a href="${escapeHtml(campaign.buttonUrl)}" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:11px 20px;border-radius:10px;font-weight:800;">${escapeHtml(campaign.buttonText || "View Now")}</a></p>` : "";
+  const grid = marketingProductsGridHtml(products, baseUrl);
+  const giftSection = marketingGiftCodeHtml(campaign.giftCode, campaign.buttonUrl, campaign.buttonText);
+  const button = campaign.buttonUrl && !campaign.giftCode ? `<p style="text-align:center;margin:22px 0;"><a href="${escapeHtml(campaign.buttonUrl)}" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:11px 20px;border-radius:10px;font-weight:800;">${escapeHtml(campaign.buttonText || "View Now")}</a></p>` : "";
   const unsubscribeUrl = `${baseUrl}/api/marketing/unsubscribe?token=${encodeURIComponent(unsubscribeToken)}`;
-  return `<!doctype html><html><body style="margin:0;background:#f9f2ee;font-family:Arial,sans-serif;color:#33231f;"><div style="max-width:680px;margin:0 auto;padding:24px 14px;"><div style="background:#fff;border:1px solid #ead8d0;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(72,38,28,.08);"><div style="text-align:center;font-size:12px;letter-spacing:2px;font-weight:800;color:#a56a2a;margin-bottom:10px;">DESIGN MAKERS</div><h1 style="text-align:center;color:#6b3028;font-size:26px;margin:0 0 16px;">${subjectText}</h1><div style="font-size:15px;line-height:1.65;">${body}</div>${cards}${button}<hr style="border:0;border-top:1px solid #ead8d0;margin:28px 0 16px;"><p style="font-size:12px;color:#806e68;text-align:center;margin:0;">You're receiving this because you're subscribed to Design Makers offers & product updates.</p><p style="font-size:12px;text-align:center;margin:9px 0 0;"><a href="${unsubscribeUrl}" style="color:#6b3028;">Unsubscribe from offers &amp; product updates</a></p></div></div></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+    @media only screen and (max-width:600px){
+      .dm-container{padding:14px 8px !important;}
+      .dm-card{padding:18px !important;}
+      .dm-col{display:block !important;width:100% !important;padding:6px 0 !important;}
+      .dm-h1{font-size:22px !important;}
+    }
+  </style></head><body style="margin:0;background:#f9f2ee;font-family:Arial,Helvetica,sans-serif;color:#33231f;">` +
+    `<div class="dm-container" style="max-width:680px;margin:0 auto;padding:24px 14px;">` +
+    `<div class="dm-card" style="background:#fff;border:1px solid #ead8d0;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(72,38,28,.08);">` +
+    `<div style="text-align:center;font-size:12px;letter-spacing:2px;font-weight:800;color:#a56a2a;margin-bottom:10px;">DESIGN MAKERS</div>` +
+    `<h1 class="dm-h1" style="text-align:center;color:#6b3028;font-size:26px;margin:0 0 16px;">${subjectText}</h1>` +
+    `<div style="font-size:15px;line-height:1.65;">${body}</div>` +
+    grid + giftSection + button +
+    `<hr style="border:0;border-top:1px solid #ead8d0;margin:28px 0 16px;">` +
+    `<div style="text-align:center;font-size:12px;margin:0 0 14px;">` +
+    `<a href="https://www.instagram.com/designmakers.in" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">Instagram</a>` +
+    `<a href="https://youtube.com/@designmakershub" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">YouTube</a>` +
+    `<a href="https://wa.me/7004847813" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">WhatsApp</a></div>` +
+    `<p style="font-size:12px;color:#806e68;text-align:center;margin:0;">You're receiving this because you're subscribed to Design Makers offers & product updates.</p>` +
+    `<p style="font-size:12px;text-align:center;margin:9px 0 0;"><a href="${unsubscribeUrl}" style="color:#6b3028;">Unsubscribe from offers &amp; product updates</a></p>` +
+    `</div></div></body></html>`;
 }
-
 
 // ================================
 // GOOGLE SIGN-IN (customers + sellers)
@@ -735,7 +835,7 @@ function normalizeWhatsAppNumber(countryCode, number) {
   return "+" + cc + local;
 }
 
-app.post("/api/customer/register", signupLimiter, (req, res) => {
+app.post("/api/customer/register", signupLimiter, async (req, res) => {
   const { name, mobile, password } = req.body || {};
   const cleanName = String(name || "").trim();
   const cleanMobile = normalizeMobile(mobile);
@@ -750,50 +850,87 @@ app.post("/api/customer/register", signupLimiter, (req, res) => {
     return res.status(400).json({ success: false, message: "Password should be at least 6 characters." });
   }
 
+  const duplicateMessage = "An account with this mobile number already exists. Please log in instead.";
   const database = readDatabase();
+  // Cheap first-pass check against the in-memory array.
   const exists = database.customers.find((c) => c.mobile === cleanMobile);
   if (exists) {
-    return res.status(409).json({ success: false, message: "An account with this mobile number already exists. Please log in instead." });
+    return res.status(409).json({ success: false, message: duplicateMessage });
   }
 
-  const customer = {
-    id: getNextId(database.customers),
-    mobile: cleanMobile,
-    name: cleanName,
-    passwordHash: bcrypt.hashSync(String(password), 10),
-    picture: "",
-    cart: [],
-    role: "customer",
-    marketingOptIn: true,
-    shopTitle: "",
-    sellerStatus: "none",
-    createdAt: new Date().toISOString(),
-  };
-  database.customers.push(customer);
-  writeDatabase(database);
+  // Atomically claim this mobile number via MongoDB's unique index. This is
+  // the real guarantee against two simultaneous registrations for the same
+  // number both succeeding — it holds even across multiple server instances,
+  // unlike the in-memory check above which only protects a single process.
+  const reserved = await reserveCustomerMobile(cleanMobile, null);
+  if (!reserved) {
+    return res.status(409).json({ success: false, message: duplicateMessage });
+  }
 
-  const token = jwt.sign(
-    { type: "customer", customerId: customer.id },
-    JWT_SECRET,
-    { expiresIn: "30d" },
-  );
+  try {
+    // Re-check in case another request on this same instance created the
+    // account in the moment between the check above and the reservation.
+    if (database.customers.find((c) => c.mobile === cleanMobile)) {
+      await releaseCustomerMobile(cleanMobile);
+      return res.status(409).json({ success: false, message: duplicateMessage });
+    }
 
-  res.json({
-    success: true,
-    token,
-    customer: {
-      id: customer.id,
-      name: customer.name,
-      mobile: customer.mobile,
-      picture: customer.picture || "",
-      role: customer.role,
-      shopTitle: customer.shopTitle,
-      sellerStatus: customer.sellerStatus,
-      marketingOptIn: customer.marketingOptIn !== false,
-      needsEmail: !customer.email,
-      hasPassword: !!customer.passwordHash,
-    },
-  });
+    // IMPORTANT: the new customer's id is generated here — after the await
+    // above, not before it. getNextId() just returns
+    // max(existing ids)+1 with no locking of its own, so if it were computed
+    // before that await, two concurrent registrations (different mobile
+    // numbers, so both pass the mobile-uniqueness check independently) could
+    // both read the same "next" id while neither has pushed yet, and end up
+    // creating two different customer accounts that share one id — which
+    // would then make lookups by id (login sessions, orders, account
+    // pages) resolve to whichever of the two happens to come first. Doing
+    // this read synchronously, right before the push below with no
+    // await in between, is what actually prevents that.
+    const newId = getNextId(database.customers);
+
+    const customer = {
+      id: newId,
+      mobile: cleanMobile,
+      name: cleanName,
+      passwordHash: bcrypt.hashSync(String(password), 10),
+      picture: "",
+      cart: [],
+      role: "customer",
+      marketingOptIn: true,
+      shopTitle: "",
+      sellerStatus: "none",
+      createdAt: new Date().toISOString(),
+    };
+    database.customers.push(customer);
+    writeDatabase(database);
+
+    const token = jwt.sign(
+      { type: "customer", customerId: customer.id },
+      JWT_SECRET,
+      { expiresIn: "30d" },
+    );
+
+    res.json({
+      success: true,
+      token,
+      customer: {
+        id: customer.id,
+        name: customer.name,
+        mobile: customer.mobile,
+        picture: customer.picture || "",
+        role: customer.role,
+        shopTitle: customer.shopTitle,
+        sellerStatus: customer.sellerStatus,
+        marketingOptIn: customer.marketingOptIn !== false,
+        needsEmail: !customer.email,
+        hasPassword: !!customer.passwordHash,
+      },
+    });
+  } catch (err) {
+    await releaseCustomerMobile(cleanMobile);
+    console.error("customer/register failed:", err.message);
+    res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+  }
 });
 
 app.post("/api/customer/login", loginLimiter, (req, res) => {
@@ -918,21 +1055,48 @@ app.post("/api/customer/google-login", loginLimiter, async (req, res) => {
 
 // Save a Google customer's WhatsApp number. No OTP/verification and no password are required.
 // The country calling code is stored with the number so international WhatsApp numbers work.
-app.post("/api/customer/save-whatsapp-number", requireCustomer, (req, res) => {
-  const mobile = normalizeWhatsAppNumber(req.body && req.body.countryCode, req.body && req.body.number);
-  if (!mobile) return res.status(400).json({ success: false, message: "Enter a valid WhatsApp number and country code." });
+app.post("/api/customer/save-whatsapp-number", requireCustomer, async (req, res) => {
+  const waNumber = normalizeWhatsAppNumber(req.body && req.body.countryCode, req.body && req.body.number);
+  if (!waNumber) return res.status(400).json({ success: false, message: "Enter a valid WhatsApp number and country code." });
+
+  // IMPORTANT: normalizeWhatsAppNumber() keeps the country code (e.g.
+  // "+919876543210"), but every other path in the app — register, login,
+  // complete-account, and the admin duplicate-mobile detector — stores and
+  // compares the bare 10-digit form (e.g. "9876543210") via normalizeMobile().
+  // If a domestic Indian WhatsApp number were saved straight into
+  // customer.mobile in its "+91..." form, it would never match against
+  // those other paths and duplicate mobiles could silently slip through.
+  // So: for Indian numbers, store the SAME canonical 10-digit format in
+  // customer.mobile as everywhere else; keep the full "+cc..." form only in
+  // customer.whatsappNumber, which is purely a display/contact field.
+  const waDigits = waNumber.replace(/\D/g, "");
+  const indianLocalPart = waDigits.length === 12 && waDigits.startsWith("91") ? waDigits.slice(2) : (waDigits.length === 10 ? waDigits : "");
+  const canonicalMobile = isValidMobile(indianLocalPart) ? indianLocalPart : waNumber;
 
   const database = readDatabase();
   const customer = database.customers.find((c) => c.id === req.customer.id);
   if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
 
-  const duplicate = database.customers.find((c) => c.id !== customer.id && c.mobile === mobile);
-  if (duplicate) return res.status(409).json({ success: false, message: "This WhatsApp number is already linked to another customer account. Please use a different number." });
+  const duplicateMessage = "This WhatsApp number is already linked to another customer account. Please use a different number.";
+  const duplicate = database.customers.find((c) => c.id !== customer.id && c.mobile === canonicalMobile);
+  if (duplicate) return res.status(409).json({ success: false, message: duplicateMessage });
 
-  customer.mobile = mobile;
-  customer.whatsappNumber = mobile;
+  const previousMobile = customer.mobile || "";
+  if (canonicalMobile !== previousMobile) {
+    const reserved = await reserveCustomerMobile(canonicalMobile, customer.id);
+    if (!reserved) return res.status(409).json({ success: false, message: duplicateMessage });
+    // Re-check after the async reservation in case another request just landed.
+    if (database.customers.find((c) => c.id !== customer.id && c.mobile === canonicalMobile)) {
+      await releaseCustomerMobile(canonicalMobile);
+      return res.status(409).json({ success: false, message: duplicateMessage });
+    }
+  }
+
+  customer.mobile = canonicalMobile;
+  customer.whatsappNumber = waNumber;
   customer.whatsappNumberSavedAt = new Date().toISOString();
   writeDatabase(database);
+  if (previousMobile && previousMobile !== canonicalMobile) await releaseCustomerMobile(previousMobile);
 
   res.json({
     success: true,
@@ -949,7 +1113,7 @@ app.post("/api/customer/save-whatsapp-number", requireCustomer, (req, res) => {
 // Complete a Google-created customer account with the WhatsApp mobile number
 // and a local password. This keeps Google sign-in working while also enabling
 // the site's normal mobile + password login and WhatsApp order flow.
-app.post("/api/customer/complete-account", requireCustomer, (req, res) => {
+app.post("/api/customer/complete-account", requireCustomer, async (req, res) => {
   const { mobile, password } = req.body || {};
   const cleanMobile = normalizeMobile(mobile);
   const cleanPassword = String(password || "");
@@ -965,9 +1129,20 @@ app.post("/api/customer/complete-account", requireCustomer, (req, res) => {
   const customer = database.customers.find((c) => c.id === req.customer.id);
   if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
 
+  const duplicateMessage = "This mobile number is already linked to another customer account. Please use a different number.";
   const duplicate = database.customers.find((c) => c.id !== customer.id && c.mobile === cleanMobile);
   if (duplicate) {
-    return res.status(409).json({ success: false, message: "This mobile number is already linked to another customer account. Please use a different number." });
+    return res.status(409).json({ success: false, message: duplicateMessage });
+  }
+
+  const previousMobile = customer.mobile || "";
+  if (cleanMobile !== previousMobile) {
+    const reserved = await reserveCustomerMobile(cleanMobile, customer.id);
+    if (!reserved) return res.status(409).json({ success: false, message: duplicateMessage });
+    if (database.customers.find((c) => c.id !== customer.id && c.mobile === cleanMobile)) {
+      await releaseCustomerMobile(cleanMobile);
+      return res.status(409).json({ success: false, message: duplicateMessage });
+    }
   }
 
   customer.mobile = cleanMobile;
@@ -976,6 +1151,7 @@ app.post("/api/customer/complete-account", requireCustomer, (req, res) => {
   if (!customer.shopTitle) customer.shopTitle = "";
   if (!customer.sellerStatus) customer.sellerStatus = "none";
   writeDatabase(database);
+  if (previousMobile && previousMobile !== cleanMobile) await releaseCustomerMobile(previousMobile);
 
   res.json({
     success: true,
@@ -1188,7 +1364,6 @@ app.post("/api/customer/change-password", requireCustomer, (req, res) => {
   res.json({ success: true, message: "Password updated successfully.", hasPassword: true });
 });
 
-
 // Customer marketing preference. This is account-scoped: a customer can only
 // change their own subscription state.
 app.put("/api/customer/marketing-preference", requireCustomer, (req, res) => {
@@ -1240,8 +1415,10 @@ app.get("/api/admin/marketing/recipients", requireAdmin, requireBoss, (req, res)
 
 function normalizeCampaign(campaign, database, baseUrl) {
   const type = ["new-products", "offer", "update"].includes(campaign.type) ? campaign.type : "update";
-  const selectedIds = Array.isArray(campaign.productIds) ? [...new Set(campaign.productIds.map(Number).filter(Number.isFinite))] : [];
-  const products = selectedIds.map(id => (database.products || []).find(p => Number(p.id) === id)).filter(Boolean).map(p => ({ id:p.id, name:p.name, price:p.price, image:p.image || "" }));
+  let selectedIds = Array.isArray(campaign.productIds) ? [...new Set(campaign.productIds.map(Number).filter(Number.isFinite))] : [];
+  if (selectedIds.length > 5) throw new Error("Select at most 5 products for the campaign.");
+  const products = selectedIds.map(id => (database.products || []).find(p => Number(p.id) === id)).filter(Boolean)
+    .map(p => ({ id:p.id, name:p.name, price:p.price, image:p.image || "", onSale:!!p.onSale, salePercent:p.salePercent||0, saleEndsAt:p.saleEndsAt||null }));
   const title = String(campaign.title || "").trim().slice(0,160);
   const heading = String(campaign.heading || title).trim().slice(0,200);
   const message = String(campaign.message || "").trim().slice(0,5000);
@@ -1249,12 +1426,32 @@ function normalizeCampaign(campaign, database, baseUrl) {
   if (type === "new-products" && !products.length) throw new Error("Select at least one product for a new-product announcement.");
   const buttonUrl = String(campaign.buttonUrl||"").trim().slice(0,500);
   if (buttonUrl && !/^https?:\/\//i.test(buttonUrl)) throw new Error("Button URL must start with http:// or https://.");
-  return { type,title,heading,message,productIds:selectedIds,products,buttonText:String(campaign.buttonText||"").trim().slice(0,60),buttonUrl,baseUrl };
+  // Optional gift code attached to the campaign. Must be a real, currently
+  // configured code from the gift-code system — never hardcoded here.
+  let giftCode = null;
+  if (campaign.giftCodeId) {
+    const gift = (database.giftCodes || []).find(g => Number(g.id) === Number(campaign.giftCodeId) && g.active !== false);
+    if (!gift) throw new Error("Selected gift code is no longer available.");
+    giftCode = { code: gift.code, type: gift.type, value: gift.value, minOrder: gift.minOrder || 0 };
+  }
+  return { type,title,heading,message,productIds:selectedIds,products,buttonText:String(campaign.buttonText||"").trim().slice(0,60),buttonUrl,giftCode,baseUrl };
 }
 
 function getMarketingBaseUrl(req) {
   return String(process.env.PUBLIC_BASE_URL || process.env.BASE_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
 }
+
+// Renders the campaign using the EXACT same buildMarketingEmail() template
+// used for the real send/test email, so the admin preview can never drift
+// from what a customer actually receives. Read-only — sends nothing.
+app.post("/api/admin/marketing/preview", requireAdmin, requireBoss, (req, res) => {
+  try {
+    const database = readDatabase();
+    const campaign = normalizeCampaign(req.body || {}, database, getMarketingBaseUrl(req));
+    const html = buildMarketingEmail(campaign, makeMarketingToken(0));
+    res.json({ success: true, html });
+  } catch (e) { res.status(400).json({ success:false, message:e.message || "Could not build preview." }); }
+});
 
 app.post("/api/admin/marketing/test", requireAdmin, requireBoss, async (req, res) => {
   try {
@@ -1285,7 +1482,7 @@ app.post("/api/admin/marketing/send", requireAdmin, requireBoss, async (req, res
     if (!recipients.length) return res.status(400).json({success:false,message:"No subscribed customers with valid email addresses were found."});
     if (recipients.length > 5000) return res.status(400).json({success:false,message:"This campaign exceeds the 5,000-recipient safety limit. Use a proper bulk-email provider before sending a larger campaign."});
     if (!Array.isArray(database.marketingCampaigns)) database.marketingCampaigns=[];
-    const record={id:getNextId(database.marketingCampaigns),type:campaign.type,title:campaign.title,heading:campaign.heading,message:campaign.message,productIds:campaign.productIds,buttonText:campaign.buttonText,buttonUrl:campaign.buttonUrl,audience:req.body.audience === "selected" ? "selected" : "all-subscribed",recipientCount:recipients.length,sent:0,failed:0,status:"sending",createdAt:new Date().toISOString(),sentAt:null};
+    const record={id:getNextId(database.marketingCampaigns),type:campaign.type,title:campaign.title,heading:campaign.heading,message:campaign.message,productIds:campaign.productIds,buttonText:campaign.buttonText,buttonUrl:campaign.buttonUrl,giftCode:campaign.giftCode ? campaign.giftCode.code : null,audience:req.body.audience === "selected" ? "selected" : "all-subscribed",recipientCount:recipients.length,sent:0,failed:0,status:"sending",createdAt:new Date().toISOString(),sentAt:null};
     database.marketingCampaigns.unshift(record); writeDatabase(database);
     for(let i=0;i<recipients.length;i+=5){
       const batch=recipients.slice(i,i+5);
@@ -1771,6 +1968,14 @@ function paginate(req, items, defaultLimit = 50, maxLimit = 200) {
   };
 }
 
+// Human-readable account status for Admin — computed on the fly from
+// existing fields; no new field is stored on the customer record.
+function computeCustomerAccountStatus(c) {
+  if (!c.mobile) return "Incomplete signup (Google, no mobile yet)";
+  if (!c.passwordHash && !c.googleId) return "Incomplete signup (no password)";
+  return "Active";
+}
+
 app.get("/api/admin/customers", requireAdmin, (req, res) => {
   const database = readDatabase();
   const orders = database.orders || [];
@@ -1778,11 +1983,17 @@ app.get("/api/admin/customers", requireAdmin, (req, res) => {
     .slice()
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   const { slice, meta } = paginate(req, sorted);
+  const normalizedMobileCounts = {};
+  (database.customers || []).forEach((row) => {
+    const normalized = row.mobile ? normalizeMobile(row.mobile) : "";
+    if (normalized) normalizedMobileCounts[normalized] = (normalizedMobileCounts[normalized] || 0) + 1;
+  });
   const customers = slice
     .map((c) => {
       const theirOrders = orders.filter(
         (o) => (c.mobile && o.customer && o.customer.phone === c.mobile) || o.customerId === c.id,
       );
+      const normalized = c.mobile ? normalizeMobile(c.mobile) : "";
       return {
         id: c.id,
         name: c.name,
@@ -1794,9 +2005,12 @@ app.get("/api/admin/customers", requireAdmin, (req, res) => {
         sellerStatus: c.sellerStatus,
         createdAt: c.createdAt,
         orderCount: theirOrders.length,
-        // Older test/Google-era rows have no mobile — flag them so they can be cleaned up.
+        // Existing duplicate records are preserved and flagged for Admin review.
+        duplicateMobile: !!normalized && normalizedMobileCounts[normalized] > 1,
+        duplicateMobileCount: normalized ? (normalizedMobileCounts[normalized] || 0) : 0,
         legacy: !c.mobile,
         marketingOptIn: c.marketingOptIn !== false,
+        status: computeCustomerAccountStatus(c),
       };
     });
   res.json({ success: true, customers, ...meta });
@@ -1961,42 +2175,89 @@ app.get("/api/admin/customers/:id", requireAdmin, (req, res) => {
   if (!customer) {
     return res.status(404).json({ success: false, message: "Customer not found." });
   }
-  const theirOrders = (database.orders || [])
+  const productById = new Map((database.products || []).map((p) => [p.id, p]));
+  const matchingOrders = (database.orders || [])
     .filter((o) => (customer.mobile && o.customer && o.customer.phone === customer.mobile) || o.customerId === customer.id)
-    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-    .map((o) => ({
-      orderNumber: o.orderNumber,
-      createdAt: o.createdAt,
-      status: o.status,
-      total: o.total,
-      items: (o.items || []).map((it) => ({ name: it.name, size: it.size || "", qty: it.qty })),
-    }));
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  const theirOrders = matchingOrders.map((o) => ({
+    id: o.id,
+    orderNumber: o.orderNumber,
+    createdAt: o.createdAt,
+    status: o.status,
+    paymentStatus: o.paymentStatus || "pending",
+    total: o.total,
+    items: (o.items || []).map((it) => ({
+      name: it.name,
+      size: it.size || "",
+      qty: it.qty,
+      // Product may since have been deleted from the catalogue — fall back
+      // gracefully rather than breaking the row.
+      image: (productById.get(Number(it.productId)) && (productById.get(Number(it.productId)).image || (Array.isArray(productById.get(Number(it.productId)).images) && productById.get(Number(it.productId)).images[0]))) || "",
+    })),
+  }));
 
   // Amount spent excludes cancelled orders.
   const totalSpent = theirOrders
     .filter((o) => o.status !== "Cancelled")
     .reduce((sum, o) => sum + (o.total || 0), 0);
+  const cancelledCount = theirOrders.filter((o) => o.status === "Cancelled").length;
+  const activeCount = theirOrders.length - cancelledCount;
+  const normalized = customer.mobile ? normalizeMobile(customer.mobile) : "";
+  const duplicateAccounts = normalized
+    ? (database.customers || [])
+        .filter((c) => c.id !== customer.id && c.mobile && normalizeMobile(c.mobile) === normalized)
+        .map((c) => ({ id: c.id, name: c.name || "Customer", mobile: c.mobile || null, email: c.email || null, createdAt: c.createdAt || null }))
+    : [];
+  // Built from the customer's own orders (each order already records the
+  // exact gift code + discount applied at the time), rather than the
+  // gift code's own aggregate usage counter — this gives a real per-use,
+  // per-order, dated history instead of just a total count.
+  const giftCodeHistory = matchingOrders
+    .filter((o) => o.giftCode)
+    .map((o) => ({
+      code: o.giftCode,
+      discount: o.giftDiscount || 0,
+      orderNumber: o.orderNumber,
+      date: o.createdAt,
+      status: o.status === "Cancelled" ? "Order cancelled" : "Used",
+    }));
+  const authMethod = customer.googleId ? (customer.passwordHash ? "Google + Mobile password" : "Google") : (customer.passwordHash ? "Mobile + password" : "Not available");
+  const addresses = Array.isArray(customer.addresses) ? customer.addresses : [];
 
   res.json({
     success: true,
     customer: {
       id: customer.id,
       name: customer.name,
+      email: customer.email || null,
       mobile: customer.mobile || null,
+      whatsappNumber: customer.whatsappNumber || null,
+      picture: customer.picture || null,
       role: customer.role,
       shopTitle: customer.shopTitle,
       sellerStatus: customer.sellerStatus,
       marketingOptIn: customer.marketingOptIn !== false,
       createdAt: customer.createdAt,
+      // Customer accounts don't currently track per-session login/activity
+      // timestamps (only admin accounts do) — reported as unavailable
+      // rather than invented, per spec.
+      lastActivity: null,
       legacy: !customer.mobile,
+      status: computeCustomerAccountStatus(customer),
+      authMethod,
+      addresses,
+      duplicateMobile: duplicateAccounts.length > 0,
+      duplicateAccounts,
       orders: theirOrders,
+      orderSummary: { total: theirOrders.length, active: activeCount, cancelled: cancelledCount },
       totalSpent,
+      giftCodeHistory,
     },
   });
 });
 
 // Permanently delete a customer account.
-app.delete("/api/admin/customers/:id", requireAdmin, (req, res) => {
+app.delete("/api/admin/customers/:id", requireAdmin, async (req, res) => {
   const database = readDatabase();
   const idx = (database.customers || []).findIndex((c) => c.id === Number(req.params.id));
   if (idx === -1) {
@@ -2004,6 +2265,12 @@ app.delete("/api/admin/customers/:id", requireAdmin, (req, res) => {
   }
   const [removed] = database.customers.splice(idx, 1);
   writeDatabase(database);
+  // Free up their mobile number reservation so it can be registered again,
+  // unless another (e.g. duplicate) customer record still holds that same
+  // number — in that case leave the lock in place for them.
+  if (removed.mobile && !database.customers.find((c) => c.mobile === removed.mobile)) {
+    await releaseCustomerMobile(removed.mobile);
+  }
   res.json({ success: true, message: "Customer account deleted.", name: removed.name });
 });
 
@@ -2547,7 +2814,6 @@ function buildPasswordResetOtpEmail({ name, shopTitle, sellerId, otp, loginUrl }
        <p style="margin-top:18px;">— Team Design Makers</p>
      </div>`;
 }
-
 
 app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss, async (req, res) => {
   const database = readDatabase();
@@ -3112,7 +3378,6 @@ function isGiftAddonDateEligible(date = new Date()) {
   return GIFT_ADDON.eligibleDaysOfMonth.includes(getISTDayOfMonth(date));
 }
 
-
 function normalizeGiftCode(raw) {
   return String(raw || "").trim().toUpperCase().replace(/\s+/g, "");
 }
@@ -3531,11 +3796,13 @@ function buildSellerInventorySummaries(database) {
   bySeller.forEach((g, key) => {
     const seller = key === "house" ? null : sellerById.get(Number(key));
     if (key !== "house" && !seller) return; // orphaned sellerId, skip
+    // Same reasoning as buildSellerProductSummaries() below: seller
+    // photos are full-size base64 data URIs, and sending one per row
+    // adds up fast. This list only needs a small logo, so skip it here.
     out.push({
       key,
       sellerId: seller ? seller.id : null,
       name: seller ? (seller.shopTitle || seller.name) : "Design Makers (Direct)",
-      logo: seller ? (seller.photo || "") : "",
       status: seller ? (seller.banned ? "Suspended" : "Active") : "Active",
       totalProducts: g.productIds.size,
       totalVariants: g.variants,
@@ -3570,8 +3837,13 @@ function buildSellerProductSummaries(database, sellerKey) {
       id: p.id,
       name: p.name || "",
       productCode: p.productCode || "",
-      image: (Array.isArray(p.images) && p.images[0]) || p.image || "",
       category: p.category || "Uncategorized",
+      price: Number(p.price) || 0,
+      // Small catalogue thumbnail (the same image already stored/served for
+      // this product elsewhere) so the seller's product list can show a
+      // real photo per the Inventory spec. Not a new upload path — just
+      // reusing product.image/product.images[0].
+      image: (Array.isArray(p.images) && p.images[0]) || p.image || "",
       // "Live on the storefront" = approved by admin AND not switched off
       // by the seller/admin. Used by the admin Inventory tab to sort/filter
       // so stock updates for what's actually on sale surface first.
@@ -3611,6 +3883,11 @@ function buildProductVariantDetail(database, productId) {
       lowStockThreshold: row.lowStockThreshold,
     };
   });
+  // Latest of any stock adjustment timestamp, falling back to the
+  // product's own updatedAt/createdAt — whichever is the most recent
+  // real change we actually have on record. Never fabricated.
+  const lastAdjustment = Array.isArray(product.stockAdjustments) && product.stockAdjustments[0] ? product.stockAdjustments[0].at : null;
+  const lastUpdated = lastAdjustment || product.updatedAt || product.createdAt || null;
   return {
     id: product.id,
     name: product.name || "",
@@ -3620,6 +3897,9 @@ function buildProductVariantDetail(database, productId) {
     sellerName: seller ? (seller.shopTitle || seller.name) : "Design Makers (Direct)",
     hasSizes: sizes.length > 0,
     lowStockThreshold: Math.max(0, Number(product.lowStockThreshold ?? 5) || 5),
+    totalVariants: variants.length,
+    totalStock: variants.reduce((sum, v) => sum + (v.configured ? Number(v.stock) || 0 : 0), 0),
+    lastUpdated,
     variants,
   };
 }
@@ -3732,12 +4012,60 @@ app.post("/api/admin/gift-codes", requireAdmin, requireBoss, (req, res) => {
   res.status(201).json({ success:true, message:"Gift code created." });
 });
 
+// Full edit support. Previously this only ever touched `active` and
+// `expiresAt`, so the Admin UI had no way to actually change a code's
+// discount, min order, usage limits, start date, or even its text — the
+// "Edit" audit requirement for Update 1 was effectively unimplemented.
+// Every field is optional (only what's sent is changed), but whatever IS
+// sent is validated with the exact same rules as creation so an edit can
+// never leave a code in a broken/inconsistent state.
 app.patch("/api/admin/gift-codes/:id", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const gift = (database.giftCodes || []).find(g => Number(g.id) === Number(req.params.id));
   if (!gift) return res.status(404).json({ success:false, message:"Gift code not found." });
-  if (typeof req.body.active === "boolean") gift.active = req.body.active;
-  if (typeof req.body.expiresAt === "string" && req.body.expiresAt) gift.expiresAt = new Date(req.body.expiresAt).toISOString();
+  const body = req.body || {};
+
+  let nextCode = gift.code;
+  if (body.code !== undefined) {
+    nextCode = normalizeGiftCode(body.code);
+    if (!/^[A-Z0-9_-]{3,30}$/.test(nextCode)) return res.status(400).json({ success:false, message:"Gift code must be 3-30 characters (letters, numbers, _ or -)." });
+    if (database.giftCodes.some(g => g.id !== gift.id && String(g.code).toUpperCase() === nextCode)) {
+      return res.status(409).json({ success:false, message:"That gift code already exists." });
+    }
+  }
+
+  let nextType = gift.type;
+  if (body.type !== undefined) nextType = body.type === "fixed" ? "fixed" : "percent";
+
+  let nextValue = gift.value;
+  if (body.value !== undefined) {
+    nextValue = Number(body.value);
+    if (!Number.isFinite(nextValue) || nextValue <= 0 || (nextType === "percent" && nextValue > 100)) {
+      return res.status(400).json({ success:false, message:"Enter a valid discount value." });
+    }
+  }
+
+  let nextStartsAt = gift.startsAt;
+  if (body.startsAt !== undefined) nextStartsAt = body.startsAt ? new Date(body.startsAt).toISOString() : new Date().toISOString();
+  let nextExpiresAt = gift.expiresAt;
+  if (body.expiresAt !== undefined) nextExpiresAt = body.expiresAt ? new Date(body.expiresAt).toISOString() : null;
+  if (nextExpiresAt && new Date(nextExpiresAt) <= new Date(nextStartsAt)) {
+    return res.status(400).json({ success:false, message:"Expiry must be after the start date." });
+  }
+
+  gift.code = nextCode;
+  gift.type = nextType;
+  gift.value = nextValue;
+  if (body.minOrder !== undefined) gift.minOrder = Math.max(0, Number(body.minOrder || 0));
+  if (body.maxDiscount !== undefined) gift.maxDiscount = Math.max(0, Number(body.maxDiscount || 0));
+  if (body.usageLimit !== undefined) gift.usageLimit = Math.max(0, Math.floor(Number(body.usageLimit || 0)));
+  if (body.perCustomerLimit !== undefined) gift.perCustomerLimit = Math.max(0, Math.floor(Number(body.perCustomerLimit || 0)));
+  gift.startsAt = nextStartsAt;
+  gift.expiresAt = nextExpiresAt;
+  if (typeof body.active === "boolean") gift.active = body.active;
+  gift.updatedAt = new Date().toISOString();
+  gift.updatedBy = req.admin.username;
+
   writeDatabase(database);
   res.json({ success:true, message:"Gift code updated." });
 });
@@ -3889,7 +4217,6 @@ app.put("/api/seller/products/:id", requireSeller, (req, res) => {
     product: database.products[index],
   });
 });
-
 
 // ================================
 // SELLER FULFILMENT / ORDER STAGES
@@ -4662,7 +4989,6 @@ app.get("/sell", (req, res) => {
   res.redirect(301, "/sellerapplication");
 });
 
-
 // ================================
 // HOME PAGE
 // ================================
@@ -5266,19 +5592,36 @@ function orderFingerprint(phone, items) {
   return crypto.createHash("sha256").update(phone + "::" + normalizedItems).digest("hex");
 }
 
-
+// Checkout on this site requires sign-in (see index.html's
+// updateCheckoutIdentity/placeOrder — there's no reachable guest-checkout UI),
+// so gift codes are correctly restricted to signed-in customers via
+// requireCustomer here too. calculateSecurePricing/validateGiftCode still
+// accept a guestPhone parameter — that exists purely so /api/orders (which
+// stays reachable directly, e.g. for future guest-checkout support) tracks
+// per-customer usage consistently; it's intentionally unused on this route.
 app.post("/api/customer/gift-codes/validate", requireCustomer, (req, res) => {
   try {
     const database = readDatabase();
+    const products = Array.isArray(database.products) ? database.products : [];
     const items = Array.isArray(req.body && req.body.items) ? req.body.items : [];
-    const pricing = calculateSecurePricing(items, database.products, "", getOptionalCustomerId(req), database);
+    const rawCode = req.body && req.body.code;
+    const pricing = calculateSecurePricing(items, products, "", getOptionalCustomerId(req), database);
     if (pricing.errors.length) return res.status(400).json({ success: false, message: pricing.errors.join(" ") });
-    const result = validateGiftCode(database, req.body && req.body.code, getOptionalCustomerId(req), pricing.total);
+    const result = validateGiftCode(database, rawCode, getOptionalCustomerId(req), pricing.total);
     if (!result.valid) return res.status(400).json({ success: false, message: result.message });
     return res.json({ success: true, code: result.code, discount: result.discount, total: Math.round((pricing.total - result.discount) * 100) / 100, message: result.message });
   } catch (e) {
-    console.error("Gift code validation failed:", e.message);
-    return res.status(500).json({ success: false, message: "Unable to validate gift code right now." });
+    // Log the full stack (not just e.message) plus enough request context to
+    // actually diagnose a repeat of the "could not check the gift code"
+    // report — without ever putting that detail in the customer-facing
+    // response itself.
+    console.error(
+      "Gift code validation failed. customerId=%s code=%s error=%s",
+      req.customer && req.customer.id,
+      req.body && req.body.code,
+      e && e.stack ? e.stack : e,
+    );
+    return res.status(500).json({ success: false, message: "Unable to validate gift code right now. Please try again in a moment." });
   }
 });
 
@@ -5598,8 +5941,6 @@ app.post("/api/orders/track", trackOrderLimiter, (req, res) => {
 // ================================
 // The website records a lightweight callback request, not a phone call.
 // The customer is then connected to the existing Design Makers WhatsApp.
-
-
 
 function buildAdminCallbackRequestEmail(request) {
   const orderLine = request.orderNumber

@@ -494,7 +494,6 @@
       .theme-card { transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
       .theme-card.active { border-color: var(--rosewood) !important; background: var(--gold-bg); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(163,19,79,0.15); }
       .theme-card:hover { border-color: var(--rosewood); }
-    
 
     </style>
     <style>
@@ -1054,11 +1053,20 @@
           <div id="invPageVariants" class="hidden">
             <div class="card" style="margin-bottom:16px;">
               <div id="invVariantsBreadcrumb" style="font-size:12.5px;color:var(--muted);margin-bottom:8px;"></div>
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
-                <div><h3 id="invVariantsTitle" style="margin:0 0 6px;color:var(--gold-soft);"></h3><p id="invVariantsSeller" style="margin:0;color:var(--muted);font-size:13px;"></p></div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <button class="btn small secondary" onclick="backToInventoryProducts()">← Back to Products</button>
+              <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
+                <button class="btn small secondary" onclick="backToInventoryProducts()">← Back to Products</button>
+              </div>
+              <div id="invVariantsPhotoWrap" style="width:100%;max-width:360px;height:320px;max-height:60vw;margin:14px auto 18px;border-radius:16px;overflow:hidden;background:var(--blush-line);display:flex;align-items:center;justify-content:center;"></div>
+              <div style="max-width:560px;margin:0 auto;">
+                <h3 id="invVariantsTitle" style="margin:0 0 12px;color:var(--gold-soft);text-align:center;"></h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 20px;font-size:13px;">
+                  <div><span style="color:var(--muted);">Seller</span><br><span id="invVariantsSellerValue" style="font-weight:700;"></span></div>
+                  <div><span style="color:var(--muted);">SKU</span><br><span id="invVariantsSkuValue" style="font-weight:700;"></span></div>
+                  <div><span style="color:var(--muted);">Price</span><br><span id="invVariantsPriceValue" style="font-weight:700;"></span></div>
+                  <div><span style="color:var(--muted);">Total Stock</span><br><span id="invVariantsTotalStockValue" style="font-weight:700;"></span></div>
+                  <div><span style="color:var(--muted);">Variants</span><br><span id="invVariantsCountValue" style="font-weight:700;"></span></div>
                 </div>
+                <p id="invVariantsMeta" style="margin:12px 0 0;color:var(--muted);font-size:12px;text-align:center;"></p>
               </div>
             </div>
             <div class="card" style="margin-bottom:16px;">
@@ -1233,7 +1241,7 @@
                 <button class="btn small secondary" onclick="openExportChooser('customers')">Export</button>
               </div>
             </div>
-            <div class="phone" style="margin:0 0 10px;">Customers who signed up with mobile number + password. Export: Om can download directly; sub-admins verify with an OTP sent to their registered email. Use "Reset password" to generate a new password if a customer forgets theirs — it's shown here once, so pass it on to them right away.</div>
+            <div class="phone" style="margin:0 0 10px;">Registered customer accounts. Admin can review contact, account, order, address and gift-code information. Passwords and authentication secrets are never shown. Export: Om can download directly; sub-admins verify with an OTP sent to their registered email.</div>
             <div id="customersLoading">Loading customers...</div>
             <div id="customersList"></div>
             <div id="customersPager" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px;"></div>
@@ -1258,7 +1266,10 @@
               <div><label>Expiry Date/Time</label><input id="gcExpiresAt" type="datetime-local" /></div>
             </div>
             <div class="error" id="giftCodeError" style="margin-top:8px;"></div>
-            <button class="btn small" style="margin-top:10px;" onclick="createGiftCode()">+ Create Gift Code</button>
+            <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+              <button class="btn small" id="gcSaveBtn" onclick="createGiftCode()">+ Create Gift Code</button>
+              <button class="btn small secondary" id="gcCancelEditBtn" style="display:none;" onclick="cancelEditGiftCode()">Cancel edit</button>
+            </div>
           </div>
           <div class="card" style="padding:0;overflow:auto;"><table style="width:100%;border-collapse:collapse;min-width:1000px;"><thead><tr style="background:var(--blush);text-align:left;"><th style="padding:12px 14px;">Code</th><th style="padding:12px 14px;">Discount</th><th style="padding:12px 14px;">Min Order</th><th style="padding:12px 14px;">Usage</th><th style="padding:12px 14px;">Validity</th><th style="padding:12px 14px;">Status</th><th style="padding:12px 14px;">Action</th></tr></thead><tbody id="giftCodesBody"><tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Loading gift codes...</td></tr></tbody></table></div>
         </div>
@@ -1278,8 +1289,13 @@
             </div>
             <div style="margin-top:10px;"><label>Message</label><textarea id="mkMessage" maxlength="5000" rows="6" placeholder="Write the email message here..."></textarea></div>
             <div id="mkProductsWrap" style="margin-top:12px;">
-              <label>Select Products <span style="font-size:11px;color:var(--muted);">required for New Products</span></label>
+              <label>Select Products <span style="font-size:11px;color:var(--muted);">1–5 products, required for New Products</span></label>
               <div id="mkProductsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;max-height:260px;overflow:auto;padding:8px;border:1px solid var(--blush-line);border-radius:12px;background:rgba(255,255,255,.45);">Loading products…</div>
+              <div id="mkSelectedProducts" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+            </div>
+            <div style="margin-top:12px;">
+              <label>Gift Code <span style="font-size:11px;color:var(--muted);">optional — from existing Gift Codes</span></label>
+              <select id="mkGiftCode"><option value="">No gift code</option></select>
             </div>
             <div id="mkSelectedCustomersWrap" style="display:none;margin-top:12px;">
               <label>Select Customers</label>
@@ -1995,8 +2011,52 @@
         const shell = document.getElementById("dmShell");
         if (shell) shell.classList.toggle("dm-sidebar-open");
       }
+
+      // ---------- BACK-BUTTON SUPPORT ----------
+      // Tab switches and the Inventory Seller -> Products -> Variants
+      // drill-down are all pure JS (show/hide), so they never touch the
+      // URL/history by default. That means the browser's Back button has
+      // nothing of ours to step through — it jumps straight out of /admin
+      // to whatever page was open before it (usually the storefront).
+      // We push one history entry per internal navigation step and
+      // restore it on popstate, so Back moves one step at a time inside
+      // admin instead of leaving it immediately.
+      let dmHistoryInitialized = false;
+      let dmApplyingHistoryState = false;
+      function dmPushHistoryState(state) {
+        if (dmApplyingHistoryState) return; // we're restoring a state, not creating a new one
+        if (!dmHistoryInitialized) {
+          dmHistoryInitialized = true;
+          history.replaceState(state, "");
+        } else {
+          history.pushState(state, "");
+        }
+      }
+      window.addEventListener("popstate", (e) => {
+        const state = e.state;
+        if (!state || !state.dmTab) return; // not one of ours (e.g. left admin entirely) — let the browser do its thing
+        dmApplyingHistoryState = true;
+        try {
+          switchTab(state.dmTab);
+          if (state.dmTab === "inventory") {
+            if (state.invPage === "variants" && state.invProductId) {
+              invCurrentSellerKey = state.invSellerKey || null;
+              invCurrentSellerName = state.invSellerName || "";
+              openProductVariants(state.invProductId);
+            } else if (state.invPage === "products" && state.invSellerKey) {
+              openSellerInventory(state.invSellerKey, state.invSellerName || "");
+            }
+            // invPage === "sellers" (or missing) needs nothing extra —
+            // switchTab("inventory") above already calls loadInventorySellers().
+          }
+        } finally {
+          dmApplyingHistoryState = false;
+        }
+      });
+
       function switchTab(tab) {
         currentTab = tab;
+        dmPushHistoryState({ dmTab: tab });
 
         ["overview", "products", "inventory", "orders", "homepage", "sellerlist", "sellers", "customers", "admins", "giftcodes", "marketing"].forEach((t) => {
           document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
@@ -2016,7 +2076,15 @@
         document.getElementById("addProductFab").classList.toggle("hidden", tab !== "products");
 
         if (tab === "overview") loadAdminOverview();
-        if (tab === "inventory") loadInventorySellers();
+        // Like the Orders tab below, don't re-hit the server every time
+        // this tab is clicked if we already have the data — just
+        // re-show what's cached. The "↻ Refresh" button on the page
+        // still lets the admin force a reload when they actually want
+        // up-to-date numbers.
+        if (tab === "inventory") {
+          invShowPage("sellers");
+          if (invSellers.length) renderInventorySellers(); else loadInventorySellers();
+        }
         if (tab === "orders" && !orders.length) loadOrders();
         if (tab === "homepage") {
           document.getElementById("homepageSectionsSaved").style.display = "none";
@@ -2124,12 +2192,16 @@
       }
 
       // ---- Page 2: Seller's Products ----
-      function backToInventorySellers() { invShowPage("sellers"); }
+      function backToInventorySellers() {
+        invShowPage("sellers");
+        dmPushHistoryState({ dmTab: "inventory", invPage: "sellers" });
+      }
 
       async function openSellerInventory(key, name) {
         invCurrentSellerKey = key;
         invCurrentSellerName = name;
         invShowPage("products");
+        dmPushHistoryState({ dmTab: "inventory", invPage: "products", invSellerKey: key, invSellerName: name });
         document.getElementById("invProductsBreadcrumb").innerHTML =
           '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Inventory</a> → ' +
           '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Sellers</a> → ' + escapeHtml(name);
@@ -2210,11 +2282,15 @@
       }
 
       // ---- Page 3: Product Size/Variant Stock ----
-      function backToInventoryProducts() { invShowPage("products"); }
+      function backToInventoryProducts() {
+        invShowPage("products");
+        dmPushHistoryState({ dmTab: "inventory", invPage: "products", invSellerKey: invCurrentSellerKey, invSellerName: invCurrentSellerName });
+      }
 
       async function openProductVariants(productId) {
         invCurrentProductId = productId;
         invShowPage("variants");
+        dmPushHistoryState({ dmTab: "inventory", invPage: "variants", invSellerKey: invCurrentSellerKey, invSellerName: invCurrentSellerName, invProductId: productId });
         document.getElementById("invVariantSearch").value = "";
         await loadInventoryVariants();
       }
@@ -2233,7 +2309,20 @@
             '<a href="javascript:void(0)" onclick="backToInventorySellers()" style="color:var(--rosewood);">Sellers</a> → ' +
             '<a href="javascript:void(0)" onclick="backToInventoryProducts()" style="color:var(--rosewood);">' + escapeHtml(invCurrentProduct.sellerName) + '</a> → ' + escapeHtml(invCurrentProduct.name);
           document.getElementById("invVariantsTitle").textContent = invCurrentProduct.name;
-          document.getElementById("invVariantsSeller").textContent = "Seller: " + invCurrentProduct.sellerName;
+          document.getElementById("invVariantsSellerValue").textContent = invCurrentProduct.sellerName || "—";
+          document.getElementById("invVariantsSkuValue").textContent = invCurrentProduct.productCode || "—";
+          const variantPrice = Array.isArray(invCurrentProduct.variants) && invCurrentProduct.variants.length
+            ? Number(invCurrentProduct.variants[0].price) || 0
+            : 0;
+          document.getElementById("invVariantsPriceValue").textContent = "₹" + variantPrice.toLocaleString("en-IN");
+          document.getElementById("invVariantsTotalStockValue").textContent = Number(invCurrentProduct.totalStock || 0).toLocaleString("en-IN");
+          document.getElementById("invVariantsCountValue").textContent = Number(invCurrentProduct.totalVariants || 0);
+          const lastUpdatedText = invCurrentProduct.lastUpdated ? new Date(invCurrentProduct.lastUpdated).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "Not available";
+          document.getElementById("invVariantsMeta").textContent = "Last updated: " + lastUpdatedText;
+          const photoWrap = document.getElementById("invVariantsPhotoWrap");
+          photoWrap.innerHTML = invCurrentProduct.image
+            ? '<img src="' + escapeHtml(invCurrentProduct.image) + '" style="max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;" />'
+            : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;">No image available</div>';
           renderInventoryVariants();
         } catch (e) {
           if (body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:#a3002a;">Could not load variants.</td></tr>';
@@ -2803,10 +2892,12 @@
       // ---------- MARKETING / OFFERS ----------
       let marketingProducts = [];
       let marketingCustomers = [];
+      let marketingGiftCodes = [];
+      const MK_MAX_PRODUCTS = 5;
 
       async function loadMarketing() {
         if (role !== "boss") return;
-        await Promise.all([loadMarketingProducts(), loadMarketingCustomers(), loadMarketingCampaigns()]);
+        await Promise.all([loadMarketingProducts(), loadMarketingCustomers(), loadMarketingCampaigns(), loadMarketingGiftCodes()]);
         toggleMarketingAudience();
       }
 
@@ -2817,8 +2908,50 @@
           const res = await fetch("/api/admin/products", { headers:{ Authorization:"Bearer "+token } });
           const data = await res.json();
           marketingProducts = data.success ? (data.products || []).filter(p => p.approved !== false && p.active !== false) : [];
-          box.innerHTML = marketingProducts.length ? marketingProducts.map(p => `<label style="display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--blush-line);border-radius:10px;cursor:pointer;"><input type="checkbox" class="mk-product-check" value="${Number(p.id)}"><span><strong>${escapeHtml(p.name || "Product")}</strong><br><small style="color:var(--muted);">₹${Number(p.price||0).toLocaleString("en-IN")}</small></span></label>`).join("") : '<div class="dm-empty">No approved products available.</div>';
+          box.innerHTML = marketingProducts.length ? marketingProducts.map(p => {
+            const thumb = p.image ? '<img src="' + escapeHtml(p.image) + '" style="width:32px;height:32px;border-radius:6px;object-fit:cover;" />' : '<div style="width:32px;height:32px;border-radius:6px;background:var(--blush-line);"></div>';
+            return `<label style="display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--blush-line);border-radius:10px;cursor:pointer;"><input type="checkbox" class="mk-product-check" value="${Number(p.id)}" onchange="onMarketingProductToggle(this)">${thumb}<span><strong>${escapeHtml(p.name || "Product")}</strong><br><small style="color:var(--muted);">₹${Number(p.price||0).toLocaleString("en-IN")}</small></span></label>`;
+          }).join("") : '<div class="dm-empty">No approved products available.</div>';
+          renderMarketingSelectedProducts();
         } catch(e) { box.innerHTML = '<div class="dm-empty">Could not load products.</div>'; }
+      }
+
+      async function loadMarketingGiftCodes() {
+        const select = document.getElementById("mkGiftCode");
+        if (!select) return;
+        try {
+          const res = await fetch("/api/admin/gift-codes", { headers:{ Authorization:"Bearer "+token } });
+          const data = await res.json();
+          marketingGiftCodes = data.success ? (data.codes || []).filter(g => g.active !== false) : [];
+          select.innerHTML = '<option value="">No gift code</option>' + marketingGiftCodes.map(g => `<option value="${Number(g.id)}">${escapeHtml(g.code)} — ${g.type === "fixed" ? "₹" + Number(g.value) : Number(g.value) + "%"} off</option>`).join("");
+        } catch(e) { /* gift codes are optional — leave "No gift code" as the only option */ }
+      }
+
+      // Enforces the 1–5 product limit client-side (the server enforces the
+      // max-5 limit too, so this is just a fast/friendly guard, not the
+      // only check) and keeps the selected-product preview chips in sync.
+      function onMarketingProductToggle(el) {
+        const checked = document.querySelectorAll(".mk-product-check:checked");
+        if (checked.length > MK_MAX_PRODUCTS) {
+          el.checked = false;
+          setMarketingStatus("You can select up to " + MK_MAX_PRODUCTS + " products for a campaign.");
+          return;
+        }
+        renderMarketingSelectedProducts();
+      }
+
+      function renderMarketingSelectedProducts() {
+        const wrap = document.getElementById("mkSelectedProducts");
+        if (!wrap) return;
+        const ids = [...document.querySelectorAll(".mk-product-check:checked")].map(el => Number(el.value));
+        const selected = marketingProducts.filter(p => ids.includes(Number(p.id)));
+        wrap.innerHTML = selected.map(p => `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--blush);border-radius:999px;padding:4px 10px 4px 4px;font-size:12px;">${p.image ? '<img src="' + escapeHtml(p.image) + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">' : ''}${escapeHtml(p.name || "Product")}<button type="button" onclick="deselectMarketingProduct(${Number(p.id)})" style="border:0;background:transparent;cursor:pointer;color:var(--rosewood);font-weight:800;">×</button></span>`).join("");
+      }
+
+      function deselectMarketingProduct(id) {
+        const cb = document.querySelector('.mk-product-check[value="' + id + '"]');
+        if (cb) cb.checked = false;
+        renderMarketingSelectedProducts();
       }
 
       async function loadMarketingCustomers() {
@@ -2845,6 +2978,7 @@
       function getMarketingPayload() {
         const productIds = [...document.querySelectorAll(".mk-product-check:checked")].map(el => Number(el.value));
         const customerIds = [...document.querySelectorAll(".mk-customer-check:checked")].map(el => Number(el.value));
+        const giftCodeId = document.getElementById("mkGiftCode")?.value || "";
         return {
           type: document.getElementById("mkType").value,
           audience: document.getElementById("mkAudience").value,
@@ -2853,6 +2987,7 @@
           heading: document.getElementById("mkHeading").value.trim(),
           message: document.getElementById("mkMessage").value.trim(),
           productIds,
+          giftCodeId: giftCodeId ? Number(giftCodeId) : null,
           buttonText: document.getElementById("mkButtonText").value.trim(),
           buttonUrl: document.getElementById("mkButtonUrl").value.trim(),
         };
@@ -2865,15 +3000,21 @@
         el.textContent = message || "";
       }
 
-      function previewMarketingCampaign() {
+      // Preview uses the exact same server-side template (buildMarketingEmail)
+      // that the real send/test email uses, so what the admin sees here is
+      // always identical to what a customer would receive. Re-runs whenever
+      // products/content change since it's just a fresh fetch each time.
+      async function previewMarketingCampaign() {
         const p = getMarketingPayload();
         if (!p.title || !p.message) return setMarketingStatus("Add a campaign title and message first.");
-        const selected = marketingProducts.filter(x => p.productIds.includes(Number(x.id)));
-        const cards = selected.map(x => `<div style="display:inline-block;width:210px;margin:8px;padding:12px;border:1px solid #ead8d0;border-radius:12px;text-align:center;vertical-align:top;background:#fffaf7;"><div style="font-weight:800;color:#5b2b24;">${escapeHtml(x.name||"Product")}</div><div style="font-weight:800;color:#a56a2a;margin:8px 0;">₹${Number(x.price||0).toLocaleString("en-IN")}</div><div style="font-size:12px;color:#806e68;">View Product →</div></div>`).join("");
-        const w = window.open("", "dmMarketingPreview", "width=760,height=760,scrollbars=yes");
+        setMarketingStatus("Building preview…", true);
+        const result = await apiAdmin("/api/admin/marketing/preview", { method:"POST", body:JSON.stringify(p) });
+        if (!result.ok) return setMarketingStatus(result.data.message || "Could not build preview.");
+        const w = window.open("", "dmMarketingPreview", "width=760,height=800,scrollbars=yes");
         if (!w) return setMarketingStatus("Please allow pop-ups to preview the campaign.");
-        w.document.write(`<!doctype html><html><head><title>Design Makers Email Preview</title></head><body style="margin:0;background:#f9f2ee;font-family:Arial,sans-serif;color:#33231f;"><div style="max-width:680px;margin:20px auto;padding:24px;background:#fff;border:1px solid #ead8d0;border-radius:18px;"><div style="text-align:center;font-size:12px;letter-spacing:2px;font-weight:800;color:#a56a2a;">DESIGN MAKERS</div><h1 style="text-align:center;color:#6b3028;">${escapeHtml(p.heading||p.title)}</h1><div style="font-size:15px;line-height:1.65;white-space:pre-wrap;">${escapeHtml(p.message)}</div><div style="text-align:center;margin-top:14px;">${cards}</div>${p.buttonUrl?`<p style="text-align:center;"><a href="${escapeHtml(p.buttonUrl)}" style="display:inline-block;background:#6b3028;color:#fff;text-decoration:none;padding:11px 20px;border-radius:10px;font-weight:800;">${escapeHtml(p.buttonText||"View Now")}</a></p>`:""}<hr style="border:0;border-top:1px solid #ead8d0;margin:28px 0 16px;"><p style="font-size:12px;color:#806e68;text-align:center;">You're receiving this because you're subscribed to Design Makers offers &amp; product updates.</p><p style="font-size:12px;text-align:center;color:#6b3028;">Unsubscribe from offers &amp; product updates</p></div></body></html>`);
+        w.document.write(result.data.html);
         w.document.close();
+        setMarketingStatus("Preview opened in a new window.", true);
       }
 
       async function sendMarketingTest() {
@@ -2931,11 +3072,13 @@
           renderPager(pagerEl, data, loadCustomers);
           listEl.innerHTML = data.customers.map((c) => {
             const mobileText = c.mobile ? escapeHtml(c.mobile) : '<span style="color:var(--danger);">no mobile (legacy)</span>';
+            const emailText = c.email ? escapeHtml(c.email) : '<span style="color:var(--muted);">Email not provided</span>';
             const orderTag = c.orderCount ? ' · ' + c.orderCount + ' order' + (c.orderCount === 1 ? '' : 's') : '';
+            const duplicateTag = c.duplicateMobile ? ' <span style="display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#fff1f3;color:var(--danger);font-size:11px;font-weight:800;">⚠ Duplicate Mobile' + (c.duplicateMobileCount > 1 ? ' · ' + c.duplicateMobileCount + ' accounts' : '') + '</span>' : '';
             return (
             '<div class="card" id="customerRow' + c.id + '" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;">' +
-              '<div><strong>' + escapeHtml(c.name || "—") + '</strong><br>' +
-                '<span style="font-size:13px;color:var(--muted);">' + mobileText + orderTag + '</span></div>' +
+              '<div><strong>' + escapeHtml(c.name || "—") + '</strong>' + duplicateTag + '<br>' +
+                '<span style="font-size:13px;color:var(--muted);">' + mobileText + ' · ' + emailText + orderTag + '</span></div>' +
               '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">' +
                 '<span id="customerNewPw' + c.id + '" style="font-size:13px;color:var(--success);"></span>' +
                 '<button class="btn small" onclick="openCustomerDetails(' + c.id + ')">View details</button>' +
@@ -3066,9 +3209,18 @@
           }
           const c = data.customer;
           const joined = c.createdAt ? new Date(c.createdAt).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
+          const lastActivityText = c.lastActivity ? new Date(c.lastActivity).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Not available";
+          const paymentBadge = (ps) => {
+            const s = String(ps || "pending");
+            const color = s === "paid" ? "#1c7a3f" : (s === "failed" ? "var(--danger)" : "#a56a2a");
+            return '<span style="font-size:11px;font-weight:800;color:' + color + ';text-transform:capitalize;">' + escapeHtml(s) + '</span>';
+          };
           const ordersHtml = (c.orders && c.orders.length)
             ? c.orders.map((o) => {
-                const items = o.items.map((it) => escapeHtml(it.name) + (it.size ? " (" + escapeHtml(it.size) + ")" : "") + " × " + it.qty).join(", ");
+                const items = o.items.map((it) =>
+                  (it.image ? '<img src="' + escapeHtml(it.image) + '" style="width:22px;height:22px;border-radius:5px;object-fit:cover;vertical-align:middle;margin-right:4px;">' : '') +
+                  escapeHtml(it.name) + (it.size ? " (" + escapeHtml(it.size) + ")" : "") + " × " + it.qty
+                ).join("<br>");
                 const cancelled = o.status === "Cancelled";
                 return (
                   '<div style="border-bottom:1px solid #3d2b32;padding:8px 0;">' +
@@ -3076,22 +3228,49 @@
                       '<strong>' + escapeHtml(o.orderNumber) + '</strong>' +
                       '<span style="' + (cancelled ? "text-decoration:line-through;color:var(--muted);" : "") + '">' + fmtINR(o.total || 0) + '</span>' +
                     '</div>' +
-                    '<div style="font-size:12px;color:var(--muted);">' + escapeHtml(o.status || "") + ' · ' + items + '</div>' +
+                    '<div style="font-size:12px;color:var(--muted);margin:2px 0 4px;">' + escapeHtml(o.status || "") + ' · ' + paymentBadge(o.paymentStatus) + ' · ' + (o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-IN") : "") + '</div>' +
+                    '<div style="font-size:12px;color:var(--muted);">' + items + '</div>' +
                   '</div>'
                 );
               }).join("")
             : '<p style="color:var(--muted);font-size:13px;margin:0;">No orders yet.</p>';
 
+          const duplicateHtml = c.duplicateMobile
+            ? '<div style="margin:0 0 14px;padding:10px 12px;border:1px solid #f0b7c1;background:#fff5f6;border-radius:10px;color:#8a1c42;"><strong>⚠ Duplicate Mobile Number</strong><div style="font-size:12px;margin-top:4px;">This mobile number is associated with another customer account. Existing accounts and orders were not merged or deleted.</div>' +
+              (c.duplicateAccounts || []).map((d) => '<div style="margin-top:6px;font-size:12px;"><a href="javascript:void(0)" onclick="openCustomerDetails(' + Number(d.id) + ')" style="color:#8a1c42;text-decoration:underline;"><strong>' + escapeHtml(d.name || "Customer") + '</strong></a> · ID #' + Number(d.id) + ' · ' + escapeHtml(d.mobile || "") + (d.email ? ' · ' + escapeHtml(d.email) : '') + (d.createdAt ? ' · joined ' + new Date(d.createdAt).toLocaleDateString("en-IN") : '') + '</div>').join("") + '</div>' : '';
+          const addressHtml = (c.addresses && c.addresses.length)
+            ? c.addresses.map((a) => '<div style="padding:8px 0;border-bottom:1px solid #eadde0;"><strong>' + escapeHtml(a.label || "Address") + '</strong><div style="font-size:12px;color:var(--muted);white-space:pre-wrap;">' + escapeHtml(a.text || "") + '</div></div>').join("")
+            : '<p style="color:var(--muted);font-size:13px;margin:0;">No saved addresses.</p>';
+          const giftHtml = (c.giftCodeHistory && c.giftCodeHistory.length)
+            ? c.giftCodeHistory.map((g) => '<div style="padding:7px 0;border-bottom:1px solid #eadde0;"><div style="display:flex;justify-content:space-between;"><strong>' + escapeHtml(g.code || "") + '</strong><span>−' + fmtINR(g.discount || 0) + '</span></div><div style="font-size:12px;color:var(--muted);">Order ' + escapeHtml(g.orderNumber || "") + ' · ' + (g.date ? new Date(g.date).toLocaleDateString("en-IN") : "") + ' · ' + escapeHtml(g.status || "Used") + '</div></div>').join("")
+            : '<p style="color:var(--muted);font-size:13px;margin:0;">No gift codes used.</p>';
           body.innerHTML =
-            '<div style="margin-bottom:14px;">' +
-              '<div style="font-size:20px;font-weight:700;">' + escapeHtml(c.name || "—") + '</div>' +
-              '<div style="color:var(--muted);">' + (c.mobile ? escapeHtml(c.mobile) : '<span style="color:var(--danger);">no mobile (legacy account)</span>') + '</div>' +
+            '<div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;">' +
+              '<div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:#f7e7e7;display:flex;align-items:center;justify-content:center;font-weight:800;color:#8a1c42;flex:0 0 56px;">' + (c.picture ? '<img src="' + escapeHtml(c.picture) + '" alt="Customer" style="width:100%;height:100%;object-fit:cover;">' : escapeHtml(String(c.name || "C").trim().charAt(0).toUpperCase() || "C")) + '</div>' +
+              '<div><div style="font-size:20px;font-weight:700;">' + escapeHtml(c.name || "—") + '</div>' +
+              '<div style="color:var(--muted);font-size:12px;">Customer ID #' + Number(c.id) + '</div>' +
+              '<div style="color:var(--muted);">' + (c.mobile ? escapeHtml(c.mobile) : '<span style="color:var(--danger);">no mobile (legacy account)</span>') + '</div></div>' +
+            '</div>' +
+            duplicateHtml +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px;">' +
+              '<div class="stat-card"><div class="stat-label">Email</div><div class="stat-value" style="font-size:14px;word-break:break-word;">' + (c.email ? escapeHtml(c.email) : 'Email not provided') + '</div></div>' +
+              '<div class="stat-card"><div class="stat-label">WhatsApp</div><div class="stat-value" style="font-size:14px;">' + (c.whatsappNumber ? escapeHtml(c.whatsappNumber) : 'Not provided') + '</div></div>' +
+              '<div class="stat-card"><div class="stat-label">Account</div><div class="stat-value" style="font-size:14px;">' + escapeHtml(c.authMethod || 'Not available') + '</div></div>' +
+              '<div class="stat-card"><div class="stat-label">Status</div><div class="stat-value" style="font-size:14px;">' + escapeHtml(c.status || 'Active') + '</div></div>' +
+              '<div class="stat-card"><div class="stat-label">Marketing</div><div class="stat-value" style="font-size:14px;">' + (c.marketingOptIn ? 'Subscribed' : 'Unsubscribed') + '</div></div>' +
+              '<div class="stat-card"><div class="stat-label">Last Activity</div><div class="stat-value" style="font-size:14px;">' + escapeHtml(lastActivityText) + '</div></div>' +
             '</div>' +
             '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">' +
-              '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Orders</div><div class="stat-value">' + (c.orders ? c.orders.length : 0) + '</div></div>' +
+              '<div class="stat-card" style="flex:1;min-width:110px;"><div class="stat-label">Total Orders</div><div class="stat-value">' + (c.orderSummary ? c.orderSummary.total : (c.orders ? c.orders.length : 0)) + '</div></div>' +
+              '<div class="stat-card" style="flex:1;min-width:110px;"><div class="stat-label">Active</div><div class="stat-value">' + (c.orderSummary ? c.orderSummary.active : 0) + '</div></div>' +
+              '<div class="stat-card" style="flex:1;min-width:110px;"><div class="stat-label">Cancelled</div><div class="stat-value">' + (c.orderSummary ? c.orderSummary.cancelled : 0) + '</div></div>' +
               '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Spent (excl. cancelled)</div><div class="stat-value">' + fmtINR(c.totalSpent || 0) + '</div></div>' +
               '<div class="stat-card" style="flex:1;min-width:120px;"><div class="stat-label">Joined</div><div class="stat-value" style="font-size:15px;">' + joined + '</div></div>' +
             '</div>' +
+            '<h4 style="margin:0 0 8px;color:var(--gold-soft);">Addresses</h4>' +
+            '<div style="margin-bottom:16px;">' + addressHtml + '</div>' +
+            '<h4 style="margin:0 0 8px;color:var(--gold-soft);">Gift code history</h4>' +
+            '<div style="margin-bottom:16px;">' + giftHtml + '</div>' +
             '<h4 style="margin:0 0 8px;color: var(--gold-soft);">Order history</h4>' +
             '<div>' + ordersHtml + '</div>';
         } catch (err) {
@@ -5361,6 +5540,20 @@
       }
 
       // ---------- GIFT CODES (boss only) ----------
+      let giftCodesCache = [];
+      let editingGiftCodeId = null;
+
+      // Converts a stored ISO timestamp into the local value a
+      // datetime-local input expects (YYYY-MM-DDTHH:mm), so editing a code
+      // shows its real start/expiry instead of leaving those fields blank.
+      function isoToDatetimeLocal(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return "";
+        const pad = (n) => String(n).padStart(2, "0");
+        return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      }
+
       async function loadGiftCodes() {
         const body = document.getElementById("giftCodesBody");
         if (!body) return;
@@ -5369,8 +5562,9 @@
           const res = await fetch("/api/admin/gift-codes", { headers: { Authorization: "Bearer " + token } });
           const data = await res.json();
           if (!res.ok || !data.success) throw new Error(data.message || "Could not load gift codes.");
-          if (!data.codes.length) { body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">No gift codes created yet.</td></tr>'; return; }
-          body.innerHTML = data.codes.map(g => {
+          giftCodesCache = data.codes || [];
+          if (!giftCodesCache.length) { body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">No gift codes created yet.</td></tr>'; return; }
+          body.innerHTML = giftCodesCache.map(g => {
             const discount = g.type === "fixed" ? "₹" + fmtINR(g.value) : g.value + "%";
             const usage = (g.usedCount || 0) + (g.usageLimit ? " / " + g.usageLimit : " / ∞");
             const validity = (g.startsAt ? new Date(g.startsAt).toLocaleString() : "Now") + " → " + (g.expiresAt ? new Date(g.expiresAt).toLocaleString() : "No expiry");
@@ -5381,12 +5575,58 @@
               '<td style="padding:12px 14px;">' + escapeHtml(usage) + '</td>' +
               '<td style="padding:12px 14px;font-size:12px;">' + escapeHtml(validity) + '</td>' +
               '<td style="padding:12px 14px;">' + (g.active ? '🟢 Active' : '⚪ Disabled') + '</td>' +
-              '<td style="padding:12px 14px;display:flex;gap:6px;">' +
+              '<td style="padding:12px 14px;display:flex;gap:6px;flex-wrap:wrap;">' +
+                '<button class="btn small secondary" onclick="startEditGiftCode(' + Number(g.id) + ')">Edit</button>' +
                 '<button class="btn small secondary" onclick="toggleGiftCode(' + Number(g.id) + ',' + (!g.active) + ')">' + (g.active ? 'Disable' : 'Enable') + '</button>' +
                 '<button class="btn small danger" onclick="deleteGiftCode(' + Number(g.id) + ')">Delete</button>' +
               '</td></tr>';
           }).join('');
         } catch (e) { body.innerHTML = '<tr><td colspan="7" style="padding:20px;color:#b42318;">' + escapeHtml(e.message) + '</td></tr>'; }
+      }
+
+      function startEditGiftCode(id) {
+        const g = giftCodesCache.find(c => Number(c.id) === Number(id));
+        if (!g) return;
+        editingGiftCodeId = g.id;
+        document.getElementById("gcCode").value = g.code || "";
+        document.getElementById("gcType").value = g.type === "fixed" ? "fixed" : "percent";
+        document.getElementById("gcValue").value = g.value != null ? g.value : "";
+        document.getElementById("gcMinOrder").value = g.minOrder || 0;
+        document.getElementById("gcMaxDiscount").value = g.maxDiscount || 0;
+        document.getElementById("gcUsageLimit").value = g.usageLimit || 0;
+        document.getElementById("gcPerCustomerLimit").value = g.perCustomerLimit || 0;
+        document.getElementById("gcStartsAt").value = isoToDatetimeLocal(g.startsAt);
+        document.getElementById("gcExpiresAt").value = isoToDatetimeLocal(g.expiresAt);
+        document.getElementById("gcSaveBtn").textContent = "Save Changes";
+        document.getElementById("gcCancelEditBtn").style.display = "inline-block";
+        document.getElementById("giftCodeError").textContent = "";
+        document.getElementById("gcCode").scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      function cancelEditGiftCode() {
+        editingGiftCodeId = null;
+        ["gcCode","gcValue","gcMinOrder","gcMaxDiscount","gcUsageLimit","gcPerCustomerLimit","gcStartsAt","gcExpiresAt"].forEach(id => document.getElementById(id).value = "");
+        document.getElementById("gcType").value = "percent";
+        document.getElementById("gcSaveBtn").textContent = "+ Create Gift Code";
+        document.getElementById("gcCancelEditBtn").style.display = "none";
+        document.getElementById("giftCodeError").textContent = "";
+      }
+
+      // A <input type="datetime-local"> value like "2026-08-24T23:59" carries
+      // no timezone at all. The browser that reads it back (isoToDatetimeLocal,
+      // above) interprets it in ITS OWN local time — fine if that's always the
+      // admin's browser. But sending that bare string to the server is not
+      // safe: `new Date("2026-08-24T23:59")` there gets interpreted in the
+      // SERVER's local timezone, which on Render/most hosts is UTC, not IST.
+      // An admin in India setting an 11:59 PM expiry would silently get a
+      // code that actually expires ~5.5 hours later (or earlier for a start
+      // date) than intended. This site is IST-only throughout (see the
+      // gift-add-on's IST day-of-month check in server.js), so pin the offset
+      // explicitly here rather than leaving it to whatever timezone the
+      // server process happens to run in.
+      function datetimeLocalToISTiso(value) {
+        if (!value) return "";
+        return value.length === 16 ? value + ":00+05:30" : value + "+05:30";
       }
 
       async function createGiftCode() {
@@ -5399,14 +5639,18 @@
           maxDiscount: Number(document.getElementById("gcMaxDiscount").value || 0),
           usageLimit: Number(document.getElementById("gcUsageLimit").value || 0),
           perCustomerLimit: Number(document.getElementById("gcPerCustomerLimit").value || 0),
-          startsAt: document.getElementById("gcStartsAt").value || "",
-          expiresAt: document.getElementById("gcExpiresAt").value || "",
+          startsAt: datetimeLocalToISTiso(document.getElementById("gcStartsAt").value),
+          expiresAt: datetimeLocalToISTiso(document.getElementById("gcExpiresAt").value),
         };
+        const isEdit = editingGiftCodeId != null;
         try {
-          const res = await fetch("/api/admin/gift-codes", { method:"POST", headers:{"Content-Type":"application/json",Authorization:"Bearer "+token}, body:JSON.stringify(body) });
+          const res = await fetch(
+            isEdit ? "/api/admin/gift-codes/" + editingGiftCodeId : "/api/admin/gift-codes",
+            { method: isEdit ? "PATCH" : "POST", headers:{"Content-Type":"application/json",Authorization:"Bearer "+token}, body:JSON.stringify(body) }
+          );
           const data = await res.json();
-          if (!res.ok || !data.success) { err.textContent = data.message || "Could not create gift code."; return; }
-          ["gcCode","gcValue","gcMinOrder","gcMaxDiscount","gcUsageLimit","gcPerCustomerLimit","gcStartsAt","gcExpiresAt"].forEach(id => document.getElementById(id).value = "");
+          if (!res.ok || !data.success) { err.textContent = data.message || (isEdit ? "Could not update gift code." : "Could not create gift code."); return; }
+          cancelEditGiftCode();
           await loadGiftCodes();
         } catch (e) { err.textContent = "Network error. Try again."; }
       }
@@ -5416,7 +5660,7 @@
       }
       async function deleteGiftCode(id) {
         if (!confirm("Delete this gift code? Existing orders using it will remain unchanged.")) return;
-        try { const res=await fetch("/api/admin/gift-codes/"+id,{method:"DELETE",headers:{Authorization:"Bearer "+token}}); const data=await res.json(); if(!res.ok||!data.success) throw new Error(data.message||"Could not delete code."); await loadGiftCodes(); } catch(e){ alert(e.message); }
+        try { const res=await fetch("/api/admin/gift-codes/"+id,{method:"DELETE",headers:{Authorization:"Bearer "+token}}); const data=await res.json(); if(!res.ok||!data.success) throw new Error(data.message||"Could not delete code."); if (editingGiftCodeId === id) cancelEditGiftCode(); await loadGiftCodes(); } catch(e){ alert(e.message); }
       }
 
       // ---------- ADMINS (boss only) ----------

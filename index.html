@@ -48,18 +48,6 @@
         --text-on-primary: #2a1710;
       }
 
-      
-
-      
-
-      
-
-      
-
-      
-
-      
-
       /* ===== Rakshabandhan "Rani & Gold" — thread stripe, golden glow, rakhi charms, floating rakhi threads ===== */
       body.theme-rakshabandhan header.site-header {
         background: linear-gradient(135deg, var(--rosewood) 0%, var(--rosewood-dark) 100%);
@@ -94,7 +82,7 @@
         50%      { opacity: 1;   transform: translateX(-50%) scale(1.08); }
       }
       body.theme-rakshabandhan .hero > * { position: relative; z-index: 1; }
-      body.theme-rakshabandhan .hero > .rakhi-charm { position: absolute; z-index: 1; }
+      body.theme-rakshabandhan .hero > .rakhi-charm { position: absolute; z-index: 5; }
 
       .rakhi-charm { display: none; position: absolute; top: -6px; width: 72px; height: 118px; z-index: 1; pointer-events: none; }
       body.theme-rakshabandhan .rakhi-charm { display: block; }
@@ -104,8 +92,7 @@
         .rakhi-charm { width: 46px; height: 78px; }
       }
 
-
-      body.theme-rakshabandhan .hero > .rakhi-float-wrap { position: absolute; z-index: 1; }
+      body.theme-rakshabandhan .hero > .rakhi-float-wrap { position: absolute; z-index: 5; }
       .rakhi-float-wrap {
         display: none;
         position: absolute;
@@ -1539,7 +1526,6 @@
         .gender-modal-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       }
 
-
       /* ===== Why choose us ===== */
       .why-us-wrap { max-width: 1200px; margin: 50px auto 0; padding: 30px 20px; background: var(--blush); border-radius: 14px; }
       .why-us-grid {
@@ -1652,7 +1638,6 @@ footer {max-width:1280px!important;margin:60px auto 0!important;padding:30px 20p
       .grid-wrap,
       .why-us-wrap {margin-left:12px!important;margin-right:12px!important;padding-left:0!important;padding-right:0!important}.promo-banner-wrap {grid-template-columns:1fr!important}.promo-banner {min-height:210px!important}.gift-banner-img {height:118%!important}}
 @media (max-width:640px) {.site-header .logo span {display:none}.site-header .header-inner {padding:0 12px!important}.hero {min-height:unset!important}.hero h1 {font-size:42px!important}.promo-banner h3 {font-size:25px!important}.gift-banner-img {opacity:.78!important}}
-
 
 /* Override seasonal skins for the permanent premium storefront */
 body.theme-rakshabandhan .site-header {background:rgba(255,251,246,.72)!important;color:var(--dm-text)!important;border:1px solid var(--dm-border)!important;border-bottom:1px solid var(--dm-border)!important;border-radius:22px!important;box-shadow:0 18px 50px rgba(138,28,66,.08),inset 0 1px rgba(255,255,255,.6)!important}
@@ -1886,7 +1871,6 @@ body.theme-rakshabandhan .promo-banner {
   overflow:hidden!important;
 }
 
-
 body.theme-rakshabandhan .promo-banner.pb-rosewood {background:linear-gradient(135deg,#fff0f3,#fff8f7 58%,#fbe4eb)!important}
 body.theme-rakshabandhan .promo-banner.pb-gold {background:linear-gradient(135deg,#fff8e9,#fffdf8 58%,#f4e6c9)!important}
 body.theme-rakshabandhan .promo-banner-tag {
@@ -1937,7 +1921,6 @@ body.theme-rakshabandhan .hot-banner {background:linear-gradient(135deg,#fff0f3,
    text on a light background, i.e. unreadable. Force dark, high-contrast
    text here so the heading/subtext are always legible on the light theme bg. */
 
-
 body.theme-rakshabandhan .hot-banner h3 {color:var(--dm-accent-dark)!important}
 body.theme-rakshabandhan .hot-banner p {color:#5a2a1a!important}
 
@@ -1977,7 +1960,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
 /* ---------- festive page accents ---------- */
 
-
 @media (max-width:900px) {
   body.theme-rakshabandhan .hero {
     grid-template-columns:1fr!important;
@@ -1992,7 +1974,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
   body.theme-rakshabandhan .hero h1 {font-size:35px!important}
   body.theme-rakshabandhan .seasonal-quote {font-size:13px!important}
 }
-
 
       /* ===== Festival hero banners (full-artwork replacement for the default hero copy/product blocks) =====
          Placed last in the stylesheet on purpose so it wins over the theme-skin blocks above it. */
@@ -2012,7 +1993,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       .festival-hero-hit-whatsapp { left: 20.5%; width: 20%; }
       #rakhiHeroWrap .festival-hero-hit { top: 83.5%; height: 8%; }
       #rakhiHeroWrap .festival-hero-hit-whatsapp { left: 18.5%; width: 20%; }
-      
+
       body.theme-rakshabandhan #rakhiHeroWrap { display: block !important; }
       body.theme-rakshabandhan .dm-hero-copy,
       body.theme-rakshabandhan .dm-hero-product {
@@ -2027,8 +2008,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         box-shadow: none !important;
       }
       body.theme-rakshabandhan .hero::before,
-      body.theme-rakshabandhan .hero::after,
-      body.theme-rakshabandhan .hero > .rakhi-charm {
+      body.theme-rakshabandhan .hero::after {
         display: none !important;
       }
       @media  (max-width: 900px)  {
@@ -2049,7 +2029,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         display: block !important;
       }
       .festival-offer-wrap { display: none; max-width: 1280px; margin: 18px auto 0; border-radius: 12px; overflow: hidden; }
-      
+
       /* Rakhi offer banner intentionally hidden — no HD version available. */
       .festival-strip-hit {
         position: absolute;
@@ -2133,7 +2113,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         background: rgba(182,61,97,.14) !important;
         color: #8e4549 !important;
       }
-    
+
       /* Mandatory Google-login WhatsApp number popup */
       #googleWhatsappNumberOverlay { z-index: 10050; }
       #googleWhatsappNumberOverlay .auth-modal { max-width: 460px; }
@@ -2154,25 +2134,26 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
          so they reclaim the win whenever body.theme-rakshabandhan is set. */
       body.theme-rakshabandhan {
         background: radial-gradient(circle at 78% 6%, rgba(212,175,55,.28), transparent 34%),
-                    radial-gradient(circle at 8% 28%, rgba(255,59,59,.14), transparent 36%),
-                    var(--cream) !important;
-        color: var(--ink) !important;
+                    radial-gradient(circle at 8% 28%, rgba(255,59,59,.10), transparent 36%),
+                    var(--dm-page, #fbe3d6) !important;
+        color: var(--dm-text) !important;
       }
       body.theme-rakshabandhan .site-header {
-        background: linear-gradient(135deg, var(--rosewood) 0%, var(--rosewood-dark) 100%) !important;
-        border: 1px solid var(--gold) !important;
-        border-bottom: 4px solid var(--gold) !important;
-        box-shadow: 0 3px 0 rgba(0,0,0,0.08) !important;
-        backdrop-filter: none !important;
+        background: linear-gradient(135deg, rgba(255,253,249,.55), rgba(255,241,232,.35)) !important;
+        border: 1px solid var(--dm-border, rgba(90,54,34,.14)) !important;
+        border-bottom: 1px solid var(--dm-border, rgba(90,54,34,.14)) !important;
+        box-shadow: 0 18px 50px rgba(138,28,66,.08), inset 0 1px rgba(255,255,255,.6) !important;
+        backdrop-filter: blur(24px) saturate(160%) !important;
+        -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
       }
       body.theme-rakshabandhan .site-header .logo,
-      body.theme-rakshabandhan .site-header .logo span { color: #1a0505 !important; }
+      body.theme-rakshabandhan .site-header .logo span { color: var(--dm-text, #2b211c) !important; }
       body.theme-rakshabandhan .site-header .icon-btn {
-        background: rgba(26,5,5,0.12) !important;
-        border: 1px solid rgba(26,5,5,0.25) !important;
+        background: rgba(255,255,255,.45) !important;
+        border: 1px solid var(--dm-border, rgba(90,54,34,.14)) !important;
         color: #1a0505 !important;
       }
-      body.theme-rakshabandhan .search-bar-panel { background: var(--cream) !important; }
+      body.theme-rakshabandhan .search-bar-panel { background: var(--dm-surface-solid, #fffdf9) !important; }
       body.theme-rakshabandhan .hero {
         background: linear-gradient(135deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
                     radial-gradient(circle at 80% 40%, rgba(212,175,55,.18), transparent 42%),
@@ -2190,6 +2171,102 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       }
       body.theme-rakshabandhan .dm-hero-product-stage,
       body.theme-rakshabandhan .dm-hero-product-stage * { color: var(--ink) !important; }
+
+      /* ===== Rakshabandhan profile/account panel fix =====
+         .dm-profile-nav-item, .dm-welcome-name, .dm-edit-profile-btn,
+         .dm-refer-title/.dm-refer-btn and .dm-settings-link all set an
+         explicit text color of var(--ink) or var(--rosewood) — variables
+         this theme redefines to a light cream (#ffeace) and a gold
+         (#d4af37), meant for the original dark version of this skin. Now
+         that the theme's page background is light, that leaves faint
+         gold/cream text sitting on a near-white card — hard to read.
+         Force these to the theme's actual dark text/accent colors
+         (var(--dm-text), var(--dm-accent-dark)) instead, so nothing in
+         this panel relies on white/gold text unless it's sitting on a
+         genuinely dark surface (which none of this panel's cards are). */
+      body.theme-rakshabandhan .dm-profile-nav-item { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .dm-profile-nav-item:hover { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan .dm-profile-nav-item.active {
+        background: var(--dm-soft) !important;
+        color: var(--dm-accent-dark) !important;
+        border-color: var(--dm-border) !important;
+      }
+      body.theme-rakshabandhan .dm-welcome-name { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .dm-welcome-hi,
+      body.theme-rakshabandhan .dm-welcome-contact { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan .dm-edit-profile-btn {
+        color: var(--dm-accent-dark) !important;
+        border-color: var(--dm-accent-dark) !important;
+      }
+      body.theme-rakshabandhan .dm-refer-title { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .dm-refer-sub { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan .dm-refer-btn {
+        color: var(--dm-accent-dark) !important;
+        border-color: var(--dm-accent-dark) !important;
+      }
+      body.theme-rakshabandhan .dm-settings-link { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .dm-settings-link span { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan .dm-settings-link:hover { border-color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .dm-qa-sub,
+      body.theme-rakshabandhan .dm-qa-arrow,
+      body.theme-rakshabandhan .dm-info-card-text { color: var(--dm-muted) !important; }
+
+      /* ===== Rakshabandhan cart drawer fix =====
+         Same stale-variable problem as the profile panel: an early "dark
+         surface" rule (near the top of this stylesheet) still sets
+         .cart-drawer's background to near-black (#2a0d0d) with light
+         cream text (var(--ink)) — built for the original dark version of
+         this theme. A later rule already fixed the cart drawer's actual
+         background to the light surface color, but never corrected the
+         text color that cascades down to it, so item names, prices, the
+         "Your Cart" heading, the COD note and the gift-code label were
+         all left in gold/cream, unreadable against the now-light drawer.
+         checkout-input (delivery address box, gift-code box, and every
+         other text field on the site) had the same dark-box/light-text
+         leftover — fixed here too so it matches the rest of the theme. */
+      body.theme-rakshabandhan .cart-drawer { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .cart-header h2 { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .cart-item-price { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .cod-note {
+        background: var(--dm-soft) !important;
+        color: var(--dm-accent-dark) !important;
+      }
+      body.theme-rakshabandhan .gift-code-box > div:first-child { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .checkout-input {
+        background: var(--dm-surface-solid, #fffdf9) !important;
+        color: var(--dm-text) !important;
+        border-color: var(--dm-border) !important;
+      }
+      body.theme-rakshabandhan .checkout-input::placeholder { color: var(--dm-muted) !important; opacity: 1; }
+      body.theme-rakshabandhan .cart-total-row { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan #checkoutIdentity {
+        color: var(--dm-accent-dark) !important;
+        background: var(--dm-soft) !important;
+        border-color: var(--dm-border) !important;
+      }
+
+      /* ===== Rakshabandhan product-quick-view modal fix =====
+         Same stale var(--rosewood)/var(--muted) issue (both resolve to
+         gold for this theme) reaching the product modal: price, the
+         subtitle/MOQ line, field labels ("QUANTITY", "REVIEWS"), the
+         Wishlist button and the share icon were all gold-on-cream. Also
+         squares the Add to Cart / Buy Now buttons with the maroon accent
+         used everywhere else, instead of the leftover gold. */
+      body.theme-rakshabandhan .modal-price { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .modal-desc,
+      body.theme-rakshabandhan .modal-moq { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan .field-label { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .dm-wishlist-btn {
+        color: var(--dm-accent-dark) !important;
+        border-color: var(--dm-border) !important;
+      }
+      body.theme-rakshabandhan .dm-wishlist-btn.active { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan #shareProductBtn { color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .add-cart-btn:not(#productWhatsappBtn) {
+        background: linear-gradient(135deg, var(--dm-accent-dark), var(--dm-accent)) !important;
+        color: #fff !important;
+      }
+      body.theme-rakshabandhan #buyNowBtn { background: var(--dm-accent-dark) !important; }
 </style>
     <!-- Toggleable dark-mode skin: disabled by default via media="not all",
          flipped to media="all" by the shared theme JS when dark mode is on.
@@ -2224,7 +2301,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       }
       /* ===== FINAL CUSTOMER LIQUID GLASS THEME ===== */
       body { background:#05070a !important; color:#f5f7fb; }
-      
+
       body.dark-mode.theme-rakshabandhan {
         --dm-page: #05070a;
         --dm-surface: rgba(255,255,255,.05);
@@ -2295,7 +2372,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       }
       @media (max-width:900px)  {body.dark-mode:not(.theme-rakshabandhan) .hero {grid-template-columns:1fr !important; min-height:auto !important; padding:36px 24px !important;}body.dark-mode .dm-hero-product {min-height:330px;}body.dark-mode .dm-hero-product-stage {height:330px;}body.dark-mode .hero-ctas,
       body.dark-mode .hero-trust {justify-content:flex-start !important;} }
-    
+
       body.dark-mode .announce { display:none !important; }
       body.dark-mode .site-header { background: rgba(10,14,20,.6) !important; border: 1px solid rgba(255,255,255,.10) !important; border-bottom: 1px solid rgba(255,255,255,.06) !important; box-shadow: 0 18px 50px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.06) !important; }
       body.dark-mode .site-header .logo,
@@ -2486,6 +2563,69 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       .modal-thumb img {
         background: transparent;
       }
+
+      /* ===== Rakshabandhan premium decoration pack (added on request) =====
+         1. Gold shimmer sweep on the main CTA buttons that are actually
+            visible during the rakhi theme (mobile action bar cart button,
+            product modal Buy Now / Add to Cart).
+         2. Static gold corner-flourish framing on the hero banner and the
+            sister/brother category cards.
+         3. Gold underline under section headings that draws itself in the
+            first time the section scrolls into view (JS toggles a class,
+            see the script block near the closing </body>). */
+
+      /* Auto-loops (not hover-only) so it still shows on touch/mobile,
+         where the mobile action bar cart button is the main visible CTA. */
+      body.theme-rakshabandhan .mobile-action-bar .cart-btn,
+      body.theme-rakshabandhan #buyNowBtn,
+      body.theme-rakshabandhan .add-cart-btn:not(#productWhatsappBtn) {
+        position: relative;
+        overflow: hidden;
+      }
+      body.theme-rakshabandhan .mobile-action-bar .cart-btn::after,
+      body.theme-rakshabandhan #buyNowBtn::after,
+      body.theme-rakshabandhan .add-cart-btn:not(#productWhatsappBtn)::after {
+        content: "";
+        position: absolute;
+        top: 0; left: -60%;
+        width: 40%; height: 100%;
+        background: linear-gradient(115deg, transparent, rgba(255,255,255,.55), transparent);
+        transform: skewX(-20deg);
+        pointer-events: none;
+        animation: rakhiBtnShimmer 3.6s ease-in-out infinite;
+      }
+      @keyframes rakhiBtnShimmer {
+        0%, 55% { left: -60%; }
+        85%, 100% { left: 130%; }
+      }
+
+      .rakhi-corner-flourish {
+        position: absolute;
+        width: 46px; height: 46px;
+        pointer-events: none;
+        z-index: 4;
+        opacity: .85;
+      }
+      .rakhi-corner-flourish.tl { top: 14px; left: 14px; }
+      .rakhi-corner-flourish.br { bottom: 14px; right: 14px; transform: rotate(180deg); }
+      @media (max-width: 720px) {
+        .rakhi-corner-flourish { width: 30px; height: 30px; }
+        .rakhi-corner-flourish.tl { top: 8px; left: 8px; }
+        .rakhi-corner-flourish.br { bottom: 8px; right: 8px; }
+      }
+
+      body.theme-rakshabandhan .cat-cards-wrap h2::after,
+      body.theme-rakshabandhan .prod-section-wrap h2::after,
+      body.theme-rakshabandhan .sale-section-wrap h2::after {
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform .9s cubic-bezier(.22,.8,.2,1);
+      }
+      body.theme-rakshabandhan .cat-cards-wrap h2.rakhi-underline-in::after,
+      body.theme-rakshabandhan .prod-section-wrap h2.rakhi-underline-in::after,
+      body.theme-rakshabandhan .sale-section-wrap h2.rakhi-underline-in::after {
+        transform: scaleX(1);
+      }
     </style>
   </head>
   <body>
@@ -2619,6 +2759,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         <img class="festival-hero-img" src="rakhi-hero-desktop.webp" alt="Happy Raksha Bandhan. Design Makers, celebrating the bond of love.">
         <button class="festival-hero-hit festival-hero-hit-shop" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
         <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/7004847813','_blank')" aria-label="Chat on WhatsApp"></button>
+        <svg class="rakhi-corner-flourish tl" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
+        <svg class="rakhi-corner-flourish br" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
       </div>
     </div>
     <div class="gift-addon-banner" id="giftAddonBanner">
@@ -2654,12 +2804,31 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
     <div class="promo-banner-wrap festival-cat-wrap" id="rakhiCatWrap">
       <div class="promo-banner gift-banner festival-cat-card" onclick="openGenderModal('her')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('her');}">
         <img class="gift-banner-img" src="rakhi-gift-for-sister.webp" alt="For your sister — because she deserves the best" loading="lazy">
+        <svg class="rakhi-corner-flourish tl" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
+        <svg class="rakhi-corner-flourish br" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
       </div>
       <div class="promo-banner gift-banner festival-cat-card" onclick="openGenderModal('him')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGenderModal('him');}">
         <img class="gift-banner-img" src="rakhi-gift-for-brother.webp" alt="For your brother — the one who always has you" loading="lazy">
+        <svg class="rakhi-corner-flourish tl" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
+        <svg class="rakhi-corner-flourish br" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
+          <circle cx="4" cy="34" r="2" fill="#d4af37"/>
+          <circle cx="34" cy="4" r="2" fill="#d4af37"/>
+        </svg>
       </div>
     </div>
-
 
     <div class="sale-section-wrap" id="saleSectionWrap" style="display:none;">
       <h2>🔥 Live Sale <span style="font-weight:400;font-size:0.6em;color:#b5849c;">— grab these before time runs out</span></h2>
@@ -2803,7 +2972,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             <button type="button" id="productWishlistBtn" class="dm-wishlist-btn" onclick="toggleWishlistCurrentProduct()" aria-label="Add product to wishlist">♡ Wishlist</button>
             <button type="button" id="productNotifyBtn" class="dm-wishlist-btn" onclick="toggleBackInStockCurrentProduct()" style="display:none;">🔔 Notify me</button>
           </div>
-          <button type="button" id="productWhatsappBtn" class="add-cart-btn" onclick="chatAboutCurrentProduct()" style="width:100%;margin:0 0 8px;background:color-mix(in srgb, #1c7a34 82%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);color:#fff;">💬 Chat with us on WhatsApp</button>
+          <button type="button" id="productWhatsappBtn" class="add-cart-btn" onclick="chatAboutCurrentProduct()" style="width:100%;margin:0 0 8px;background:color-mix(in srgb, #1c7a34 82%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);color:#fff;"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>Chat with us on WhatsApp</button>
 
           <div style="display:flex;gap:8px;align-items:stretch;">
             <button class="add-cart-btn" id="addCartBtn" onclick="addToCart()" style="flex:1;">Add to Cart</button>
@@ -3438,7 +3607,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => { el.style.opacity = "0"; }, 2600);
       }
-
 
       function showLoginForm() {
         document.getElementById("authFormTitle").textContent = "Log in";
@@ -4950,7 +5118,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           document.body.classList.remove("theme-rakshabandhan");
           if (theme === "rakshabandhan") {
             document.body.classList.add("theme-" + theme);
-          
+
     applyDarkMode(false);
     document.querySelectorAll(".dm-dark-toggle-row").forEach(function(el){ el.style.display = "none"; });
   } else {
@@ -5416,7 +5584,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         return (
           '<div class="product-card" onclick="openProductModal(' + p.id + ')">' +
             '<div class="product-img" style="position:relative;">' +
-              '<button type="button" aria-label="Add to wishlist" onclick="event.stopPropagation();toggleWishlistById(' + p.id + ')" style="position:absolute;right:9px;top:9px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid var(--blush-line);background:rgba(255,255,255,.9);color:var(--rosewood);font-size:18px;cursor:pointer;">' + (isWishlisted(p.id) ? '♥' : '♡') + '</button>' +
+              '<button type="button" data-wishlist-id="' + p.id + '" aria-label="Add to wishlist" onclick="event.stopPropagation();toggleWishlistById(' + p.id + ')" style="position:absolute;right:9px;top:9px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid var(--blush-line);background:rgba(255,255,255,.9);color:var(--rosewood);font-size:18px;cursor:pointer;">' + (isWishlisted(p.id) ? '♥' : '♡') + '</button>' +
               badgeHtml +
               imgHtml +
             "</div>" +
@@ -6044,7 +6212,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                     (item.size ? '<div class="cart-item-meta">Size: ' + escapeHtml(item.size) + "</div>" : "") +
                     (item.onSale ? '<div class="cart-item-meta" style="color:#1c7a34;">On sale: ₹' + fmtINR(item.price) + ' <span style="text-decoration:line-through;color:#b5849c;">₹' + fmtINR(item.originalPrice) + '</span></div>' : "") +
                     (discountPct ? '<div class="cart-item-meta" style="color:#e6006e;">' + discountPct + "% bulk discount applied</div>" : "") +
-                    (stock.qty !== null ? '<div class="cart-item-meta" style="font-weight:800;color:' + (stock.qty === 0 ? '#b42318' : (stock.qty <= 5 ? '#b54708' : '#1c7a34')) + ';">' + (stock.qty === 0 ? '🔴 Currently out of stock' : ('Available now: ' + stock.qty)) + '</div>' : '') +
+                    (stock.qty === 0 ? '<div class="cart-item-meta" style="font-weight:800;color:#b42318;">🔴 Currently out of stock</div>' : (stock.qty !== null && stock.qty <= 5 ? '<div class="cart-item-meta" style="font-weight:800;color:#b54708;">Available now: ' + stock.qty + '</div>' : '')) +
                     (unavailable ? '<div class="cart-item-meta" style="color:#b42318;font-weight:800;">Please reduce quantity before checkout.</div>' : '') +
                     '<div class="cart-item-controls">' +
                       '<button onclick="updateCartQty(' + idx + ', -1)">−</button>' +
@@ -6101,8 +6269,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       }
 
       async function applyGiftCode() {
+        // Checkout on this site requires sign-in (see updateCheckoutIdentity
+        // above) — there is no guest checkout flow reachable from the UI, so
+        // gift codes are correctly restricted to signed-in customers too.
+        // This must show a clear, specific message and must NEVER fall
+        // through to the request below (and its generic catch-block error)
+        // for a customer who simply isn't signed in yet.
         if (!currentCustomer) {
-          document.getElementById("giftCodeMessage").textContent = "Please sign in before applying a gift code.";
+          const msg = document.getElementById("giftCodeMessage");
+          msg.style.color = "#b42318";
+          msg.textContent = "Please sign in to use gift codes.";
           return;
         }
         const input = document.getElementById("giftCodeInput");
@@ -6118,10 +6294,29 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             headers: { "Content-Type": "application/json", ...authHeaders() },
             body: JSON.stringify({ code, items: cart.map(i => ({ productId:i.productId, size:i.size, qty:i.qty })) })
           });
-          const data = await res.json();
+          let data;
+          try {
+            data = await res.json();
+          } catch (parseErr) {
+            // The server returned something that wasn't valid JSON (e.g. a
+            // dropped session mid-request, a proxy error page). Surface a
+            // specific, honest message instead of a silent generic one.
+            console.error("applyGiftCode: response was not valid JSON", parseErr);
+            msg.style.color = "#b42318";
+            msg.textContent = "Server didn't respond as expected. Please try again.";
+            return;
+          }
+          if (res.status === 401) {
+            // Session expired between page load and clicking Apply.
+            appliedGiftCode = ""; giftCodeDiscount = 0;
+            msg.style.color = "#b42318";
+            msg.textContent = "Your session expired — please sign in again to use a gift code.";
+            renderCartTotals();
+            return;
+          }
           if (!res.ok || !data.success) {
             appliedGiftCode = ""; giftCodeDiscount = 0;
-            msg.style.color = "#b42318"; msg.textContent = data.message || "Invalid gift code.";
+            msg.style.color = "#b42318"; msg.textContent = data.message || "That gift code isn't valid.";
             renderCartTotals();
             return;
           }
@@ -6131,7 +6326,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           input.value = data.code;
           renderCartTotals();
         } catch (e) {
-          msg.style.color = "#b42318"; msg.textContent = "Could not check the gift code. Please try again.";
+          // A genuine network failure (offline, DNS, server unreachable) —
+          // this is the ONLY case that should reach this generic message now.
+          console.error("applyGiftCode failed:", e);
+          msg.style.color = "#b42318"; msg.textContent = "Could not reach the server — check your connection and try again.";
         } finally { btn.disabled = false; btn.textContent = "Apply"; }
       }
 
@@ -6397,7 +6595,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       loadProducts();
       loadCustomerSession();
       updateCartCount(); // reflect any cart restored from this device
-      updateWishlistCount(); // reflect any wishlist saved on this device
+      // Wishlist count is set by renderWishlist() (called on DOMContentLoaded
+      // below) — calling updateWishlistCount() here directly used to throw
+      // "updateWishlistCount is not defined", since that function only
+      // exists in the later <script> block (Customer Extras) which hasn't
+      // run yet at this point in page load. That error was also silently
+      // skipping the "#sell" redirect check right after it.
 
       // Old shareable link: https://designmakers.site/#sell (or ?sell=1) used
       // to pop the seller application form open on this page. It now lives
@@ -6452,6 +6655,33 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         setTimeout(() => { el.style.animation = ""; }, 60);
       }
 
+      // ===== Rakhi theme: gold underline draws in once a section heading
+      // scrolls into view (premium-pack addition). Safe no-op outside the
+      // rakhi theme since the CSS transform only applies under
+      // body.theme-rakshabandhan. =====
+      (function () {
+        const headingSelector = ".cat-cards-wrap h2, .prod-section-wrap h2, .sale-section-wrap h2";
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("rakhi-underline-in");
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.4 });
+
+        function observeHeadings() {
+          document.querySelectorAll(headingSelector).forEach((h) => io.observe(h));
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", observeHeadings);
+        } else {
+          observeHeadings();
+        }
+        // Product sections render their h2 dynamically after the products
+        // API responds, so also re-scan shortly after load to catch those.
+        setTimeout(observeHeadings, 1500);
+      })();
     </script>
     <script>
       // Shared dark-mode toggle — same localStorage key as the rest of the
@@ -6485,7 +6715,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         var on = saved === "1";
         applyDarkMode(on);
       })();
-    
+
       // ================================
       // ================================
       // CUSTOMER EXTRAS
@@ -6559,13 +6789,27 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           syncExtrasToServer();
           renderWishlist();
           renderSavedAddresses();
-          renderProducts(allProducts);
+          refreshWishlistHearts();
         } catch (e) {}
       }
 
       function wishlistIds(){ return dmRead(dmScopedKey(DM_WISHLIST_KEY),[]).map(Number).filter(Number.isFinite); }
       function isWishlisted(id){ return wishlistIds().includes(Number(id)); }
-      function toggleWishlistById(id){ const ids=wishlistIds(); const n=Number(id); const i=ids.indexOf(n); if(i>=0)ids.splice(i,1);else ids.unshift(n); dmWrite(dmScopedKey(DM_WISHLIST_KEY),ids.slice(0,100)); syncExtrasToServer(); renderProducts(allProducts); renderWishlist(); showToast(i>=0?"Removed from wishlist":"Added to wishlist ❤️"); }
+      function toggleWishlistById(id){ const ids=wishlistIds(); const n=Number(id); const i=ids.indexOf(n); if(i>=0)ids.splice(i,1);else ids.unshift(n); dmWrite(dmScopedKey(DM_WISHLIST_KEY),ids.slice(0,100)); syncExtrasToServer(); refreshWishlistHearts(); renderWishlist(); showToast(i>=0?"Removed from wishlist":"Added to wishlist ❤️"); }
+      // Updates just the ♥/♡ glyph on whichever product cards are currently
+      // on screen (homepage sections, category popup, etc.) instead of
+      // calling renderProducts(allProducts) — that used to force the full,
+      // unfiltered product catalog into the homepage's #productsGrid, which
+      // is supposed to stay empty until a category is picked (see
+      // filterCategoryFromCard). Calling it here from a wishlist toggle, or
+      // after login in restoreAccountExtras(), was dumping every product
+      // onto the homepage as a side effect.
+      function refreshWishlistHearts(){
+        document.querySelectorAll("[data-wishlist-id]").forEach((btn) => {
+          const id = Number(btn.getAttribute("data-wishlist-id"));
+          btn.textContent = isWishlisted(id) ? "♥" : "♡";
+        });
+      }
       function toggleWishlistCurrentProduct(){ if(!currentProduct)return; const ids=wishlistIds(); const id=Number(currentProduct.id); const i=ids.indexOf(id); if(i>=0)ids.splice(i,1);else ids.unshift(id); dmWrite(dmScopedKey(DM_WISHLIST_KEY),ids.slice(0,100)); syncExtrasToServer(); updateWishlistButton(); renderWishlist(); showToast(i>=0?"Removed from wishlist":"Added to wishlist ❤️"); }
       function updateWishlistButton(){ const b=document.getElementById("productWishlistBtn"); if(!b||!currentProduct)return; const on=isWishlisted(currentProduct.id); b.classList.toggle("active",on); b.textContent=on?"♥ Wishlisted":"♡ Wishlist"; }
       function addRecentlyViewed(id){ const ids=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(Number).filter(Number.isFinite).filter(x=>x!==Number(id)); ids.unshift(Number(id)); dmWrite(dmScopedKey(DM_RECENT_KEY),ids.slice(0,12)); syncExtrasToServer(); }
@@ -6781,7 +7025,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }, 5000);
       }
       function stopCustomerOrderLiveUpdates() { if (dmCustomerOrdersPoll) { clearInterval(dmCustomerOrdersPoll); dmCustomerOrdersPoll = null; } }
-
 
       document.addEventListener("DOMContentLoaded",()=>{
         try{renderWishlist();renderSavedAddresses();checkBackInStockAlerts();}catch(e){}
