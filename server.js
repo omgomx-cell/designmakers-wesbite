@@ -3833,6 +3833,13 @@ function buildSellerProductSummaries(database, sellerKey) {
   byProduct.forEach((g, productId) => {
     const p = productById.get(productId);
     if (!p) return;
+    // Deliberately NOT sending the product image here: images are stored
+    // as full-size base64 data URIs (often 100KB+ each), and this list
+    // can have many rows. Embedding every one would balloon the response
+    // and make the Inventory tab slow to load, especially on
+    // lower-bandwidth hosting — for a small thumbnail that isn't worth
+    // it. The Products tab (and the single-product variant detail below)
+    // still show the real image where it's actually needed.
     out.push({
       id: p.id,
       name: p.name || "",
