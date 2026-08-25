@@ -1071,10 +1071,7 @@ app.post("/api/customer/save-whatsapp-number", requireCustomer, async (req, res)
   // customer.whatsappNumber, which is purely a display/contact field.
   const waDigits = waNumber.replace(/\D/g, "");
   const indianLocalPart = waDigits.length === 12 && waDigits.startsWith("91") ? waDigits.slice(2) : (waDigits.length === 10 ? waDigits : "");
-  if (!isValidMobile(indianLocalPart)) {
-    return res.status(400).json({ success: false, message: "Enter a valid 10-digit Indian mobile number." });
-  }
-  const canonicalMobile = indianLocalPart;
+  const canonicalMobile = isValidMobile(indianLocalPart) ? indianLocalPart : waNumber;
 
   const database = readDatabase();
   const customer = database.customers.find((c) => c.id === req.customer.id);
