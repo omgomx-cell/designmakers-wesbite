@@ -555,8 +555,12 @@
             <label for="pDescription">Description</label>
             <textarea id="pDescription" rows="3"></textarea>
 
-            <label for="pImage">Product photo</label>
-            <input type="file" id="pImage" accept="image/*" />
+            <label for="pImageFiles">Product Photos (up to 3)</label>
+            <input type="file" id="pImageFiles" accept="image/*" multiple />
+            <div class="hint">Pick up to 3 photos — large photos are auto-resized so the site stays fast.</div>
+            <div id="pImageSizeWarning" class="hint" style="display:none; color:var(--danger); font-weight:600;"></div>
+            <div id="pImagePreviewRow" style="display:flex; gap:8px; margin:8px 0; flex-wrap:wrap;"></div>
+            <div id="pImagePreviewSizes" class="hint" style="margin-top:-4px;"></div>
 
             <div class="error" id="addProductError"></div>
             <div class="success-msg" id="addProductSuccess"></div>
@@ -656,8 +660,10 @@
         <label for="eDescription">Description</label>
         <textarea id="eDescription" rows="3"></textarea>
 
-        <label for="eImage">Replace product photo (optional)</label>
-        <input type="file" id="eImage" accept="image/*" />
+        <label for="eImageFiles">Replace product photos (up to 3, optional)</label>
+        <input type="file" id="eImageFiles" accept="image/*" multiple />
+        <div class="hint">Picking new photos replaces all existing photos for this product.</div>
+        <div id="eImageSizeWarning" class="hint" style="display:none; color:var(--danger); font-weight:600;"></div>
         <div id="eImagePreview" style="display:flex;flex-wrap:wrap;margin-top:8px;"></div>
 
         <div class="error" id="editProductError"></div>
@@ -1043,6 +1049,13 @@
       // ---------- Edit Product ----------
       let editingProductId = null;
       let editCurrentImages = [];
+      let newProductImages = [];
+
+      function formatSize(bytes) {
+        return bytes >= 1024 * 1024
+          ? (bytes / (1024 * 1024)).toFixed(1) + " MB"
+          : Math.max(1, Math.round(bytes / 1024)) + " KB";
+      }
 
       function parseSellerSizes(inputId) {
         return (document.getElementById(inputId).value || "").split(",").map(s => s.trim()).filter(Boolean);
@@ -1094,7 +1107,7 @@
         document.getElementById("eLowStockThreshold").value = Number(p.lowStockThreshold ?? 5);
         renderEditProductStockEditor((p.sizes || []).length ? (p.variantStock || {}) : { stockQty: p.stockQty || 0 });
         document.getElementById("eDescription").value = p.description || "";
-        document.getElementById("eImage").value = "";
+        document.getElementById("eImageFiles").value = "";
 
         const catSelect = document.getElementById("eCategory");
         if (p.category && !Array.from(catSelect.options).some((o) => o.value === p.category)) {
@@ -1123,16 +1136,31 @@
           .join("");
       }
 
-      document.getElementById("eImage").addEventListener("change", async (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
+      document.getElementById("eImageFiles").addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []).slice(0, 3);
+        const warnEl = document.getElementById("eImageSizeWarning");
+        warnEl.style.display = "none";
+        if (!files.length) return;
+
+        document.getElementById("editProductError").style.display = "none";
+        editCurrentImages = [];
+        const results = [];
+        const row = document.getElementById("eImagePreview");
+        row.innerHTML = files
+          .map((f, i) => '<div class="img-slot" id="eImgSlot' + i + '" style="width:56px;height:56px;border-radius:8px;border:1px solid var(--border);margin:0 6px 6px 0;display:flex;align-items:center;justify-content:center;overflow:hidden;">…</div>')
+          .join("");
+
         try {
-          const dataUrl = await downscaleImage(file, 1000, 0.82);
-          editCurrentImages = [dataUrl];
-          renderEditImagePreview();
+          for (let i = 0; i < files.length; i++) {
+            const dataUrl = await downscaleImage(files[i], 1600, 0.82);
+            editCurrentImages.push(dataUrl);
+            const slot = document.getElementById("eImgSlot" + i);
+            if (slot) slot.innerHTML = '<img src="' + dataUrl + '" style="width:100%;height:100%;object-fit:cover;" />';
+          }
         } catch (err) {
-          document.getElementById("editProductError").textContent = "Could not process the photo. Try a different image.";
+          document.getElementById("editProductError").textContent = "Could not process one of the photos. Try a different image.";
           document.getElementById("editProductError").style.display = "block";
+          return;
         }
       });
 
@@ -1199,35 +1227,75 @@
       }
 
       // ---------- Add Product ----------
-      function downscaleImage(file, maxDimension, quality) {
+      // Hard cap: no compressed photo is ever allowed to leave the browser
+      // above this size — mirrors the admin panel's compression, so seller
+      // photos are just as fast-loading on the storefront as admin ones.
+      const SELLER_MAX_IMAGE_BYTES = 600 * 1024; // 600 KB per photo
+
+      function sellerDataUrlSize(dataUrl) {
+        const b64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+        return Math.round(b64.length * 0.75);
+      }
+
+      function sellerLoadImageFromFile(file) {
         return new Promise((resolve, reject) => {
+          const img = new Image();
           const reader = new FileReader();
-          reader.onerror = () => reject(new Error("read failed"));
-          reader.onload = () => {
-            const img = new Image();
-            img.onerror = () => reject(new Error("decode failed"));
-            img.onload = () => {
-              let { width, height } = img;
-              if (width > maxDimension || height > maxDimension) {
-                if (width >= height) {
-                  height = Math.round((height / width) * maxDimension);
-                  width = maxDimension;
-                } else {
-                  width = Math.round((width / height) * maxDimension);
-                  height = maxDimension;
-                }
-              }
-              const canvas = document.createElement("canvas");
-              canvas.width = width;
-              canvas.height = height;
-              const ctx = canvas.getContext("2d");
-              ctx.drawImage(img, 0, 0, width, height);
-              resolve(canvas.toDataURL("image/jpeg", quality));
-            };
-            img.src = reader.result;
-          };
+          reader.onload = () => { img.src = reader.result; };
+          reader.onerror = reject;
+          img.onload = () => resolve(img);
+          img.onerror = reject;
           reader.readAsDataURL(file);
         });
+      }
+
+      function sellerDrawToDataUrl(img, maxDim, quality) {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = Math.round(height * (maxDim / width)); width = maxDim; }
+          else { width = Math.round(width * (maxDim / height)); height = maxDim; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        return canvas.toDataURL("image/jpeg", quality);
+      }
+
+      // Resizes+compresses on a canvas and keeps stepping DOWN (dimension
+      // first, quality only as a last resort — dropping quality below ~0.6
+      // is what makes photos look muddy) until the result is under
+      // SELLER_MAX_IMAGE_BYTES. Same auto-resize ladder the admin panel
+      // uses, so a big phone photo never blows past the server's body
+      // limit or slows down the storefront.
+      async function downscaleImage(file, maxDim, quality) {
+        const img = await sellerLoadImageFromFile(file);
+
+        const dimSteps = [maxDim, 1400, 1280, 1120, 1000, 900, 800];
+        const cleanQualitySteps = [quality, 0.78, 0.72];
+        let best = null;
+        for (const dim of dimSteps) {
+          for (const q of cleanQualitySteps) {
+            const dataUrl = sellerDrawToDataUrl(img, dim, q);
+            const size = sellerDataUrlSize(dataUrl);
+            if (!best || size < best.size) best = { dataUrl, size };
+            if (size <= SELLER_MAX_IMAGE_BYTES) return dataUrl;
+          }
+        }
+
+        const fallbackQualitySteps = [0.62, 0.5, 0.4];
+        for (const dim of [800, 700, 640]) {
+          for (const q of fallbackQualitySteps) {
+            const dataUrl = sellerDrawToDataUrl(img, dim, q);
+            const size = sellerDataUrlSize(dataUrl);
+            if (!best || size < best.size) best = { dataUrl, size };
+            if (size <= SELLER_MAX_IMAGE_BYTES) return dataUrl;
+          }
+        }
+
+        // Even the smallest/lowest-quality attempt is still over the cap —
+        // use the best (smallest) result found rather than blocking upload.
+        return best.dataUrl;
       }
 
       async function submitNewProduct() {
@@ -1242,7 +1310,6 @@
         const category = document.getElementById("pCategory").value.trim();
         const sizes = document.getElementById("pSizes").value.trim();
         const description = document.getElementById("pDescription").value.trim();
-        const fileInput = document.getElementById("pImage");
 
         if (!name || !price) {
           errorEl.textContent = "Product name and price are required.";
@@ -1259,19 +1326,6 @@
         btn.disabled = true;
         btn.textContent = "Submitting...";
 
-        let image = "";
-        if (fileInput.files && fileInput.files[0]) {
-          try {
-            image = await downscaleImage(fileInput.files[0], 1000, 0.82);
-          } catch (e) {
-            errorEl.textContent = "Could not process the photo. Try a different image.";
-            errorEl.style.display = "block";
-            btn.disabled = false;
-            btn.textContent = "Submit for approval";
-            return;
-          }
-        }
-
         const newStock = collectSellerStock("newProductStockEditor");
         const lowStockThreshold = Math.max(0, Math.floor(Number(document.getElementById("pLowStockThreshold").value) || 0));
 
@@ -1287,7 +1341,7 @@
             variantStock: newStock.variantStock,
             lowStockThreshold,
             description,
-            images: image ? [image] : [],
+            images: newProductImages,
           }),
         });
 
@@ -1310,8 +1364,52 @@
         document.getElementById("pLowStockThreshold").value = 5;
         renderNewProductStockEditor();
         document.getElementById("pDescription").value = "";
-        fileInput.value = "";
+        document.getElementById("pImageFiles").value = "";
+        document.getElementById("pImagePreviewRow").innerHTML = "";
+        document.getElementById("pImagePreviewSizes").textContent = "";
+        newProductImages = [];
       }
+
+      // Compresses up to 3 selected photos on a canvas (same auto-resize
+      // ladder as the Edit Product form) and shows a live preview with
+      // size-before/after, matching the admin panel's upload experience.
+      document.getElementById("pImageFiles").addEventListener("change", async (e) => {
+        const files = Array.from(e.target.files || []).slice(0, 3);
+        const row = document.getElementById("pImagePreviewRow");
+        const warnEl = document.getElementById("pImageSizeWarning");
+        const sizesEl = document.getElementById("pImagePreviewSizes");
+        warnEl.style.display = "none";
+        sizesEl.textContent = "";
+
+        if (!files.length) { row.innerHTML = ""; newProductImages = []; return; }
+
+        newProductImages = [];
+        const results = [];
+        row.innerHTML = files
+          .map((f, i) => '<div class="img-slot" id="pImgSlot' + i + '" style="width:64px;height:64px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;">…</div>')
+          .join("");
+
+        try {
+          for (let i = 0; i < files.length; i++) {
+            sizesEl.textContent = "Compressing photo " + (i + 1) + " of " + files.length + "…";
+            const dataUrl = await downscaleImage(files[i], 1600, 0.82);
+            newProductImages.push(dataUrl);
+            results.push({ originalSize: files[i].size, compressedSize: sellerDataUrlSize(dataUrl) });
+            const slot = document.getElementById("pImgSlot" + i);
+            if (slot) slot.innerHTML = '<img src="' + dataUrl + '" style="width:100%;height:100%;object-fit:cover;" />';
+          }
+        } catch (err) {
+          row.innerHTML = '<div class="hint" style="color:var(--danger);">Could not read one of the images. Try a different photo.</div>';
+          sizesEl.textContent = "";
+          return;
+        }
+
+        const originalTotal = results.reduce((sum, r) => sum + r.originalSize, 0);
+        const compressedTotal = results.reduce((sum, r) => sum + r.compressedSize, 0);
+        sizesEl.textContent =
+          "✓ Ready — " + formatSize(compressedTotal) +
+          (originalTotal > compressedTotal ? " (auto-resized from " + formatSize(originalTotal) + ")" : "");
+      });
 
       // ---------- Orders ----------
       async function loadOrders() {
