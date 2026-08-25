@@ -6416,7 +6416,7 @@ function ensureDemoSeller() {
 connectDB()
   .then(() => {
     try {
-      ensureDemoSeller();
+      // ensureDemoSeller(); - disabled, demo seller no longer auto-recreated
     } catch (err) {
       console.error("Demo seller seed failed (non-fatal):", err.message);
     }

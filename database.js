@@ -1095,68 +1095,6 @@ function ensureShape(database) {
     needsUpgrade = true;
   }
 
-  // Testing/demo seller account — logs in on the seller dashboard with
-  // Seller ID "seller" and password "seller", with the exact same access
-  // as any other approved seller (same requireSeller middleware, same
-  // dashboard). Seeded once here so it exists after any deploy, on any
-  // environment, without a manual DB step.
-  if (!(database.sellers || []).some((s) => s.sellerId === "seller")) {
-    database.sellers.push({
-      id: getNextId(database.sellers),
-      sellerId: "seller",
-      passwordHash: bcrypt.hashSync("seller", 10),
-      name: "Demo Seller",
-      email: "omgom.x@gmail.com",
-      phone: "0000000000",
-      altPhone: "",
-      shopTitle: "Demo Shop (Testing)",
-      businessType: "",
-      businessAddress: "",
-      city: "",
-      state: "",
-      pincode: "",
-      aadhaarLast4: "",
-      aadhaarFull: "",
-      panNumber: "",
-      dob: "",
-      gender: "",
-      bankAccountNumber: "",
-      ifscCode: "",
-      upiId: "",
-      gstNumber: "",
-      notes: "Demo/testing account — not a real seller.",
-      applicationId: null,
-      createdAt: new Date().toISOString(),
-      banned: false,
-      mustChangePassword: false,
-    });
-    needsUpgrade = true;
-  }
-
-  // Self-heal the demo account every time the database is read — not just
-  // once at seed time. Admin actions like "Reset password" or an accidental
-  // ban touch this record just like any other seller's, which used to leave
-  // the demo account stuck on a forced password-change screen or otherwise
-  // unable to log in. The demo account should always be free to log straight
-  // in with "seller" / "seller", and should always use the test inbox
-  // (omgom.x@gmail.com) so order-notification emails can actually be
-  // checked while testing.
-  const demoSeller = (database.sellers || []).find((s) => s.sellerId === "seller");
-  if (demoSeller) {
-    if (demoSeller.mustChangePassword) {
-      delete demoSeller.mustChangePassword;
-      needsUpgrade = true;
-    }
-    if (demoSeller.banned) {
-      demoSeller.banned = false;
-      needsUpgrade = true;
-    }
-    if (demoSeller.email !== "omgom.x@gmail.com") {
-      demoSeller.email = "omgom.x@gmail.com";
-      needsUpgrade = true;
-    }
-  }
-
   // Inventory migration: every product gets a unique internal product code
   // and mandatory stock fields. Existing products are kept sellable until the
   // admin performs the first inventory import, so this deploy cannot suddenly
