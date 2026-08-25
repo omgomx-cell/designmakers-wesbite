@@ -576,15 +576,8 @@
             </select>
 
             <label for="pSizes">Sizes (comma separated, optional)</label>
-            <input type="text" id="pSizes" placeholder="S, M, L" onchange="renderNewProductStockEditor()" onblur="renderNewProductStockEditor()" />
-
-            <div class="seller-stock-editor">
-              <label style="margin:0;font-size:13px;font-weight:750;">Stock by Size / Variant</label>
-              <div id="newProductStockEditor" class="seller-stock-grid"></div>
-              <label style="margin-top:10px;">Low-stock alert at</label>
-              <input type="number" id="pLowStockThreshold" min="0" step="1" value="5" />
-              <div class="seller-stock-note">Enter each size's starting stock here. Stock is tracked separately for every size.</div>
-            </div>
+            <input type="text" id="pSizes" placeholder="S, M, L" />
+            <div class="hint">Just the size/variant configuration for this product. Stock quantities are set separately in the <strong>Inventory</strong> tab after this product is added.</div>
 
             <label for="pDescription">Description</label>
             <textarea id="pDescription" rows="3"></textarea>
@@ -762,15 +755,8 @@
         </select>
 
         <label for="eSizes">Sizes (comma separated, optional)</label>
-        <input type="text" id="eSizes" placeholder="S, M, L" onchange="renderEditProductStockEditor()" onblur="renderEditProductStockEditor()" />
-
-        <div class="seller-stock-editor">
-          <label style="margin:0;font-size:13px;font-weight:750;">Stock by Size / Variant</label>
-          <div id="editProductStockEditor" class="seller-stock-grid"></div>
-          <label style="margin-top:10px;">Low-stock alert at</label>
-          <input type="number" id="eLowStockThreshold" min="0" step="1" value="5" />
-          <div class="seller-stock-note">Update each size's stock here. Only your own product inventory is editable.</div>
-        </div>
+        <input type="text" id="eSizes" placeholder="S, M, L" />
+        <div class="hint">Just the size/variant configuration for this product. Stock quantities are managed separately in the <strong>Inventory</strong> tab.</div>
 
         <label for="eDescription">Description</label>
         <textarea id="eDescription" rows="3"></textarea>
@@ -1196,38 +1182,6 @@
         return (document.getElementById(inputId).value || "").split(",").map(s => s.trim()).filter(Boolean);
       }
 
-      function renderStockInputs(containerId, inputId, stock = {}) {
-        const wrap = document.getElementById(containerId);
-        if (!wrap) return;
-        if (!Object.keys(stock).length) {
-          wrap.querySelectorAll(".seller-stock-input").forEach(input => { stock[input.dataset.size || "__default"] = Math.max(0, Math.floor(Number(input.value) || 0)); });
-        }
-        const sizes = parseSellerSizes(inputId);
-        if (!sizes.length) {
-          const value = Number(stock.__default ?? stock.default ?? stock.stockQty ?? 0);
-          wrap.innerHTML = '<div class="seller-stock-item"><label>Default Stock</label><input type="number" min="0" step="1" class="seller-stock-input" data-size="" value="' + (Number.isInteger(value) && value >= 0 ? value : 0) + '" /></div>';
-          return;
-        }
-        wrap.innerHTML = sizes.map(size => {
-          const value = Number(stock[size] ?? 0);
-          return '<div class="seller-stock-item"><label>' + escapeHtml(size) + ' Stock</label><input type="number" min="0" step="1" class="seller-stock-input" data-size="' + escapeHtml(size) + '" value="' + (Number.isInteger(value) && value >= 0 ? value : 0) + '" /></div>';
-        }).join("");
-      }
-
-      function renderNewProductStockEditor(stock = {}) { renderStockInputs("newProductStockEditor", "pSizes", stock); }
-      function renderEditProductStockEditor(stock = {}) { renderStockInputs("editProductStockEditor", "eSizes", stock); }
-
-      function collectSellerStock(containerId) {
-        const variantStock = {};
-        let stockQty = 0;
-        document.querySelectorAll("#" + containerId + " .seller-stock-input").forEach(input => {
-          const value = Math.max(0, Math.floor(Number(input.value) || 0));
-          const size = input.dataset.size || "";
-          if (size) variantStock[size] = value; else stockQty = value;
-        });
-        return { stockQty, variantStock };
-      }
-
       function openEditModal(id) {
         const p = sellerProductsCache.find((x) => x.id === id);
         if (!p) return;
@@ -1239,8 +1193,6 @@
         document.getElementById("ePrice").value = p.price || "";
         document.getElementById("eMoq").value = p.moq || 1;
         document.getElementById("eSizes").value = (p.sizes || []).join(", ");
-        document.getElementById("eLowStockThreshold").value = Number(p.lowStockThreshold ?? 5);
-        renderEditProductStockEditor((p.sizes || []).length ? (p.variantStock || {}) : { stockQty: p.stockQty || 0 });
         document.getElementById("eDescription").value = p.description || "";
         document.getElementById("eImageFiles").value = "";
 
@@ -1323,9 +1275,6 @@
           return;
         }
 
-        const editStock = collectSellerStock("editProductStockEditor");
-        const editLowStockThreshold = Math.max(0, Math.floor(Number(document.getElementById("eLowStockThreshold").value) || 0));
-
         const btn = document.getElementById("editProductBtn");
         btn.disabled = true;
         btn.textContent = "Saving...";
@@ -1338,9 +1287,6 @@
             moq: moq || 1,
             category,
             sizes,
-            stockQty: editStock.stockQty,
-            variantStock: editStock.variantStock,
-            lowStockThreshold: editLowStockThreshold,
             description,
             images: editCurrentImages,
           }),
@@ -1461,9 +1407,6 @@
         btn.disabled = true;
         btn.textContent = "Submitting...";
 
-        const newStock = collectSellerStock("newProductStockEditor");
-        const lowStockThreshold = Math.max(0, Math.floor(Number(document.getElementById("pLowStockThreshold").value) || 0));
-
         const { data } = await api("/api/seller/products", {
           method: "POST",
           body: JSON.stringify({
@@ -1472,9 +1415,6 @@
             moq: moq || 1,
             category,
             sizes,
-            stockQty: newStock.stockQty,
-            variantStock: newStock.variantStock,
-            lowStockThreshold,
             description,
             images: newProductImages,
           }),
@@ -1496,8 +1436,6 @@
         document.getElementById("pMoq").value = "";
         document.getElementById("pCategory").value = "";
         document.getElementById("pSizes").value = "";
-        document.getElementById("pLowStockThreshold").value = 5;
-        renderNewProductStockEditor();
         document.getElementById("pDescription").value = "";
         document.getElementById("pImageFiles").value = "";
         document.getElementById("pImagePreviewRow").innerHTML = "";
