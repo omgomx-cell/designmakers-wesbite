@@ -6484,7 +6484,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
         // Logged-in customers order with their account name + mobile automatically.
         const name = String(currentCustomer.name || "").trim();
-        const phone = String(currentCustomer.mobile || "").replace(/\D/g, "");
+        let phone = String(currentCustomer.mobile || "").replace(/\D/g, "");
+        if (phone.length === 12 && phone.startsWith("91")) phone = phone.slice(2);
         const address = String((document.getElementById("custAddress") || {}).value || "").trim();
         const giftOrder = !!document.getElementById("isGiftOrder")?.checked;
         const giftRecipientName = String(document.getElementById("giftRecipientName")?.value || "").trim();
