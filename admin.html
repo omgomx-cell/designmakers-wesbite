@@ -6053,6 +6053,20 @@
       })();
           // Keep seller fulfilment stages fresh for admins/sub-admins while the Orders tab is open.
       setInterval(() => { if (currentTab === "orders") loadOrders(); }, 5000);
+          // Keep the Inventory tab's stock numbers live — so a seller
+          // updating their own stock from the Seller Inventory tab shows
+          // up here without the admin needing to manually refresh. Only
+          // refreshes whichever Inventory sub-page is actually open, and
+          // skips while the Edit Stock modal is open so it doesn't
+          // interrupt an admin mid-edit.
+      setInterval(() => {
+        if (currentTab !== "inventory") return;
+        const modalOpen = document.getElementById("invStockModalOverlay")?.classList.contains("open");
+        if (modalOpen) return;
+        if (!document.getElementById("invPageSellers").classList.contains("hidden")) loadInventorySellers();
+        else if (!document.getElementById("invPageProducts").classList.contains("hidden")) loadInventoryProducts();
+        else if (!document.getElementById("invPageVariants").classList.contains("hidden")) loadInventoryVariants();
+      }, 5000);
 
 </script>
         <!-- CUSTOMER DETAILS MODAL -->
