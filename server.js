@@ -3982,6 +3982,77 @@ app.put("/api/admin/inventory/products/:id/stock", requireAdmin, (req, res) => {
   });
 });
 
+// ---- Seller-side Inventory tab routes ----
+// Same hierarchical Inventory feature as admin above, but scoped to only
+// the logged-in seller's own products — no seller list/drilldown, since
+// there's only ever one seller in view (themselves). Reuses the exact
+// same helper functions (buildSellerProductSummaries,
+// buildProductVariantDetail, getInventoryRows, withInventoryLock) so
+// stock numbers can never drift between the admin and seller views.
+
+app.get("/api/seller/inventory/products", requireSeller, (req, res) => {
+  const database = readDatabase();
+  res.json({ success: true, products: buildSellerProductSummaries(database, sellerKeyFor(req.seller.id)) });
+});
+
+app.get("/api/seller/inventory/products/:id", requireSeller, (req, res) => {
+  const database = readDatabase();
+  const id = Number(req.params.id);
+  const product = (database.products || []).find((p) => p.id === id && !p.isGiftAddon);
+  if (!product || product.sellerId !== req.seller.id) {
+    return res.status(404).json({ success: false, message: "Product not found." });
+  }
+  const detail = buildProductVariantDetail(database, id);
+  if (!detail) return res.status(404).json({ success: false, message: "Product not found." });
+  res.json({ success: true, product: detail });
+});
+
+app.put("/api/seller/inventory/products/:id/stock", requireSeller, (req, res) => {
+  return withInventoryLock(() => {
+    const database = readDatabase();
+    const id = Number(req.params.id);
+    const product = (database.products || []).find((p) => p.id === id && !p.isGiftAddon);
+    if (!product || product.sellerId !== req.seller.id) {
+      return res.status(404).json({ success: false, message: "Product not found." });
+    }
+
+    const size = req.body && req.body.size ? String(req.body.size) : "";
+    const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+    if (sizes.length && !sizes.includes(size)) {
+      return res.status(400).json({ success: false, message: "Unknown size/variant for this product." });
+    }
+    const newStock = req.body ? Number(req.body.stock) : NaN;
+    if (!Number.isFinite(newStock) || newStock < 0) {
+      return res.status(400).json({ success: false, message: "Enter a valid stock quantity (0 or more)." });
+    }
+
+    const before = getStockForVariant(product, size);
+    setStockForVariant(product, size, newStock);
+    product.stockConfigured = true;
+
+    const reason = req.body && req.body.reason ? String(req.body.reason).trim().slice(0, 200) : "";
+    product.stockAdjustments = Array.isArray(product.stockAdjustments) ? product.stockAdjustments : [];
+    product.stockAdjustments.unshift({
+      size: size || null,
+      before,
+      after: newStock,
+      reason,
+      by: req.seller.shopTitle || req.seller.name,
+      at: new Date().toISOString(),
+    });
+    product.stockAdjustments = product.stockAdjustments.slice(0, 50);
+
+    notifyBackInStockForVariant(database, product, size, before, newStock);
+    writeDatabase(database);
+
+    res.json({
+      success: true,
+      message: "Stock updated.",
+      product: buildProductVariantDetail(database, id),
+    });
+  });
+});
+
 // ================================
 // ADMIN PRODUCT MANAGEMENT
 // ================================
