@@ -1584,7 +1584,7 @@
         if (body) body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Loading products…</td></tr>';
         const err = document.getElementById("invProductsError"); if (err) { err.textContent = ""; err.style.display = "none"; }
         try {
-          const data = await api("/api/seller/inventory/products");
+          const { data } = await api("/api/seller/inventory/products");
           if (!data.success) throw new Error(data.message || "Unable to load products.");
           invProducts = data.products || [];
           populateInventoryCategoryFilter();
@@ -1662,7 +1662,7 @@
         if (body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--muted);">Loading variants…</td></tr>';
         const err = document.getElementById("invVariantsError"); if (err) { err.textContent = ""; err.style.display = "none"; }
         try {
-          const data = await api("/api/seller/inventory/products/" + invCurrentProductId);
+          const { data } = await api("/api/seller/inventory/products/" + invCurrentProductId);
           if (!data.success) throw new Error(data.message || "Unable to load variants.");
           invCurrentProduct = data.product;
           document.getElementById("invVariantsBreadcrumb").innerHTML =
@@ -1738,7 +1738,7 @@
         if (saveBtn.disabled) return;
         saveBtn.disabled = true;
         try {
-          const data = await api("/api/seller/inventory/products/" + invCurrentProductId + "/stock", {
+          const { data } = await api("/api/seller/inventory/products/" + invCurrentProductId + "/stock", {
             method: "PUT",
             body: JSON.stringify({ size: invEditingVariant.size || "", stock: stockVal, reason }),
           });
