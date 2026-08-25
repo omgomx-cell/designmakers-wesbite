@@ -3595,8 +3595,9 @@
 
       function sdEditDetails() {
         if (sdMode !== "live" || !sdId) return;
+        const idToEdit = sdId; // capture before reset
         closeSellerDetail();
-        openSellerModal(sdId);
+        openSellerModal(idToEdit);
       }
 
       async function sdBanToggle() {
