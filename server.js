@@ -3244,8 +3244,10 @@ function validateProductInput(body) {
   // (rather than defaulted to 0) so that a save from the Products tab —
   // `{ ...existingProduct, ...product }` on the PUT route — can never
   // stomp existing stock back to zero. The seller product form
-  // (seller.html) still submits these fields directly and is untouched:
-  // when present, they're validated and applied exactly as before.
+  // (seller.html) used to submit these fields directly, but now that the
+  // seller has their own Inventory tab too, it no longer sends them
+  // either — same reasoning, same protection against a Save on the
+  // Add/Edit Product form silently wiping out stock set via Inventory.
   const stockFieldsProvided = body.stockQty !== undefined || body.variantStock !== undefined || body.lowStockThreshold !== undefined;
   let stockPatch = {};
   if (stockFieldsProvided) {
@@ -4210,15 +4212,24 @@ app.post("/api/seller/products", requireSeller, (req, res) => {
     const m = String(p.productCode || "").match(new RegExp("^DM-" + prefix + "-(\\d+)$"));
     if (m) max = Math.max(max, Number(m[1]));
   });
+  // stockConfigured starts false (not 0) so a brand-new seller product
+  // shows up in the seller's own Inventory tab as "needs stock entry"
+  // rather than silently looking out-of-stock — the seller now sets its
+  // real starting stock from Inventory -> this product, same as admin
+  // does for house products. (Previously this form collected stock
+  // directly on Add Product; now that the seller's Inventory tab exists,
+  // stock is set there instead — same single-source-of-truth pattern as
+  // admin's Products tab.)
   const newProduct = {
     id: getNextId(database.products),
     sellerId: req.seller.id,
     approved: false, // waits for admin approval before showing on the storefront
     productCode: `DM-${prefix}-${String(max + 1).padStart(3, "0")}`,
     stockQty: 0,
-    stockConfigured: true,
+    stockConfigured: false,
     lowStockThreshold: 5,
     variantStock: {},
+    variantStockConfigured: {},
     sellerWhatsappNumber: req.seller.whatsappNumber || req.seller.phone || "",
     ...product,
   };
