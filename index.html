@@ -3297,8 +3297,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                 <div class="dm-welcome-contact">📞 <span id="accountMobile"></span></div>
                 <div class="dm-welcome-contact" id="accountEmailRow" style="display:none;">✉️ <span id="accountEmail"></span></div>
                 <div style="display:flex;gap:12px;align-items:center;margin-top:6px;">
-                  <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()" style="font-size:0.8em;color:var(--rosewood);font-weight:700;">Edit WhatsApp number</a>
-                  <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.8em;color:var(--rosewood);font-weight:600;">Change photo</a>
+                  <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()" style="font-size:0.8em;color:var(--dm-text);font-weight:700;">Edit WhatsApp number</a>
+                  <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.8em;color:var(--dm-text);font-weight:600;">Change photo</a>
                 </div>
                 <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
                 <div id="profilePicError" style="font-size:0.78em;color:#a3002a;display:none;margin-top:4px;"></div>
@@ -3378,19 +3378,19 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
             <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-top:14px;"></button>
             </div>
             <div id="accountWishlistView" style="display:none;">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div><h3 style="margin:0;color:var(--rosewood);">❤️ My Wishlist</h3><div style="font-size:.8rem;color:var(--muted);">Products you want to remember for later.</div></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div><h3 style="margin:0;color:var(--dm-text);">❤️ My Wishlist</h3><div style="font-size:.8rem;color:var(--muted);">Products you want to remember for later.</div></div></div>
               <div id="wishlistList" class="dm-customer-grid"></div>
-              <div style="margin-top:20px;"><h3 style="margin:0 0 10px;color:var(--rosewood);">👀 Recently Viewed</h3><div id="recentlyViewedList" class="dm-customer-grid"></div></div>
+              <div style="margin-top:20px;"><h3 style="margin:0 0 10px;color:var(--dm-text);">👀 Recently Viewed</h3><div id="recentlyViewedList" class="dm-customer-grid"></div></div>
             </div>
             <div id="accountAddressesView" style="display:none;">
-              <h3 style="margin:0 0 6px;color:var(--rosewood);">📍 Saved Addresses</h3>
+              <h3 style="margin:0 0 6px;color:var(--dm-text);">📍 Saved Addresses</h3>
               <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">Save Home, Office or other delivery addresses for faster checkout.</div>
               <div id="savedAddressesList"></div>
               <button class="add-cart-btn" style="margin-top:8px;" onclick="addSavedAddress()">+ Add Address</button>
             </div>
             <div id="accountOrdersView" style="display:none;">
               <div id="customerOrdersHeader" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-                <div><h3 style="margin:0;color:var(--rosewood);">My Orders</h3><div style="font-size:.8rem;color:var(--muted);">Your orders and live status updates</div></div>
+                <div><h3 style="margin:0;color:var(--dm-text);">My Orders</h3><div style="font-size:.8rem;color:var(--muted);">Your orders and live status updates</div></div>
                 <button class="btn small secondary" onclick="loadCustomerOrders()">↻ Refresh</button>
               </div>
               <div id="customerOrdersList"><div class="modal-desc">Loading orders…</div></div>
@@ -6814,12 +6814,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       function updateWishlistButton(){ const b=document.getElementById("productWishlistBtn"); if(!b||!currentProduct)return; const on=isWishlisted(currentProduct.id); b.classList.toggle("active",on); b.textContent=on?"♥ Wishlisted":"♡ Wishlist"; }
       function addRecentlyViewed(id){ const ids=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(Number).filter(Number.isFinite).filter(x=>x!==Number(id)); ids.unshift(Number(id)); dmWrite(dmScopedKey(DM_RECENT_KEY),ids.slice(0,12)); syncExtrasToServer(); }
       function getProductByIdLocal(id){ return allProducts.find(p=>Number(p.id)===Number(id)); }
-      function miniProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;">🎁</div>')+'<div class="dm-mini-product-body"><div class="dm-mini-product-name">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
+      function miniProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;">🎁</div>')+'<div class="dm-mini-product-body"><div class="dm-mini-product-name">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--dm-text);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
       // Wishlist cards need an explicit Remove action — miniProductCard (used for
       // "Recently Viewed") intentionally has no remove button, which is why
       // items could be added to the wishlist but never taken back out from
       // the wishlist view itself. This card fixes that.
-      function wishlistProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product"><div class="dm-mini-product-imgwrap">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="openProductModal('+Number(p.id)+')">🎁</div>')+'<button type="button" class="dm-mini-remove" title="Remove from wishlist" onclick="event.stopPropagation();toggleWishlistById('+Number(p.id)+')">✕</button></div><div class="dm-mini-product-body"><div class="dm-mini-product-name" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
+      function wishlistProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product"><div class="dm-mini-product-imgwrap">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="openProductModal('+Number(p.id)+')">🎁</div>')+'<button type="button" class="dm-mini-remove" title="Remove from wishlist" onclick="event.stopPropagation();toggleWishlistById('+Number(p.id)+')">✕</button></div><div class="dm-mini-product-body"><div class="dm-mini-product-name" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--dm-text);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
       function updateWishlistCount(){ const el=document.getElementById("wishlistCount"); if(el) el.textContent = wishlistIds().length; }
       function renderWishlist(){
         const ws=wishlistIds().map(getProductByIdLocal).filter(Boolean);
@@ -6959,10 +6959,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const stage = order.fulfilmentStage || order.status || "Order Received";
         return '<div class="card" style="padding:16px;margin-bottom:12px;border:1px solid var(--blush-line);border-radius:16px;cursor:pointer;" onclick="openCustomerOrderDetail(' + Number(order.id) + ')">' +
           '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">' +
-          '<div><strong style="color:var(--rosewood);">' + escapeHtml(order.orderNumber || '') + '</strong><div style="font-size:.75rem;color:var(--muted);margin-top:3px;">' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div>' +
+          '<div><strong style="color:var(--dm-text);">' + escapeHtml(order.orderNumber || '') + '</strong><div style="font-size:.75rem;color:var(--muted);margin-top:3px;">' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div>' +
           '<span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
           '<div style="margin-top:10px;font-size:.84rem;color:var(--dm-text);">' + escapeHtml(items.map(i => (i.name || 'Product') + (i.size ? ' · ' + i.size : '') + ' × ' + Number(i.qty || 0)).join(' • ')) + '</div>' +
-          '<div style="margin-top:8px;font-weight:800;color:var(--rosewood);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
+          '<div style="margin-top:8px;font-weight:800;color:var(--dm-text);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
           renderCustomerStageTimeline(stage) +
           '<div style="margin-top:10px;"><button class="btn small secondary" onclick="event.stopPropagation();buyAgainOrder(' + Number(order.id) + ')">🔄 Buy Again</button></div>' +
           '</div>';
@@ -6995,18 +6995,18 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const itemStages = Array.isArray(order.itemFulfilment) ? order.itemFulfilment : [];
         box.innerHTML = '<button class="btn small secondary" onclick="closeCustomerOrderDetail()" style="margin-bottom:12px;">← Back to Orders</button>' +
           '<div class="card" style="padding:18px;border:1px solid var(--blush-line);border-radius:16px;">' +
-          '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><h3 style="margin:0;color:var(--rosewood);">' + escapeHtml(order.orderNumber || '') + '</h3><div style="font-size:.78rem;color:var(--muted);margin-top:4px;">Order date: ' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div><span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><h3 style="margin:0;color:var(--dm-text);">' + escapeHtml(order.orderNumber || '') + '</h3><div style="font-size:.78rem;color:var(--muted);margin-top:4px;">Order date: ' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div><span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
           renderCustomerStageTimeline(stage) +
-          '<div style="margin-top:15px;font-weight:800;color:var(--rosewood);">Products</div>' +
+          '<div style="margin-top:15px;font-weight:800;color:var(--dm-text);">Products</div>' +
           (order.items || []).map((it, idx) => { const st = itemStages[idx]?.stage || stage; return '<div style="padding:10px 0;border-bottom:1px solid var(--line);"><div style="font-weight:700;">' + escapeHtml(it.name || 'Product') + '</div><div style="font-size:.78rem;color:var(--muted);">' + (it.size ? 'Size: '+escapeHtml(it.size)+' · ' : '') + 'Qty: '+Number(it.qty||0)+' · ₹'+fmtINR(Number(it.lineTotal||0))+'</div><div style="font-size:.76rem;color:#7d465c;margin-top:4px;">Stage: <strong>'+escapeHtml(st)+'</strong></div></div>'; }).join('') +
           (order.gift && order.gift.isGift
-            ? '<div style="margin-top:14px;font-weight:800;color:var(--rosewood);">🎁 Gift Order</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' +
+            ? '<div style="margin-top:14px;font-weight:800;color:var(--dm-text);">🎁 Gift Order</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' +
               (order.gift.recipientName ? 'To: ' + escapeHtml(order.gift.recipientName) + '<br>' : '') +
               (order.gift.message ? '“' + escapeHtml(order.gift.message) + '”<br>' : '') +
               (order.gift.hidePrice ? 'Price hidden from recipient' : '') +
               '</div>'
             : '') +
-          '<div style="margin-top:14px;font-weight:800;color:var(--rosewood);">Delivery</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' + escapeHtml(order.customer?.name || '') + '<br>' + escapeHtml(order.customer?.phone || '') + '<br>' + escapeHtml(order.customer?.address || '') + '</div>' +
+          '<div style="margin-top:14px;font-weight:800;color:var(--dm-text);">Delivery</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' + escapeHtml(order.customer?.name || '') + '<br>' + escapeHtml(order.customer?.phone || '') + '<br>' + escapeHtml(order.customer?.address || '') + '</div>' +
           '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-weight:800;">Total: ₹' + fmtINR(Number(order.total || 0)) + '</div></div>';
       }
 
