@@ -619,6 +619,21 @@
         background: transparent;
         border: none;
       }
+      /* Every seasonal/dark-mode theme below re-declares .icon-btn with
+         !important (pill background + 14px corners), which was overriding
+         the rule above and squashing the round avatar into a square-ish
+         pill. #accountBtn is more specific than any of those class-only
+         selectors, so this wins regardless of which theme is active. */
+      #accountBtn.has-avatar {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 50% !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        width: 46px !important;
+        height: 46px !important;
+        padding: 0 !important;
+      }
       .account-avatar {
         width: 100%; height: 100%;
         border-radius: 50%;
@@ -2642,11 +2657,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           </button>
           <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
             <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
-            <img id="accountBtnPic" alt="" style="display:none;width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.9);box-shadow:0 1px 4px rgba(0,0,0,0.25);" />
-          </button>
-          <button class="icon-btn" onclick="openWishlistModal()" title="Wishlist" id="wishlistHeaderBtn">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.2-4.5-9.7-8.9C0.6 8.6 2.1 5 5.6 5c2 0 3.6 1.2 4.5 2.7C11 6.2 12.6 5 14.6 5c3.5 0 5 3.6 3.3 7.1C15.4 16.5 12 21 12 21z"/></svg>
-            <span class="cart-count" id="wishlistCount">0</span>
+            <img id="accountBtnPic" class="account-avatar" alt="" style="display:none;" />
           </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7a1.5 1.5 0 0 1-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
@@ -2773,8 +2784,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
     </div>
     <div class="gift-addon-banner" id="giftAddonBanner">
       <img class="gift-addon-banner-img" src="gift-addon-banner.webp" alt="Rakhi Week Special — Free Photo Mug Add-On, worth ₹249, unlocks automatically in your cart on orders of ₹599 or more.">
-    </div>
-      </div>
     </div>
 
     <div class="festival-strip-wrap festival-offer-wrap" id="rakhiOfferWrap">
@@ -4239,15 +4248,20 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       }
 
       function renderAccountState() {
+        const accountBtn = document.getElementById("accountBtn");
         const btnIcon = document.getElementById("accountBtnIcon");
         const btnPic = document.getElementById("accountBtnPic");
         if (currentCustomer && currentCustomer.picture) {
-          // Show the customer's uploaded photo in place of the emoji.
+          // Show the customer's uploaded photo in place of the emoji, and
+          // switch the button itself to a matching circular shape so the
+          // avatar isn't a circle awkwardly stuffed inside a square pill.
           if (btnPic) { btnPic.src = currentCustomer.picture; btnPic.style.display = "block"; }
           if (btnIcon) btnIcon.style.display = "none";
+          if (accountBtn) accountBtn.classList.add("has-avatar");
         } else {
           if (btnPic) btnPic.style.display = "none";
           if (btnIcon) { btnIcon.style.display = ""; }
+          if (accountBtn) accountBtn.classList.remove("has-avatar");
         }
 
         const signedOutBox = document.getElementById("accountSignedOut");
