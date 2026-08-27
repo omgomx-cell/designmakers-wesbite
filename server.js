@@ -6331,6 +6331,7 @@ app.put("/api/admin/orders/:id/status", requireAdmin, (req, res) => {
     order.status = status;
     order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [{ status: previousStatus, at: order.createdAt }];
     order.statusHistory.push({ status, at: new Date().toISOString() });
+
     writeDatabase(database);
     return res.json({ success: true, order });
   });
