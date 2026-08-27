@@ -955,7 +955,7 @@
       .dm-order-list-card:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(138,28,66,.08); }
       .dm-order-detail-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(260px,.75fr); gap:14px; }
       .dm-order-detail-card { border:1px solid var(--blush-line); border-radius:16px; background:var(--surface); padding:16px; }
-      .dm-order-id-box { background:var(--blush); border:1px solid var(--blush-line); border-radius:12px; padding:11px 13px; font-weight:900; color:var(--rosewood); letter-spacing:.4px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+      .dm-order-id-box { background:var(--blush); border:1px solid var(--blush-line); border-radius:12px; padding:11px 13px; font-weight:900; color:var(--dm-text, var(--rosewood)); letter-spacing:.4px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
       .dm-order-timeline { display:flex; align-items:flex-start; gap:0; margin-top:18px; }
       .dm-order-step { flex:1; text-align:center; position:relative; font-size:11px; color:var(--muted); }
       .dm-order-step:not(:last-child)::after { content:""; position:absolute; top:11px; left:50%; width:100%; height:2px; background:var(--line); z-index:0; }
@@ -969,18 +969,18 @@
       .dm-order-item-img { width:64px; height:64px; border-radius:10px; overflow:hidden; background:var(--blush); flex:0 0 64px; display:flex; align-items:center; justify-content:center; }
       .dm-order-item-img img { width:100%; height:100%; object-fit:cover; }
       .dm-order-whatsapp { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:11px 14px; border-radius:10px; background:color-mix(in srgb, #1c7a34 82%, transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.25); box-shadow:0 4px 18px rgba(0,0,0,.14); color:#fff; text-decoration:none; font-weight:800; }
-      .dm-order-back { border:0; background:transparent; color:var(--rosewood); font-weight:800; cursor:pointer; padding:0; }
+      .dm-order-back { border:0; background:transparent; color:var(--dm-text, var(--rosewood)); font-weight:800; cursor:pointer; padding:0; }
       .dm-order-list-meta { color:var(--muted); font-size:.8rem; margin-top:4px; }
       .dm-order-status-pill { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px; font-size:.75rem; font-weight:800; }
-      .dm-order-status-pill.active { background:var(--blush); color:var(--rosewood); }
+      .dm-order-status-pill.active { background:var(--blush); color:var(--dm-text, var(--rosewood)); }
       .dm-order-status-pill.done { background:#eaf8ef; color:#1c7a34; }
       .dm-order-status-pill.cancelled { background:#fdeceb; color:#b42318; }
       .dm-order-empty { text-align:center; padding:30px 12px; color:var(--muted); }
-      .dm-order-summary-title { color:var(--rosewood); font-weight:900; margin-bottom:12px; }
+      .dm-order-summary-title { color:var(--dm-text, var(--rosewood)); font-weight:900; margin-bottom:12px; }
       .dm-order-delivery-line { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--blush-line); font-size:.86rem; line-height:1.45; }
       .dm-order-delivery-line:last-child { border-bottom:0; }
       .dm-price-row { display:flex; justify-content:space-between; gap:12px; padding:6px 0; font-size:.9rem; }
-      .dm-price-row.total { border-top:1px dashed var(--blush-line); margin-top:6px; padding-top:12px; font-weight:900; font-size:1.02rem; color:var(--rosewood); }
+      .dm-price-row.total { border-top:1px dashed var(--blush-line); margin-top:6px; padding-top:12px; font-weight:900; font-size:1.02rem; color:var(--dm-text, var(--rosewood)); }
       @media (max-width:760px) { .dm-order-detail-grid { grid-template-columns:1fr; } .dm-order-timeline { overflow-x:auto; min-width:560px; } .dm-order-detail-card { padding:13px; } }
       .auth-brand {
         flex: 1 1 45%;
@@ -1042,11 +1042,6 @@
       .dm-profile-nav-item { display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid transparent; background: transparent; color: var(--ink); border-radius: 10px; padding: 11px 13px; font-weight: 700; font-size: 0.92rem; cursor: pointer; }
       .dm-profile-nav-item:hover { background: var(--blush); }
       .dm-profile-nav-item.active { background: var(--blush); color: var(--rosewood); border-color: var(--blush-line); }
-      .dm-refer-box { margin-top: 14px; background: var(--blush); border: 1px solid var(--blush-line); border-radius: 14px; padding: 18px 16px; text-align: center; }
-      .dm-refer-icon { font-size: 26px; margin-bottom: 6px; }
-      .dm-refer-title { font-weight: 800; color: var(--rosewood); margin-bottom: 4px; }
-      .dm-refer-sub { font-size: 0.78rem; color: var(--muted); line-height: 1.4; margin-bottom: 12px; }
-      .dm-refer-btn { width: 100%; padding: 9px; border-radius: 9px; border: 1px solid var(--rosewood); background: transparent; color: var(--rosewood); font-weight: 800; cursor: pointer; }
       .dm-profile-main { flex: 1 1 auto; min-width: 0; }
       .dm-welcome-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 1px solid var(--blush-line); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
       .dm-welcome-info { flex: 1; min-width: 160px; }
@@ -1075,7 +1070,6 @@
       @media (max-width: 760px) {
         .dm-profile-layout { flex-direction: column; }
         .dm-profile-sidebar { flex-direction: row; flex-wrap: wrap; width: 100%; }
-        .dm-refer-box { flex: 1 1 100%; }
       }
 
       .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
@@ -1213,6 +1207,31 @@
       .add-cart-btn:hover { background: var(--rosewood-dark); }
       .add-cart-btn:disabled { background: #d9b8c4; cursor: not-allowed; }
       .modal-error { color: #a3002a; font-size: 13px; margin-top: 8px; }
+
+      /* Small utility buttons — Buy Again, Refresh, Remove, Back to Orders,
+         gift code Apply — previously had zero styling (raw browser
+         default button), which looked out of place next to the rest of
+         the site's polished chrome. */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border-radius: 9px;
+        border: 1px solid var(--blush-line);
+        background: var(--surface);
+        color: var(--dm-text, var(--ink));
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 9px 15px;
+        cursor: pointer;
+        transition: border-color .15s ease, background .15s ease, transform .1s ease;
+      }
+      .btn:hover { border-color: var(--rosewood); background: var(--blush); }
+      .btn:active { transform: scale(.97); }
+      .btn.small { padding: 7px 12px; font-size: 0.8rem; border-radius: 8px; }
+      .btn.secondary { background: var(--surface); color: var(--dm-text, var(--ink)); border: 1px solid var(--blush-line); }
+      .btn.secondary:hover { border-color: var(--rosewood); background: var(--blush); }
 
       /* ===== Cart Drawer ===== */
       .cart-overlay {
@@ -2189,12 +2208,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
       /* ===== Rakshabandhan profile/account panel fix =====
          .dm-profile-nav-item, .dm-welcome-name, .dm-edit-profile-btn,
-         .dm-refer-title/.dm-refer-btn and .dm-settings-link all set an
-         explicit text color of var(--ink) or var(--rosewood) — variables
-         this theme redefines to a light cream (#ffeace) and a gold
-         (#d4af37), meant for the original dark version of this skin. Now
-         that the theme's page background is light, that leaves faint
-         gold/cream text sitting on a near-white card — hard to read.
+         and .dm-settings-link all set an explicit text color of
+         var(--ink) or var(--rosewood) — variables this theme redefines
+         to a light cream (#ffeace) and a gold (#d4af37), meant for the
+         original dark version of this skin. Now that the theme's page
+         background is light, that leaves faint gold/cream text sitting
+         on a near-white card — hard to read.
          Force these to the theme's actual dark text/accent colors
          (var(--dm-text), var(--dm-accent-dark)) instead, so nothing in
          this panel relies on white/gold text unless it's sitting on a
@@ -2210,12 +2229,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.theme-rakshabandhan .dm-welcome-hi,
       body.theme-rakshabandhan .dm-welcome-contact { color: var(--dm-muted) !important; }
       body.theme-rakshabandhan .dm-edit-profile-btn {
-        color: var(--dm-accent-dark) !important;
-        border-color: var(--dm-accent-dark) !important;
-      }
-      body.theme-rakshabandhan .dm-refer-title { color: var(--dm-accent-dark) !important; }
-      body.theme-rakshabandhan .dm-refer-sub { color: var(--dm-muted) !important; }
-      body.theme-rakshabandhan .dm-refer-btn {
         color: var(--dm-accent-dark) !important;
         border-color: var(--dm-accent-dark) !important;
       }
@@ -3286,12 +3299,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                 <button class="dm-profile-nav-item" id="accountOrdersTab" onclick="showAccountSection('orders')">🛍️ My Orders</button>
                 <button class="dm-profile-nav-item" id="accountWishlistTab" onclick="showAccountSection('wishlist')">❤️ Wishlist</button>
                 <button class="dm-profile-nav-item" id="accountAddressesTab" onclick="showAccountSection('addresses')">📍 Addresses</button>
-                <div class="dm-refer-box">
-                  <div class="dm-refer-icon">🎁</div>
-                  <div class="dm-refer-title">Refer &amp; Earn</div>
-                  <div class="dm-refer-sub">Refer your friends and earn exclusive rewards!</div>
-                  <button class="dm-refer-btn" onclick="openCallbackRequestModal()">Refer Now</button>
-                </div>
               </aside>
               <div class="dm-profile-main">
             <div id="accountProfileView">
@@ -6956,6 +6963,17 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         return i < 0 ? 0 : i;
       }
 
+      // Picks the status-pill style (green "done", red "cancelled", or the
+      // default in-progress style) to match the order's real status —
+      // previously every card always used the same in-progress pill class
+      // regardless of whether the order was Delivered or Cancelled.
+      function dmOrderPillClass(stage) {
+        const s = String(stage || "").toLowerCase();
+        if (s.includes("cancel")) return "cancelled";
+        if (s.includes("deliver")) return "done";
+        return "active";
+      }
+
       function renderCustomerStageTimeline(stage) {
         const current = dmStageIndex(stage || "Order Received");
         return '<div style="display:flex;gap:4px;align-items:flex-start;overflow-x:auto;padding:8px 0 3px;">' +
@@ -6974,7 +6992,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         return '<div class="card" style="padding:16px;margin-bottom:12px;border:1px solid var(--blush-line);border-radius:16px;cursor:pointer;" onclick="openCustomerOrderDetail(' + Number(order.id) + ')">' +
           '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">' +
           '<div><strong style="color:var(--dm-text);">' + escapeHtml(order.orderNumber || '') + '</strong><div style="font-size:.75rem;color:var(--muted);margin-top:3px;">' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div>' +
-          '<span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
+          '<span class="dm-order-status-pill ' + dmOrderPillClass(stage) + '">' + escapeHtml(stage) + '</span></div>' +
           '<div style="margin-top:10px;font-size:.84rem;color:var(--dm-text);">' + escapeHtml(items.map(i => (i.name || 'Product') + (i.size ? ' · ' + i.size : '') + ' × ' + Number(i.qty || 0)).join(' • ')) + '</div>' +
           '<div style="margin-top:8px;font-weight:800;color:var(--dm-text);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
           renderCustomerStageTimeline(stage) +
@@ -7009,7 +7027,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const itemStages = Array.isArray(order.itemFulfilment) ? order.itemFulfilment : [];
         box.innerHTML = '<button class="btn small secondary" onclick="closeCustomerOrderDetail()" style="margin-bottom:12px;">← Back to Orders</button>' +
           '<div class="card" style="padding:18px;border:1px solid var(--blush-line);border-radius:16px;">' +
-          '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><h3 style="margin:0;color:var(--dm-text);">' + escapeHtml(order.orderNumber || '') + '</h3><div style="font-size:.78rem;color:var(--muted);margin-top:4px;">Order date: ' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div><span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><h3 style="margin:0;color:var(--dm-text);">' + escapeHtml(order.orderNumber || '') + '</h3><div style="font-size:.78rem;color:var(--muted);margin-top:4px;">Order date: ' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div><span class="dm-order-status-pill ' + dmOrderPillClass(stage) + '">' + escapeHtml(stage) + '</span></div>' +
           renderCustomerStageTimeline(stage) +
           '<div style="margin-top:15px;font-weight:800;color:var(--dm-text);">Products</div>' +
           (order.items || []).map((it, idx) => { const st = itemStages[idx]?.stage || stage; return '<div style="padding:10px 0;border-bottom:1px solid var(--line);"><div style="font-weight:700;">' + escapeHtml(it.name || 'Product') + '</div><div style="font-size:.78rem;color:var(--muted);">' + (it.size ? 'Size: '+escapeHtml(it.size)+' · ' : '') + 'Qty: '+Number(it.qty||0)+' · ₹'+fmtINR(Number(it.lineTotal||0))+'</div><div style="font-size:.76rem;color:#7d465c;margin-top:4px;">Stage: <strong>'+escapeHtml(st)+'</strong></div></div>'; }).join('') +
