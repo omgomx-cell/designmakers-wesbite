@@ -2239,6 +2239,69 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.theme-rakshabandhan .dm-qa-arrow,
       body.theme-rakshabandhan .dm-info-card-text { color: var(--dm-muted) !important; }
 
+      /* ===== Rakshabandhan profile/account panel fix (part 2) =====
+         Same stale-variable problem as above, on the rest of the
+         profile panel: stat cards, quick-action cards, settings tiles,
+         the "complete your profile" notice, order filters, notification
+         cards and address cards were all still reading var(--ink) /
+         var(--rosewood) / var(--muted) / var(--blush) / var(--blush-line)
+         / var(--surface) — the pre-redefinition palette — instead of
+         this theme's actual var(--dm-*) palette used by the header/hero
+         and by the already-patched nav items above. Bring them onto the
+         same var(--dm-*) system so the whole panel matches the current
+         theme. */
+      body.theme-rakshabandhan .dm-profile-stat-card {
+        color: var(--dm-text) !important;
+        border-color: var(--dm-border) !important;
+        background: var(--dm-surface-solid) !important;
+      }
+      body.theme-rakshabandhan .dm-profile-stat-card:hover { border-color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .dm-profile-stat-icon { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan .dm-profile-stat-label,
+      body.theme-rakshabandhan .dm-profile-stat-card > span { color: var(--dm-muted) !important; }
+
+      body.theme-rakshabandhan .dm-profile-notice { border-color: var(--dm-border) !important; }
+      body.theme-rakshabandhan .dm-profile-notice-text { color: var(--dm-muted) !important; }
+
+      body.theme-rakshabandhan .dm-profile-quick-card,
+      body.theme-rakshabandhan .dm-settings-tile {
+        border-color: var(--dm-border) !important;
+        background: var(--dm-surface-solid) !important;
+      }
+      body.theme-rakshabandhan .dm-profile-quick-card:hover,
+      body.theme-rakshabandhan .dm-settings-tile:hover { border-color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .dm-profile-quick-card > span,
+      body.theme-rakshabandhan .dm-settings-tile > span { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan .dm-profile-quick-card small,
+      body.theme-rakshabandhan .dm-settings-tile small,
+      body.theme-rakshabandhan .dm-profile-quick-card > b,
+      body.theme-rakshabandhan .dm-settings-tile > b { color: var(--dm-muted) !important; }
+
+      body.theme-rakshabandhan .dm-order-filter,
+      body.theme-rakshabandhan .dm-notification-filter {
+        border-color: var(--dm-border) !important;
+        background: var(--dm-surface-solid) !important;
+        color: var(--dm-text) !important;
+      }
+      body.theme-rakshabandhan .dm-order-filter.active,
+      body.theme-rakshabandhan .dm-notification-filter.active {
+        background: var(--dm-accent-dark) !important;
+        border-color: var(--dm-accent-dark) !important;
+      }
+
+      body.theme-rakshabandhan .dm-notification-card {
+        border-color: var(--dm-border) !important;
+        background: var(--dm-surface-solid) !important;
+      }
+      body.theme-rakshabandhan .dm-notification-icon { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan .dm-notification-title { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .dm-notification-message,
+      body.theme-rakshabandhan .dm-notification-time { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan .dm-notification-unread { background: var(--dm-accent-dark) !important; }
+
+      body.theme-rakshabandhan .dm-profile-address-card { border-color: var(--dm-border) !important; background: var(--dm-surface-solid) !important; }
+      body.theme-rakshabandhan .dm-address-default { background: var(--dm-accent-dark) !important; }
+
       /* ===== Rakshabandhan cart drawer fix =====
          Same stale-variable problem as the profile panel: an early "dark
          surface" rule (near the top of this stylesheet) still sets
