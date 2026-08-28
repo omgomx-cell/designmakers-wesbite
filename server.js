@@ -1614,6 +1614,7 @@ app.put("/api/customer/extras", requireCustomer, (req, res) => {
       .map((a) => ({
         label: String((a && a.label) || "Address").slice(0, 40),
         text: String((a && a.text) || "").slice(0, 300),
+        isDefault: !!(a && a.isDefault),
       }))
       .filter((a) => a.text);
   }
