@@ -2654,6 +2654,28 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.theme-rakshabandhan .sale-section-wrap h2.rakhi-underline-in::after {
         transform: scaleX(1);
       }
+
+      /* ===== Customer profile module (updated: Profile/Orders/Wishlist/Addresses/Settings/Notifications) ===== */
+      .dm-profile-badge{display:inline-flex;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--rosewood);color:#fff;font-size:10px;align-items:center;justify-content:center;margin-left:auto;}
+      .dm-profile-hero{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid var(--blush-line);border-radius:18px;padding:18px 20px;background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(255,243,247,.92));box-shadow:0 7px 24px rgba(138,28,66,.06);margin-bottom:16px;}
+      .dm-profile-avatar-wrap{flex:0 0 auto}.dm-profile-avatar,.dm-profile-avatar-placeholder{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--blush-line);box-shadow:0 3px 12px rgba(0,0,0,.08)}
+      .dm-profile-avatar-placeholder{display:flex;align-items:center;justify-content:center;background:var(--blush);font-size:28px}
+      #accountProfileView #accountPic,#accountProfileView #accountPicPlaceholder{box-shadow:none!important;}
+      .dm-profile-hero-copy{flex:1;min-width:190px}.dm-profile-inline-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px}.dm-profile-inline-actions a{font-size:.8rem;color:var(--rosewood);font-weight:700;text-decoration:none}.dm-profile-inline-error{font-size:.78rem;color:#a3002a;margin-top:5px}
+      .dm-profile-active{font-size:.78rem;font-weight:800;color:#1d7d3b;white-space:nowrap}.dm-profile-active span{font-size:.7rem}
+      .dm-profile-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.dm-profile-stat-card{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--blush-line);background:var(--surface);border-radius:14px;padding:13px;cursor:pointer;color:var(--ink)}.dm-profile-stat-card:hover{border-color:var(--rosewood);transform:translateY(-1px)}.dm-profile-stat-icon{width:38px;height:38px;border-radius:11px;background:var(--blush);display:flex;align-items:center;justify-content:center;flex:0 0 38px}.dm-profile-stat-value{font-weight:900;font-size:1rem}.dm-profile-stat-label{font-size:.72rem;color:var(--muted);margin-top:2px}.dm-profile-stat-card>span{margin-left:auto;color:var(--muted);font-size:1.1rem}
+      .dm-profile-notice{padding:15px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,.72);margin-bottom:14px}.dm-profile-notice-title{font-weight:800;margin-bottom:4px}.dm-profile-notice-text{font-size:.8rem;color:var(--muted);line-height:1.45;margin-bottom:10px}
+      .dm-profile-info-card{border:1px solid var(--blush-line);border-radius:16px;background:var(--surface);padding:16px;margin-bottom:16px}.dm-profile-card-heading{font-weight:900;margin-bottom:12px}.dm-profile-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.dm-profile-info-grid>div{padding:10px 12px;border-radius:11px;background:rgba(255,247,249,.75)}.dm-profile-info-grid span{display:block;color:var(--muted);font-size:.72rem;margin-bottom:4px}.dm-profile-info-grid strong{font-size:.88rem}
+      .dm-profile-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.dm-profile-quick-card,.dm-settings-tile{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);padding:14px;cursor:pointer}.dm-profile-quick-card:hover,.dm-settings-tile:hover{border-color:var(--rosewood);box-shadow:0 6px 18px rgba(138,28,66,.07)}.dm-profile-quick-card>span,.dm-settings-tile>span{width:40px;height:40px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;flex:0 0 40px}.dm-profile-quick-card>div,.dm-settings-tile>div{flex:1}.dm-profile-quick-card strong,.dm-settings-tile strong{display:block;font-size:.9rem}.dm-profile-quick-card small,.dm-settings-tile small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}.dm-profile-quick-card>b,.dm-settings-tile>b{color:var(--muted);font-size:1.1rem}
+      .dm-profile-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.dm-profile-section-head h3{margin:0;color:var(--dm-text)}.dm-profile-section-head p{font-size:.8rem;color:var(--muted);margin:4px 0 0}.dm-profile-subsection{margin-top:20px}.dm-profile-subsection h3{margin:0 0 10px;color:var(--dm-text)}.dm-profile-footnote{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--blush);font-size:.75rem;color:var(--muted);line-height:1.45}
+      .dm-order-filter-row,.dm-notification-filters{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:14px}.dm-order-filter,.dm-notification-filter{border:1px solid var(--blush-line);background:var(--surface);color:var(--dm-text);border-radius:999px;padding:7px 11px;font-size:.74rem;font-weight:800;cursor:pointer}.dm-order-filter.active,.dm-notification-filter.active{background:var(--rosewood);color:var(--text-on-primary);border-color:var(--rosewood)}.dm-order-sort{margin-left:auto;width:auto;min-width:145px;padding:7px 10px!important;font-size:.74rem!important}
+      .dm-settings-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      .dm-notification-card{display:flex;gap:12px;padding:13px 14px;border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);margin-bottom:10px;cursor:pointer}.dm-notification-card.unread{background:#fff8fa;border-color:#eccbd5}.dm-notification-icon{width:38px;height:38px;border-radius:11px;background:var(--blush);display:flex;align-items:center;justify-content:center;flex:0 0 38px}.dm-notification-copy{flex:1;min-width:0}.dm-notification-title{font-weight:800;font-size:.86rem}.dm-notification-message{font-size:.76rem;color:var(--muted);line-height:1.4;margin-top:2px}.dm-notification-time{font-size:.68rem;color:var(--muted);margin-top:5px}.dm-notification-unread{width:7px;height:7px;border-radius:50%;background:var(--rosewood);margin-top:7px;flex:0 0 7px}
+      .dm-profile-address-card{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);padding:14px;margin-bottom:10px;}
+      .dm-profile-address-main{flex:1;min-width:200px;}
+      .dm-profile-address-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+      .dm-address-default{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--rosewood);color:#fff;font-size:.65rem;font-weight:800;vertical-align:middle;}
+      @media(max-width:760px){.dm-profile-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dm-profile-quick-grid,.dm-settings-card-grid{grid-template-columns:1fr}.dm-profile-info-grid{grid-template-columns:1fr}.dm-order-sort{margin-left:0}.dm-profile-sidebar{width:100%}}
     </style>
   </head>
   <body>
@@ -3294,124 +3316,175 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
           <div id="accountSignedIn" style="display:none;">
             <div class="dm-profile-layout">
-              <aside class="dm-profile-sidebar">
+              <aside class="dm-profile-sidebar" aria-label="Account sections">
                 <button class="dm-profile-nav-item active" id="accountProfileTab" onclick="showAccountSection('profile')">🙂 Profile</button>
                 <button class="dm-profile-nav-item" id="accountOrdersTab" onclick="showAccountSection('orders')">🛍️ My Orders</button>
                 <button class="dm-profile-nav-item" id="accountWishlistTab" onclick="showAccountSection('wishlist')">❤️ Wishlist</button>
                 <button class="dm-profile-nav-item" id="accountAddressesTab" onclick="showAccountSection('addresses')">📍 Addresses</button>
+                <button class="dm-profile-nav-item" id="accountSettingsTab" onclick="showAccountSection('settings')">⚙️ Settings</button>
+                <button class="dm-profile-nav-item" id="accountNotificationsTab" onclick="showAccountSection('notifications')">🔔 Notifications <span id="accountNotificationBadge" class="dm-profile-badge" style="display:none;">0</span></button>
+                <button class="dm-profile-nav-item" id="accountLogoutTab" onclick="confirmCustomerLogout()">⎋ Logout</button>
               </aside>
               <div class="dm-profile-main">
-            <div id="accountProfileView">
-            <div class="dm-welcome-card">
-              <div class="dm-welcome-avatar">
-                <img id="accountPic" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--blush-line);display:none;" />
-                <div id="accountPicPlaceholder" style="width:64px;height:64px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:28px;">🙂</div>
-              </div>
-              <div class="dm-welcome-info">
-                <div class="dm-welcome-hi">Welcome back,</div>
-                <div class="dm-welcome-name" id="accountName"></div>
-                <div class="dm-welcome-contact">📞 <span id="accountMobile"></span></div>
-                <div class="dm-welcome-contact" id="accountEmailRow" style="display:none;">✉️ <span id="accountEmail"></span></div>
-                <div style="display:flex;gap:12px;align-items:center;margin-top:6px;">
-                  <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()" style="font-size:0.8em;color:var(--dm-text);font-weight:700;">Edit WhatsApp number</a>
-                  <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.8em;color:var(--dm-text);font-weight:600;">Change photo</a>
+
+              <!-- PROFILE -->
+              <div id="accountProfileView">
+                <div class="dm-profile-hero">
+                  <div class="dm-profile-avatar-wrap">
+                    <img id="accountPic" src="" alt="Profile photo" class="dm-profile-avatar" style="display:none;" />
+                    <div id="accountPicPlaceholder" class="dm-profile-avatar-placeholder">🙂</div>
+                  </div>
+                  <div class="dm-profile-hero-copy">
+                    <div class="dm-welcome-hi">Welcome back,</div>
+                    <div class="dm-welcome-name" id="accountName"></div>
+                    <div class="dm-welcome-contact">📞 <span id="accountMobile"></span></div>
+                    <div class="dm-welcome-contact" id="accountEmailRow" style="display:none;">✉️ <span id="accountEmail"></span></div>
+                    <div class="dm-profile-inline-actions">
+                      <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()">Edit Profile</a>
+                      <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()">Change photo</a>
+                    </div>
+                    <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
+                    <div id="profilePicError" class="dm-profile-inline-error" style="display:none;"></div>
+                  </div>
+                  <div class="dm-profile-active"><span>●</span> Active account</div>
                 </div>
-                <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
-                <div id="profilePicError" style="font-size:0.78em;color:#a3002a;display:none;margin-top:4px;"></div>
-              </div>
-              <div class="dm-welcome-actions">
-                <a class="dm-edit-profile-btn" href="javascript:void(0)" onclick="openEditWhatsappNumberModal()">✎ Edit Profile</a>
-              </div>
-            </div>
 
-            <div id="accountCompletionBox" style="display:none;margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
-              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Add your WhatsApp number</div>
-              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">Your Google account is connected. Add your WhatsApp number so we can use it for order updates and support.</div>
-              <div class="dm-phone-row">
-                <select id="completeAccountCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
-                <input type="tel" id="completeAccountMobile" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="numeric" autocomplete="tel-national" />
+                <div class="dm-profile-stat-grid">
+                  <button type="button" class="dm-profile-stat-card" onclick="showAccountSection('orders')">
+                    <div class="dm-profile-stat-icon">🛍️</div>
+                    <div><div class="dm-profile-stat-value" id="profileOrdersCount">0</div><div class="dm-profile-stat-label">Total Orders</div></div>
+                    <span>›</span>
+                  </button>
+                  <button type="button" class="dm-profile-stat-card" onclick="showAccountSection('wishlist')">
+                    <div class="dm-profile-stat-icon">❤️</div>
+                    <div><div class="dm-profile-stat-value" id="profileWishlistCount">0</div><div class="dm-profile-stat-label">Wishlist Items</div></div>
+                    <span>›</span>
+                  </button>
+                  <button type="button" class="dm-profile-stat-card" onclick="showAccountSection('addresses')">
+                    <div class="dm-profile-stat-icon">📍</div>
+                    <div><div class="dm-profile-stat-value" id="profileAddressesCount">0</div><div class="dm-profile-stat-label">Saved Addresses</div></div>
+                    <span>›</span>
+                  </button>
+                  <button type="button" class="dm-profile-stat-card" onclick="showAccountSection('orders')">
+                    <div class="dm-profile-stat-icon">₹</div>
+                    <div><div class="dm-profile-stat-value" id="profileSpentValue">₹0</div><div class="dm-profile-stat-label">Total Spent</div></div>
+                    <span>›</span>
+                  </button>
+                </div>
+
+                <div id="accountCompletionBox" class="dm-profile-notice" style="display:none;">
+                  <div class="dm-profile-notice-title">Add your WhatsApp number</div>
+                  <div class="dm-profile-notice-text">Your account is connected. Add your WhatsApp number so we can use it for order updates and support.</div>
+                  <div class="dm-phone-row">
+                    <select id="completeAccountCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
+                    <input type="tel" id="completeAccountMobile" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="numeric" autocomplete="tel-national" />
+                  </div>
+                  <div class="modal-error" id="completeAccountError" style="display:none;"></div>
+                  <button class="add-cart-btn" id="completeAccountBtn" onclick="completeCustomerAccount()">Save WhatsApp number</button>
+                </div>
+
+                <div id="accountAddEmailBox" class="dm-profile-notice" style="display:none;">
+                  <div class="dm-profile-notice-title">Add your email</div>
+                  <div class="dm-profile-notice-text">An email lets you reset your password yourself if you ever get locked out.</div>
+                  <input type="email" id="addEmailInput" class="checkout-input" placeholder="you@example.com" style="width:100%;margin-bottom:9px;" />
+                  <div class="modal-error" id="addEmailError" style="display:none;"></div>
+                  <button class="add-cart-btn" id="addEmailBtn" onclick="submitAddEmail()">Save email</button>
+                </div>
+
+                <div class="dm-profile-info-card">
+                  <div class="dm-profile-card-heading">Account Information</div>
+                  <div class="dm-profile-info-grid">
+                    <div><span>Full name</span><strong id="profileInfoName">—</strong></div>
+                    <div><span>WhatsApp / Mobile</span><strong id="profileInfoMobile">—</strong></div>
+                    <div><span>Email</span><strong id="profileInfoEmail">Not added</strong></div>
+                    <div><span>Member since</span><strong id="profileInfoSince">—</strong></div>
+                  </div>
+                </div>
+
+                <div id="marketingPreferenceBox" class="dm-profile-info-card">
+                  <div class="dm-profile-card-heading">📧 Offers &amp; Product Updates</div>
+                  <div id="marketingPreferenceText" style="font-size:.82rem;color:var(--muted);line-height:1.45;margin-bottom:10px;">Loading email preference…</div>
+                  <button class="add-cart-btn" id="marketingPreferenceBtn" onclick="toggleMarketingPreference()" style="width:auto;padding:9px 14px;">Loading…</button>
+                  <div id="marketingPreferenceStatus" style="font-size:0.78rem;margin-top:7px;min-height:16px;"></div>
+                </div>
+
+                <div id="sellerStatusBox" style="margin-bottom:16px;"></div>
+                <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-bottom:16px;"></button>
+
+                <div class="dm-profile-quick-grid">
+                  <button type="button" class="dm-profile-quick-card" onclick="showAccountSection('orders')"><span>🛍️</span><div><strong>My Orders</strong><small>Track and view your orders</small></div><b>›</b></button>
+                  <button type="button" class="dm-profile-quick-card" onclick="showAccountSection('wishlist')"><span>❤️</span><div><strong>Wishlist</strong><small>View saved products</small></div><b>›</b></button>
+                  <button type="button" class="dm-profile-quick-card" onclick="showAccountSection('addresses')"><span>📍</span><div><strong>Addresses</strong><small>Manage delivery addresses</small></div><b>›</b></button>
+                  <button type="button" class="dm-profile-quick-card" onclick="openCallbackRequestModal()"><span>🎧</span><div><strong>Need Assistance?</strong><small>Submit a callback request</small></div><b>›</b></button>
+                </div>
               </div>
-              <div style="font-size:0.76rem;color:var(--muted);margin:6px 0 9px;">🌍 Select your country code and enter your WhatsApp number. No OTP is required.</div>
-              <div class="modal-error" id="completeAccountError" style="display:none;"></div>
-              <button class="add-cart-btn" id="completeAccountBtn" onclick="completeCustomerAccount()">Save WhatsApp number</button>
-            </div>
 
-            <div id="accountAddEmailBox" style="display:none;margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
-              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Add your email</div>
-              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">Add an email so you can reset your password yourself if you're ever locked out.</div>
-              <input type="email" id="addEmailInput" class="checkout-input" placeholder="you@example.com" style="width:100%;margin-bottom:9px;" />
-              <div class="modal-error" id="addEmailError" style="display:none;"></div>
-              <button class="add-cart-btn" id="addEmailBtn" onclick="submitAddEmail()">Save email</button>
-            </div>
-
-            <div class="dm-quick-actions-grid">
-              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('orders')">
-                <div class="dm-qa-icon">🛍️</div>
-                <div class="dm-qa-text"><div class="dm-qa-title">My Orders</div><div class="dm-qa-sub">Track and view your orders</div></div>
-                <span class="dm-qa-arrow">›</span>
-              </button>
-              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('wishlist')">
-                <div class="dm-qa-icon">❤️</div>
-                <div class="dm-qa-text"><div class="dm-qa-title">Wishlist</div><div class="dm-qa-sub">View and manage your wishlist</div></div>
-                <span class="dm-qa-arrow">›</span>
-              </button>
-              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('addresses')">
-                <div class="dm-qa-icon">📍</div>
-                <div class="dm-qa-text"><div class="dm-qa-title">Addresses</div><div class="dm-qa-sub">Add, edit or remove your addresses</div></div>
-                <span class="dm-qa-arrow">›</span>
-              </button>
-              <button type="button" class="dm-quick-action-card" onclick="openCallbackRequestModal()">
-                <div class="dm-qa-icon">🎧</div>
-                <div class="dm-qa-text"><div class="dm-qa-title">Need Assistance?</div><div class="dm-qa-sub">Submit a callback request</div></div>
-                <span class="dm-qa-arrow">›</span>
-              </button>
-            </div>
-
-            <div id="sellerStatusBox" style="margin-bottom:14px;"></div>
-
-            <div class="dm-settings-grid">
-              <div id="marketingPreferenceBox" class="dm-info-card">
-                <div class="dm-info-card-title">📧 Offers &amp; Product Updates</div>
-                <div id="marketingPreferenceText" class="dm-info-card-text">Loading email preference…</div>
-                <button class="add-cart-btn" id="marketingPreferenceBtn" onclick="toggleMarketingPreference()" style="width:auto;padding:9px 14px;">Loading…</button>
-                <div id="marketingPreferenceStatus" style="font-size:0.78rem;margin-top:7px;min-height:16px;"></div>
+              <!-- WISHLIST -->
+              <div id="accountWishlistView" style="display:none;">
+                <div class="dm-profile-section-head">
+                  <div><h3>❤️ My Wishlist</h3><p>Products you want to remember for later.</p></div>
+                </div>
+                <div id="wishlistList" class="dm-customer-grid"></div>
+                <div class="dm-profile-subsection"><h3>👀 Recently Viewed</h3><div id="recentlyViewedList" class="dm-customer-grid"></div></div>
               </div>
-              <div class="dm-info-card">
-                <div class="dm-info-card-title">🎧 Need assistance?</div>
-                <div class="dm-info-card-text">Tell us why you'd like a callback. We'll record your request and connect you to WhatsApp.</div>
-                <button class="add-cart-btn" onclick="openCallbackRequestModal()">Submit a Callback Request</button>
-              </div>
-            </div>
 
-            <div class="dm-account-settings">
-              <div class="dm-account-settings-title">Account Settings</div>
-              <div class="dm-account-settings-row">
-                <button type="button" class="dm-settings-link" onclick="openChangePasswordModal()">🔒 Change Password<span>Update your account password</span></button>
-                <button type="button" class="dm-settings-link" onclick="signOutCustomer()">⎋ Sign Out<span>Logout from your account</span></button>
+              <!-- ADDRESSES -->
+              <div id="accountAddressesView" style="display:none;">
+                <div class="dm-profile-section-head">
+                  <div><h3>📍 My Addresses</h3><p>Save Home, Office or other delivery addresses for faster checkout.</p></div>
+                  <button class="add-cart-btn" style="width:auto;" onclick="addSavedAddress()">+ Add New Address</button>
+                </div>
+                <div id="savedAddressesList"></div>
+                <div class="dm-profile-footnote">Your default address is used to prefill checkout automatically. Changing an address here never changes the address stored on an old order.</div>
               </div>
-            </div>
 
-            <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-top:14px;"></button>
-            </div>
-            <div id="accountWishlistView" style="display:none;">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div><h3 style="margin:0;color:var(--dm-text);">❤️ My Wishlist</h3><div style="font-size:.8rem;color:var(--muted);">Products you want to remember for later.</div></div></div>
-              <div id="wishlistList" class="dm-customer-grid"></div>
-              <div style="margin-top:20px;"><h3 style="margin:0 0 10px;color:var(--dm-text);">👀 Recently Viewed</h3><div id="recentlyViewedList" class="dm-customer-grid"></div></div>
-            </div>
-            <div id="accountAddressesView" style="display:none;">
-              <h3 style="margin:0 0 6px;color:var(--dm-text);">📍 Saved Addresses</h3>
-              <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">Save Home, Office or other delivery addresses for faster checkout.</div>
-              <div id="savedAddressesList"></div>
-              <button class="add-cart-btn" style="margin-top:8px;" onclick="addSavedAddress()">+ Add Address</button>
-            </div>
-            <div id="accountOrdersView" style="display:none;">
-              <div id="customerOrdersHeader" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-                <div><h3 style="margin:0;color:var(--dm-text);">My Orders</h3><div style="font-size:.8rem;color:var(--muted);">Your orders and live status updates</div></div>
-                <button class="btn small secondary" onclick="loadCustomerOrders()">↻ Refresh</button>
+              <!-- ORDERS -->
+              <div id="accountOrdersView" style="display:none;">
+                <div class="dm-profile-section-head">
+                  <div><h3>🛍️ My Orders</h3><p>Your orders and live status updates.</p></div>
+                  <button class="btn small secondary" onclick="loadCustomerOrders()">↻ Refresh</button>
+                </div>
+                <div class="dm-order-filter-row">
+                  <button class="dm-order-filter active" onclick="setCustomerOrderFilter('All',this)">All</button>
+                  <button class="dm-order-filter" onclick="setCustomerOrderFilter('Processing',this)">Processing</button>
+                  <button class="dm-order-filter" onclick="setCustomerOrderFilter('Shipped',this)">Shipped</button>
+                  <button class="dm-order-filter" onclick="setCustomerOrderFilter('Delivered',this)">Delivered</button>
+                  <button class="dm-order-filter" onclick="setCustomerOrderFilter('Cancelled',this)">Cancelled</button>
+                  <select id="customerOrderSort" class="checkout-input dm-order-sort" onchange="renderCustomerOrdersView()">
+                    <option value="newest">Newest first</option><option value="oldest">Oldest first</option>
+                  </select>
+                </div>
+                <div id="customerOrdersList"><div class="modal-desc">Loading orders…</div></div>
+                <div id="customerOrderDetail" style="display:none;"></div>
               </div>
-              <div id="customerOrdersList"><div class="modal-desc">Loading orders…</div></div>
-              <div id="customerOrderDetail" style="display:none;"></div>
-            </div>
+
+              <!-- SETTINGS -->
+              <div id="accountSettingsView" style="display:none;">
+                <div class="dm-profile-section-head"><div><h3>⚙️ Settings</h3><p>Only the account controls you actually need.</p></div></div>
+                <div class="dm-settings-card-grid">
+                  <button type="button" class="dm-settings-tile" onclick="showAccountSection('profile')"><span>👤</span><div><strong>Account Information</strong><small>View your saved account details</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openChangePasswordModal()"><span>🔐</span><div><strong>Change Password</strong><small>Update your account password</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openTermsModal()"><span>📄</span><div><strong>Terms &amp; Conditions</strong><small>Read the website terms</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openCallbackRequestModal()"><span>🎧</span><div><strong>Contact Support</strong><small>Request help from Design Makers</small></div><b>›</b></button>
+                </div>
+              </div>
+
+              <!-- NOTIFICATIONS -->
+              <div id="accountNotificationsView" style="display:none;">
+                <div class="dm-profile-section-head">
+                  <div><h3>🔔 Notifications</h3><p>Order, offer and account updates.</p></div>
+                  <button class="btn small secondary" onclick="markAllCustomerNotificationsRead()">✓ Mark all as read</button>
+                </div>
+                <div class="dm-notification-filters">
+                  <button class="dm-notification-filter active" onclick="setNotificationFilter('All',this)">All</button>
+                  <button class="dm-notification-filter" onclick="setNotificationFilter('Orders',this)">Orders</button>
+                  <button class="dm-notification-filter" onclick="setNotificationFilter('Offers',this)">Offers</button>
+                  <button class="dm-notification-filter" onclick="setNotificationFilter('Updates',this)">Updates</button>
+                  <button class="dm-notification-filter" onclick="setNotificationFilter('Reminders',this)">Reminders</button>
+                </div>
+                <div id="customerNotificationsList"></div>
+              </div>
+
               </div>
             </div>
           </div>
@@ -6897,10 +6970,69 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
       }
       function isBackstockRequested(){ if(!currentProduct)return false; return dmRead(dmScopedKey(DM_BACKSTOCK_KEY),[]).includes(String(currentProduct.id)+"::"+String(currentSize||"")); }
-      function renderSavedAddresses(){ const box=document.getElementById("savedAddressesList"); if(!box)return; const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); box.innerHTML=arr.length?arr.map((a,i)=>'<div class="dm-address-row"><input type="radio" name="savedAddress" '+(i===0?'checked':'')+' onchange="selectSavedAddress('+i+')"><div class="address-text"><strong>'+escapeHtml(a.label||"Address")+'</strong><br>'+escapeHtml(a.text||"")+'</div><button class="btn small secondary" onclick="removeSavedAddress('+i+')">Remove</button></div>').join(""):'<div class="modal-desc">No saved addresses yet.</div>'; }
-      function addSavedAddress(){ const text=prompt("Enter your full delivery address:"); if(!text||!text.trim())return; const label=prompt("Label (Home / Office / Other):","Home")||"Address"; const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); arr.unshift({label:label.trim(),text:text.trim()}); dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr.slice(0,10)); syncExtrasToServer(); renderSavedAddresses(); }
-      function removeSavedAddress(i){ const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); arr.splice(i,1); dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses(); }
-      function selectSavedAddress(i){ const a=dmRead(dmScopedKey(DM_ADDRESS_KEY),[])[i]; const el=document.getElementById("custAddress"); if(a&&el){el.value=a.text;try{localStorage.setItem("dm_last_address",a.text);}catch(e){} } }
+      // NEW: keeps checkout's custAddress field / dm_last_address in sync with
+      // whichever saved address is currently Default. Called any time the
+      // default address changes (set explicitly, first address added, default
+      // deleted so the next one is promoted, or the default address is edited).
+      function syncDefaultAddressToCheckout(defaultAddr){
+        if(!defaultAddr) return;
+        const el=document.getElementById("custAddress");
+        if(el) el.value=defaultAddr.text;
+        try{ localStorage.setItem("dm_last_address", defaultAddr.text); }catch(e){}
+      }
+      function renderSavedAddresses(){
+        const box=document.getElementById("savedAddressesList"); if(!box)return;
+        let arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
+        if(arr.length && !arr.some(a=>a.isDefault)){ arr = arr.map((a,i)=>({...a,isDefault:i===0})); dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); syncDefaultAddressToCheckout(arr[0]); }
+        arr=[...arr].sort((a,b)=>Number(!!b.isDefault)-Number(!!a.isDefault));
+        box.innerHTML=arr.length?arr.map((a,i)=>{
+          const label=escapeHtml(a.label||"Address"), text=escapeHtml(a.text||"");
+          const originalIndex=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]).findIndex(x=>x.text===a.text && x.label===a.label);
+          return '<div class="dm-address-row dm-profile-address-card">'+
+            '<div class="dm-profile-address-main"><div><strong>'+label+'</strong> '+(a.isDefault?'<span class="dm-address-default">Default</span>':'')+'</div><div class="address-text">'+text+'</div></div>'+
+            '<div class="dm-profile-address-actions">'+
+              (!a.isDefault?'<button class="btn small secondary" onclick="setDefaultSavedAddress('+originalIndex+')">Set Default</button>':'')+
+              '<button class="btn small secondary" onclick="editSavedAddress('+originalIndex+')">Edit</button>'+
+              '<button class="btn small secondary" onclick="removeSavedAddress('+originalIndex+')">Delete</button>'+
+            '</div></div>';
+        }).join(""):'<div class="modal-desc">No saved addresses yet.</div>';
+        const count=document.getElementById("profileAddressesCount"); if(count) count.textContent=arr.length;
+      }
+      function addSavedAddress(){
+        const text=prompt("Enter your full delivery address:"); if(!text||!text.trim())return;
+        const label=(prompt("Label (Home / Office / Other):","Home")||"Address").trim()||"Address";
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
+        const next=arr.length?{label,text:text.trim(),isDefault:false}:{label,text:text.trim(),isDefault:true};
+        arr.unshift(next);
+        dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr.slice(0,10)); syncExtrasToServer(); renderSavedAddresses();
+        if(next.isDefault) syncDefaultAddressToCheckout(next);
+      }
+      function editSavedAddress(i){
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); const a=arr[i]; if(!a)return;
+        const text=prompt("Update your full delivery address:",a.text||""); if(!text||!text.trim())return;
+        const label=(prompt("Label (Home / Office / Other):",a.label||"Home")||a.label||"Address").trim()||"Address";
+        arr[i]={...a,text:text.trim(),label}; dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses();
+        if(arr[i].isDefault) syncDefaultAddressToCheckout(arr[i]);
+      }
+      function removeSavedAddress(i){
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); if(!arr[i])return;
+        if(!confirm("Delete this saved address?"))return;
+        const wasDefault=!!arr[i].isDefault; arr.splice(i,1);
+        if(wasDefault && arr.length) arr[0].isDefault=true;
+        dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses();
+        if(wasDefault && arr.length) syncDefaultAddressToCheckout(arr[0]);
+      }
+      function setDefaultSavedAddress(i){
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); if(!arr[i])return;
+        arr.forEach((a,idx)=>a.isDefault=idx===i);
+        dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses(); showToast("Default address updated.");
+        syncDefaultAddressToCheckout(arr[i]);
+      }
+      // Kept for backward compatibility — delegates to the Default concept above.
+      function selectSavedAddress(i){
+        const a=dmRead(dmScopedKey(DM_ADDRESS_KEY),[])[i];
+        if(a) syncDefaultAddressToCheckout(a);
+      }
       function toggleGiftFields(){ const on=document.getElementById("isGiftOrder")?.checked; const box=document.getElementById("giftFields"); if(box)box.style.display=on?"block":"none"; }
       function saveCurrentAddressIfUseful(){ const el=document.getElementById("custAddress"); if(!el||!el.value.trim())return; try{localStorage.setItem("dm_last_address",el.value.trim());}catch(e){} }
       function buyAgainOrder(orderId){
@@ -6935,27 +7067,227 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       let dmCustomerOrdersPoll = null;
       let dmCustomerOrdersCache = [];
 
+      let dmCustomerOrderFilter = "All";
+      let dmNotificationFilter = "All";
+      const DM_NOTIFICATION_READ_KEY = "dm_profile_notification_read_v1";
+      function profileNotificationReadKey(id) { return dmScopedKey(DM_NOTIFICATION_READ_KEY) + ":" + String(id); }
+      function isCustomerNotificationRead(id) { return dmRead(profileNotificationReadKey(id), false) === true; }
+      function setCustomerNotificationRead(id, value) { dmWrite(profileNotificationReadKey(id), !!value); }
+
       function showAccountSection(section) {
-        const profile = document.getElementById("accountProfileView");
-        const orders = document.getElementById("accountOrdersView");
-        const wishlist = document.getElementById("accountWishlistView");
-        const addresses = document.getElementById("accountAddressesView");
-        const profileTab = document.getElementById("accountProfileTab");
-        const ordersTab = document.getElementById("accountOrdersTab");
-        const wishlistTab = document.getElementById("accountWishlistTab");
-        const addressesTab = document.getElementById("accountAddressesTab");
-        if (profile) profile.style.display = section === "profile" ? "block" : "none";
-        if (orders) orders.style.display = section === "orders" ? "block" : "none";
-        if (wishlist) wishlist.style.display = section === "wishlist" ? "block" : "none";
-        if (addresses) addresses.style.display = section === "addresses" ? "block" : "none";
-        if (profileTab) profileTab.classList.toggle("active", section === "profile");
-        if (ordersTab) ordersTab.classList.toggle("active", section === "orders");
-        if (wishlistTab) wishlistTab.classList.toggle("active", section === "wishlist");
-        if (addressesTab) addressesTab.classList.toggle("active", section === "addresses");
+        const sections = {
+          profile: document.getElementById("accountProfileView"),
+          orders: document.getElementById("accountOrdersView"),
+          wishlist: document.getElementById("accountWishlistView"),
+          addresses: document.getElementById("accountAddressesView"),
+          settings: document.getElementById("accountSettingsView"),
+          notifications: document.getElementById("accountNotificationsView")
+        };
+        Object.keys(sections).forEach((key) => { if (sections[key]) sections[key].style.display = section === key ? "block" : "none"; });
+
+        const tabs = {
+          profile: document.getElementById("accountProfileTab"),
+          orders: document.getElementById("accountOrdersTab"),
+          wishlist: document.getElementById("accountWishlistTab"),
+          addresses: document.getElementById("accountAddressesTab"),
+          settings: document.getElementById("accountSettingsTab"),
+          notifications: document.getElementById("accountNotificationsTab")
+        };
+        Object.keys(tabs).forEach((key) => { if (tabs[key]) tabs[key].classList.toggle("active", section === key); });
+
+        if (section === "profile") renderCustomerProfileOverview();
         if (section === "orders") { loadCustomerOrders(); startCustomerOrderLiveUpdates(); }
         else stopCustomerOrderLiveUpdates();
         if (section === "wishlist") renderWishlist();
         if (section === "addresses") renderSavedAddresses();
+        if (section === "notifications") renderCustomerNotifications();
+      }
+
+      function renderCustomerProfileOverview() {
+        if (!currentCustomer) return;
+        const orders = Array.isArray(currentCustomer.orders) ? currentCustomer.orders : [];
+        const nonCancelled = orders.filter(o => String(o.status || "").toLowerCase() !== "cancelled");
+        const spent = Number(currentCustomer.totalSpent || nonCancelled.reduce((sum, o) => sum + Number(o.total || 0), 0)) || 0;
+        const addresses = dmRead(dmScopedKey(DM_ADDRESS_KEY), []);
+        const set = {
+          profileOrdersCount: orders.length,
+          profileWishlistCount: wishlistIds().length,
+          profileAddressesCount: addresses.length,
+          profileSpentValue: "₹" + fmtINR(spent),
+          profileInfoName: currentCustomer.name || "Customer",
+          profileInfoMobile: currentCustomer.mobile || "Not added",
+          profileInfoEmail: currentCustomer.email || "Not added",
+          profileInfoSince: currentCustomer.createdAt ? formatOrderDate(currentCustomer.createdAt, false) : "—"
+        };
+        Object.keys(set).forEach(id => { const el = document.getElementById(id); if (el) el.textContent = set[id]; });
+        updateCustomerNotificationBadge();
+      }
+
+      function setCustomerOrderFilter(filter, btn) {
+        dmCustomerOrderFilter = filter;
+        document.querySelectorAll("#accountOrdersView .dm-order-filter").forEach(b => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        renderCustomerOrdersView();
+      }
+
+      function renderCustomerOrdersView() {
+        const list = document.getElementById("customerOrdersList");
+        if (!list) return;
+        let orders = Array.isArray(dmCustomerOrdersCache) ? [...dmCustomerOrdersCache] : [];
+        if (dmCustomerOrderFilter !== "All") {
+          orders = orders.filter(o => {
+            const stage = String(o.fulfilmentStage || o.status || "").toLowerCase();
+            return dmCustomerOrderFilter === "Cancelled" ? stage.includes("cancel") : stage.includes(dmCustomerOrderFilter.toLowerCase());
+          });
+        }
+        const sort = document.getElementById("customerOrderSort")?.value || "newest";
+        orders.sort((a,b) => {
+          const av = new Date(a.createdAt || 0).getTime(), bv = new Date(b.createdAt || 0).getTime();
+          return sort === "oldest" ? av - bv : bv - av;
+        });
+        list.innerHTML = orders.length
+          ? orders.map(renderCustomerOrderCard).join("")
+          : '<div class="modal-desc">No orders found in this filter.</div>';
+      }
+
+      function buildCustomerNotifications() {
+        const out = [];
+        const orders = Array.isArray(dmCustomerOrdersCache) && dmCustomerOrdersCache.length
+          ? dmCustomerOrdersCache
+          : (Array.isArray(currentCustomer?.orders) ? currentCustomer.orders : []);
+
+        orders.slice(0, 8).forEach((order) => {
+          const stage = order.fulfilmentStage || order.status || "Order Received";
+          const id = "order-" + String(order.id);
+          let title = "Order update";
+          let message = (order.orderNumber || "Your order") + " is now " + stage + ".";
+          let icon = "📦";
+          let type = "Orders";
+          if (String(stage).toLowerCase().includes("deliver")) { title = "Order delivered"; icon = "✅"; message = (order.orderNumber || "Your order") + " has been delivered."; }
+          else if (String(stage).toLowerCase().includes("ship")) { title = "Order shipped"; icon = "🚚"; }
+          else if (String(stage).toLowerCase().includes("cancel")) { title = "Order cancelled"; icon = "✕"; }
+          out.push({ id, type, icon, title, message, time: order.updatedAt || order.createdAt || null, orderId: order.id });
+        });
+
+        out.push({
+          id: "account-welcome",
+          type: "Updates",
+          icon: "✨",
+          title: "Your Design Makers account is active",
+          message: "Manage your orders, wishlist and addresses from your account.",
+          time: currentCustomer?.createdAt || null
+        });
+
+        if (currentCustomer?.marketingOptIn !== false) {
+          out.push({
+            id: "offers-enabled",
+            type: "Offers",
+            icon: "🎁",
+            title: "Offers & product updates are enabled",
+            message: "You'll receive promotional updates when Design Makers has something new.",
+            time: null
+          });
+        }
+
+        const addresses = dmRead(dmScopedKey(DM_ADDRESS_KEY), []);
+        if (addresses.length === 0) {
+          out.push({
+            id: "address-reminder",
+            type: "Reminders",
+            icon: "📍",
+            title: "Add a delivery address",
+            message: "Save an address once so checkout is faster next time.",
+            time: null
+          });
+        }
+        return out;
+      }
+
+      function setNotificationFilter(filter, btn) {
+        dmNotificationFilter = filter;
+        document.querySelectorAll(".dm-notification-filter").forEach(b => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        renderCustomerNotifications();
+      }
+
+      function renderCustomerNotifications() {
+        const box = document.getElementById("customerNotificationsList");
+        if (!box) return;
+        const all = buildCustomerNotifications();
+        const filtered = dmNotificationFilter === "All" ? all : all.filter(n => n.type === dmNotificationFilter);
+        box.innerHTML = filtered.length ? filtered.map(n => {
+          const read = isCustomerNotificationRead(n.id);
+          const time = n.time ? formatOrderDate(n.time, true) : "";
+          return '<button type="button" class="dm-notification-card ' + (read ? "" : "unread") + '" onclick="openCustomerNotification(' + JSON.stringify(n.id).replace(/"/g, '&quot;') + ')">' +
+            '<span class="dm-notification-icon">' + n.icon + '</span>' +
+            '<span class="dm-notification-copy"><span class="dm-notification-title">' + escapeHtml(n.title) + '</span><span class="dm-notification-message">' + escapeHtml(n.message) + '</span><span class="dm-notification-time">' + escapeHtml(time || "Account update") + '</span></span>' +
+            (read ? '' : '<span class="dm-notification-unread" aria-label="Unread"></span>') +
+          '</button>';
+        }).join("") : '<div class="modal-desc">No notifications in this category.</div>';
+        updateCustomerNotificationBadge();
+      }
+
+      function openCustomerNotification(id) {
+        const item = buildCustomerNotifications().find(n => n.id === id);
+        if (!item) return;
+        setCustomerNotificationRead(id, true);
+        updateCustomerNotificationBadge();
+        if (item.orderId != null) {
+          showAccountSection("orders");
+          setTimeout(() => openCustomerOrderDetail(item.orderId), 0);
+        } else if (item.type === "Reminders") {
+          showAccountSection("addresses");
+        } else if (item.type === "Offers") {
+          showAccountSection("profile");
+          showToast("Offers and product updates are enabled.");
+        } else {
+          renderCustomerNotifications();
+        }
+      }
+
+      function markAllCustomerNotificationsRead() {
+        buildCustomerNotifications().forEach(n => setCustomerNotificationRead(n.id, true));
+        renderCustomerNotifications();
+      }
+
+      function updateCustomerNotificationBadge() {
+        const unread = buildCustomerNotifications().filter(n => !isCustomerNotificationRead(n.id)).length;
+        const badge = document.getElementById("accountNotificationBadge");
+        if (badge) { badge.textContent = unread; badge.style.display = unread ? "inline-flex" : "none"; }
+      }
+
+      function confirmCustomerLogout() {
+        if (window.confirm("Are you sure you want to logout from your account?")) signOutCustomer();
+      }
+
+      function openTermsModal() {
+        let overlay = document.getElementById("dmProfileTermsOverlay");
+        if (!overlay) {
+          overlay = document.createElement("div");
+          overlay.id = "dmProfileTermsOverlay";
+          overlay.className = "overlay";
+          overlay.innerHTML = '<div class="modal" style="max-width:560px;width:min(560px,94vw);"><button class="modal-close" onclick="closeTermsModal()">✕</button><div class="modal-body"><h2 class="modal-title">Terms & Conditions</h2><p class="modal-desc">By using Design Makers, you agree to use the website responsibly and provide accurate information for orders and delivery. Product pricing, availability, customization details and delivery estimates may change. Orders are subject to confirmation and applicable payment/delivery rules.</p><p class="modal-desc" style="margin-bottom:0;">For account or order assistance, use Contact Support from Settings.</p></div></div>';
+          document.body.appendChild(overlay);
+        }
+        overlay.classList.add("open");
+      }
+      function closeTermsModal() {
+        const overlay = document.getElementById("dmProfileTermsOverlay");
+        if (overlay) overlay.classList.remove("open");
+      }
+      function moveAllWishlistToBag() {
+        const ids = wishlistIds();
+        let added = 0, skipped = [];
+        ids.forEach(id => {
+          const p = getProductByIdLocal(id);
+          if (!p) { skipped.push("Unavailable product"); return; }
+          const stock = getDisplayStock(p, (p.sizes && p.sizes[0]) || null);
+          if (stock.qty === 0) { skipped.push(p.name || "Product"); return; }
+          cart.push({productId:p.id,name:p.name,price:getSalePrice(p)||p.price,originalPrice:p.price,onSale:Boolean(getSalePrice(p)),image:p.image,size:(p.sizes&&p.sizes[0])||null,qty:Math.min(p.moq||1, stock.qty > 0 ? stock.qty : (p.moq||1)),discounts:p.discounts||[]});
+          added++;
+        });
+        if (added) { updateCartCount(); saveCart(); showToast(added + " item" + (added === 1 ? "" : "s") + " moved to your bag."); }
+        if (skipped.length) showToast("Unavailable items were skipped.");
       }
 
       function dmStageIndex(stage) {
