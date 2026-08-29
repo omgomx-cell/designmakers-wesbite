@@ -848,7 +848,8 @@
       .overlay.open { display: flex; }
       #addressFormOverlay,
       #changePasswordOverlay,
-      #callbackRequestOverlay {
+      #callbackRequestOverlay,
+      #editWhatsappNumberOverlay {
         z-index: 110;
       }
       .modal {
@@ -1044,7 +1045,12 @@
       .dm-mini-remove { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.92); border: 1px solid var(--blush-line); color: var(--rosewood); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
       /* ===== Profile page — sidebar + main layout (signed-in account view) ===== */
-      .auth-modal.profile-mode { max-width: 1080px; width: min(1080px, 96vw); }
+      .auth-modal.profile-mode {
+        max-width: 1080px;
+        width: min(1080px, 96vw);
+        overflow-y: auto;
+        max-height: 90vh;
+      }
       .auth-modal.profile-mode .auth-brand { display: none; }
       .auth-modal.profile-mode .auth-form { flex: 1 1 100%; padding: 34px; justify-content: flex-start; }
       .dm-profile-layout { display: flex; gap: 26px; align-items: flex-start; }
@@ -3805,7 +3811,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                     <div class="dm-welcome-contact">📞 <span id="accountMobile"></span></div>
                     <div class="dm-welcome-contact" id="accountEmailRow" style="display:none;">✉️ <span id="accountEmail"></span></div>
                     <div class="dm-profile-inline-actions">
-                      <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()">Edit Profile</a>
+                      <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()">Edit WhatsApp number</a>
                       <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()">Change photo</a>
                     </div>
                     <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
