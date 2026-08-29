@@ -1042,6 +1042,9 @@
       .dm-profile-nav-item { display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid transparent; background: transparent; color: var(--ink); border-radius: 10px; padding: 11px 13px; font-weight: 700; font-size: 0.92rem; cursor: pointer; }
       .dm-profile-nav-item:hover { background: var(--blush); }
       .dm-profile-nav-item.active { background: var(--blush); color: var(--rosewood); border-color: var(--blush-line); }
+      .dm-nav-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; position: relative; }
+      .dm-nav-icon svg { width: 100%; height: 100%; }
+      .dm-nav-label { white-space: nowrap; }
       .dm-profile-main { flex: 1 1 auto; min-width: 0; }
       .dm-welcome-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 1px solid var(--blush-line); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
       .dm-welcome-info { flex: 1; min-width: 160px; }
@@ -1069,7 +1072,36 @@
       .dm-settings-link:hover { border-color: var(--rosewood); }
       @media (max-width: 760px) {
         .dm-profile-layout { flex-direction: column; }
-        .dm-profile-sidebar { flex-direction: row; flex-wrap: wrap; width: 100%; }
+        .dm-profile-sidebar {
+          flex-direction: row;
+          flex-wrap: nowrap;
+          width: 100%;
+          gap: 4px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          background: var(--blush);
+          border-radius: 16px;
+          padding: 8px 6px;
+        }
+        .dm-profile-sidebar::-webkit-scrollbar { display: none; }
+        .dm-profile-nav-item {
+          flex: 0 0 auto;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          min-width: 68px;
+          padding: 8px 10px;
+          border-radius: 12px;
+          font-size: 0.66rem;
+          font-weight: 700;
+          color: var(--muted);
+        }
+        .dm-profile-nav-item .dm-nav-icon { width: 22px; height: 22px; }
+        .dm-profile-nav-item.active { color: var(--rosewood); }
+        .dm-profile-nav-item .dm-profile-badge { position: absolute; top: -4px; right: -8px; }
       }
 
       .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
@@ -2390,6 +2422,29 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         --glow: var(--dm-dark-glow);
         --text-on-primary: #2a1420;
       }
+      /* ===== Dark mode fix for the "Liquid Glass" --dm-* token set =====
+         body.dark-mode.theme-rakshabandhan (below) already redefines
+         --dm-text/--dm-muted/--dm-border/--dm-surface-solid for that
+         combination, but plain body.dark-mode (dark mode with the
+         DEFAULT theme, no festival skin) never did — so anything using
+         --dm-text/--dm-muted/etc (the profile panel headings, cards,
+         .dm-profile-notice-title, .dm-profile-card-heading, and the
+         same tokens used across the homepage skin) stayed on the light
+         value (#2a1710 dark ink) and rendered as near-invisible dark
+         text on dark backgrounds whenever dark mode was on without the
+         festival theme. This brings plain dark mode onto the same
+         dark palette already defined above, so switching to dark mode
+         works correctly no matter which theme (default or festival)
+         is currently selected. */
+      body.dark-mode {
+        --dm-surface-solid: var(--dm-dark-surface);
+        --dm-text: var(--dm-dark-ink);
+        --dm-muted: var(--dm-dark-muted);
+        --dm-border: var(--dm-dark-blush-line);
+        --dm-soft: var(--dm-dark-blush);
+        --dm-accent: var(--dm-dark-rosewood);
+        --dm-accent-dark: var(--dm-dark-rosewood-dark);
+      }
       /* ===== FINAL CUSTOMER LIQUID GLASS THEME ===== */
       body { background:#05070a !important; color:#f5f7fb; }
 
@@ -2470,6 +2525,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.dark-mode .site-header .logo span { color: #fff !important; }
       body.dark-mode .site-header .icon-btn { background: rgba(255,255,255,.06) !important; border: 1px solid rgba(255,255,255,.14) !important; color: #fff !important; }
       body.dark-mode .site-header .icon-btn:hover { background: rgba(82,165,255,.16) !important; border-color: rgba(82,165,255,.4) !important; }
+      body:not(.dark-mode) .cart-count,
+      body:not(.dark-mode).theme-rakshabandhan .cart-count { background: var(--dm-gold) !important; color: #fff !important; border-color: #fff !important; }
+      body.dark-mode .cart-count,
+      body.dark-mode.theme-rakshabandhan .cart-count { background: var(--dm-dark-rosewood-dark) !important; color: #fff !important; border-color: #05070a !important; }
       body.dark-mode .search-bar-panel { background: rgba(10,14,20,.85) !important; border: 1px solid rgba(255,255,255,.1) !important; }
       body.dark-mode .search-bar-input-wrap { background: rgba(255,255,255,.06) !important; }
       body.dark-mode .search-results { background: #12151f !important; box-shadow: 0 8px 24px rgba(0,0,0,.4) !important; }
@@ -2738,7 +2797,242 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       .dm-profile-address-main{flex:1;min-width:200px;}
       .dm-profile-address-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
       .dm-address-default{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--rosewood);color:#fff;font-size:.65rem;font-weight:800;vertical-align:middle;}
-      @media(max-width:760px){.dm-profile-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dm-profile-quick-grid,.dm-settings-card-grid{grid-template-columns:1fr}.dm-profile-info-grid{grid-template-columns:1fr}.dm-order-sort{margin-left:0}.dm-profile-sidebar{width:100%}}
+      @media(max-width:760px){.dm-profile-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dm-profile-quick-grid,.dm-settings-card-grid{grid-template-columns:1fr}.dm-profile-info-grid{grid-template-columns:1fr}.dm-order-sort{margin-left:0}}
+
+      /* ===== Profile panel — Liquid Glass treatment
+         (brings the account/profile modal in line with the same
+         frosted-glass look already used on the homepage header,
+         hero, and category/product cards — it was never applied
+         here before, so this panel looked flat/solid). ===== */
+      .auth-modal.profile-mode {
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,241,246,.28)),
+          radial-gradient(circle at 88% 4%, rgba(184,134,63,.16), transparent 42%),
+          radial-gradient(circle at 4% 92%, rgba(138,28,66,.12), transparent 42%),
+          #fdf8f4 !important;
+      }
+      .dm-profile-hero,
+      .dm-profile-stat-card,
+      .dm-profile-info-card,
+      .dm-profile-quick-card,
+      .dm-settings-tile,
+      .dm-profile-notice,
+      .dm-profile-address-card {
+        background: linear-gradient(145deg, rgba(255,255,255,.55), rgba(255,255,255,.18)) !important;
+        border: 1px solid rgba(255,255,255,.65) !important;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: 0 14px 34px rgba(138,28,66,.08), inset 0 1px rgba(255,255,255,.7) !important;
+        transition: .22s ease;
+      }
+      .dm-profile-stat-card:hover,
+      .dm-profile-quick-card:hover,
+      .dm-settings-tile:hover {
+        border-color: rgba(184,134,63,.45) !important;
+        box-shadow: 0 18px 40px rgba(138,28,66,.12), inset 0 1px rgba(255,255,255,.8) !important;
+        transform: translateY(-2px);
+      }
+      .dm-profile-nav-item {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .dm-profile-nav-item.active {
+        background: linear-gradient(145deg, rgba(255,255,255,.6), rgba(255,255,255,.22)) !important;
+        border: 1px solid rgba(184,134,63,.35) !important;
+      }
+      .dm-profile-info-grid > div {
+        background: rgba(255,255,255,.4) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      /* Dark mode — matches the site's existing "liquid glass" dark theme */
+      body.dark-mode .auth-modal.profile-mode {
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.015)),
+          radial-gradient(circle at 85% 6%, rgba(46,150,255,.10), transparent 40%),
+          #0a0d12 !important;
+      }
+      body.dark-mode .dm-profile-hero,
+      body.dark-mode .dm-profile-stat-card,
+      body.dark-mode .dm-profile-info-card,
+      body.dark-mode .dm-profile-quick-card,
+      body.dark-mode .dm-settings-tile,
+      body.dark-mode .dm-profile-notice,
+      body.dark-mode .dm-profile-address-card {
+        background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important;
+        border: 1px solid rgba(255,255,255,.10) !important;
+        box-shadow: 0 16px 40px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05) !important;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+      }
+      body.dark-mode .dm-profile-stat-card:hover,
+      body.dark-mode .dm-profile-quick-card:hover,
+      body.dark-mode .dm-settings-tile:hover {
+        border-color: rgba(82,165,255,.34) !important;
+        box-shadow: 0 22px 50px rgba(0,0,0,.32), 0 0 24px rgba(53,145,255,.08) !important;
+        transform: translateY(-2px);
+      }
+      body.dark-mode .dm-profile-nav-item.active {
+        background: rgba(66,154,255,.10) !important;
+        border: 1px solid rgba(82,165,255,.28) !important;
+      }
+      body.dark-mode .dm-profile-info-grid > div {
+        background: rgba(255,255,255,.04) !important;
+      }
+
+      /* ===== Customer Profile navigation polish — mobile glass rail + refined desktop sidebar ===== */
+      .dm-profile-sidebar {
+        position: relative;
+        padding: 8px;
+        border: 1px solid rgba(255,255,255,.42);
+        border-radius: 18px;
+        background: linear-gradient(145deg, rgba(255,255,255,.34), rgba(255,255,255,.12));
+        box-shadow: 0 12px 28px rgba(72,36,30,.06), inset 0 1px rgba(255,255,255,.55);
+        backdrop-filter: blur(14px) saturate(150%);
+        -webkit-backdrop-filter: blur(14px) saturate(150%);
+      }
+      .dm-profile-nav-item {
+        position: relative;
+        min-height: 46px;
+        border-radius: 13px;
+        transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s ease, box-shadow .22s ease;
+      }
+      .dm-profile-nav-item:hover { transform: translateX(2px); }
+      .dm-profile-nav-item.active {
+        box-shadow: inset 0 1px rgba(255,255,255,.62), 0 5px 14px rgba(138,28,66,.08);
+      }
+      .dm-profile-nav-item:last-child {
+        margin-top: 8px;
+        padding-top: 13px;
+        border-top: 1px solid var(--blush-line);
+        border-radius: 0 0 12px 12px;
+      }
+      .dm-profile-nav-item:last-child:hover { color: #a33a4f; }
+      .dm-nav-icon { transition: transform .22s ease; }
+      .dm-profile-nav-item:hover .dm-nav-icon,
+      .dm-profile-nav-item.active .dm-nav-icon { transform: scale(1.06); }
+
+      @media (max-width: 760px) {
+        .dm-profile-sidebar {
+          display: flex;
+          align-items: stretch;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          gap: 6px;
+          width: 100%;
+          padding: 7px;
+          border-radius: 18px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          overscroll-behavior-x: contain;
+          scroll-snap-type: x proximity;
+          scroll-padding-inline: 7px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          background: linear-gradient(145deg, rgba(255,255,255,.46), rgba(255,255,255,.18));
+          box-shadow: 0 10px 26px rgba(72,36,30,.07), inset 0 1px rgba(255,255,255,.7);
+          /* Dock the nav rail to the bottom of the modal instead of
+             scrolling away with the content above (was inline at the
+             top before) — mirrors the fixed bottom-tab-bar layout. */
+          position: sticky;
+          bottom: 0;
+          order: 99;
+          z-index: 4;
+          margin-top: 10px;
+        }
+        .dm-profile-sidebar::before,
+        .dm-profile-sidebar::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 8px;
+          min-width: 8px;
+          z-index: 3;
+          pointer-events: none;
+        }
+        .dm-profile-sidebar::before { left: 0; background: linear-gradient(90deg, rgba(255,255,255,.35), transparent); }
+        .dm-profile-sidebar::after { right: 0; background: linear-gradient(270deg, rgba(255,255,255,.28), transparent); }
+        .dm-profile-sidebar::-webkit-scrollbar { display: none; }
+        .dm-profile-nav-item {
+          flex: 0 0 76px;
+          width: 76px;
+          min-width: 76px;
+          min-height: 64px;
+          height: 64px;
+          padding: 8px 5px;
+          border: 1px solid transparent;
+          border-radius: 14px;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          text-align: center;
+          font-size: 10.5px;
+          line-height: 1.1;
+          font-weight: 750;
+          scroll-snap-align: start;
+          transform: none !important;
+        }
+        .dm-profile-nav-item:hover { background: rgba(255,255,255,.28); }
+        .dm-profile-nav-item.active {
+          background: linear-gradient(145deg, rgba(255,255,255,.68), rgba(255,255,255,.28)) !important;
+          border-color: rgba(184,134,63,.42) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.78), 0 5px 15px rgba(138,28,66,.10);
+        }
+        .dm-profile-nav-item.active::after {
+          content: "";
+          position: absolute;
+          left: 50%;
+          bottom: 4px;
+          width: 22px;
+          height: 2px;
+          border-radius: 999px;
+          transform: translateX(-50%);
+          background: var(--rosewood);
+          box-shadow: 0 0 8px var(--glow);
+        }
+        .dm-nav-icon { width: 23px !important; height: 23px !important; }
+        .dm-nav-label { white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+        .dm-profile-nav-item:last-child {
+          margin-top: 0;
+          padding-top: 8px;
+          border-top: 0;
+          border-left: 1px solid var(--blush-line);
+          border-radius: 14px;
+          margin-left: 3px;
+        }
+        .dm-profile-nav-item:last-child:hover { color: #a33a4f; background: rgba(190,55,80,.07); }
+        .dm-profile-nav-item .dm-profile-badge {
+          top: 1px !important;
+          right: 13px !important;
+          min-width: 16px;
+          height: 16px;
+          padding: 0 4px;
+          font-size: 9px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        body.dark-mode .dm-profile-sidebar {
+          background: linear-gradient(145deg, rgba(255,255,255,.075), rgba(255,255,255,.025));
+          border-color: rgba(255,255,255,.11);
+          box-shadow: 0 12px 30px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.06);
+        }
+        body.dark-mode .dm-profile-nav-item:hover { background: rgba(255,255,255,.055); }
+        body.dark-mode .dm-profile-nav-item.active {
+          background: linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.035)) !important;
+          border-color: rgba(255,170,80,.30) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.08), 0 5px 18px rgba(0,0,0,.28);
+        }
+        body.dark-mode .dm-profile-nav-item.active::after {
+          background: var(--gold, #d9a441);
+          box-shadow: 0 0 10px rgba(217,164,65,.28);
+        }
+        body.dark-mode .dm-profile-nav-item:last-child { border-left-color: rgba(255,255,255,.10); }
+      }
     </style>
   </head>
   <body>
@@ -3380,13 +3674,13 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           <div id="accountSignedIn" style="display:none;">
             <div class="dm-profile-layout">
               <aside class="dm-profile-sidebar" aria-label="Account sections">
-                <button class="dm-profile-nav-item active" id="accountProfileTab" onclick="showAccountSection('profile')">🙂 Profile</button>
-                <button class="dm-profile-nav-item" id="accountOrdersTab" onclick="showAccountSection('orders')">🛍️ My Orders</button>
-                <button class="dm-profile-nav-item" id="accountWishlistTab" onclick="showAccountSection('wishlist')">❤️ Wishlist</button>
-                <button class="dm-profile-nav-item" id="accountAddressesTab" onclick="showAccountSection('addresses')">📍 Addresses</button>
-                <button class="dm-profile-nav-item" id="accountSettingsTab" onclick="showAccountSection('settings')">⚙️ Settings</button>
-                <button class="dm-profile-nav-item" id="accountNotificationsTab" onclick="showAccountSection('notifications')">🔔 Notifications <span id="accountNotificationBadge" class="dm-profile-badge" style="display:none;">0</span></button>
-                <button class="dm-profile-nav-item" id="accountLogoutTab" onclick="confirmCustomerLogout()">⎋ Logout</button>
+                <button class="dm-profile-nav-item active" id="accountProfileTab" onclick="showAccountSection('profile')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg></span><span class="dm-nav-label">Overview</span></button>
+                <button class="dm-profile-nav-item" id="accountOrdersTab" onclick="showAccountSection('orders')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2.2"/><path d="M8 2.7v2.4M16 2.7v2.4M7.5 10h9M7.5 13.6h9M7.5 17.2h5.5"/></svg></span><span class="dm-nav-label">Orders</span></button>
+                <button class="dm-profile-nav-item" id="accountWishlistTab" onclick="showAccountSection('wishlist')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.6-4.6-10-9.3C.5 8 1.7 4.6 5 3.6c2.1-.6 4.2.3 5.5 2 .5.6.7.9 1.5.9s1-.3 1.5-.9c1.3-1.7 3.4-2.6 5.5-2 3.3 1 4.5 4.4 3 7.6-2.4 4.7-10 9.3-10 9.3Z"/></svg></span><span class="dm-nav-label">Wishlist</span></button>
+                <button class="dm-profile-nav-item" id="accountAddressesTab" onclick="showAccountSection('addresses')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s7-6.3 7-12A7 7 0 0 0 5 9.5c0 5.7 7 12 7 12Z"/><circle cx="12" cy="9.5" r="2.4"/></svg></span><span class="dm-nav-label">Addresses</span></button>
+                <button class="dm-profile-nav-item" id="accountSettingsTab" onclick="showAccountSection('settings')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2.05 2.05 0 1 1-2.9 2.9l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56v.16a2.05 2.05 0 1 1-4.1 0v-.09a1.7 1.7 0 0 0-1.1-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2.05 2.05 0 1 1-2.9-2.9l.06-.06A1.7 1.7 0 0 0 4.34 13.5 1.7 1.7 0 0 0 2.78 12.47H2.6a2.05 2.05 0 1 1 0-4.1h.09a1.7 1.7 0 0 0 1.56-1.1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2.05 2.05 0 1 1 2.9-2.9l.06.06A1.7 1.7 0 0 0 8.68 2.84a1.7 1.7 0 0 0 1.03-1.56V1.12a2.05 2.05 0 1 1 4.1 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2.05 2.05 0 1 1 2.9 2.9l-.06.06a1.7 1.7 0 0 0-.34 1.87v.06a1.7 1.7 0 0 0 1.56 1.03h.16a2.05 2.05 0 1 1 0 4.1h-.09a1.7 1.7 0 0 0-1.56 1.03Z"/></svg></span><span class="dm-nav-label">Settings</span></button>
+                <button class="dm-profile-nav-item" id="accountNotificationsTab" onclick="showAccountSection('notifications')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 3.5 1 5.2 1.7 6.2.3.4 0 1-.5 1H4.8c-.5 0-.8-.6-.5-1C5 14.2 6 12.5 6 9Z"/><path d="M9.5 19a2.6 2.6 0 0 0 5 0"/></svg><span id="accountNotificationBadge" class="dm-profile-badge" style="display:none;">0</span></span><span class="dm-nav-label">Notifications</span></button>
+                <button class="dm-profile-nav-item" id="accountLogoutTab" onclick="confirmCustomerLogout()"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3.5H8a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h7"/><path d="M10 12h11m0 0-3.5-3.5M21 12l-3.5 3.5"/></svg></span><span class="dm-nav-label">Logout</span></button>
               </aside>
               <div class="dm-profile-main">
 
@@ -4476,6 +4770,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           actionBtn.style.display = isSeller ? "block" : "none";
           actionBtn.disabled = false;
         }
+
+        // The Profile tab is marked active by default in the static markup,
+        // but nothing used to populate its stat cards (Total Orders,
+        // Wishlist, Addresses, Total Spent) or Account Information grid
+        // (Full name, Mobile, Email, Member since) until the visitor
+        // clicked the already-active Profile tab again. That left the
+        // panel showing placeholder values ("0", "—", "Not added") on
+        // first open. Fill it in here too so it's correct as soon as the
+        // signed-in view renders.
+        renderCustomerProfileOverview();
       }
 
       function renderMarketingPreference() {
