@@ -846,6 +846,11 @@
         padding: 16px;
       }
       .overlay.open { display: flex; }
+      #addressFormOverlay,
+      #changePasswordOverlay,
+      #callbackRequestOverlay {
+        z-index: 110;
+      }
       .modal {
         background: var(--surface);
         border-radius: 12px;
@@ -2936,15 +2941,35 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       .dm-profile-nav-item.active .dm-nav-icon { transform: scale(1.06); }
 
       @media (max-width: 760px) {
+        .dm-profile-layout {
+          height: calc(100dvh - 170px);
+          max-height: 720px;
+          overflow: hidden;
+        }
+        .dm-profile-main {
+          flex: 1 1 auto;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-right: 2px;
+        }
         .dm-profile-sidebar {
+          /* The base rule above sets flex: 0 0 220px, meant to fix this
+             sidebar's WIDTH to 220px in the desktop row layout. In this
+             mobile column layout that same flex-basis controls HEIGHT
+             instead, forcing the bar to be 220px tall regardless of its
+             actual (much shorter) content — that's what caused the big
+             empty box below the tabs. Reset it here. */
+          flex: 0 0 auto;
+          order: 99;
+          margin-top: 14px;
           display: flex;
           align-items: stretch;
           flex-direction: row;
           flex-wrap: nowrap;
-          gap: 6px;
+          gap: 4px;
           width: 100%;
-          padding: 7px;
-          border-radius: 18px;
+          padding: 5px;
+          border-radius: 15px;
           overflow-x: auto;
           overflow-y: hidden;
           overscroll-behavior-x: contain;
@@ -2954,13 +2979,13 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           scrollbar-width: none;
           background: linear-gradient(145deg, #fbeff2, #f7e8ea);
           box-shadow: 0 10px 26px rgba(72,36,30,.07), inset 0 1px rgba(255,255,255,.7);
-          /* Was position:sticky + bottom:0 + order:99, which floated this
-             bar on top of the scrolling content (Email / Member since got
-             permanently hidden underneath it, in both light and dark mode
-             — a layout bug, not a theming one). Now it just sits in its
-             normal place at the top of the panel (its actual DOM order),
-             so nothing ever renders behind it. */
-          margin-bottom: 10px;
+          /* Was position:sticky + bottom:0, which floated this bar on top
+             of the scrolling content (Email / Member since got hidden
+             underneath it, in both light and dark mode — a layout bug,
+             not a theming one). It's back at the bottom via plain flex
+             order (see order:99 + margin-top above), but no longer
+             sticky/fixed — it just sits in normal document flow after
+             all the account content, so nothing ever renders behind it. */
         }
         .dm-profile-sidebar::before,
         .dm-profile-sidebar::after {
@@ -2977,21 +3002,21 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         .dm-profile-sidebar::after { right: 0; background: linear-gradient(270deg, rgba(255,255,255,.28), transparent); }
         .dm-profile-sidebar::-webkit-scrollbar { display: none; }
         .dm-profile-nav-item {
-          flex: 0 0 76px;
-          width: 76px;
-          min-width: 76px;
-          min-height: 64px;
-          height: 64px;
-          padding: 8px 5px;
+          flex: 0 0 58px;
+          width: 58px;
+          min-width: 58px;
+          min-height: 52px;
+          height: 52px;
+          padding: 6px 3px;
           border: 1px solid transparent;
-          border-radius: 14px;
+          border-radius: 12px;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 5px;
+          gap: 3px;
           text-align: center;
-          font-size: 10.5px;
-          line-height: 1.1;
+          font-size: 9px;
+          line-height: 1.05;
           font-weight: 750;
           scroll-snap-align: start;
           transform: none !important;
@@ -3014,7 +3039,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           background: var(--rosewood);
           box-shadow: 0 0 8px var(--glow);
         }
-        .dm-nav-icon { width: 23px !important; height: 23px !important; }
+        .dm-nav-icon { width: 19px !important; height: 19px !important; }
         .dm-nav-label { white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
         .dm-profile-nav-item:last-child {
           margin-top: 0;
