@@ -645,14 +645,15 @@
       .cart-count {
         position: absolute;
         top: -6px; right: -6px;
-        background: var(--gold);
-        color: #2a1f0f;
+        background: #fff;
+        color: var(--rosewood);
         font-size: 10.5px;
         font-weight: 700;
         border-radius: 50%;
         width: 19px; height: 19px;
         display: flex; align-items: center; justify-content: center;
         border: 2px solid var(--rosewood);
+        box-shadow: 0 2px 7px rgba(138,28,66,.4);
       }
 
       /* ===== Header search ===== */
@@ -1045,7 +1046,7 @@
       .dm-nav-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; position: relative; }
       .dm-nav-icon svg { width: 100%; height: 100%; }
       .dm-nav-label { white-space: nowrap; }
-      .dm-profile-main { flex: 1 1 auto; min-width: 0; }
+      .dm-profile-main { flex: 1 1 auto; min-width: 0; min-height: 540px; }
       .dm-welcome-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 1px solid var(--blush-line); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
       .dm-welcome-info { flex: 1; min-width: 160px; }
       .dm-welcome-hi { font-size: 0.85rem; color: var(--muted); }
@@ -1103,6 +1104,8 @@
         .dm-profile-nav-item.active { color: var(--rosewood); }
         .dm-profile-nav-item .dm-profile-badge { position: absolute; top: -4px; right: -8px; }
       }
+
+      /* ===== Right-side drawer variant for the account/profile panel (preview) — reverted, not needed ===== */
 
       .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
       .modal-desc { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
@@ -1792,7 +1795,7 @@ body.theme-rakshabandhan .icon-btn {
 
 body.theme-rakshabandhan .icon-btn:hover {background:var(--dm-soft)!important;color:var(--dm-accent)!important}
 
-body.theme-rakshabandhan .cart-count {background:var(--dm-gold)!important;color:#fff!important;border-color:#fff!important}
+body.theme-rakshabandhan .cart-count {background:#fff!important;color:var(--rosewood)!important;border-color:var(--rosewood)!important;box-shadow:0 2px 7px rgba(138,28,66,.4)!important}
 
 /* ---------- hero: same structure, completely new visual skin ---------- */
 body.theme-rakshabandhan .hero {
@@ -2525,10 +2528,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.dark-mode .site-header .logo span { color: #fff !important; }
       body.dark-mode .site-header .icon-btn { background: rgba(255,255,255,.06) !important; border: 1px solid rgba(255,255,255,.14) !important; color: #fff !important; }
       body.dark-mode .site-header .icon-btn:hover { background: rgba(82,165,255,.16) !important; border-color: rgba(82,165,255,.4) !important; }
-      body:not(.dark-mode) .cart-count,
-      body:not(.dark-mode).theme-rakshabandhan .cart-count { background: var(--dm-gold) !important; color: #fff !important; border-color: #fff !important; }
       body.dark-mode .cart-count,
-      body.dark-mode.theme-rakshabandhan .cart-count { background: var(--dm-dark-rosewood-dark) !important; color: #fff !important; border-color: #05070a !important; }
+      body.dark-mode.theme-rakshabandhan .cart-count { background: var(--dm-dark-gold) !important; color: #1a1206 !important; border-color: #1a1206 !important; box-shadow: 0 2px 8px rgba(255,215,110,.45) !important; }
       body.dark-mode .search-bar-panel { background: rgba(10,14,20,.85) !important; border: 1px solid rgba(255,255,255,.1) !important; }
       body.dark-mode .search-bar-input-wrap { background: rgba(255,255,255,.06) !important; }
       body.dark-mode .search-results { background: #12151f !important; box-shadow: 0 8px 24px rgba(0,0,0,.4) !important; }
@@ -2930,16 +2931,23 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           scroll-padding-inline: 7px;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
-          background: linear-gradient(145deg, rgba(255,255,255,.46), rgba(255,255,255,.18));
+          /* Perf fix: a sticky element with backdrop-filter forces the
+             browser to re-blur it on every scroll frame, which is what
+             caused the scroll lag — dropped the blur here and used a
+             more opaque solid-ish gradient instead so it still looks
+             like a distinct bar without the per-frame repaint cost.
+             Desktop sidebar (not sticky) keeps its blur, unaffected. */
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
+          background: linear-gradient(145deg, #fbeff2, #f7e8ea);
           box-shadow: 0 10px 26px rgba(72,36,30,.07), inset 0 1px rgba(255,255,255,.7);
-          /* Dock the nav rail to the bottom of the modal instead of
-             scrolling away with the content above (was inline at the
-             top before) — mirrors the fixed bottom-tab-bar layout. */
           position: sticky;
           bottom: 0;
           order: 99;
           z-index: 4;
           margin-top: 10px;
+          will-change: transform;
+          transform: translateZ(0);
         }
         .dm-profile-sidebar::before,
         .dm-profile-sidebar::after {
@@ -3047,13 +3055,13 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           <button class="icon-btn" onclick="toggleSearchBar()" title="Search" id="searchToggleBtn">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
-          <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
-            <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
-            <img id="accountBtnPic" class="account-avatar" alt="" style="display:none;" />
-          </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7a1.5 1.5 0 0 1-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
             <span class="cart-count" id="cartCount">0</span>
+          </button>
+          <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
+            <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
+            <img id="accountBtnPic" class="account-avatar" alt="" style="display:none;" />
           </button>
         </div>
       </div>
@@ -3500,6 +3508,26 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       </div>
     </div>
 
+    <!-- SAVE ADDRESS MODAL (replaces old prompt() dialogs) -->
+    <div class="overlay" id="addressFormOverlay" onclick="closeAddressFormModal(event)">
+      <div class="modal" style="max-width:480px;width:min(480px,94vw);" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeAddressFormModal()">✕</button>
+        <div class="modal-body">
+          <div style="font-size:1.15rem;font-weight:900;color:var(--rosewood);margin-bottom:6px;" id="addressFormTitle">Add New Address</div>
+          <div style="font-size:.82rem;color:var(--muted);margin-bottom:14px;">Save this address for faster checkout next time.</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <button type="button" class="account-section-tab active" id="addressLabelHomeBtn" onclick="pickAddressLabel('Home')">Home</button>
+            <button type="button" class="account-section-tab" id="addressLabelOfficeBtn" onclick="pickAddressLabel('Office')">Office</button>
+            <button type="button" class="account-section-tab" id="addressLabelOtherBtn" onclick="pickAddressLabel('Other')">Other</button>
+          </div>
+          <input type="text" id="addressLabelCustom" class="checkout-input" placeholder="Label (e.g. Sister's House)" style="width:100%;margin-bottom:10px;display:none;" />
+          <textarea id="addressFormText" class="checkout-input" maxlength="400" placeholder="House no., street, area, landmark, city, state, pincode" style="width:100%;min-height:120px;resize:vertical;margin-bottom:10px;"></textarea>
+          <div class="modal-error" id="addressFormError" style="display:none;"></div>
+          <button class="add-cart-btn" id="addressFormBtn" onclick="submitAddressForm()">Save Address</button>
+        </div>
+      </div>
+    </div>
+
     <!-- GUEST ORDER TRACKING (no account needed) -->
     <div class="overlay" id="trackOrderOverlay" onclick="closeTrackOrderModal(event)">
       <div class="modal" style="max-width:480px;width:min(480px,94vw);" onclick="event.stopPropagation()">
@@ -3614,7 +3642,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
         <!-- RIGHT: form panel -->
         <div class="auth-form">
-          <div class="dm-dark-toggle-row">
+          <div class="dm-dark-toggle-row" id="dmDarkToggleRow">
             <span class="dm-dark-toggle-label"><span class="dm-dark-icon">🌙</span> Dark mode</span>
             <label class="dm-toggle-switch">
               <input type="checkbox" class="dm-dark-toggle-input" onchange="setDarkMode(this.checked)" />
@@ -7365,21 +7393,63 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }).join(""):'<div class="modal-desc">No saved addresses yet.</div>';
         const count=document.getElementById("profileAddressesCount"); if(count) count.textContent=arr.length;
       }
-      function addSavedAddress(){
-        const text=prompt("Enter your full delivery address:"); if(!text||!text.trim())return;
-        const label=(prompt("Label (Home / Office / Other):","Home")||"Address").trim()||"Address";
-        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
-        const next=arr.length?{label,text:text.trim(),isDefault:false}:{label,text:text.trim(),isDefault:true};
-        arr.unshift(next);
-        dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr.slice(0,10)); syncExtrasToServer(); renderSavedAddresses();
-        if(next.isDefault) syncDefaultAddressToCheckout(next);
+      function addSavedAddress(){ openAddressFormModal(null); }
+      function editSavedAddress(i){ openAddressFormModal(i); }
+      let dmAddressFormEditIndex = null;
+      let dmAddressFormLabel = "Home";
+      function pickAddressLabel(label){
+        dmAddressFormLabel = label;
+        ["Home","Office","Other"].forEach(l=>{
+          const btn=document.getElementById("addressLabel"+l+"Btn");
+          if(btn) btn.classList.toggle("active", l===label);
+        });
+        const customEl=document.getElementById("addressLabelCustom");
+        if(customEl) customEl.style.display = label==="Other" ? "block" : "none";
       }
-      function editSavedAddress(i){
-        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); const a=arr[i]; if(!a)return;
-        const text=prompt("Update your full delivery address:",a.text||""); if(!text||!text.trim())return;
-        const label=(prompt("Label (Home / Office / Other):",a.label||"Home")||a.label||"Address").trim()||"Address";
-        arr[i]={...a,text:text.trim(),label}; dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses();
-        if(arr[i].isDefault) syncDefaultAddressToCheckout(arr[i]);
+      function openAddressFormModal(editIndex){
+        dmAddressFormEditIndex = (typeof editIndex==="number") ? editIndex : null;
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
+        const existing = dmAddressFormEditIndex!=null ? arr[dmAddressFormEditIndex] : null;
+        const title=document.getElementById("addressFormTitle"); if(title) title.textContent = existing ? "Edit Address" : "Add New Address";
+        const textEl=document.getElementById("addressFormText"); if(textEl) textEl.value = existing ? (existing.text||"") : "";
+        const customEl=document.getElementById("addressLabelCustom"); if(customEl){ customEl.value=""; customEl.style.display="none"; }
+        const label = existing ? (existing.label||"Home") : "Home";
+        if(existing && label!=="Home" && label!=="Office"){
+          pickAddressLabel("Other");
+          if(customEl){ customEl.value=label; customEl.style.display="block"; }
+        } else {
+          pickAddressLabel(label);
+        }
+        const errEl=document.getElementById("addressFormError"); if(errEl){ errEl.textContent=""; errEl.style.display="none"; }
+        const overlay=document.getElementById("addressFormOverlay"); if(overlay) overlay.classList.add("open");
+      }
+      function closeAddressFormModal(event){
+        if(event && event.target && event.target.id!=="addressFormOverlay") return;
+        const overlay=document.getElementById("addressFormOverlay"); if(overlay) overlay.classList.remove("open");
+      }
+      function submitAddressForm(){
+        const textEl=document.getElementById("addressFormText");
+        const errEl=document.getElementById("addressFormError");
+        const text=String((textEl&&textEl.value)||"").trim();
+        if(!text){ errEl.textContent="Please enter the full delivery address."; errEl.style.display="block"; return; }
+        let label=dmAddressFormLabel;
+        if(label==="Other"){
+          const customEl=document.getElementById("addressLabelCustom");
+          label=(customEl&&customEl.value.trim())||"Other";
+        }
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
+        if(dmAddressFormEditIndex!=null && arr[dmAddressFormEditIndex]){
+          arr[dmAddressFormEditIndex]={...arr[dmAddressFormEditIndex],text,label};
+          dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses();
+          if(arr[dmAddressFormEditIndex].isDefault) syncDefaultAddressToCheckout(arr[dmAddressFormEditIndex]);
+        } else {
+          const next=arr.length?{label,text,isDefault:false}:{label,text,isDefault:true};
+          arr.unshift(next);
+          dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr.slice(0,10)); syncExtrasToServer(); renderSavedAddresses();
+          if(next.isDefault) syncDefaultAddressToCheckout(next);
+        }
+        closeAddressFormModal();
+        showToast(dmAddressFormEditIndex!=null ? "Address updated." : "Address saved.");
       }
       function removeSavedAddress(i){
         const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); if(!arr[i])return;
@@ -7451,6 +7521,11 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           notifications: document.getElementById("accountNotificationsView")
         };
         Object.keys(sections).forEach((key) => { if (sections[key]) sections[key].style.display = section === key ? "block" : "none"; });
+
+        const darkToggleRow = document.getElementById("dmDarkToggleRow");
+        if (darkToggleRow && !document.body.classList.contains("theme-rakshabandhan")) {
+          darkToggleRow.style.display = section === "profile" ? "flex" : "none";
+        }
 
         const tabs = {
           profile: document.getElementById("accountProfileTab"),
