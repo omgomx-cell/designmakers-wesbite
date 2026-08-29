@@ -849,7 +849,7 @@
       #addressFormOverlay,
       #changePasswordOverlay,
       #callbackRequestOverlay,
-      #editWhatsappNumberOverlay {
+      #editProfileOverlay {
         z-index: 110;
       }
       .modal {
@@ -3587,6 +3587,11 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         <div class="modal-body">
           <div style="font-size:1.15rem;font-weight:900;color:var(--rosewood);margin-bottom:6px;">Submit a Callback Request</div>
           <div id="callbackRequestContext" style="font-size:.82rem;color:var(--muted);margin-bottom:14px;"></div>
+          <label for="callbackModalName" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Name</label>
+          <input type="text" id="callbackModalName" class="checkout-input" placeholder="Your name" style="width:100%;margin-bottom:12px;" />
+          <label for="callbackModalPhone" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Mobile Number</label>
+          <input type="tel" id="callbackModalPhone" class="checkout-input" maxlength="10" inputmode="numeric" placeholder="10-digit mobile number" style="width:100%;margin-bottom:12px;" />
+          <label for="callbackModalReason" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Reason for requesting callback</label>
           <textarea id="callbackModalReason" class="checkout-input" maxlength="500" placeholder="Tell us why you'd like a callback..." style="width:100%;min-height:110px;resize:vertical;margin-bottom:10px;"></textarea>
           <div class="modal-error" id="callbackModalError" style="display:none;"></div>
           <button class="add-cart-btn" id="callbackModalBtn" onclick="submitCallbackModal()">Submit a Callback Request</button>
@@ -3646,19 +3651,24 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       </div>
     </div>
 
-    <!-- EDIT SAVED WHATSAPP NUMBER -->
-    <div class="overlay" id="editWhatsappNumberOverlay" onclick="closeEditWhatsappNumberModal(event)">
-      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="editWhatsappNumberTitle">
-        <button class="modal-close" type="button" onclick="closeEditWhatsappNumberModal()">✕</button>
-        <h2 class="modal-title" id="editWhatsappNumberTitle" style="margin-bottom:6px;">Edit WhatsApp number</h2>
-        <p class="modal-desc" style="margin-bottom:18px;">Update the WhatsApp number saved to your account. No OTP or verification is required.</p>
+    <!-- EDIT PROFILE (name, WhatsApp number, email) -->
+    <div class="overlay" id="editProfileOverlay" onclick="closeEditProfileModal(event)">
+      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="editProfileTitle">
+        <button class="modal-close" type="button" onclick="closeEditProfileModal()">✕</button>
+        <h2 class="modal-title" id="editProfileTitle" style="margin-bottom:6px;">Edit Profile</h2>
+        <p class="modal-desc" style="margin-bottom:18px;">Update your name, WhatsApp number and email. No OTP or verification is required.</p>
+        <label for="editProfileName" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Full name</label>
+        <input type="text" id="editProfileName" class="checkout-input" placeholder="Full name" style="width:100%;margin-bottom:14px;" />
+        <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">WhatsApp number</label>
         <div class="dm-phone-row">
-          <select id="editWhatsappCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
-          <input type="tel" id="editWhatsappNumber" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="tel" autocomplete="tel-national" />
+          <select id="editProfileCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
+          <input type="tel" id="editProfileNumber" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="tel" autocomplete="tel-national" />
         </div>
-        <div style="font-size:0.76rem;color:var(--muted);margin:7px 0 10px;">🌍 Enter the number with <strong>+</strong> and country code for automatic country detection, or choose the country code manually.</div>
-        <div class="modal-error" id="editWhatsappNumberError" style="display:none;"></div>
-        <button class="add-cart-btn" id="editWhatsappNumberBtn" onclick="saveEditedWhatsappNumber()">Save WhatsApp number</button>
+        <div style="font-size:0.76rem;color:var(--muted);margin:7px 0 14px;">🌍 Enter the number with <strong>+</strong> and country code for automatic country detection, or choose the country code manually.</div>
+        <label for="editProfileEmail" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Email</label>
+        <input type="email" id="editProfileEmail" class="checkout-input" placeholder="you@example.com" style="width:100%;margin-bottom:10px;" />
+        <div class="modal-error" id="editProfileError" style="display:none;"></div>
+        <button class="add-cart-btn" id="editProfileBtn" onclick="saveEditedProfile()">Save changes</button>
       </div>
     </div>
 
@@ -3811,7 +3821,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
                     <div class="dm-welcome-contact">📞 <span id="accountMobile"></span></div>
                     <div class="dm-welcome-contact" id="accountEmailRow" style="display:none;">✉️ <span id="accountEmail"></span></div>
                     <div class="dm-profile-inline-actions">
-                      <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()">Edit WhatsApp number</a>
+                      <a href="javascript:void(0)" onclick="openEditProfileModal()">Edit Profile</a>
                       <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()">Change photo</a>
                     </div>
                     <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
@@ -4353,7 +4363,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       ];
 
       function populateCountryCodes() {
-        ["googleWhatsappCountryCode","completeAccountCountryCode","editWhatsappCountryCode"].forEach(id => {
+        ["googleWhatsappCountryCode","completeAccountCountryCode","editProfileCountryCode"].forEach(id => {
           const el = document.getElementById(id);
           if (!el || el.options.length) return;
           DM_COUNTRY_CODES.forEach(([code,name]) => {
@@ -4398,7 +4408,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const pairs = [
           ["googleWhatsappNumber","googleWhatsappCountryCode"],
           ["completeAccountMobile","completeAccountCountryCode"],
-          ["editWhatsappNumber","editWhatsappCountryCode"]
+          ["editProfileNumber","editProfileCountryCode"]
         ];
         pairs.forEach(([inputId, selectId]) => {
           const input = document.getElementById(inputId);
@@ -4438,12 +4448,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         finally { btn.disabled=false; btn.textContent="Save WhatsApp number"; }
       }
 
-      function openEditWhatsappNumberModal() {
+      function openEditProfileModal() {
         if (!currentCustomer) return;
         populateCountryCodes();
         bindAutoCountryDetection();
-        const input = document.getElementById("editWhatsappNumber");
-        const select = document.getElementById("editWhatsappCountryCode");
+        document.getElementById("editProfileName").value = currentCustomer.name || "";
+        document.getElementById("editProfileEmail").value = currentCustomer.email || "";
+        const input = document.getElementById("editProfileNumber");
+        const select = document.getElementById("editProfileCountryCode");
         const saved = String(currentCustomer.whatsappNumber || currentCustomer.mobile || "");
         const digits = saved.replace(/\D/g, "");
         const detected = detectCountryCodeFromNumber(saved);
@@ -4453,14 +4465,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         } else {
           input.value = digits;
         }
-        document.getElementById("editWhatsappNumberError").style.display = "none";
-        document.getElementById("editWhatsappNumberOverlay").classList.add("open");
-        setTimeout(() => input.focus(), 30);
+        document.getElementById("editProfileError").style.display = "none";
+        document.getElementById("editProfileOverlay").classList.add("open");
+        setTimeout(() => document.getElementById("editProfileName").focus(), 30);
       }
 
-      function closeEditWhatsappNumberModal(e) {
+      function closeEditProfileModal(e) {
         if (e && e.target !== e.currentTarget) return;
-        const overlay = document.getElementById("editWhatsappNumberOverlay");
+        const overlay = document.getElementById("editProfileOverlay");
         if (overlay) overlay.classList.remove("open");
       }
 
@@ -4657,44 +4669,58 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
       }
 
-      async function saveEditedWhatsappNumber() {
-        const input = document.getElementById("editWhatsappNumber");
-        const select = document.getElementById("editWhatsappCountryCode");
-        const errorEl = document.getElementById("editWhatsappNumberError");
-        const btn = document.getElementById("editWhatsappNumberBtn");
-        const detected = detectCountryCodeFromNumber(input.value);
+      async function saveEditedProfile() {
+        const nameInput = document.getElementById("editProfileName");
+        const numberInput = document.getElementById("editProfileNumber");
+        const select = document.getElementById("editProfileCountryCode");
+        const emailInput = document.getElementById("editProfileEmail");
+        const errorEl = document.getElementById("editProfileError");
+        const btn = document.getElementById("editProfileBtn");
+        const detected = detectCountryCodeFromNumber(numberInput.value);
         if (detected && Array.from(select.options).some(o => o.value === detected)) select.value = detected;
         const code = select.value;
-        const number = input.value.replace(/\D/g, "");
+        const number = numberInput.value.replace(/\D/g, "");
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
         errorEl.style.display = "none";
+        if (!name) {
+          errorEl.textContent = "Please enter your name.";
+          errorEl.style.display = "block";
+          return;
+        }
         if (number.length < 4 || number.length > 15) {
           errorEl.textContent = "Enter a valid WhatsApp number.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errorEl.textContent = "Enter a valid email address.";
           errorEl.style.display = "block";
           return;
         }
         btn.disabled = true;
         btn.textContent = "Saving...";
         try {
-          const res = await fetch("/api/customer/save-whatsapp-number", {
+          const res = await fetch("/api/customer/update-profile", {
             method: "POST",
             headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({ countryCode: code, number })
+            body: JSON.stringify({ name, countryCode: code, number, email })
           });
           const data = await res.json();
           if (!data.success) {
-            errorEl.textContent = data.message || "Could not save your WhatsApp number.";
+            errorEl.textContent = data.message || "Could not save your profile.";
             errorEl.style.display = "block";
             return;
           }
           currentCustomer = data.customer;
-          document.getElementById("editWhatsappNumberOverlay").classList.remove("open");
+          document.getElementById("editProfileOverlay").classList.remove("open");
           renderAccountState();
         } catch (e) {
           errorEl.textContent = "Network error. Please try again.";
           errorEl.style.display = "block";
         } finally {
           btn.disabled = false;
-          btn.textContent = "Save WhatsApp number";
+          btn.textContent = "Save changes";
         }
       }
 
@@ -5018,7 +5044,11 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       function openCallbackRequestModal() {
         if (!currentCustomer) { openAccountModal(); return; }
         const ctx = document.getElementById("callbackRequestContext");
-        if (ctx) ctx.textContent = "We'll get in touch on WhatsApp about your account.";
+        if (ctx) ctx.textContent = "We'll call you back on the number below — no need to message us on WhatsApp.";
+        const nameEl = document.getElementById("callbackModalName");
+        if (nameEl) nameEl.value = currentCustomer.name || "";
+        const phoneEl = document.getElementById("callbackModalPhone");
+        if (phoneEl) phoneEl.value = currentCustomer.mobile || "";
         const reasonEl = document.getElementById("callbackModalReason");
         if (reasonEl) reasonEl.value = "";
         const errEl = document.getElementById("callbackModalError");
@@ -5032,10 +5062,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         if (overlay) overlay.classList.remove("open");
       }
       async function submitCallbackModal() {
+        const nameEl = document.getElementById("callbackModalName");
+        const phoneEl = document.getElementById("callbackModalPhone");
         const reasonEl = document.getElementById("callbackModalReason");
         const errEl = document.getElementById("callbackModalError");
         const btn = document.getElementById("callbackModalBtn");
+        const name = String((nameEl && nameEl.value) || "").trim();
+        const phone = String((phoneEl && phoneEl.value) || "").replace(/\D/g, "");
         const reason = String((reasonEl && reasonEl.value) || "").trim();
+        if (!name) { errEl.textContent = "Please enter your name."; errEl.style.display = "block"; return; }
+        if (!/^[6-9]\d{9}$/.test(phone)) { errEl.textContent = "Enter a valid 10-digit mobile number."; errEl.style.display = "block"; return; }
         if (!reason) { errEl.textContent = "Please tell us why you'd like a callback."; errEl.style.display = "block"; return; }
         errEl.style.display = "none";
         btn.disabled = true; btn.textContent = "Submitting...";
@@ -5043,13 +5079,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           const res = await fetch("/api/customer/callback-request", {
             method: "POST",
             headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({ reason }),
+            body: JSON.stringify({ name, phone, reason }),
           });
           const data = await res.json();
           if (!data.success) { errEl.textContent = data.message || "Could not submit your request."; errEl.style.display = "block"; return; }
           closeCallbackRequestModal();
-          showToast("Request submitted — connecting you to WhatsApp.");
-          window.open(DESIGN_MAKERS_WHATSAPP_WEB, "_blank");
+          showToast("Callback request submitted — we'll call you back soon.");
         } catch (e) {
           errEl.textContent = "Network error. Please try again.";
           errEl.style.display = "block";
