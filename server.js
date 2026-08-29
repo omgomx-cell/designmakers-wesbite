@@ -1228,6 +1228,100 @@ app.post("/api/customer/add-email", requireCustomer, (req, res) => {
   });
 });
 
+// Full "Edit Profile" flow: a logged-in customer updates their name,
+// WhatsApp/mobile number, and email together in one request. This carries
+// the exact same safety guarantees as the older single-field endpoints
+// above (save-whatsapp-number, add-email) — same duplicate checks, same
+// atomic mobile reservation — just combined into one save so the customer
+// isn't editing three separate things through three separate flows.
+app.post("/api/customer/update-profile", requireCustomer, async (req, res) => {
+  const body = req.body || {};
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
+
+  // ---- Name (required whenever the "name" field is present) ----
+  const hasName = Object.prototype.hasOwnProperty.call(body, "name");
+  let cleanName = customer.name;
+  if (hasName) {
+    cleanName = String(body.name || "").trim();
+    if (!cleanName) return res.status(400).json({ success: false, message: "Please enter your name." });
+  }
+
+  // ---- WhatsApp / mobile number ----
+  const hasNumber = Object.prototype.hasOwnProperty.call(body, "number") && String(body.number || "").trim() !== "";
+  let canonicalMobile = customer.mobile;
+  let waNumber = customer.whatsappNumber;
+  if (hasNumber) {
+    waNumber = normalizeWhatsAppNumber(body.countryCode, body.number);
+    if (!waNumber) return res.status(400).json({ success: false, message: "Enter a valid WhatsApp number and country code." });
+    // Same canonicalization as save-whatsapp-number: store the bare
+    // 10-digit form in customer.mobile for Indian numbers so register/
+    // login/complete-account/admin duplicate-detection keep matching it,
+    // and keep the full "+cc..." form only in whatsappNumber for display.
+    const waDigits = waNumber.replace(/\D/g, "");
+    const indianLocalPart = waDigits.length === 12 && waDigits.startsWith("91") ? waDigits.slice(2) : (waDigits.length === 10 ? waDigits : "");
+    canonicalMobile = isValidMobile(indianLocalPart) ? indianLocalPart : waNumber;
+  }
+
+  // ---- Email (optional; only validated/updated if present and non-empty) ----
+  const hasEmail = Object.prototype.hasOwnProperty.call(body, "email") && String(body.email || "").trim() !== "";
+  let cleanEmail = customer.email || "";
+  if (hasEmail) {
+    cleanEmail = String(body.email).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({ success: false, message: "Enter a valid email address." });
+    }
+  }
+
+  // ---- Duplicate checks, before touching anything ----
+  const mobileDuplicateMessage = "This WhatsApp number is already linked to another customer account. Please use a different number.";
+  if (hasNumber && canonicalMobile !== customer.mobile) {
+    const duplicate = database.customers.find((c) => c.id !== customer.id && c.mobile === canonicalMobile);
+    if (duplicate) return res.status(409).json({ success: false, message: mobileDuplicateMessage });
+  }
+  const emailDuplicateMessage = "This email is already linked to another account.";
+  if (hasEmail && cleanEmail !== (customer.email || "").toLowerCase()) {
+    const duplicate = database.customers.find((c) => c.id !== customer.id && c.email && c.email.toLowerCase() === cleanEmail);
+    if (duplicate) return res.status(409).json({ success: false, message: emailDuplicateMessage });
+  }
+
+  // ---- Atomically reserve the new mobile number (same as save-whatsapp-number) ----
+  const previousMobile = customer.mobile || "";
+  if (hasNumber && canonicalMobile !== previousMobile) {
+    const reserved = await reserveCustomerMobile(canonicalMobile, customer.id);
+    if (!reserved) return res.status(409).json({ success: false, message: mobileDuplicateMessage });
+    // Re-check after the async reservation in case another request just landed.
+    if (database.customers.find((c) => c.id !== customer.id && c.mobile === canonicalMobile)) {
+      await releaseCustomerMobile(canonicalMobile);
+      return res.status(409).json({ success: false, message: mobileDuplicateMessage });
+    }
+  }
+
+  // ---- Apply ----
+  customer.name = cleanName;
+  if (hasNumber) {
+    customer.mobile = canonicalMobile;
+    customer.whatsappNumber = waNumber;
+    customer.whatsappNumberSavedAt = new Date().toISOString();
+  }
+  if (hasEmail) customer.email = cleanEmail;
+  writeDatabase(database);
+  if (hasNumber && previousMobile && previousMobile !== canonicalMobile) await releaseCustomerMobile(previousMobile);
+
+  res.json({
+    success: true,
+    message: "Profile updated successfully.",
+    customer: {
+      id: customer.id, name: customer.name, email: customer.email || "", mobile: customer.mobile,
+      picture: customer.picture || "", role: customer.role, shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus, marketingOptIn: customer.marketingOptIn !== false,
+      needsProfileCompletion: !customer.mobile, needsEmail: !!customer.mobile && !customer.email,
+      hasPassword: !!customer.passwordHash,
+    },
+  });
+});
+
 // ================================
 // CUSTOMER FORGOT PASSWORD (email OTP)
 // ================================
@@ -6025,8 +6119,8 @@ app.post("/api/orders/track", trackOrderLimiter, (req, res) => {
 // ================================
 // CUSTOMER: CALLBACK REQUEST
 // ================================
-// The website records a lightweight callback request, not a phone call.
-// The customer is then connected to the existing Design Makers WhatsApp.
+// The website records a callback request; an admin/sub-admin calls the
+// customer back directly — there is no WhatsApp handoff in this flow.
 
 function buildAdminCallbackRequestEmail(request) {
   const orderLine = request.orderNumber
@@ -6034,7 +6128,7 @@ function buildAdminCallbackRequestEmail(request) {
     : `<p style="margin:0 0 8px;color:#8c7d78;">General enquiry (no order attached)</p>`;
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
        <h2 style="color:#8a1c42;margin-bottom:4px;">🔔 New callback request</h2>
-       <p>A customer has submitted a callback request through WhatsApp.</p>
+       <p>A customer has submitted a callback request through the website.</p>
        <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
          <p style="margin:0 0 8px;"><b>Request ID:</b> ${request.requestId}</p>
          <p style="margin:0 0 8px;"><b>Name:</b> ${request.name || "Not provided"}</p>
@@ -6042,8 +6136,28 @@ function buildAdminCallbackRequestEmail(request) {
          ${orderLine}
          <p style="margin:0;"><b>Reason:</b> ${request.reason}</p>
        </div>
-       <p style="font-size:0.85em;color:#8c7d78;">Open the admin panel's Callback notifications (bell icon) to mark this as contacted/completed.</p>
+       <p style="font-size:0.85em;color:#8c7d78;">Open the admin panel's Callback Requests tab (or the bell icon) to mark this as contacted/completed.</p>
        <p style="margin-top:18px;">— Design Makers Website</p>
+     </div>`;
+}
+
+// Sent to the customer themselves, confirming their request went through —
+// separate from the admin-facing notification above.
+function buildCustomerCallbackConfirmationEmail(request) {
+  const orderLine = request.orderNumber
+    ? `<p style="margin:0 0 8px;"><b>Regarding order:</b> ${request.orderNumber}</p>`
+    : "";
+  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;line-height:1.5;color:#2f2521;">
+       <h2 style="color:#8a1c42;margin-bottom:4px;">Your callback request has been submitted</h2>
+       <p>Hi ${escapeHtml(request.name || "there")},</p>
+       <p>We've received your callback request. Our team will connect with you shortly on <b>${escapeHtml(request.phone || "your registered number")}</b>.</p>
+       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
+         <p style="margin:0 0 8px;"><b>Request ID:</b> ${request.requestId}</p>
+         ${orderLine}
+         <p style="margin:0;"><b>Your message:</b> ${escapeHtml(request.reason || "")}</p>
+       </div>
+       <p style="color:#8c7d78;font-size:13px;">If anything changes and you'd like to reach us sooner, you're welcome to message us on WhatsApp too.</p>
+       <p style="margin-top:18px;">— Design Makers</p>
      </div>`;
 }
 
@@ -6054,6 +6168,18 @@ app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
     if (!reason) {
       return res.status(400).json({ success: false, message: "Please enter a reason for the callback." });
     }
+
+    // Name/phone are editable in the modal (pre-filled from the account but
+    // the customer can correct them) — fall back to the account's own
+    // values if either is left blank for some reason.
+    const rawName = String((req.body && req.body.name) || "").trim();
+    const cleanName = rawName || customer.name || "";
+
+    const rawPhone = normalizeMobile((req.body && req.body.phone) || "");
+    if (rawPhone && !isValidMobile(rawPhone)) {
+      return res.status(400).json({ success: false, message: "Enter a valid 10-digit mobile number." });
+    }
+    const cleanPhone = rawPhone || customer.mobile || "";
 
     const database = readDatabase();
     if (!Array.isArray(database.callbackRequests)) database.callbackRequests = [];
@@ -6086,12 +6212,12 @@ app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
         id: numericId,
         requestId: `CR-${String(numericId).padStart(6, "0")}`,
         customerId: customer.id,
-        name: customer.name || "",
-        phone: customer.mobile || "",
+        name: cleanName,
+        phone: cleanPhone,
         orderId: order ? order.id : null,
         orderNumber: order ? (order.orderNumber || `DM-${order.id}`) : null,
         reason,
-        source: "WhatsApp",
+        source: "Website",
         status: "New",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -6100,25 +6226,29 @@ app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
       };
       database.callbackRequests.push(request);
       writeDatabase(database);
-      // Fire-and-forget — a slow/failed email should never block the customer's
-      // request from succeeding or delay the WhatsApp redirect below.
+      // Fire-and-forget — a slow/failed email should never block the
+      // customer's request from succeeding.
       sendMail(
         ADMIN_NOTIFY_EMAIL,
         `New callback request — ${request.requestId}`,
         buildAdminCallbackRequestEmail(request),
       ).catch((err) => console.error("Admin callback-request email failed:", err.message));
-    }
 
-    const message = order
-      ? `Hi Design Makers, I would like a callback regarding my order ${request.orderNumber}.\n\nReason: ${reason}`
-      : `Hi Design Makers, I would like a callback regarding my enquiry.\n\nReason: ${reason}`;
-    const whatsappUrl = `${DESIGN_MAKERS_WHATSAPP}?text=${encodeURIComponent(message)}`;
+      // Also confirm to the customer themselves, if they have an email on
+      // file — not everyone does (mobile-only accounts), so this is best-effort.
+      if (customer.email) {
+        sendMail(
+          customer.email,
+          `Your callback request has been submitted — ${request.requestId}`,
+          buildCustomerCallbackConfirmationEmail(request),
+        ).catch((err) => console.error("Customer callback-request confirmation email failed:", err.message));
+      }
+    }
 
     res.json({
       success: true,
       requestId: request.requestId,
-      message: "Callback request submitted. WhatsApp is opening now.",
-      whatsappUrl,
+      message: "Callback request submitted. We'll call you back soon.",
     });
   } catch (error) {
     console.error(error);
