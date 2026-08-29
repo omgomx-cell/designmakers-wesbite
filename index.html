@@ -33,6 +33,10 @@
         --glow: rgba(138,28,66,0.30);
         --surface: #ffffff;
         --text-on-primary: #ffffff;
+        --dm-timeline-active: #7d465c;
+        --dm-timeline-muted: #a999a0;
+        --dm-timeline-dot-on: #d8ad63;
+        --dm-timeline-dot-off: #eee6e9;
       }
       /* ===== Festival themes — admin-controlled, applied as a body class ===== */
       body.theme-rakshabandhan {
@@ -1505,6 +1509,23 @@
       .dm-toggle-switch input:checked + .dm-toggle-slider::before { transform: translateX(19px); }
       body.dark-mode .dm-dark-toggle-row { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; border: 1px solid rgba(255,255,255,.10) !important; box-shadow: 0 8px 22px rgba(0,0,0,.24) !important; }
       body.dark-mode .dm-dark-toggle-label { color: #fff !important; }
+
+      /* Dark-mode override for the reused "gender modal" popup (also used for
+         All Products / category browsing). Without this, the panel kept its
+         hardcoded light cream glass background even in dark mode, so the
+         white product-name text forced on by body.dark-mode .product-name
+         became invisible (white text on a near-white panel). */
+      body.dark-mode .gender-modal-overlay { background: rgba(0,0,0,.55) !important; }
+      body.dark-mode .gender-modal {
+        background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), var(--dm-dark-surface, #12151f) !important;
+        border-color: rgba(255,255,255,.10) !important;
+        box-shadow: 0 30px 80px rgba(0,0,0,.5), inset 0 1px rgba(255,255,255,.08) !important;
+      }
+      body.dark-mode .gender-modal-tag { color: var(--dm-dark-rosewood, #ff7a9c) !important; }
+      body.dark-mode .gender-modal h2 { color: #f5f7fb !important; }
+      body.dark-mode .gender-modal-sub { color: rgba(255,255,255,.62) !important; }
+      body.dark-mode .gender-modal-close { background: rgba(255,255,255,.12) !important; color: #f5f7fb !important; }
+      body.dark-mode .gender-modal-close:hover { background: rgba(255,255,255,.22) !important; }
 
       /* ===== Gift for Her / Him popup — shows only that gender's linked products ===== */
       /* "Hero Banner" style — dark rosewood/gold gradient header with decorative
@@ -3025,9 +3046,15 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
 
         body.dark-mode .dm-profile-sidebar {
-          background: linear-gradient(145deg, rgba(255,255,255,.075), rgba(255,255,255,.025));
+          /* Was a near-transparent rgba(255,255,255,.075) with no blur, so
+             content scrolling underneath this sticky bottom bar showed
+             straight through it (visible in the "Email"/"Member since"
+             bleed-through). Light mode uses a solid, opaque gradient for
+             the same sticky bar for this exact reason — mirror that here
+             with a dark-safe solid color instead of a translucent one. */
+          background: linear-gradient(145deg, #1b202c, #12151f) !important;
           border-color: rgba(255,255,255,.11);
-          box-shadow: 0 12px 30px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.06);
+          box-shadow: 0 12px 30px rgba(0,0,0,.45), inset 0 1px rgba(255,255,255,.06);
         }
         body.dark-mode .dm-profile-nav-item:hover { background: rgba(255,255,255,.055); }
         body.dark-mode .dm-profile-nav-item.active {
@@ -3040,6 +3067,42 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           box-shadow: 0 0 10px rgba(217,164,65,.28);
         }
         body.dark-mode .dm-profile-nav-item:last-child { border-left-color: rgba(255,255,255,.10); }
+      }
+
+      /* ===== Remaining dark-mode gaps =====
+         These containers/colors were hardcoded to light values and had no
+         body.dark-mode counterpart, so dark-mode's near-white text (or a
+         light hardcoded badge) ended up sitting on a light background —
+         invisible or badly mismatched. Same class of bug as the gender
+         modal above, just smaller components. */
+      body.dark-mode {
+        --dm-timeline-active: #ffb27a;
+        --dm-timeline-muted: #8a93a6;
+        --dm-timeline-dot-on: #e0a94f;
+        --dm-timeline-dot-off: #262c3d;
+      }
+      body.dark-mode .dm-gift-box,
+      body.dark-mode .dm-info-card,
+      body.dark-mode .gift-code-box {
+        background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important;
+        border-color: rgba(255,255,255,.10) !important;
+      }
+      body.dark-mode .dm-notification-card.unread {
+        background: linear-gradient(145deg, rgba(255,170,80,.12), rgba(255,170,80,.04)) !important;
+        border-color: rgba(255,170,80,.28) !important;
+      }
+      body.dark-mode .dm-mini-remove {
+        background: rgba(255,255,255,.10) !important;
+        color: #f5f7fb !important;
+        border-color: rgba(255,255,255,.16) !important;
+      }
+      body.dark-mode .dm-order-status-pill.done {
+        background: rgba(37,166,90,.16) !important;
+        color: #6be6a0 !important;
+      }
+      body.dark-mode .dm-order-status-pill.cancelled {
+        background: rgba(180,35,24,.20) !important;
+        color: #ff8a7a !important;
       }
     </style>
   </head>
@@ -7753,8 +7816,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         return '<div style="display:flex;gap:4px;align-items:flex-start;overflow-x:auto;padding:8px 0 3px;">' +
           DM_FULFILMENT_STAGES.map((st, i) => {
             const done = i < current, active = i === current;
-            return '<div style="min-width:82px;text-align:center;font-size:10px;color:' + (done || active ? '#7d465c' : '#a999a0') + ';font-weight:' + (active ? '800' : '600') + ';">' +
-              '<div style="width:20px;height:20px;border-radius:50%;margin:0 auto 5px;background:' + (done || active ? '#d8ad63' : '#eee6e9') + ';color:' + (done || active ? '#fff' : '#a999a0') + ';display:flex;align-items:center;justify-content:center;">' + (done ? '✓' : active ? '●' : '○') + '</div>' +
+            return '<div style="min-width:82px;text-align:center;font-size:10px;color:' + (done || active ? 'var(--dm-timeline-active)' : 'var(--dm-timeline-muted)') + ';font-weight:' + (active ? '800' : '600') + ';">' +
+              '<div style="width:20px;height:20px;border-radius:50%;margin:0 auto 5px;background:' + (done || active ? 'var(--dm-timeline-dot-on)' : 'var(--dm-timeline-dot-off)') + ';color:' + (done || active ? '#fff' : 'var(--dm-timeline-muted)') + ';display:flex;align-items:center;justify-content:center;">' + (done ? '✓' : active ? '●' : '○') + '</div>' +
               escapeHtml(st) + '</div>';
           }).join('') + '</div>';
       }
@@ -7804,7 +7867,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><h3 style="margin:0;color:var(--dm-text);">' + escapeHtml(order.orderNumber || '') + '</h3><div style="font-size:.78rem;color:var(--muted);margin-top:4px;">Order date: ' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div><span class="dm-order-status-pill ' + dmOrderPillClass(stage) + '">' + escapeHtml(stage) + '</span></div>' +
           renderCustomerStageTimeline(stage) +
           '<div style="margin-top:15px;font-weight:800;color:var(--dm-text);">Products</div>' +
-          (order.items || []).map((it, idx) => { const st = itemStages[idx]?.stage || stage; return '<div style="padding:10px 0;border-bottom:1px solid var(--line);"><div style="font-weight:700;">' + escapeHtml(it.name || 'Product') + '</div><div style="font-size:.78rem;color:var(--muted);">' + (it.size ? 'Size: '+escapeHtml(it.size)+' · ' : '') + 'Qty: '+Number(it.qty||0)+' · ₹'+fmtINR(Number(it.lineTotal||0))+'</div><div style="font-size:.76rem;color:#7d465c;margin-top:4px;">Stage: <strong>'+escapeHtml(st)+'</strong></div></div>'; }).join('') +
+          (order.items || []).map((it, idx) => { const st = itemStages[idx]?.stage || stage; return '<div style="padding:10px 0;border-bottom:1px solid var(--line);"><div style="font-weight:700;">' + escapeHtml(it.name || 'Product') + '</div><div style="font-size:.78rem;color:var(--muted);">' + (it.size ? 'Size: '+escapeHtml(it.size)+' · ' : '') + 'Qty: '+Number(it.qty||0)+' · ₹'+fmtINR(Number(it.lineTotal||0))+'</div><div style="font-size:.76rem;color:var(--dm-timeline-active);margin-top:4px;">Stage: <strong>'+escapeHtml(st)+'</strong></div></div>'; }).join('') +
           (order.gift && order.gift.isGift
             ? '<div style="margin-top:14px;font-weight:800;color:var(--dm-text);">🎁 Gift Order</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' +
               (order.gift.recipientName ? 'To: ' + escapeHtml(order.gift.recipientName) + '<br>' : '') +
