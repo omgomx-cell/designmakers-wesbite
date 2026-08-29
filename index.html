@@ -2952,23 +2952,15 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           scroll-padding-inline: 7px;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
-          /* Perf fix: a sticky element with backdrop-filter forces the
-             browser to re-blur it on every scroll frame, which is what
-             caused the scroll lag — dropped the blur here and used a
-             more opaque solid-ish gradient instead so it still looks
-             like a distinct bar without the per-frame repaint cost.
-             Desktop sidebar (not sticky) keeps its blur, unaffected. */
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
           background: linear-gradient(145deg, #fbeff2, #f7e8ea);
           box-shadow: 0 10px 26px rgba(72,36,30,.07), inset 0 1px rgba(255,255,255,.7);
-          position: sticky;
-          bottom: 0;
-          order: 99;
-          z-index: 4;
-          margin-top: 10px;
-          will-change: transform;
-          transform: translateZ(0);
+          /* Was position:sticky + bottom:0 + order:99, which floated this
+             bar on top of the scrolling content (Email / Member since got
+             permanently hidden underneath it, in both light and dark mode
+             — a layout bug, not a theming one). Now it just sits in its
+             normal place at the top of the panel (its actual DOM order),
+             so nothing ever renders behind it. */
+          margin-bottom: 10px;
         }
         .dm-profile-sidebar::before,
         .dm-profile-sidebar::after {
