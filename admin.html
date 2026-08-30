@@ -2313,6 +2313,19 @@
         await loadInventoryVariants();
       }
 
+      // Jumps straight from the Dashboard's Inventory Health cards into that
+      // exact product's stock editor — Inventory tab → that seller → that
+      // product's variants — instead of making the admin hunt for it
+      // manually. sellerId null/undefined means an in-house (no seller)
+      // product, which lives under the "house" pseudo-seller bucket.
+      async function dmOpenInventoryItem(sellerId, productId, sellerName) {
+        const key = (sellerId === null || sellerId === undefined || sellerId === "") ? "house" : String(sellerId);
+        const name = sellerName || (key === "house" ? "In-House Products" : "Seller");
+        switchTab("inventory");
+        await openSellerInventory(key, name);
+        await openProductVariants(Number(productId));
+      }
+
       async function loadInventoryVariants(silent) {
         const body = document.getElementById("invVariantTableBody");
         if (!silent && body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--muted);">Loading variants…</td></tr>';
@@ -2462,11 +2475,14 @@
           ["sidebarUserRole","topbarUserRole"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = roleLabel; });
           ["sidebarAvatar","topbarAvatar"].forEach((id) => { const el = document.getElementById(id); if (el) el.textContent = dmInitials; });
 
+          let dmSellerNameById = {};
           if (role === "boss") {
             try {
               const sellersRes = await fetch("/api/admin/sellers", { headers: auth });
               const sellersData = await sellersRes.json();
-              document.getElementById("ovSellers").textContent = sellersData.success ? (sellersData.sellers || []).length.toLocaleString("en-IN") : "—";
+              const sellerList = sellersData.success ? (sellersData.sellers || []) : [];
+              sellerList.forEach(s => { dmSellerNameById[Number(s.id)] = s.name || s.shopTitle || ("Seller #" + s.id); });
+              document.getElementById("ovSellers").textContent = sellersData.success ? sellerList.length.toLocaleString("en-IN") : "—";
               document.getElementById("ovSellersSub").textContent = sellersData.success ? "Approved live sellers" : "Could not load";
             } catch(e) { document.getElementById("ovSellers").textContent = "—"; }
           } else {
@@ -2504,7 +2520,9 @@
               const label = escapeHtml(r.productName) + (r.variant ? " · " + escapeHtml(r.variant) : "");
               const pillBg = isOut ? "#e0264b" : "#c98a12";
               const pillText = isOut ? "Out of stock" : (Number(r.currentStock) + " left");
-              return '<div style="position:relative;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line,#f0dbe0);box-shadow:0 1px 4px rgba(60,10,25,.06);">' +
+              const sellerName = r.sellerId ? (dmSellerNameById[Number(r.sellerId)] || "") : "In-House Products";
+              const clickAttr = "dmOpenInventoryItem(" + (r.sellerId === null || r.sellerId === undefined ? "null" : Number(r.sellerId)) + "," + Number(r.productId) + "," + JSON.stringify(sellerName).replace(/"/g, "&quot;") + ")";
+              return '<div onclick="' + clickAttr + '" title="Click to edit stock" style="position:relative;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line,#f0dbe0);box-shadow:0 1px 4px rgba(60,10,25,.06);cursor:pointer;transition:transform .12s,box-shadow .12s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 4px 12px rgba(60,10,25,.14)\';" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'0 1px 4px rgba(60,10,25,.06)\';">' +
                   '<div style="width:100%;aspect-ratio:1/1;background:#f7ebed;">' +
                     (img ? '<img src="' + escapeHtml(img) + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.parentElement.style.background=\'#f0dbe0\';this.remove();" />' : '') +
                   '</div>' +
@@ -2558,7 +2576,16 @@
               if (pendingApps.length) { queue.push({title:"Seller applications",desc:pendingApps.length+" application(s) waiting for approval",action:"Review applications",tab:"sellers"}); dmBellTotal += pendingApps.length; }
             } catch(e) {}
           }
-          document.getElementById("ovQueue").innerHTML = queue.length ? queue.map(q => `<div class="dm-queue-item"><div class="dm-queue-main"><strong>${escapeHtml(q.title)}</strong><span>${escapeHtml(q.desc)}</span></div><button class="dm-pill" onclick="switchTab('${q.tab}')">${escapeHtml(q.action)}</button></div>`).join("") : '<div class="dm-empty">Nothing urgent. You are all caught up. ✓</div>';
+          try {
+            const cbRes = await fetch("/api/admin/callback-requests", { headers: auth });
+            const cbData = await cbRes.json();
+            const newCallbacks = cbData.success ? (cbData.requests||[]).filter(r => r.status === "New") : [];
+            if (newCallbacks.length) { queue.push({title:"Callback requests",desc:newCallbacks.length+" customer(s) waiting for a call back",action:"Review in Callback Requests",tab:"callbacks"}); dmBellTotal += newCallbacks.length; }
+          } catch(e) {}
+          // Each item names its own tab explicitly (not just the action
+          // button's wording) so it's unambiguous which section of the
+          // admin panel the item belongs to before clicking through.
+          document.getElementById("ovQueue").innerHTML = queue.length ? queue.map(q => `<div class="dm-queue-item" onclick="switchTab('${q.tab}')" style="cursor:pointer;" title="Open ${escapeHtml((DM_TAB_TITLES[q.tab]||[q.tab])[0])}"><div class="dm-queue-main"><strong>${escapeHtml(q.title)}</strong><span>${escapeHtml(q.desc)}</span><small style="display:block;margin-top:3px;color:var(--muted);font-size:11px;">📁 ${escapeHtml((DM_TAB_TITLES[q.tab]||[q.tab])[0])} tab</small></div><button class="dm-pill" onclick="event.stopPropagation();switchTab('${q.tab}')">${escapeHtml(q.action)}</button></div>`).join("") : '<div class="dm-empty">Nothing urgent. You are all caught up. ✓</div>';
 
           const bellCountEl = document.getElementById("dmBellCount");
           if (bellCountEl) {
