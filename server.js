@@ -3831,15 +3831,15 @@ function getInventoryRows(database) {
     const sizes = Array.isArray(product.sizes) ? product.sizes : [];
     const variantStock = product.variantStock && typeof product.variantStock === "object" ? product.variantStock : {};
     const variantConfigured = product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {};
-    // Same public-eligibility rule used by the storefront (/api/products)
-    // and /api/inventory/availability — a row is only "live on the
-    // storefront" when the product is active, approved, not hidden, and
-    // its seller (if any) isn't banned. Exposed so the admin overview's
-    // Inventory Health widget can skip products the customer can't
-    // actually see, instead of flagging stock issues on delisted items.
-    const seller = product.sellerId ? (database.sellers || []).find((s) => s.id === product.sellerId) : null;
-    const sellerBanned = !!(seller && seller.banned);
-    const storefrontActive = !!(product.active && product.approved !== false && !product.hidden && !sellerBanned);
+    // "Storefront active" here means only the product's own Active/Inactive
+    // toggle (Products tab) — matching what admin actually means by
+    // active vs inactive. It deliberately does NOT also require approved/
+    // not-hidden/seller-not-banned: those are separate visibility layers,
+    // and folding them in here was hiding legitimate out-of-stock/low-stock
+    // seller products from the Dashboard's Inventory Health list even
+    // though they were never turned off. Only a product explicitly marked
+    // inactive is skipped now, regardless of which seller it belongs to.
+    const storefrontActive = product.active !== false;
     const common = {
       productId: product.id,
       // Kept alongside productId (not replacing it) so every existing
