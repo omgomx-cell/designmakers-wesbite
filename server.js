@@ -20,9 +20,33 @@ const app = express();
 // one handler references it.
 const DESIGN_MAKERS_WHATSAPP = "https://wa.me/917004847813";
 
+// Single source of truth for social links used across every outgoing email
+// (marketing/offer emails, callback-request emails, etc). Update here once
+// and every email footer picks up the change — TODO: confirm these are the
+// live, correct handles.
+const DESIGN_MAKERS_INSTAGRAM = "https://www.instagram.com/designmakers.in";
+const DESIGN_MAKERS_YOUTUBE = "https://youtube.com/@designmakershub";
+
 function buildWhatsAppUrl(number) {
   const digits = String(number || "").replace(/\D/g, "");
   return digits.length >= 8 ? `https://wa.me/${digits}` : DESIGN_MAKERS_WHATSAPP;
+}
+
+// Shared footer for transactional/marketing emails — Instagram, YouTube,
+// WhatsApp, each as a small icon badge + label so it reads as "follow us"
+// rather than plain text links. Kept in one place so a broken/changed link
+// only needs fixing once instead of hunting through every email template.
+function buildEmailSocialFooter() {
+  const iconBadge = (href, iconUrl, label, w, h) =>
+    `<a href="${href}" target="_blank" style="display:inline-block;margin:0 7px 8px;text-decoration:none;">` +
+    `<img src="${iconUrl}" width="${w}" height="${h}" alt="${label}" style="width:${w}px;height:${h}px;vertical-align:middle;">` +
+    `<span style="display:inline-block;vertical-align:middle;margin-left:7px;font-size:12px;font-weight:700;letter-spacing:0.2px;color:#6b3028;">${label}</span></a>`;
+  return `<div style="text-align:center;margin:0 0 6px;">` +
+    `<div style="font-size:10.5px;font-weight:800;color:#a56a2a;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:12px;">Follow Us For Offers &amp; New Arrivals</div>` +
+    iconBadge(DESIGN_MAKERS_INSTAGRAM, `${SITE_URL}/icon-instagram.png`, "Instagram", 32, 32) +
+    iconBadge(DESIGN_MAKERS_YOUTUBE, `${SITE_URL}/icon-youtube.png`, "YouTube", 45, 32) +
+    iconBadge(SITE_URL, `${SITE_URL}/Logo.png`, "DM", 32, 32) +
+    `</div>`;
 }
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
@@ -248,10 +272,14 @@ function buildMarketingEmail(campaign, unsubscribeToken) {
     `<div style="font-size:15px;line-height:1.65;">${body}</div>` +
     grid + giftSection + button +
     `<hr style="border:0;border-top:1px solid #ead8d0;margin:28px 0 16px;">` +
+<<<<<<< HEAD
     `<div style="text-align:center;font-size:12px;margin:0 0 14px;">` +
     `<a href="https://www.instagram.com/designmakers.site" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">Instagram</a>` +
     `<a href="https://youtube.com/@designmakershub" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">YouTube</a>` +
     `<a href="https://wa.me/7004847813" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">WhatsApp</a></div>` +
+=======
+    buildEmailSocialFooter() +
+>>>>>>> 11467dcff6e49facad53ad47a031808dd91c4b29
     `<p style="font-size:12px;color:#806e68;text-align:center;margin:0;">You're receiving this because you're subscribed to Design Makers offers & product updates.</p>` +
     `<p style="font-size:12px;text-align:center;margin:9px 0 0;"><a href="${unsubscribeUrl}" style="color:#6b3028;">Unsubscribe from offers &amp; product updates</a></p>` +
     `</div></div></body></html>`;
@@ -1228,6 +1256,100 @@ app.post("/api/customer/add-email", requireCustomer, (req, res) => {
   });
 });
 
+// Full "Edit Profile" flow: a logged-in customer updates their name,
+// WhatsApp/mobile number, and email together in one request. This carries
+// the exact same safety guarantees as the older single-field endpoints
+// above (save-whatsapp-number, add-email) — same duplicate checks, same
+// atomic mobile reservation — just combined into one save so the customer
+// isn't editing three separate things through three separate flows.
+app.post("/api/customer/update-profile", requireCustomer, async (req, res) => {
+  const body = req.body || {};
+  const database = readDatabase();
+  const customer = database.customers.find((c) => c.id === req.customer.id);
+  if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
+
+  // ---- Name (required whenever the "name" field is present) ----
+  const hasName = Object.prototype.hasOwnProperty.call(body, "name");
+  let cleanName = customer.name;
+  if (hasName) {
+    cleanName = String(body.name || "").trim();
+    if (!cleanName) return res.status(400).json({ success: false, message: "Please enter your name." });
+  }
+
+  // ---- WhatsApp / mobile number ----
+  const hasNumber = Object.prototype.hasOwnProperty.call(body, "number") && String(body.number || "").trim() !== "";
+  let canonicalMobile = customer.mobile;
+  let waNumber = customer.whatsappNumber;
+  if (hasNumber) {
+    waNumber = normalizeWhatsAppNumber(body.countryCode, body.number);
+    if (!waNumber) return res.status(400).json({ success: false, message: "Enter a valid WhatsApp number and country code." });
+    // Same canonicalization as save-whatsapp-number: store the bare
+    // 10-digit form in customer.mobile for Indian numbers so register/
+    // login/complete-account/admin duplicate-detection keep matching it,
+    // and keep the full "+cc..." form only in whatsappNumber for display.
+    const waDigits = waNumber.replace(/\D/g, "");
+    const indianLocalPart = waDigits.length === 12 && waDigits.startsWith("91") ? waDigits.slice(2) : (waDigits.length === 10 ? waDigits : "");
+    canonicalMobile = isValidMobile(indianLocalPart) ? indianLocalPart : waNumber;
+  }
+
+  // ---- Email (optional; only validated/updated if present and non-empty) ----
+  const hasEmail = Object.prototype.hasOwnProperty.call(body, "email") && String(body.email || "").trim() !== "";
+  let cleanEmail = customer.email || "";
+  if (hasEmail) {
+    cleanEmail = String(body.email).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({ success: false, message: "Enter a valid email address." });
+    }
+  }
+
+  // ---- Duplicate checks, before touching anything ----
+  const mobileDuplicateMessage = "This WhatsApp number is already linked to another customer account. Please use a different number.";
+  if (hasNumber && canonicalMobile !== customer.mobile) {
+    const duplicate = database.customers.find((c) => c.id !== customer.id && c.mobile === canonicalMobile);
+    if (duplicate) return res.status(409).json({ success: false, message: mobileDuplicateMessage });
+  }
+  const emailDuplicateMessage = "This email is already linked to another account.";
+  if (hasEmail && cleanEmail !== (customer.email || "").toLowerCase()) {
+    const duplicate = database.customers.find((c) => c.id !== customer.id && c.email && c.email.toLowerCase() === cleanEmail);
+    if (duplicate) return res.status(409).json({ success: false, message: emailDuplicateMessage });
+  }
+
+  // ---- Atomically reserve the new mobile number (same as save-whatsapp-number) ----
+  const previousMobile = customer.mobile || "";
+  if (hasNumber && canonicalMobile !== previousMobile) {
+    const reserved = await reserveCustomerMobile(canonicalMobile, customer.id);
+    if (!reserved) return res.status(409).json({ success: false, message: mobileDuplicateMessage });
+    // Re-check after the async reservation in case another request just landed.
+    if (database.customers.find((c) => c.id !== customer.id && c.mobile === canonicalMobile)) {
+      await releaseCustomerMobile(canonicalMobile);
+      return res.status(409).json({ success: false, message: mobileDuplicateMessage });
+    }
+  }
+
+  // ---- Apply ----
+  customer.name = cleanName;
+  if (hasNumber) {
+    customer.mobile = canonicalMobile;
+    customer.whatsappNumber = waNumber;
+    customer.whatsappNumberSavedAt = new Date().toISOString();
+  }
+  if (hasEmail) customer.email = cleanEmail;
+  writeDatabase(database);
+  if (hasNumber && previousMobile && previousMobile !== canonicalMobile) await releaseCustomerMobile(previousMobile);
+
+  res.json({
+    success: true,
+    message: "Profile updated successfully.",
+    customer: {
+      id: customer.id, name: customer.name, email: customer.email || "", mobile: customer.mobile,
+      picture: customer.picture || "", role: customer.role, shopTitle: customer.shopTitle,
+      sellerStatus: customer.sellerStatus, marketingOptIn: customer.marketingOptIn !== false,
+      needsProfileCompletion: !customer.mobile, needsEmail: !!customer.mobile && !customer.email,
+      hasPassword: !!customer.passwordHash,
+    },
+  });
+});
+
 // ================================
 // CUSTOMER FORGOT PASSWORD (email OTP)
 // ================================
@@ -1614,6 +1736,7 @@ app.put("/api/customer/extras", requireCustomer, (req, res) => {
       .map((a) => ({
         label: String((a && a.label) || "Address").slice(0, 40),
         text: String((a && a.text) || "").slice(0, 300),
+        isDefault: !!(a && a.isDefault),
       }))
       .filter((a) => a.text);
   }
@@ -6024,26 +6147,125 @@ app.post("/api/orders/track", trackOrderLimiter, (req, res) => {
 // ================================
 // CUSTOMER: CALLBACK REQUEST
 // ================================
-// The website records a lightweight callback request, not a phone call.
-// The customer is then connected to the existing Design Makers WhatsApp.
+// The website records a callback request; an admin/sub-admin calls the
+// customer back directly — there is no WhatsApp handoff in this flow.
+
+// Shared wrapper so both callback-request emails (admin + customer) look
+// like one consistent, premium brand — not two ad-hoc templates.
+function callbackEmailShell(innerHtml) {
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>` +
+    `<body style="margin:0;background:#efe1d8;font-family:Georgia,'Times New Roman',serif;color:#2f2521;">` +
+    `<div style="max-width:560px;margin:0 auto;padding:36px 14px;">` +
+    // Outer gold-foil frame with a soft diagonal sheen band across it
+    `<div style="background:linear-gradient(120deg,#8a6423 0%,#e9c988 22%,#fff6df 30%,#e9c988 38%,#b8863f 55%,#e3c07f 78%,#8a6423 100%);padding:2.5px;border-radius:22px;box-shadow:0 20px 46px rgba(72,38,28,.22),0 2px 8px rgba(72,38,28,.12);">` +
+    `<div style="background:#fffdfb;border-radius:21px;overflow:hidden;">` +
+
+    // Hero band — deep rosewood-to-maroon gradient with gold hairline base
+    `<div style="background:linear-gradient(155deg,#7a1638 0%,#8a1c42 45%,#6b1230 100%);padding:34px 32px 26px;text-align:center;position:relative;">` +
+    `<div style="width:64px;height:64px;margin:0 auto 12px;border-radius:50%;background:radial-gradient(circle,rgba(246,217,168,0.28) 0%,rgba(246,217,168,0) 70%);padding:6px;">` +
+    `<img src="${SITE_URL}/Logo.png" alt="Design Makers" width="52" height="52" style="width:52px;height:52px;display:block;margin:0 auto;">` +
+    `</div>` +
+    `<div style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;letter-spacing:4px;color:#f8ecd8;">DESIGN MAKERS</div>` +
+    `<div style="font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:#e3b979;margin-top:5px;">✦ Customized Gifts ✦</div>` +
+    `</div>` +
+    `<div style="height:3px;background:linear-gradient(90deg,#8a6423,#f6d9a8,#b8863f,#f6d9a8,#8a6423);"></div>` +
+
+    // Content
+    `<div style="padding:32px 32px 8px;font-family:Arial,Helvetica,sans-serif;">` +
+    innerHtml +
+    `</div>` +
+
+    // Ornamental divider
+    `<div style="text-align:center;margin:28px 0 4px;">` +
+    `<span style="display:inline-block;width:70px;height:1px;background:linear-gradient(90deg,transparent,#dcb877);vertical-align:middle;"></span>` +
+    `<span style="display:inline-block;margin:0 10px;color:#b8863f;font-size:13px;vertical-align:middle;">✦</span>` +
+    `<span style="display:inline-block;width:70px;height:1px;background:linear-gradient(90deg,#dcb877,transparent);vertical-align:middle;"></span>` +
+    `</div>` +
+
+    // Footer band — soft blush tint
+    `<div style="background:#fbf1ec;padding:22px 32px 28px;font-family:Arial,Helvetica,sans-serif;">` +
+    buildEmailSocialFooter() +
+    `<p style="font-size:11px;color:#b3a49d;text-align:center;letter-spacing:0.4px;margin:14px 0 0;">With warmth, Design Makers ✦ Gifts Made Personal</p>` +
+    `</div>` +
+    `</div></div></div></body></html>`;
+}
+
+// Two-column "detail card" grid used by both callback emails below — same
+// underlying fields as before, just laid out as a soft bordered card
+// instead of plain table rows. Pass fields in pairs (they render 2-per-row);
+// an odd count leaves the last cell blank.
+function detailCard(fields) {
+  const cell = (label, value) =>
+    `<td style="width:50%;padding:14px 18px;vertical-align:top;">` +
+    `<div style="font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#b8863f;margin-bottom:5px;">— ${label}</div>` +
+    `<div style="font-size:14.5px;color:#33231f;font-weight:600;line-height:1.4;">${value}</div>` +
+    `</td>`;
+  let rows = "";
+  for (let i = 0; i < fields.length; i += 2) {
+    const a = fields[i], b = fields[i + 1];
+    rows += `<tr>${cell(a.label, a.value)}${b ? cell(b.label, b.value) : `<td style="width:50%;"></td>`}</tr>`;
+  }
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#faf3ee;border:1px solid #ecd7dd;border-radius:14px;margin:0 0 22px;overflow:hidden;">${rows}</table>`;
+}
+
+// Small gold hairline + uppercase label used as a section kicker above a
+// heading (e.g. "— NEW CALLBACK REQUEST —").
+function sectionLabel(text) {
+  return `<div style="text-align:center;margin:0 0 22px;">` +
+    `<span style="display:inline-block;width:26px;height:1px;background:#c99a52;vertical-align:middle;margin-right:9px;"></span>` +
+    `<span style="font-size:10.5px;letter-spacing:2.2px;text-transform:uppercase;color:#b8863f;font-weight:700;vertical-align:middle;">${text}</span>` +
+    `<span style="display:inline-block;width:26px;height:1px;background:#c99a52;vertical-align:middle;margin-left:9px;"></span>` +
+    `</div>`;
+}
 
 function buildAdminCallbackRequestEmail(request) {
-  const orderLine = request.orderNumber
-    ? `<p style="margin:0 0 8px;"><b>Order:</b> ${request.orderNumber}</p>`
-    : `<p style="margin:0 0 8px;color:#8c7d78;">General enquiry (no order attached)</p>`;
-  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
-       <h2 style="color:#8a1c42;margin-bottom:4px;">🔔 New callback request</h2>
-       <p>A customer has submitted a callback request through WhatsApp.</p>
-       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
-         <p style="margin:0 0 8px;"><b>Request ID:</b> ${request.requestId}</p>
-         <p style="margin:0 0 8px;"><b>Name:</b> ${request.name || "Not provided"}</p>
-         <p style="margin:0 0 8px;"><b>Phone:</b> ${request.phone || "Not provided"}</p>
-         ${orderLine}
-         <p style="margin:0;"><b>Reason:</b> ${request.reason}</p>
+  const orderValue = request.orderNumber ? escapeHtml(request.orderNumber) : '<span style="color:#a89892;font-weight:400;">General enquiry</span>';
+  const inner = `
+       <div style="text-align:center;margin-bottom:26px;">
+         ${sectionLabel("New Callback Request")}
+         <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:-10px 0 0;font-size:23px;font-weight:700;line-height:1.35;">A customer would like<br>a call back</h2>
        </div>
-       <p style="font-size:0.85em;color:#8c7d78;">Open the admin panel's Callback notifications (bell icon) to mark this as contacted/completed.</p>
-       <p style="margin-top:18px;">— Design Makers Website</p>
-     </div>`;
+       ${detailCard([
+         { label: "Request ID", value: escapeHtml(request.requestId) },
+         { label: "Order", value: orderValue },
+         { label: "Name", value: escapeHtml(request.name || "Not provided") },
+         { label: "Phone", value: `<a href="${buildWhatsAppUrl(request.phone)}" style="color:#8a1c42;text-decoration:none;">${escapeHtml(request.phone || "Not provided")} ↗</a>` },
+       ])}
+       <div style="text-align:center;margin-bottom:8px;">
+         <div style="font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#a56a2a;margin-bottom:9px;">Reason For The Call</div>
+       </div>
+       <div style="background:#fffaf5;border:1px dashed #dfc5a8;border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+         <div style="font-size:14.5px;line-height:1.7;color:#33231f;white-space:pre-wrap;font-style:italic;">“${escapeHtml(request.reason || "")}”</div>
+       </div>
+       <p style="font-size:12.5px;color:#8c7d78;margin:0;text-align:center;line-height:1.6;">Open the admin panel's Callback Requests tab (or the bell icon) to mark this as contacted/completed.</p>`;
+  return callbackEmailShell(inner);
+}
+
+// Sent to the customer themselves, confirming their request went through —
+// separate from the admin-facing notification above. Uses an animated GIF
+// checkmark (icon-check.gif) — plays in Gmail/Apple Mail/Outlook.com/most
+// mobile clients; falls back to a static first frame in older Outlook
+// desktop, so it degrades safely either way.
+function buildCustomerCallbackConfirmationEmail(request) {
+  const fields = [{ label: "Request ID", value: `<span style="letter-spacing:0.4px;">${escapeHtml(request.requestId)}</span>` }];
+  if (request.orderNumber) fields.push({ label: "Regarding Order", value: escapeHtml(request.orderNumber) });
+
+  const inner = `
+       <div style="text-align:center;margin-bottom:24px;">
+         <img src="${SITE_URL}/icon-check.gif" alt="Confirmed" width="46" height="46" style="width:46px;height:46px;display:block;margin:0 auto 14px;">
+         <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:0;font-size:23px;font-weight:700;line-height:1.35;">Your callback request<br>is confirmed</h2>
+       </div>
+       <p style="font-size:15.5px;line-height:1.75;margin:0 0 6px;color:#2f2521;">Dear ${escapeHtml(request.name || "Guest")},</p>
+       <p style="font-size:15px;line-height:1.75;margin:0 0 24px;color:#5b4741;">Thank you for reaching out to us. Our team will personally connect with you shortly on <b style="color:#8a1c42;">${escapeHtml(request.phone || "your registered number")}</b>.</p>
+       ${detailCard(fields)}
+       <div style="text-align:center;margin-bottom:8px;">
+         <div style="font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#a56a2a;margin-bottom:9px;">What You Told Us</div>
+       </div>
+       <div style="background:#fffaf5;border:1px dashed #dfc5a8;border-radius:12px;padding:18px 20px;margin:0 0 22px;">
+         <div style="font-size:14.5px;line-height:1.7;color:#33231f;white-space:pre-wrap;font-style:italic;">“${escapeHtml(request.reason || "")}”</div>
+       </div>
+       <p style="color:#8c7d78;font-size:13px;line-height:1.7;margin:0;text-align:center;">If anything changes and you'd like to reach us sooner, you're always welcome to message us on WhatsApp.</p>`;
+  return callbackEmailShell(inner);
 }
 
 app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
@@ -6053,6 +6275,18 @@ app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
     if (!reason) {
       return res.status(400).json({ success: false, message: "Please enter a reason for the callback." });
     }
+
+    // Name/phone are editable in the modal (pre-filled from the account but
+    // the customer can correct them) — fall back to the account's own
+    // values if either is left blank for some reason.
+    const rawName = String((req.body && req.body.name) || "").trim();
+    const cleanName = rawName || customer.name || "";
+
+    const rawPhone = normalizeMobile((req.body && req.body.phone) || "");
+    if (rawPhone && !isValidMobile(rawPhone)) {
+      return res.status(400).json({ success: false, message: "Enter a valid 10-digit mobile number." });
+    }
+    const cleanPhone = rawPhone || customer.mobile || "";
 
     const database = readDatabase();
     if (!Array.isArray(database.callbackRequests)) database.callbackRequests = [];
@@ -6085,12 +6319,12 @@ app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
         id: numericId,
         requestId: `CR-${String(numericId).padStart(6, "0")}`,
         customerId: customer.id,
-        name: customer.name || "",
-        phone: customer.mobile || "",
+        name: cleanName,
+        phone: cleanPhone,
         orderId: order ? order.id : null,
         orderNumber: order ? (order.orderNumber || `DM-${order.id}`) : null,
         reason,
-        source: "WhatsApp",
+        source: "Website",
         status: "New",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -6099,25 +6333,29 @@ app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
       };
       database.callbackRequests.push(request);
       writeDatabase(database);
-      // Fire-and-forget — a slow/failed email should never block the customer's
-      // request from succeeding or delay the WhatsApp redirect below.
+      // Fire-and-forget — a slow/failed email should never block the
+      // customer's request from succeeding.
       sendMail(
         ADMIN_NOTIFY_EMAIL,
         `New callback request — ${request.requestId}`,
         buildAdminCallbackRequestEmail(request),
       ).catch((err) => console.error("Admin callback-request email failed:", err.message));
-    }
 
-    const message = order
-      ? `Hi Design Makers, I would like a callback regarding my order ${request.orderNumber}.\n\nReason: ${reason}`
-      : `Hi Design Makers, I would like a callback regarding my enquiry.\n\nReason: ${reason}`;
-    const whatsappUrl = `${DESIGN_MAKERS_WHATSAPP}?text=${encodeURIComponent(message)}`;
+      // Also confirm to the customer themselves, if they have an email on
+      // file — not everyone does (mobile-only accounts), so this is best-effort.
+      if (customer.email) {
+        sendMail(
+          customer.email,
+          `Your callback request has been submitted — ${request.requestId}`,
+          buildCustomerCallbackConfirmationEmail(request),
+        ).catch((err) => console.error("Customer callback-request confirmation email failed:", err.message));
+      }
+    }
 
     res.json({
       success: true,
       requestId: request.requestId,
-      message: "Callback request submitted. WhatsApp is opening now.",
-      whatsappUrl,
+      message: "Callback request submitted. We'll call you back soon.",
     });
   } catch (error) {
     console.error(error);
@@ -6331,6 +6569,7 @@ app.put("/api/admin/orders/:id/status", requireAdmin, (req, res) => {
     order.status = status;
     order.statusHistory = Array.isArray(order.statusHistory) ? order.statusHistory : [{ status: previousStatus, at: order.createdAt }];
     order.statusHistory.push({ status, at: new Date().toISOString() });
+
     writeDatabase(database);
     return res.json({ success: true, order });
   });

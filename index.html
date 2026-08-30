@@ -33,6 +33,10 @@
         --glow: rgba(138,28,66,0.30);
         --surface: #ffffff;
         --text-on-primary: #ffffff;
+        --dm-timeline-active: #7d465c;
+        --dm-timeline-muted: #a999a0;
+        --dm-timeline-dot-on: #d8ad63;
+        --dm-timeline-dot-off: #eee6e9;
       }
       /* ===== Festival themes — admin-controlled, applied as a body class ===== */
       body.theme-rakshabandhan {
@@ -619,6 +623,21 @@
         background: transparent;
         border: none;
       }
+      /* Every seasonal/dark-mode theme below re-declares .icon-btn with
+         !important (pill background + 14px corners), which was overriding
+         the rule above and squashing the round avatar into a square-ish
+         pill. #accountBtn is more specific than any of those class-only
+         selectors, so this wins regardless of which theme is active. */
+      #accountBtn.has-avatar {
+        background: transparent !important;
+        border: none !important;
+        border-radius: 50% !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        width: 46px !important;
+        height: 46px !important;
+        padding: 0 !important;
+      }
       .account-avatar {
         width: 100%; height: 100%;
         border-radius: 50%;
@@ -630,14 +649,15 @@
       .cart-count {
         position: absolute;
         top: -6px; right: -6px;
-        background: var(--gold);
-        color: #2a1f0f;
+        background: #fff;
+        color: var(--rosewood);
         font-size: 10.5px;
         font-weight: 700;
         border-radius: 50%;
         width: 19px; height: 19px;
         display: flex; align-items: center; justify-content: center;
         border: 2px solid var(--rosewood);
+        box-shadow: 0 2px 7px rgba(138,28,66,.4);
       }
 
       /* ===== Header search ===== */
@@ -826,6 +846,12 @@
         padding: 16px;
       }
       .overlay.open { display: flex; }
+      #addressFormOverlay,
+      #changePasswordOverlay,
+      #callbackRequestOverlay,
+      #editProfileOverlay {
+        z-index: 110;
+      }
       .modal {
         background: var(--surface);
         border-radius: 12px;
@@ -940,7 +966,7 @@
       .dm-order-list-card:hover { transform:translateY(-1px); box-shadow:0 8px 20px rgba(138,28,66,.08); }
       .dm-order-detail-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(260px,.75fr); gap:14px; }
       .dm-order-detail-card { border:1px solid var(--blush-line); border-radius:16px; background:var(--surface); padding:16px; }
-      .dm-order-id-box { background:var(--blush); border:1px solid var(--blush-line); border-radius:12px; padding:11px 13px; font-weight:900; color:var(--rosewood); letter-spacing:.4px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+      .dm-order-id-box { background:var(--blush); border:1px solid var(--blush-line); border-radius:12px; padding:11px 13px; font-weight:900; color:var(--dm-text, var(--rosewood)); letter-spacing:.4px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
       .dm-order-timeline { display:flex; align-items:flex-start; gap:0; margin-top:18px; }
       .dm-order-step { flex:1; text-align:center; position:relative; font-size:11px; color:var(--muted); }
       .dm-order-step:not(:last-child)::after { content:""; position:absolute; top:11px; left:50%; width:100%; height:2px; background:var(--line); z-index:0; }
@@ -954,18 +980,18 @@
       .dm-order-item-img { width:64px; height:64px; border-radius:10px; overflow:hidden; background:var(--blush); flex:0 0 64px; display:flex; align-items:center; justify-content:center; }
       .dm-order-item-img img { width:100%; height:100%; object-fit:cover; }
       .dm-order-whatsapp { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:11px 14px; border-radius:10px; background:color-mix(in srgb, #1c7a34 82%, transparent); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.25); box-shadow:0 4px 18px rgba(0,0,0,.14); color:#fff; text-decoration:none; font-weight:800; }
-      .dm-order-back { border:0; background:transparent; color:var(--rosewood); font-weight:800; cursor:pointer; padding:0; }
+      .dm-order-back { border:0; background:transparent; color:var(--dm-text, var(--rosewood)); font-weight:800; cursor:pointer; padding:0; }
       .dm-order-list-meta { color:var(--muted); font-size:.8rem; margin-top:4px; }
       .dm-order-status-pill { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px; font-size:.75rem; font-weight:800; }
-      .dm-order-status-pill.active { background:var(--blush); color:var(--rosewood); }
+      .dm-order-status-pill.active { background:var(--blush); color:var(--dm-text, var(--rosewood)); }
       .dm-order-status-pill.done { background:#eaf8ef; color:#1c7a34; }
       .dm-order-status-pill.cancelled { background:#fdeceb; color:#b42318; }
       .dm-order-empty { text-align:center; padding:30px 12px; color:var(--muted); }
-      .dm-order-summary-title { color:var(--rosewood); font-weight:900; margin-bottom:12px; }
+      .dm-order-summary-title { color:var(--dm-text, var(--rosewood)); font-weight:900; margin-bottom:12px; }
       .dm-order-delivery-line { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--blush-line); font-size:.86rem; line-height:1.45; }
       .dm-order-delivery-line:last-child { border-bottom:0; }
       .dm-price-row { display:flex; justify-content:space-between; gap:12px; padding:6px 0; font-size:.9rem; }
-      .dm-price-row.total { border-top:1px dashed var(--blush-line); margin-top:6px; padding-top:12px; font-weight:900; font-size:1.02rem; color:var(--rosewood); }
+      .dm-price-row.total { border-top:1px dashed var(--blush-line); margin-top:6px; padding-top:12px; font-weight:900; font-size:1.02rem; color:var(--dm-text, var(--rosewood)); }
       @media (max-width:760px) { .dm-order-detail-grid { grid-template-columns:1fr; } .dm-order-timeline { overflow-x:auto; min-width:560px; } .dm-order-detail-card { padding:13px; } }
       .auth-brand {
         flex: 1 1 45%;
@@ -1019,7 +1045,12 @@
       .dm-mini-remove { position: absolute; top: 7px; right: 7px; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.92); border: 1px solid var(--blush-line); color: var(--rosewood); font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
       /* ===== Profile page — sidebar + main layout (signed-in account view) ===== */
-      .auth-modal.profile-mode { max-width: 1080px; width: min(1080px, 96vw); }
+      .auth-modal.profile-mode {
+        max-width: 1080px;
+        width: min(1080px, 96vw);
+        overflow-y: auto;
+        max-height: 90vh;
+      }
       .auth-modal.profile-mode .auth-brand { display: none; }
       .auth-modal.profile-mode .auth-form { flex: 1 1 100%; padding: 34px; justify-content: flex-start; }
       .dm-profile-layout { display: flex; gap: 26px; align-items: flex-start; }
@@ -1027,12 +1058,10 @@
       .dm-profile-nav-item { display: flex; align-items: center; gap: 10px; text-align: left; border: 1px solid transparent; background: transparent; color: var(--ink); border-radius: 10px; padding: 11px 13px; font-weight: 700; font-size: 0.92rem; cursor: pointer; }
       .dm-profile-nav-item:hover { background: var(--blush); }
       .dm-profile-nav-item.active { background: var(--blush); color: var(--rosewood); border-color: var(--blush-line); }
-      .dm-refer-box { margin-top: 14px; background: var(--blush); border: 1px solid var(--blush-line); border-radius: 14px; padding: 18px 16px; text-align: center; }
-      .dm-refer-icon { font-size: 26px; margin-bottom: 6px; }
-      .dm-refer-title { font-weight: 800; color: var(--rosewood); margin-bottom: 4px; }
-      .dm-refer-sub { font-size: 0.78rem; color: var(--muted); line-height: 1.4; margin-bottom: 12px; }
-      .dm-refer-btn { width: 100%; padding: 9px; border-radius: 9px; border: 1px solid var(--rosewood); background: transparent; color: var(--rosewood); font-weight: 800; cursor: pointer; }
-      .dm-profile-main { flex: 1 1 auto; min-width: 0; }
+      .dm-nav-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; position: relative; }
+      .dm-nav-icon svg { width: 100%; height: 100%; }
+      .dm-nav-label { white-space: nowrap; }
+      .dm-profile-main { flex: 1 1 auto; min-width: 0; min-height: 540px; }
       .dm-welcome-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; border: 1px solid var(--blush-line); border-radius: 16px; padding: 18px 20px; margin-bottom: 18px; }
       .dm-welcome-info { flex: 1; min-width: 160px; }
       .dm-welcome-hi { font-size: 0.85rem; color: var(--muted); }
@@ -1059,9 +1088,39 @@
       .dm-settings-link:hover { border-color: var(--rosewood); }
       @media (max-width: 760px) {
         .dm-profile-layout { flex-direction: column; }
-        .dm-profile-sidebar { flex-direction: row; flex-wrap: wrap; width: 100%; }
-        .dm-refer-box { flex: 1 1 100%; }
+        .dm-profile-sidebar {
+          flex-direction: row;
+          flex-wrap: nowrap;
+          width: 100%;
+          gap: 4px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          background: var(--blush);
+          border-radius: 16px;
+          padding: 8px 6px;
+        }
+        .dm-profile-sidebar::-webkit-scrollbar { display: none; }
+        .dm-profile-nav-item {
+          flex: 0 0 auto;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          min-width: 68px;
+          padding: 8px 10px;
+          border-radius: 12px;
+          font-size: 0.66rem;
+          font-weight: 700;
+          color: var(--muted);
+        }
+        .dm-profile-nav-item .dm-nav-icon { width: 22px; height: 22px; }
+        .dm-profile-nav-item.active { color: var(--rosewood); }
+        .dm-profile-nav-item .dm-profile-badge { position: absolute; top: -4px; right: -8px; }
       }
+
+      /* ===== Right-side drawer variant for the account/profile panel (preview) — reverted, not needed ===== */
 
       .modal-title { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: var(--ink); }
       .modal-desc { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
@@ -1198,6 +1257,31 @@
       .add-cart-btn:hover { background: var(--rosewood-dark); }
       .add-cart-btn:disabled { background: #d9b8c4; cursor: not-allowed; }
       .modal-error { color: #a3002a; font-size: 13px; margin-top: 8px; }
+
+      /* Small utility buttons — Buy Again, Refresh, Remove, Back to Orders,
+         gift code Apply — previously had zero styling (raw browser
+         default button), which looked out of place next to the rest of
+         the site's polished chrome. */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border-radius: 9px;
+        border: 1px solid var(--blush-line);
+        background: var(--surface);
+        color: var(--dm-text, var(--ink));
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 9px 15px;
+        cursor: pointer;
+        transition: border-color .15s ease, background .15s ease, transform .1s ease;
+      }
+      .btn:hover { border-color: var(--rosewood); background: var(--blush); }
+      .btn:active { transform: scale(.97); }
+      .btn.small { padding: 7px 12px; font-size: 0.8rem; border-radius: 8px; }
+      .btn.secondary { background: var(--surface); color: var(--dm-text, var(--ink)); border: 1px solid var(--blush-line); }
+      .btn.secondary:hover { border-color: var(--rosewood); background: var(--blush); }
 
       /* ===== Cart Drawer ===== */
       .cart-overlay {
@@ -1436,6 +1520,23 @@
       .dm-toggle-switch input:checked + .dm-toggle-slider::before { transform: translateX(19px); }
       body.dark-mode .dm-dark-toggle-row { background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important; border: 1px solid rgba(255,255,255,.10) !important; box-shadow: 0 8px 22px rgba(0,0,0,.24) !important; }
       body.dark-mode .dm-dark-toggle-label { color: #fff !important; }
+
+      /* Dark-mode override for the reused "gender modal" popup (also used for
+         All Products / category browsing). Without this, the panel kept its
+         hardcoded light cream glass background even in dark mode, so the
+         white product-name text forced on by body.dark-mode .product-name
+         became invisible (white text on a near-white panel). */
+      body.dark-mode .gender-modal-overlay { background: rgba(0,0,0,.55) !important; }
+      body.dark-mode .gender-modal {
+        background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), var(--dm-dark-surface, #12151f) !important;
+        border-color: rgba(255,255,255,.10) !important;
+        box-shadow: 0 30px 80px rgba(0,0,0,.5), inset 0 1px rgba(255,255,255,.08) !important;
+      }
+      body.dark-mode .gender-modal-tag { color: var(--dm-dark-rosewood, #ff7a9c) !important; }
+      body.dark-mode .gender-modal h2 { color: #f5f7fb !important; }
+      body.dark-mode .gender-modal-sub { color: rgba(255,255,255,.62) !important; }
+      body.dark-mode .gender-modal-close { background: rgba(255,255,255,.12) !important; color: #f5f7fb !important; }
+      body.dark-mode .gender-modal-close:hover { background: rgba(255,255,255,.22) !important; }
 
       /* ===== Gift for Her / Him popup — shows only that gender's linked products ===== */
       /* "Hero Banner" style — dark rosewood/gold gradient header with decorative
@@ -1726,7 +1827,7 @@ body.theme-rakshabandhan .icon-btn {
 
 body.theme-rakshabandhan .icon-btn:hover {background:var(--dm-soft)!important;color:var(--dm-accent)!important}
 
-body.theme-rakshabandhan .cart-count {background:var(--dm-gold)!important;color:#fff!important;border-color:#fff!important}
+body.theme-rakshabandhan .cart-count {background:#fff!important;color:var(--rosewood)!important;border-color:var(--rosewood)!important;box-shadow:0 2px 7px rgba(138,28,66,.4)!important}
 
 /* ---------- hero: same structure, completely new visual skin ---------- */
 body.theme-rakshabandhan .hero {
@@ -2174,12 +2275,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
       /* ===== Rakshabandhan profile/account panel fix =====
          .dm-profile-nav-item, .dm-welcome-name, .dm-edit-profile-btn,
-         .dm-refer-title/.dm-refer-btn and .dm-settings-link all set an
-         explicit text color of var(--ink) or var(--rosewood) — variables
-         this theme redefines to a light cream (#ffeace) and a gold
-         (#d4af37), meant for the original dark version of this skin. Now
-         that the theme's page background is light, that leaves faint
-         gold/cream text sitting on a near-white card — hard to read.
+         and .dm-settings-link all set an explicit text color of
+         var(--ink) or var(--rosewood) — variables this theme redefines
+         to a light cream (#ffeace) and a gold (#d4af37), meant for the
+         original dark version of this skin. Now that the theme's page
+         background is light, that leaves faint gold/cream text sitting
+         on a near-white card — hard to read.
          Force these to the theme's actual dark text/accent colors
          (var(--dm-text), var(--dm-accent-dark)) instead, so nothing in
          this panel relies on white/gold text unless it's sitting on a
@@ -2198,18 +2299,75 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         color: var(--dm-accent-dark) !important;
         border-color: var(--dm-accent-dark) !important;
       }
-      body.theme-rakshabandhan .dm-refer-title { color: var(--dm-accent-dark) !important; }
-      body.theme-rakshabandhan .dm-refer-sub { color: var(--dm-muted) !important; }
-      body.theme-rakshabandhan .dm-refer-btn {
-        color: var(--dm-accent-dark) !important;
-        border-color: var(--dm-accent-dark) !important;
-      }
       body.theme-rakshabandhan .dm-settings-link { color: var(--dm-text) !important; }
       body.theme-rakshabandhan .dm-settings-link span { color: var(--dm-muted) !important; }
       body.theme-rakshabandhan .dm-settings-link:hover { border-color: var(--dm-accent-dark) !important; }
       body.theme-rakshabandhan .dm-qa-sub,
       body.theme-rakshabandhan .dm-qa-arrow,
       body.theme-rakshabandhan .dm-info-card-text { color: var(--dm-muted) !important; }
+
+      /* ===== Rakshabandhan profile/account panel fix (part 2) =====
+         Same stale-variable problem as above, on the rest of the
+         profile panel: stat cards, quick-action cards, settings tiles,
+         the "complete your profile" notice, order filters, notification
+         cards and address cards were all still reading var(--ink) /
+         var(--rosewood) / var(--muted) / var(--blush) / var(--blush-line)
+         / var(--surface) — the pre-redefinition palette — instead of
+         this theme's actual var(--dm-*) palette used by the header/hero
+         and by the already-patched nav items above. Bring them onto the
+         same var(--dm-*) system so the whole panel matches the current
+         theme. */
+      body.theme-rakshabandhan .dm-profile-stat-card {
+        color: var(--dm-text) !important;
+        border-color: var(--dm-border) !important;
+        background: var(--dm-surface-solid) !important;
+      }
+      body.theme-rakshabandhan .dm-profile-stat-card:hover { border-color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .dm-profile-stat-icon { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan .dm-profile-stat-label,
+      body.theme-rakshabandhan .dm-profile-stat-card > span { color: var(--dm-muted) !important; }
+
+      body.theme-rakshabandhan .dm-profile-notice { border-color: var(--dm-border) !important; }
+      body.theme-rakshabandhan .dm-profile-notice-text { color: var(--dm-muted) !important; }
+
+      body.theme-rakshabandhan .dm-profile-quick-card,
+      body.theme-rakshabandhan .dm-settings-tile {
+        border-color: var(--dm-border) !important;
+        background: var(--dm-surface-solid) !important;
+      }
+      body.theme-rakshabandhan .dm-profile-quick-card:hover,
+      body.theme-rakshabandhan .dm-settings-tile:hover { border-color: var(--dm-accent-dark) !important; }
+      body.theme-rakshabandhan .dm-profile-quick-card > span,
+      body.theme-rakshabandhan .dm-settings-tile > span { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan .dm-profile-quick-card small,
+      body.theme-rakshabandhan .dm-settings-tile small,
+      body.theme-rakshabandhan .dm-profile-quick-card > b,
+      body.theme-rakshabandhan .dm-settings-tile > b { color: var(--dm-muted) !important; }
+
+      body.theme-rakshabandhan .dm-order-filter,
+      body.theme-rakshabandhan .dm-notification-filter {
+        border-color: var(--dm-border) !important;
+        background: var(--dm-surface-solid) !important;
+        color: var(--dm-text) !important;
+      }
+      body.theme-rakshabandhan .dm-order-filter.active,
+      body.theme-rakshabandhan .dm-notification-filter.active {
+        background: var(--dm-accent-dark) !important;
+        border-color: var(--dm-accent-dark) !important;
+      }
+
+      body.theme-rakshabandhan .dm-notification-card {
+        border-color: var(--dm-border) !important;
+        background: var(--dm-surface-solid) !important;
+      }
+      body.theme-rakshabandhan .dm-notification-icon { background: var(--dm-soft) !important; }
+      body.theme-rakshabandhan .dm-notification-title { color: var(--dm-text) !important; }
+      body.theme-rakshabandhan .dm-notification-message,
+      body.theme-rakshabandhan .dm-notification-time { color: var(--dm-muted) !important; }
+      body.theme-rakshabandhan .dm-notification-unread { background: var(--dm-accent-dark) !important; }
+
+      body.theme-rakshabandhan .dm-profile-address-card { border-color: var(--dm-border) !important; background: var(--dm-surface-solid) !important; }
+      body.theme-rakshabandhan .dm-address-default { background: var(--dm-accent-dark) !important; }
 
       /* ===== Rakshabandhan cart drawer fix =====
          Same stale-variable problem as the profile panel: an early "dark
@@ -2299,6 +2457,29 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         --glow: var(--dm-dark-glow);
         --text-on-primary: #2a1420;
       }
+      /* ===== Dark mode fix for the "Liquid Glass" --dm-* token set =====
+         body.dark-mode.theme-rakshabandhan (below) already redefines
+         --dm-text/--dm-muted/--dm-border/--dm-surface-solid for that
+         combination, but plain body.dark-mode (dark mode with the
+         DEFAULT theme, no festival skin) never did — so anything using
+         --dm-text/--dm-muted/etc (the profile panel headings, cards,
+         .dm-profile-notice-title, .dm-profile-card-heading, and the
+         same tokens used across the homepage skin) stayed on the light
+         value (#2a1710 dark ink) and rendered as near-invisible dark
+         text on dark backgrounds whenever dark mode was on without the
+         festival theme. This brings plain dark mode onto the same
+         dark palette already defined above, so switching to dark mode
+         works correctly no matter which theme (default or festival)
+         is currently selected. */
+      body.dark-mode {
+        --dm-surface-solid: var(--dm-dark-surface);
+        --dm-text: var(--dm-dark-ink);
+        --dm-muted: var(--dm-dark-muted);
+        --dm-border: var(--dm-dark-blush-line);
+        --dm-soft: var(--dm-dark-blush);
+        --dm-accent: var(--dm-dark-rosewood);
+        --dm-accent-dark: var(--dm-dark-rosewood-dark);
+      }
       /* ===== FINAL CUSTOMER LIQUID GLASS THEME ===== */
       body { background:#05070a !important; color:#f5f7fb; }
 
@@ -2379,6 +2560,8 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.dark-mode .site-header .logo span { color: #fff !important; }
       body.dark-mode .site-header .icon-btn { background: rgba(255,255,255,.06) !important; border: 1px solid rgba(255,255,255,.14) !important; color: #fff !important; }
       body.dark-mode .site-header .icon-btn:hover { background: rgba(82,165,255,.16) !important; border-color: rgba(82,165,255,.4) !important; }
+      body.dark-mode .cart-count,
+      body.dark-mode.theme-rakshabandhan .cart-count { background: var(--dm-dark-gold) !important; color: #1a1206 !important; border-color: #1a1206 !important; box-shadow: 0 2px 8px rgba(255,215,110,.45) !important; }
       body.dark-mode .search-bar-panel { background: rgba(10,14,20,.85) !important; border: 1px solid rgba(255,255,255,.1) !important; }
       body.dark-mode .search-bar-input-wrap { background: rgba(255,255,255,.06) !important; }
       body.dark-mode .search-results { background: #12151f !important; box-shadow: 0 8px 24px rgba(0,0,0,.4) !important; }
@@ -2626,6 +2809,337 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.theme-rakshabandhan .sale-section-wrap h2.rakhi-underline-in::after {
         transform: scaleX(1);
       }
+
+      /* ===== Customer profile module (updated: Profile/Orders/Wishlist/Addresses/Settings/Notifications) ===== */
+      .dm-profile-badge{display:inline-flex;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--rosewood);color:#fff;font-size:10px;align-items:center;justify-content:center;margin-left:auto;}
+      .dm-profile-hero{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border:1px solid var(--blush-line);border-radius:18px;padding:18px 20px;background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(255,243,247,.92));box-shadow:0 7px 24px rgba(138,28,66,.06);margin-bottom:16px;}
+      .dm-profile-avatar-wrap{flex:0 0 auto}.dm-profile-avatar,.dm-profile-avatar-placeholder{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--blush-line);box-shadow:0 3px 12px rgba(0,0,0,.08)}
+      .dm-profile-avatar-placeholder{display:flex;align-items:center;justify-content:center;background:var(--blush);font-size:28px}
+      #accountProfileView #accountPic,#accountProfileView #accountPicPlaceholder{box-shadow:none!important;}
+      .dm-profile-hero-copy{flex:1;min-width:190px}.dm-profile-inline-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px}.dm-profile-inline-actions a{font-size:.8rem;color:var(--rosewood);font-weight:700;text-decoration:none}.dm-profile-inline-error{font-size:.78rem;color:#a3002a;margin-top:5px}
+      .dm-profile-active{font-size:.78rem;font-weight:800;color:#1d7d3b;white-space:nowrap}.dm-profile-active span{font-size:.7rem}
+      .dm-profile-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.dm-profile-stat-card{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--blush-line);background:var(--surface);border-radius:14px;padding:13px;cursor:pointer;color:var(--ink)}.dm-profile-stat-card:hover{border-color:var(--rosewood);transform:translateY(-1px)}.dm-profile-stat-icon{width:38px;height:38px;border-radius:11px;background:var(--blush);display:flex;align-items:center;justify-content:center;flex:0 0 38px}.dm-profile-stat-value{font-weight:900;font-size:1rem}.dm-profile-stat-label{font-size:.72rem;color:var(--muted);margin-top:2px}.dm-profile-stat-card>span{margin-left:auto;color:var(--muted);font-size:1.1rem}
+      .dm-profile-notice{padding:15px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,.72);margin-bottom:14px}.dm-profile-notice-title{font-weight:800;margin-bottom:4px}.dm-profile-notice-text{font-size:.8rem;color:var(--muted);line-height:1.45;margin-bottom:10px}
+      .dm-profile-info-card{border:1px solid var(--blush-line);border-radius:16px;background:var(--surface);padding:16px;margin-bottom:16px}.dm-profile-card-heading{font-weight:900;margin-bottom:12px}.dm-profile-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.dm-profile-info-grid>div{padding:10px 12px;border-radius:11px;background:rgba(255,247,249,.75)}.dm-profile-info-grid span{display:block;color:var(--muted);font-size:.72rem;margin-bottom:4px}.dm-profile-info-grid strong{font-size:.88rem}
+      .dm-profile-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.dm-profile-quick-card,.dm-settings-tile{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);padding:14px;cursor:pointer}.dm-profile-quick-card:hover,.dm-settings-tile:hover{border-color:var(--rosewood);box-shadow:0 6px 18px rgba(138,28,66,.07)}.dm-profile-quick-card>span,.dm-settings-tile>span{width:40px;height:40px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;flex:0 0 40px}.dm-profile-quick-card>div,.dm-settings-tile>div{flex:1}.dm-profile-quick-card strong,.dm-settings-tile strong{display:block;font-size:.9rem}.dm-profile-quick-card small,.dm-settings-tile small{display:block;color:var(--muted);font-size:.74rem;margin-top:2px}.dm-profile-quick-card>b,.dm-settings-tile>b{color:var(--muted);font-size:1.1rem}
+      .dm-profile-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.dm-profile-section-head h3{margin:0;color:var(--dm-text)}.dm-profile-section-head p{font-size:.8rem;color:var(--muted);margin:4px 0 0}.dm-profile-subsection{margin-top:20px}.dm-profile-subsection h3{margin:0 0 10px;color:var(--dm-text)}.dm-profile-footnote{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--blush);font-size:.75rem;color:var(--muted);line-height:1.45}
+      .dm-order-filter-row,.dm-notification-filters{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:14px}.dm-order-filter,.dm-notification-filter{border:1px solid var(--blush-line);background:var(--surface);color:var(--dm-text);border-radius:999px;padding:7px 11px;font-size:.74rem;font-weight:800;cursor:pointer}.dm-order-filter.active,.dm-notification-filter.active{background:var(--rosewood);color:var(--text-on-primary);border-color:var(--rosewood)}.dm-order-sort{margin-left:auto;width:auto;min-width:145px;padding:7px 10px!important;font-size:.74rem!important}
+      .dm-settings-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+      .dm-notification-card{display:flex;gap:12px;padding:13px 14px;border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);margin-bottom:10px;cursor:pointer}.dm-notification-card.unread{background:#fff8fa;border-color:#eccbd5}.dm-notification-icon{width:38px;height:38px;border-radius:11px;background:var(--blush);display:flex;align-items:center;justify-content:center;flex:0 0 38px}.dm-notification-copy{flex:1;min-width:0}.dm-notification-title{font-weight:800;font-size:.86rem}.dm-notification-message{font-size:.76rem;color:var(--muted);line-height:1.4;margin-top:2px}.dm-notification-time{font-size:.68rem;color:var(--muted);margin-top:5px}.dm-notification-unread{width:7px;height:7px;border-radius:50%;background:var(--rosewood);margin-top:7px;flex:0 0 7px}
+      .dm-profile-address-card{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;border:1px solid var(--blush-line);border-radius:14px;background:var(--surface);padding:14px;margin-bottom:10px;}
+      .dm-profile-address-main{flex:1;min-width:200px;}
+      .dm-profile-address-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+      .dm-address-default{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--rosewood);color:#fff;font-size:.65rem;font-weight:800;vertical-align:middle;}
+      @media(max-width:760px){.dm-profile-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.dm-profile-quick-grid,.dm-settings-card-grid{grid-template-columns:1fr}.dm-profile-info-grid{grid-template-columns:1fr}.dm-order-sort{margin-left:0}}
+
+      /* ===== Profile panel — Liquid Glass treatment
+         (brings the account/profile modal in line with the same
+         frosted-glass look already used on the homepage header,
+         hero, and category/product cards — it was never applied
+         here before, so this panel looked flat/solid). ===== */
+      .auth-modal.profile-mode {
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,241,246,.28)),
+          radial-gradient(circle at 88% 4%, rgba(184,134,63,.16), transparent 42%),
+          radial-gradient(circle at 4% 92%, rgba(138,28,66,.12), transparent 42%),
+          #fdf8f4 !important;
+      }
+      .dm-profile-hero,
+      .dm-profile-stat-card,
+      .dm-profile-info-card,
+      .dm-profile-quick-card,
+      .dm-settings-tile,
+      .dm-profile-notice,
+      .dm-profile-address-card {
+        background: linear-gradient(145deg, rgba(255,255,255,.55), rgba(255,255,255,.18)) !important;
+        border: 1px solid rgba(255,255,255,.65) !important;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+        box-shadow: 0 14px 34px rgba(138,28,66,.08), inset 0 1px rgba(255,255,255,.7) !important;
+        transition: .22s ease;
+      }
+      .dm-profile-stat-card:hover,
+      .dm-profile-quick-card:hover,
+      .dm-settings-tile:hover {
+        border-color: rgba(184,134,63,.45) !important;
+        box-shadow: 0 18px 40px rgba(138,28,66,.12), inset 0 1px rgba(255,255,255,.8) !important;
+        transform: translateY(-2px);
+      }
+      .dm-profile-nav-item {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .dm-profile-nav-item.active {
+        background: linear-gradient(145deg, rgba(255,255,255,.6), rgba(255,255,255,.22)) !important;
+        border: 1px solid rgba(184,134,63,.35) !important;
+      }
+      .dm-profile-info-grid > div {
+        background: rgba(255,255,255,.4) !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      /* Dark mode — matches the site's existing "liquid glass" dark theme */
+      body.dark-mode .auth-modal.profile-mode {
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.015)),
+          radial-gradient(circle at 85% 6%, rgba(46,150,255,.10), transparent 40%),
+          #0a0d12 !important;
+      }
+      body.dark-mode .dm-profile-hero,
+      body.dark-mode .dm-profile-stat-card,
+      body.dark-mode .dm-profile-info-card,
+      body.dark-mode .dm-profile-quick-card,
+      body.dark-mode .dm-settings-tile,
+      body.dark-mode .dm-profile-notice,
+      body.dark-mode .dm-profile-address-card {
+        background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)), rgba(10,13,18,.62) !important;
+        border: 1px solid rgba(255,255,255,.10) !important;
+        box-shadow: 0 16px 40px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05) !important;
+        backdrop-filter: blur(18px) saturate(160%);
+        -webkit-backdrop-filter: blur(18px) saturate(160%);
+      }
+      /* Quick-action / settings cards sit over a busy blurred photo backdrop
+         in dark mode — bump the label contrast explicitly so it stays
+         readable instead of relying on the low-opacity glass tint alone. */
+      body.dark-mode .dm-profile-quick-card strong,
+      body.dark-mode .dm-settings-tile strong {
+        color: #f5f7fb;
+        text-shadow: 0 1px 3px rgba(0,0,0,.5);
+      }
+      body.dark-mode .dm-profile-quick-card small,
+      body.dark-mode .dm-settings-tile small {
+        color: #c3cbdc;
+        text-shadow: 0 1px 3px rgba(0,0,0,.5);
+      }
+      body.dark-mode .dm-profile-stat-card:hover,
+      body.dark-mode .dm-profile-quick-card:hover,
+      body.dark-mode .dm-settings-tile:hover {
+        border-color: rgba(82,165,255,.34) !important;
+        box-shadow: 0 22px 50px rgba(0,0,0,.32), 0 0 24px rgba(53,145,255,.08) !important;
+        transform: translateY(-2px);
+      }
+      body.dark-mode .dm-profile-nav-item.active {
+        background: rgba(66,154,255,.10) !important;
+        border: 1px solid rgba(82,165,255,.28) !important;
+      }
+      body.dark-mode .dm-profile-info-grid > div {
+        background: rgba(255,255,255,.04) !important;
+      }
+
+      /* ===== Customer Profile navigation polish — mobile glass rail + refined desktop sidebar ===== */
+      .dm-profile-sidebar {
+        position: relative;
+        padding: 8px;
+        border: 1px solid rgba(255,255,255,.42);
+        border-radius: 18px;
+        background: linear-gradient(145deg, rgba(255,255,255,.34), rgba(255,255,255,.12));
+        box-shadow: 0 12px 28px rgba(72,36,30,.06), inset 0 1px rgba(255,255,255,.55);
+        backdrop-filter: blur(14px) saturate(150%);
+        -webkit-backdrop-filter: blur(14px) saturate(150%);
+      }
+      .dm-profile-nav-item {
+        position: relative;
+        min-height: 46px;
+        border-radius: 13px;
+        transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s ease, box-shadow .22s ease;
+      }
+      .dm-profile-nav-item:hover { transform: translateX(2px); }
+      .dm-profile-nav-item.active {
+        box-shadow: inset 0 1px rgba(255,255,255,.62), 0 5px 14px rgba(138,28,66,.08);
+      }
+      .dm-profile-nav-item:last-child {
+        margin-top: 8px;
+        padding-top: 13px;
+        border-top: 1px solid var(--blush-line);
+        border-radius: 0 0 12px 12px;
+      }
+      .dm-profile-nav-item:last-child:hover { color: #a33a4f; }
+      .dm-nav-icon { transition: transform .22s ease; }
+      .dm-profile-nav-item:hover .dm-nav-icon,
+      .dm-profile-nav-item.active .dm-nav-icon { transform: scale(1.06); }
+
+      @media (max-width: 760px) {
+        .dm-profile-layout {
+          height: calc(100dvh - 170px);
+          max-height: 720px;
+          overflow: hidden;
+        }
+        .dm-profile-main {
+          flex: 1 1 auto;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-right: 2px;
+        }
+        .dm-profile-sidebar {
+          /* The base rule above sets flex: 0 0 220px, meant to fix this
+             sidebar's WIDTH to 220px in the desktop row layout. In this
+             mobile column layout that same flex-basis controls HEIGHT
+             instead, forcing the bar to be 220px tall regardless of its
+             actual (much shorter) content — that's what caused the big
+             empty box below the tabs. Reset it here. */
+          flex: 0 0 auto;
+          order: 99;
+          margin-top: 14px;
+          display: flex;
+          align-items: stretch;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          gap: 4px;
+          width: 100%;
+          padding: 5px;
+          border-radius: 15px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          overscroll-behavior-x: contain;
+          scroll-snap-type: x proximity;
+          scroll-padding-inline: 7px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          background: linear-gradient(145deg, #fbeff2, #f7e8ea);
+          box-shadow: 0 10px 26px rgba(72,36,30,.07), inset 0 1px rgba(255,255,255,.7);
+          /* Was position:sticky + bottom:0, which floated this bar on top
+             of the scrolling content (Email / Member since got hidden
+             underneath it, in both light and dark mode — a layout bug,
+             not a theming one). It's back at the bottom via plain flex
+             order (see order:99 + margin-top above), but no longer
+             sticky/fixed — it just sits in normal document flow after
+             all the account content, so nothing ever renders behind it. */
+        }
+        .dm-profile-sidebar::before,
+        .dm-profile-sidebar::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 8px;
+          min-width: 8px;
+          z-index: 3;
+          pointer-events: none;
+        }
+        .dm-profile-sidebar::before { left: 0; background: linear-gradient(90deg, rgba(255,255,255,.35), transparent); }
+        .dm-profile-sidebar::after { right: 0; background: linear-gradient(270deg, rgba(255,255,255,.28), transparent); }
+        .dm-profile-sidebar::-webkit-scrollbar { display: none; }
+        .dm-profile-nav-item {
+          flex: 0 0 58px;
+          width: 58px;
+          min-width: 58px;
+          min-height: 52px;
+          height: 52px;
+          padding: 6px 3px;
+          border: 1px solid transparent;
+          border-radius: 12px;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          text-align: center;
+          font-size: 9px;
+          line-height: 1.05;
+          font-weight: 750;
+          scroll-snap-align: start;
+          transform: none !important;
+        }
+        .dm-profile-nav-item:hover { background: rgba(255,255,255,.28); }
+        .dm-profile-nav-item.active {
+          background: linear-gradient(145deg, rgba(255,255,255,.68), rgba(255,255,255,.28)) !important;
+          border-color: rgba(184,134,63,.42) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.78), 0 5px 15px rgba(138,28,66,.10);
+        }
+        .dm-profile-nav-item.active::after {
+          content: "";
+          position: absolute;
+          left: 50%;
+          bottom: 4px;
+          width: 22px;
+          height: 2px;
+          border-radius: 999px;
+          transform: translateX(-50%);
+          background: var(--rosewood);
+          box-shadow: 0 0 8px var(--glow);
+        }
+        .dm-nav-icon { width: 19px !important; height: 19px !important; }
+        .dm-nav-label { white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+        .dm-profile-nav-item:last-child {
+          margin-top: 0;
+          padding-top: 8px;
+          border-top: 0;
+          border-left: 1px solid var(--blush-line);
+          border-radius: 14px;
+          margin-left: 3px;
+        }
+        .dm-profile-nav-item:last-child:hover { color: #a33a4f; background: rgba(190,55,80,.07); }
+        .dm-profile-nav-item .dm-profile-badge {
+          top: 1px !important;
+          right: 13px !important;
+          min-width: 16px;
+          height: 16px;
+          padding: 0 4px;
+          font-size: 9px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        body.dark-mode .dm-profile-sidebar {
+          /* Was a near-transparent rgba(255,255,255,.075) with no blur, so
+             content scrolling underneath this sticky bottom bar showed
+             straight through it (visible in the "Email"/"Member since"
+             bleed-through). Light mode uses a solid, opaque gradient for
+             the same sticky bar for this exact reason — mirror that here
+             with a dark-safe solid color instead of a translucent one. */
+          background: linear-gradient(145deg, #1b202c, #12151f) !important;
+          border-color: rgba(255,255,255,.11);
+          box-shadow: 0 12px 30px rgba(0,0,0,.45), inset 0 1px rgba(255,255,255,.06);
+        }
+        body.dark-mode .dm-profile-nav-item:hover { background: rgba(255,255,255,.055); }
+        body.dark-mode .dm-profile-nav-item.active {
+          background: linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.035)) !important;
+          border-color: rgba(255,170,80,.30) !important;
+          box-shadow: inset 0 1px rgba(255,255,255,.08), 0 5px 18px rgba(0,0,0,.28);
+        }
+        body.dark-mode .dm-profile-nav-item.active::after {
+          background: var(--gold, #d9a441);
+          box-shadow: 0 0 10px rgba(217,164,65,.28);
+        }
+        body.dark-mode .dm-profile-nav-item:last-child { border-left-color: rgba(255,255,255,.10); }
+      }
+
+      /* ===== Remaining dark-mode gaps =====
+         These containers/colors were hardcoded to light values and had no
+         body.dark-mode counterpart, so dark-mode's near-white text (or a
+         light hardcoded badge) ended up sitting on a light background —
+         invisible or badly mismatched. Same class of bug as the gender
+         modal above, just smaller components. */
+      body.dark-mode {
+        --dm-timeline-active: #ffb27a;
+        --dm-timeline-muted: #8a93a6;
+        --dm-timeline-dot-on: #e0a94f;
+        --dm-timeline-dot-off: #262c3d;
+      }
+      body.dark-mode .dm-gift-box,
+      body.dark-mode .dm-info-card,
+      body.dark-mode .gift-code-box {
+        background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important;
+        border-color: rgba(255,255,255,.10) !important;
+      }
+      body.dark-mode .dm-notification-card.unread {
+        background: linear-gradient(145deg, rgba(255,170,80,.12), rgba(255,170,80,.04)) !important;
+        border-color: rgba(255,170,80,.28) !important;
+      }
+      body.dark-mode .dm-mini-remove {
+        background: rgba(255,255,255,.10) !important;
+        color: #f5f7fb !important;
+        border-color: rgba(255,255,255,.16) !important;
+      }
+      body.dark-mode .dm-order-status-pill.done {
+        background: rgba(37,166,90,.16) !important;
+        color: #6be6a0 !important;
+      }
+      body.dark-mode .dm-order-status-pill.cancelled {
+        background: rgba(180,35,24,.20) !important;
+        color: #ff8a7a !important;
+      }
     </style>
   </head>
   <body>
@@ -2640,17 +3154,13 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           <button class="icon-btn" onclick="toggleSearchBar()" title="Search" id="searchToggleBtn">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
-          <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
-            <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
-            <img id="accountBtnPic" alt="" style="display:none;width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.9);box-shadow:0 1px 4px rgba(0,0,0,0.25);" />
-          </button>
-          <button class="icon-btn" onclick="openWishlistModal()" title="Wishlist" id="wishlistHeaderBtn">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7.2-4.5-9.7-8.9C0.6 8.6 2.1 5 5.6 5c2 0 3.6 1.2 4.5 2.7C11 6.2 12.6 5 14.6 5c3.5 0 5 3.6 3.3 7.1C15.4 16.5 12 21 12 21z"/></svg>
-            <span class="cart-count" id="wishlistCount">0</span>
-          </button>
           <button class="icon-btn" onclick="openCart()" title="Cart">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12.5a1.5 1.5 0 0 1-1.5 1.5h-7a1.5 1.5 0 0 1-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
             <span class="cart-count" id="cartCount">0</span>
+          </button>
+          <button class="icon-btn" onclick="openAccountModal()" title="Account" id="accountBtn">
+            <svg id="accountBtnIcon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.6-5.4 7.5-5.4s5.9 1.8 7.5 5.4"/></svg>
+            <img id="accountBtnPic" class="account-avatar" alt="" style="display:none;" />
           </button>
         </div>
       </div>
@@ -2773,8 +3283,6 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
     </div>
     <div class="gift-addon-banner" id="giftAddonBanner">
       <img class="gift-addon-banner-img" src="gift-addon-banner.webp" alt="Rakhi Week Special — Free Photo Mug Add-On, worth ₹249, unlocks automatically in your cart on orders of ₹599 or more.">
-    </div>
-      </div>
     </div>
 
     <div class="festival-strip-wrap festival-offer-wrap" id="rakhiOfferWrap">
@@ -3092,9 +3600,34 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         <div class="modal-body">
           <div style="font-size:1.15rem;font-weight:900;color:var(--rosewood);margin-bottom:6px;">Submit a Callback Request</div>
           <div id="callbackRequestContext" style="font-size:.82rem;color:var(--muted);margin-bottom:14px;"></div>
+          <label for="callbackModalName" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Name</label>
+          <input type="text" id="callbackModalName" class="checkout-input" placeholder="Your name" style="width:100%;margin-bottom:12px;" />
+          <label for="callbackModalPhone" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Mobile Number</label>
+          <input type="tel" id="callbackModalPhone" class="checkout-input" maxlength="10" inputmode="numeric" placeholder="10-digit mobile number" style="width:100%;margin-bottom:12px;" />
+          <label for="callbackModalReason" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Reason for requesting callback</label>
           <textarea id="callbackModalReason" class="checkout-input" maxlength="500" placeholder="Tell us why you'd like a callback..." style="width:100%;min-height:110px;resize:vertical;margin-bottom:10px;"></textarea>
           <div class="modal-error" id="callbackModalError" style="display:none;"></div>
           <button class="add-cart-btn" id="callbackModalBtn" onclick="submitCallbackModal()">Submit a Callback Request</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAVE ADDRESS MODAL (replaces old prompt() dialogs) -->
+    <div class="overlay" id="addressFormOverlay" onclick="closeAddressFormModal(event)">
+      <div class="modal" style="max-width:480px;width:min(480px,94vw);" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeAddressFormModal()">✕</button>
+        <div class="modal-body">
+          <div style="font-size:1.15rem;font-weight:900;color:var(--rosewood);margin-bottom:6px;" id="addressFormTitle">Add New Address</div>
+          <div style="font-size:.82rem;color:var(--muted);margin-bottom:14px;">Save this address for faster checkout next time.</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <button type="button" class="account-section-tab active" id="addressLabelHomeBtn" onclick="pickAddressLabel('Home')">Home</button>
+            <button type="button" class="account-section-tab" id="addressLabelOfficeBtn" onclick="pickAddressLabel('Office')">Office</button>
+            <button type="button" class="account-section-tab" id="addressLabelOtherBtn" onclick="pickAddressLabel('Other')">Other</button>
+          </div>
+          <input type="text" id="addressLabelCustom" class="checkout-input" placeholder="Label (e.g. Sister's House)" style="width:100%;margin-bottom:10px;display:none;" />
+          <textarea id="addressFormText" class="checkout-input" maxlength="400" placeholder="House no., street, area, landmark, city, state, pincode" style="width:100%;min-height:120px;resize:vertical;margin-bottom:10px;"></textarea>
+          <div class="modal-error" id="addressFormError" style="display:none;"></div>
+          <button class="add-cart-btn" id="addressFormBtn" onclick="submitAddressForm()">Save Address</button>
         </div>
       </div>
     </div>
@@ -3131,19 +3664,24 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       </div>
     </div>
 
-    <!-- EDIT SAVED WHATSAPP NUMBER -->
-    <div class="overlay" id="editWhatsappNumberOverlay" onclick="closeEditWhatsappNumberModal(event)">
-      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="editWhatsappNumberTitle">
-        <button class="modal-close" type="button" onclick="closeEditWhatsappNumberModal()">✕</button>
-        <h2 class="modal-title" id="editWhatsappNumberTitle" style="margin-bottom:6px;">Edit WhatsApp number</h2>
-        <p class="modal-desc" style="margin-bottom:18px;">Update the WhatsApp number saved to your account. No OTP or verification is required.</p>
+    <!-- EDIT PROFILE (name, WhatsApp number, email) -->
+    <div class="overlay" id="editProfileOverlay" onclick="closeEditProfileModal(event)">
+      <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="editProfileTitle">
+        <button class="modal-close" type="button" onclick="closeEditProfileModal()">✕</button>
+        <h2 class="modal-title" id="editProfileTitle" style="margin-bottom:6px;">Edit Profile</h2>
+        <p class="modal-desc" style="margin-bottom:18px;">Update your name, WhatsApp number and email. No OTP or verification is required.</p>
+        <label for="editProfileName" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Full name</label>
+        <input type="text" id="editProfileName" class="checkout-input" placeholder="Full name" style="width:100%;margin-bottom:14px;" />
+        <label style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">WhatsApp number</label>
         <div class="dm-phone-row">
-          <select id="editWhatsappCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
-          <input type="tel" id="editWhatsappNumber" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="tel" autocomplete="tel-national" />
+          <select id="editProfileCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
+          <input type="tel" id="editProfileNumber" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="tel" autocomplete="tel-national" />
         </div>
-        <div style="font-size:0.76rem;color:var(--muted);margin:7px 0 10px;">🌍 Enter the number with <strong>+</strong> and country code for automatic country detection, or choose the country code manually.</div>
-        <div class="modal-error" id="editWhatsappNumberError" style="display:none;"></div>
-        <button class="add-cart-btn" id="editWhatsappNumberBtn" onclick="saveEditedWhatsappNumber()">Save WhatsApp number</button>
+        <div style="font-size:0.76rem;color:var(--muted);margin:7px 0 14px;">🌍 Enter the number with <strong>+</strong> and country code for automatic country detection, or choose the country code manually.</div>
+        <label for="editProfileEmail" style="font-size:0.78rem;color:var(--muted);display:block;margin-bottom:4px;">Email</label>
+        <input type="email" id="editProfileEmail" class="checkout-input" placeholder="you@example.com" style="width:100%;margin-bottom:10px;" />
+        <div class="modal-error" id="editProfileError" style="display:none;"></div>
+        <button class="add-cart-btn" id="editProfileBtn" onclick="saveEditedProfile()">Save changes</button>
       </div>
     </div>
 
@@ -3213,7 +3751,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
         <!-- RIGHT: form panel -->
         <div class="auth-form">
-          <div class="dm-dark-toggle-row">
+          <div class="dm-dark-toggle-row" id="dmDarkToggleRow">
             <span class="dm-dark-toggle-label"><span class="dm-dark-icon">🌙</span> Dark mode</span>
             <label class="dm-toggle-switch">
               <input type="checkbox" class="dm-dark-toggle-input" onchange="setDarkMode(this.checked)" />
@@ -3272,130 +3810,175 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
 
           <div id="accountSignedIn" style="display:none;">
             <div class="dm-profile-layout">
-              <aside class="dm-profile-sidebar">
-                <button class="dm-profile-nav-item active" id="accountProfileTab" onclick="showAccountSection('profile')">🙂 Profile</button>
-                <button class="dm-profile-nav-item" id="accountOrdersTab" onclick="showAccountSection('orders')">🛍️ My Orders</button>
-                <button class="dm-profile-nav-item" id="accountWishlistTab" onclick="showAccountSection('wishlist')">❤️ Wishlist</button>
-                <button class="dm-profile-nav-item" id="accountAddressesTab" onclick="showAccountSection('addresses')">📍 Addresses</button>
-                <div class="dm-refer-box">
-                  <div class="dm-refer-icon">🎁</div>
-                  <div class="dm-refer-title">Refer &amp; Earn</div>
-                  <div class="dm-refer-sub">Refer your friends and earn exclusive rewards!</div>
-                  <button class="dm-refer-btn" onclick="openCallbackRequestModal()">Refer Now</button>
-                </div>
+              <aside class="dm-profile-sidebar" aria-label="Account sections">
+                <button class="dm-profile-nav-item active" id="accountProfileTab" onclick="showAccountSection('profile')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg></span><span class="dm-nav-label">Overview</span></button>
+                <button class="dm-profile-nav-item" id="accountOrdersTab" onclick="showAccountSection('orders')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="16" height="17" rx="2.2"/><path d="M8 2.7v2.4M16 2.7v2.4M7.5 10h9M7.5 13.6h9M7.5 17.2h5.5"/></svg></span><span class="dm-nav-label">Orders</span></button>
+                <button class="dm-profile-nav-item" id="accountWishlistTab" onclick="showAccountSection('wishlist')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.6-4.6-10-9.3C.5 8 1.7 4.6 5 3.6c2.1-.6 4.2.3 5.5 2 .5.6.7.9 1.5.9s1-.3 1.5-.9c1.3-1.7 3.4-2.6 5.5-2 3.3 1 4.5 4.4 3 7.6-2.4 4.7-10 9.3-10 9.3Z"/></svg></span><span class="dm-nav-label">Wishlist</span></button>
+                <button class="dm-profile-nav-item" id="accountAddressesTab" onclick="showAccountSection('addresses')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s7-6.3 7-12A7 7 0 0 0 5 9.5c0 5.7 7 12 7 12Z"/><circle cx="12" cy="9.5" r="2.4"/></svg></span><span class="dm-nav-label">Addresses</span></button>
+                <button class="dm-profile-nav-item" id="accountSettingsTab" onclick="showAccountSection('settings')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2.05 2.05 0 1 1-2.9 2.9l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56v.16a2.05 2.05 0 1 1-4.1 0v-.09a1.7 1.7 0 0 0-1.1-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2.05 2.05 0 1 1-2.9-2.9l.06-.06A1.7 1.7 0 0 0 4.34 13.5 1.7 1.7 0 0 0 2.78 12.47H2.6a2.05 2.05 0 1 1 0-4.1h.09a1.7 1.7 0 0 0 1.56-1.1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2.05 2.05 0 1 1 2.9-2.9l.06.06A1.7 1.7 0 0 0 8.68 2.84a1.7 1.7 0 0 0 1.03-1.56V1.12a2.05 2.05 0 1 1 4.1 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2.05 2.05 0 1 1 2.9 2.9l-.06.06a1.7 1.7 0 0 0-.34 1.87v.06a1.7 1.7 0 0 0 1.56 1.03h.16a2.05 2.05 0 1 1 0 4.1h-.09a1.7 1.7 0 0 0-1.56 1.03Z"/></svg></span><span class="dm-nav-label">Settings</span></button>
+                <button class="dm-profile-nav-item" id="accountNotificationsTab" onclick="showAccountSection('notifications')"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 3.5 1 5.2 1.7 6.2.3.4 0 1-.5 1H4.8c-.5 0-.8-.6-.5-1C5 14.2 6 12.5 6 9Z"/><path d="M9.5 19a2.6 2.6 0 0 0 5 0"/></svg><span id="accountNotificationBadge" class="dm-profile-badge" style="display:none;">0</span></span><span class="dm-nav-label">Notifications</span></button>
+                <button class="dm-profile-nav-item" id="accountLogoutTab" onclick="confirmCustomerLogout()"><span class="dm-nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3.5H8a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h7"/><path d="M10 12h11m0 0-3.5-3.5M21 12l-3.5 3.5"/></svg></span><span class="dm-nav-label">Logout</span></button>
               </aside>
               <div class="dm-profile-main">
-            <div id="accountProfileView">
-            <div class="dm-welcome-card">
-              <div class="dm-welcome-avatar">
-                <img id="accountPic" src="" alt="" style="width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--blush-line);display:none;" />
-                <div id="accountPicPlaceholder" style="width:64px;height:64px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:28px;">🙂</div>
-              </div>
-              <div class="dm-welcome-info">
-                <div class="dm-welcome-hi">Welcome back,</div>
-                <div class="dm-welcome-name" id="accountName"></div>
-                <div class="dm-welcome-contact">📞 <span id="accountMobile"></span></div>
-                <div class="dm-welcome-contact" id="accountEmailRow" style="display:none;">✉️ <span id="accountEmail"></span></div>
-                <div style="display:flex;gap:12px;align-items:center;margin-top:6px;">
-                  <a href="javascript:void(0)" onclick="openEditWhatsappNumberModal()" style="font-size:0.8em;color:var(--rosewood);font-weight:700;">Edit WhatsApp number</a>
-                  <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()" style="font-size:0.8em;color:var(--rosewood);font-weight:600;">Change photo</a>
+
+              <!-- PROFILE -->
+              <div id="accountProfileView">
+                <div class="dm-profile-hero">
+                  <div class="dm-profile-avatar-wrap">
+                    <img id="accountPic" src="" alt="Profile photo" class="dm-profile-avatar" style="display:none;" />
+                    <div id="accountPicPlaceholder" class="dm-profile-avatar-placeholder">🙂</div>
+                  </div>
+                  <div class="dm-profile-hero-copy">
+                    <div class="dm-welcome-hi">Welcome back,</div>
+                    <div class="dm-welcome-name" id="accountName"></div>
+                    <div class="dm-welcome-contact">📞 <span id="accountMobile"></span></div>
+                    <div class="dm-welcome-contact" id="accountEmailRow" style="display:none;">✉️ <span id="accountEmail"></span></div>
+                    <div class="dm-profile-inline-actions">
+                      <a href="javascript:void(0)" onclick="openEditProfileModal()">Edit Profile</a>
+                      <a href="javascript:void(0)" onclick="document.getElementById('profilePicInput').click()">Change photo</a>
+                    </div>
+                    <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
+                    <div id="profilePicError" class="dm-profile-inline-error" style="display:none;"></div>
+                  </div>
+                  <div class="dm-profile-active"><span>●</span> Active account</div>
                 </div>
-                <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="uploadProfilePicture(event)" />
-                <div id="profilePicError" style="font-size:0.78em;color:#a3002a;display:none;margin-top:4px;"></div>
-              </div>
-              <div class="dm-welcome-actions">
-                <a class="dm-edit-profile-btn" href="javascript:void(0)" onclick="openEditWhatsappNumberModal()">✎ Edit Profile</a>
-              </div>
-            </div>
 
-            <div id="accountCompletionBox" style="display:none;margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
-              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Add your WhatsApp number</div>
-              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">Your Google account is connected. Add your WhatsApp number so we can use it for order updates and support.</div>
-              <div class="dm-phone-row">
-                <select id="completeAccountCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
-                <input type="tel" id="completeAccountMobile" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="numeric" autocomplete="tel-national" />
+                <div class="dm-profile-stat-grid">
+                  <button type="button" class="dm-profile-stat-card" onclick="showAccountSection('orders')">
+                    <div class="dm-profile-stat-icon">🛍️</div>
+                    <div><div class="dm-profile-stat-value" id="profileOrdersCount">0</div><div class="dm-profile-stat-label">Total Orders</div></div>
+                    <span>›</span>
+                  </button>
+                  <button type="button" class="dm-profile-stat-card" onclick="showAccountSection('wishlist')">
+                    <div class="dm-profile-stat-icon">❤️</div>
+                    <div><div class="dm-profile-stat-value" id="profileWishlistCount">0</div><div class="dm-profile-stat-label">Wishlist Items</div></div>
+                    <span>›</span>
+                  </button>
+                  <button type="button" class="dm-profile-stat-card" onclick="showAccountSection('addresses')">
+                    <div class="dm-profile-stat-icon">📍</div>
+                    <div><div class="dm-profile-stat-value" id="profileAddressesCount">0</div><div class="dm-profile-stat-label">Saved Addresses</div></div>
+                    <span>›</span>
+                  </button>
+                  <button type="button" class="dm-profile-stat-card" onclick="showAccountSection('orders')">
+                    <div class="dm-profile-stat-icon">₹</div>
+                    <div><div class="dm-profile-stat-value" id="profileSpentValue">₹0</div><div class="dm-profile-stat-label">Total Spent</div></div>
+                    <span>›</span>
+                  </button>
+                </div>
+
+                <div id="accountCompletionBox" class="dm-profile-notice" style="display:none;">
+                  <div class="dm-profile-notice-title">Add your WhatsApp number</div>
+                  <div class="dm-profile-notice-text">Your account is connected. Add your WhatsApp number so we can use it for order updates and support.</div>
+                  <div class="dm-phone-row">
+                    <select id="completeAccountCountryCode" class="checkout-input dm-phone-code" aria-label="Country calling code"></select>
+                    <input type="tel" id="completeAccountMobile" class="checkout-input dm-phone-number" placeholder="WhatsApp number" inputmode="numeric" autocomplete="tel-national" />
+                  </div>
+                  <div class="modal-error" id="completeAccountError" style="display:none;"></div>
+                  <button class="add-cart-btn" id="completeAccountBtn" onclick="completeCustomerAccount()">Save WhatsApp number</button>
+                </div>
+
+                <div id="accountAddEmailBox" class="dm-profile-notice" style="display:none;">
+                  <div class="dm-profile-notice-title">Add your email</div>
+                  <div class="dm-profile-notice-text">An email lets you reset your password yourself if you ever get locked out.</div>
+                  <input type="email" id="addEmailInput" class="checkout-input" placeholder="you@example.com" style="width:100%;margin-bottom:9px;" />
+                  <div class="modal-error" id="addEmailError" style="display:none;"></div>
+                  <button class="add-cart-btn" id="addEmailBtn" onclick="submitAddEmail()">Save email</button>
+                </div>
+
+                <div class="dm-profile-info-card">
+                  <div class="dm-profile-card-heading">Account Information</div>
+                  <div class="dm-profile-info-grid">
+                    <div><span>Full name</span><strong id="profileInfoName">—</strong></div>
+                    <div><span>WhatsApp / Mobile</span><strong id="profileInfoMobile">—</strong></div>
+                    <div><span>Email</span><strong id="profileInfoEmail">Not added</strong></div>
+                    <div><span>Member since</span><strong id="profileInfoSince">—</strong></div>
+                  </div>
+                </div>
+
+                <div id="marketingPreferenceBox" class="dm-profile-info-card">
+                  <div class="dm-profile-card-heading">📧 Offers &amp; Product Updates</div>
+                  <div id="marketingPreferenceText" style="font-size:.82rem;color:var(--muted);line-height:1.45;margin-bottom:10px;">Loading email preference…</div>
+                  <button class="add-cart-btn" id="marketingPreferenceBtn" onclick="toggleMarketingPreference()" style="width:auto;padding:9px 14px;">Loading…</button>
+                  <div id="marketingPreferenceStatus" style="font-size:0.78rem;margin-top:7px;min-height:16px;"></div>
+                </div>
+
+                <div id="sellerStatusBox" style="margin-bottom:16px;"></div>
+                <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-bottom:16px;"></button>
+
+                <div class="dm-profile-quick-grid">
+                  <button type="button" class="dm-profile-quick-card" onclick="showAccountSection('orders')"><span>🛍️</span><div><strong>My Orders</strong><small>Track and view your orders</small></div><b>›</b></button>
+                  <button type="button" class="dm-profile-quick-card" onclick="showAccountSection('wishlist')"><span>❤️</span><div><strong>Wishlist</strong><small>View saved products</small></div><b>›</b></button>
+                  <button type="button" class="dm-profile-quick-card" onclick="showAccountSection('addresses')"><span>📍</span><div><strong>Addresses</strong><small>Manage delivery addresses</small></div><b>›</b></button>
+                  <button type="button" class="dm-profile-quick-card" onclick="openCallbackRequestModal()"><span>🎧</span><div><strong>Need Assistance?</strong><small>Submit a callback request</small></div><b>›</b></button>
+                </div>
               </div>
-              <div style="font-size:0.76rem;color:var(--muted);margin:6px 0 9px;">🌍 Select your country code and enter your WhatsApp number. No OTP is required.</div>
-              <div class="modal-error" id="completeAccountError" style="display:none;"></div>
-              <button class="add-cart-btn" id="completeAccountBtn" onclick="completeCustomerAccount()">Save WhatsApp number</button>
-            </div>
 
-            <div id="accountAddEmailBox" style="display:none;margin:0 0 18px;padding:16px;border:1px solid var(--blush-line);border-radius:14px;background:rgba(255,255,255,0.72);">
-              <div style="font-weight:800;font-size:1rem;margin-bottom:5px;">Add your email</div>
-              <div style="font-size:0.82rem;color:var(--muted);line-height:1.45;margin-bottom:12px;">Add an email so you can reset your password yourself if you're ever locked out.</div>
-              <input type="email" id="addEmailInput" class="checkout-input" placeholder="you@example.com" style="width:100%;margin-bottom:9px;" />
-              <div class="modal-error" id="addEmailError" style="display:none;"></div>
-              <button class="add-cart-btn" id="addEmailBtn" onclick="submitAddEmail()">Save email</button>
-            </div>
-
-            <div class="dm-quick-actions-grid">
-              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('orders')">
-                <div class="dm-qa-icon">🛍️</div>
-                <div class="dm-qa-text"><div class="dm-qa-title">My Orders</div><div class="dm-qa-sub">Track and view your orders</div></div>
-                <span class="dm-qa-arrow">›</span>
-              </button>
-              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('wishlist')">
-                <div class="dm-qa-icon">❤️</div>
-                <div class="dm-qa-text"><div class="dm-qa-title">Wishlist</div><div class="dm-qa-sub">View and manage your wishlist</div></div>
-                <span class="dm-qa-arrow">›</span>
-              </button>
-              <button type="button" class="dm-quick-action-card" onclick="showAccountSection('addresses')">
-                <div class="dm-qa-icon">📍</div>
-                <div class="dm-qa-text"><div class="dm-qa-title">Addresses</div><div class="dm-qa-sub">Add, edit or remove your addresses</div></div>
-                <span class="dm-qa-arrow">›</span>
-              </button>
-              <button type="button" class="dm-quick-action-card" onclick="openCallbackRequestModal()">
-                <div class="dm-qa-icon">🎧</div>
-                <div class="dm-qa-text"><div class="dm-qa-title">Need Assistance?</div><div class="dm-qa-sub">Submit a callback request</div></div>
-                <span class="dm-qa-arrow">›</span>
-              </button>
-            </div>
-
-            <div id="sellerStatusBox" style="margin-bottom:14px;"></div>
-
-            <div class="dm-settings-grid">
-              <div id="marketingPreferenceBox" class="dm-info-card">
-                <div class="dm-info-card-title">📧 Offers &amp; Product Updates</div>
-                <div id="marketingPreferenceText" class="dm-info-card-text">Loading email preference…</div>
-                <button class="add-cart-btn" id="marketingPreferenceBtn" onclick="toggleMarketingPreference()" style="width:auto;padding:9px 14px;">Loading…</button>
-                <div id="marketingPreferenceStatus" style="font-size:0.78rem;margin-top:7px;min-height:16px;"></div>
+              <!-- WISHLIST -->
+              <div id="accountWishlistView" style="display:none;">
+                <div class="dm-profile-section-head">
+                  <div><h3>❤️ My Wishlist</h3><p>Products you want to remember for later.</p></div>
+                </div>
+                <div id="wishlistList" class="dm-customer-grid"></div>
+                <div class="dm-profile-subsection"><h3>👀 Recently Viewed</h3><div id="recentlyViewedList" class="dm-customer-grid"></div></div>
               </div>
-              <div class="dm-info-card">
-                <div class="dm-info-card-title">🎧 Need assistance?</div>
-                <div class="dm-info-card-text">Tell us why you'd like a callback. We'll record your request and connect you to WhatsApp.</div>
-                <button class="add-cart-btn" onclick="openCallbackRequestModal()">Submit a Callback Request</button>
-              </div>
-            </div>
 
-            <div class="dm-account-settings">
-              <div class="dm-account-settings-title">Account Settings</div>
-              <div class="dm-account-settings-row">
-                <button type="button" class="dm-settings-link" onclick="openChangePasswordModal()">🔒 Change Password<span>Update your account password</span></button>
-                <button type="button" class="dm-settings-link" onclick="signOutCustomer()">⎋ Sign Out<span>Logout from your account</span></button>
+              <!-- ADDRESSES -->
+              <div id="accountAddressesView" style="display:none;">
+                <div class="dm-profile-section-head">
+                  <div><h3>📍 My Addresses</h3><p>Save Home, Office or other delivery addresses for faster checkout.</p></div>
+                  <button class="add-cart-btn" style="width:auto;" onclick="addSavedAddress()">+ Add New Address</button>
+                </div>
+                <div id="savedAddressesList"></div>
+                <div class="dm-profile-footnote">Your default address is used to prefill checkout automatically. Changing an address here never changes the address stored on an old order.</div>
               </div>
-            </div>
 
-            <button class="add-cart-btn" id="sellerActionBtn" onclick="onSellerActionBtn()" style="margin-top:14px;"></button>
-            </div>
-            <div id="accountWishlistView" style="display:none;">
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;"><div><h3 style="margin:0;color:var(--rosewood);">❤️ My Wishlist</h3><div style="font-size:.8rem;color:var(--muted);">Products you want to remember for later.</div></div></div>
-              <div id="wishlistList" class="dm-customer-grid"></div>
-              <div style="margin-top:20px;"><h3 style="margin:0 0 10px;color:var(--rosewood);">👀 Recently Viewed</h3><div id="recentlyViewedList" class="dm-customer-grid"></div></div>
-            </div>
-            <div id="accountAddressesView" style="display:none;">
-              <h3 style="margin:0 0 6px;color:var(--rosewood);">📍 Saved Addresses</h3>
-              <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px;">Save Home, Office or other delivery addresses for faster checkout.</div>
-              <div id="savedAddressesList"></div>
-              <button class="add-cart-btn" style="margin-top:8px;" onclick="addSavedAddress()">+ Add Address</button>
-            </div>
-            <div id="accountOrdersView" style="display:none;">
-              <div id="customerOrdersHeader" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
-                <div><h3 style="margin:0;color:var(--rosewood);">My Orders</h3><div style="font-size:.8rem;color:var(--muted);">Your orders and live status updates</div></div>
-                <button class="btn small secondary" onclick="loadCustomerOrders()">↻ Refresh</button>
+              <!-- ORDERS -->
+              <div id="accountOrdersView" style="display:none;">
+                <div class="dm-profile-section-head">
+                  <div><h3>🛍️ My Orders</h3><p>Your orders and live status updates.</p></div>
+                  <button class="btn small secondary" onclick="loadCustomerOrders()">↻ Refresh</button>
+                </div>
+                <div class="dm-order-filter-row">
+                  <button class="dm-order-filter active" onclick="setCustomerOrderFilter('All',this)">All</button>
+                  <button class="dm-order-filter" onclick="setCustomerOrderFilter('Processing',this)">Processing</button>
+                  <button class="dm-order-filter" onclick="setCustomerOrderFilter('Shipped',this)">Shipped</button>
+                  <button class="dm-order-filter" onclick="setCustomerOrderFilter('Delivered',this)">Delivered</button>
+                  <button class="dm-order-filter" onclick="setCustomerOrderFilter('Cancelled',this)">Cancelled</button>
+                  <select id="customerOrderSort" class="checkout-input dm-order-sort" onchange="renderCustomerOrdersView()">
+                    <option value="newest">Newest first</option><option value="oldest">Oldest first</option>
+                  </select>
+                </div>
+                <div id="customerOrdersList"><div class="modal-desc">Loading orders…</div></div>
+                <div id="customerOrderDetail" style="display:none;"></div>
               </div>
-              <div id="customerOrdersList"><div class="modal-desc">Loading orders…</div></div>
-              <div id="customerOrderDetail" style="display:none;"></div>
-            </div>
+
+              <!-- SETTINGS -->
+              <div id="accountSettingsView" style="display:none;">
+                <div class="dm-profile-section-head"><div><h3>⚙️ Settings</h3><p>Only the account controls you actually need.</p></div></div>
+                <div class="dm-settings-card-grid">
+                  <button type="button" class="dm-settings-tile" onclick="showAccountSection('profile')"><span>👤</span><div><strong>Account Information</strong><small>View your saved account details</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openChangePasswordModal()"><span>🔐</span><div><strong>Change Password</strong><small>Update your account password</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openTermsModal()"><span>📄</span><div><strong>Terms &amp; Conditions</strong><small>Read the website terms</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openCallbackRequestModal()"><span>🎧</span><div><strong>Contact Support</strong><small>Request help from Design Makers</small></div><b>›</b></button>
+                </div>
+              </div>
+
+              <!-- NOTIFICATIONS -->
+              <div id="accountNotificationsView" style="display:none;">
+                <div class="dm-profile-section-head">
+                  <div><h3>🔔 Notifications</h3><p>Order, offer and account updates.</p></div>
+                  <button class="btn small secondary" onclick="markAllCustomerNotificationsRead()">✓ Mark all as read</button>
+                </div>
+                <div class="dm-notification-filters">
+                  <button class="dm-notification-filter active" onclick="setNotificationFilter('All',this)">All</button>
+                  <button class="dm-notification-filter" onclick="setNotificationFilter('Orders',this)">Orders</button>
+                  <button class="dm-notification-filter" onclick="setNotificationFilter('Offers',this)">Offers</button>
+                  <button class="dm-notification-filter" onclick="setNotificationFilter('Updates',this)">Updates</button>
+                  <button class="dm-notification-filter" onclick="setNotificationFilter('Reminders',this)">Reminders</button>
+                </div>
+                <div id="customerNotificationsList"></div>
+              </div>
+
               </div>
             </div>
           </div>
@@ -3793,7 +4376,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       ];
 
       function populateCountryCodes() {
-        ["googleWhatsappCountryCode","completeAccountCountryCode","editWhatsappCountryCode"].forEach(id => {
+        ["googleWhatsappCountryCode","completeAccountCountryCode","editProfileCountryCode"].forEach(id => {
           const el = document.getElementById(id);
           if (!el || el.options.length) return;
           DM_COUNTRY_CODES.forEach(([code,name]) => {
@@ -3838,7 +4421,7 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const pairs = [
           ["googleWhatsappNumber","googleWhatsappCountryCode"],
           ["completeAccountMobile","completeAccountCountryCode"],
-          ["editWhatsappNumber","editWhatsappCountryCode"]
+          ["editProfileNumber","editProfileCountryCode"]
         ];
         pairs.forEach(([inputId, selectId]) => {
           const input = document.getElementById(inputId);
@@ -3878,12 +4461,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         finally { btn.disabled=false; btn.textContent="Save WhatsApp number"; }
       }
 
-      function openEditWhatsappNumberModal() {
+      function openEditProfileModal() {
         if (!currentCustomer) return;
         populateCountryCodes();
         bindAutoCountryDetection();
-        const input = document.getElementById("editWhatsappNumber");
-        const select = document.getElementById("editWhatsappCountryCode");
+        document.getElementById("editProfileName").value = currentCustomer.name || "";
+        document.getElementById("editProfileEmail").value = currentCustomer.email || "";
+        const input = document.getElementById("editProfileNumber");
+        const select = document.getElementById("editProfileCountryCode");
         const saved = String(currentCustomer.whatsappNumber || currentCustomer.mobile || "");
         const digits = saved.replace(/\D/g, "");
         const detected = detectCountryCodeFromNumber(saved);
@@ -3893,14 +4478,14 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         } else {
           input.value = digits;
         }
-        document.getElementById("editWhatsappNumberError").style.display = "none";
-        document.getElementById("editWhatsappNumberOverlay").classList.add("open");
-        setTimeout(() => input.focus(), 30);
+        document.getElementById("editProfileError").style.display = "none";
+        document.getElementById("editProfileOverlay").classList.add("open");
+        setTimeout(() => document.getElementById("editProfileName").focus(), 30);
       }
 
-      function closeEditWhatsappNumberModal(e) {
+      function closeEditProfileModal(e) {
         if (e && e.target !== e.currentTarget) return;
-        const overlay = document.getElementById("editWhatsappNumberOverlay");
+        const overlay = document.getElementById("editProfileOverlay");
         if (overlay) overlay.classList.remove("open");
       }
 
@@ -4097,44 +4682,58 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
       }
 
-      async function saveEditedWhatsappNumber() {
-        const input = document.getElementById("editWhatsappNumber");
-        const select = document.getElementById("editWhatsappCountryCode");
-        const errorEl = document.getElementById("editWhatsappNumberError");
-        const btn = document.getElementById("editWhatsappNumberBtn");
-        const detected = detectCountryCodeFromNumber(input.value);
+      async function saveEditedProfile() {
+        const nameInput = document.getElementById("editProfileName");
+        const numberInput = document.getElementById("editProfileNumber");
+        const select = document.getElementById("editProfileCountryCode");
+        const emailInput = document.getElementById("editProfileEmail");
+        const errorEl = document.getElementById("editProfileError");
+        const btn = document.getElementById("editProfileBtn");
+        const detected = detectCountryCodeFromNumber(numberInput.value);
         if (detected && Array.from(select.options).some(o => o.value === detected)) select.value = detected;
         const code = select.value;
-        const number = input.value.replace(/\D/g, "");
+        const number = numberInput.value.replace(/\D/g, "");
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
         errorEl.style.display = "none";
+        if (!name) {
+          errorEl.textContent = "Please enter your name.";
+          errorEl.style.display = "block";
+          return;
+        }
         if (number.length < 4 || number.length > 15) {
           errorEl.textContent = "Enter a valid WhatsApp number.";
+          errorEl.style.display = "block";
+          return;
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          errorEl.textContent = "Enter a valid email address.";
           errorEl.style.display = "block";
           return;
         }
         btn.disabled = true;
         btn.textContent = "Saving...";
         try {
-          const res = await fetch("/api/customer/save-whatsapp-number", {
+          const res = await fetch("/api/customer/update-profile", {
             method: "POST",
             headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({ countryCode: code, number })
+            body: JSON.stringify({ name, countryCode: code, number, email })
           });
           const data = await res.json();
           if (!data.success) {
-            errorEl.textContent = data.message || "Could not save your WhatsApp number.";
+            errorEl.textContent = data.message || "Could not save your profile.";
             errorEl.style.display = "block";
             return;
           }
           currentCustomer = data.customer;
-          document.getElementById("editWhatsappNumberOverlay").classList.remove("open");
+          document.getElementById("editProfileOverlay").classList.remove("open");
           renderAccountState();
         } catch (e) {
           errorEl.textContent = "Network error. Please try again.";
           errorEl.style.display = "block";
         } finally {
           btn.disabled = false;
-          btn.textContent = "Save WhatsApp number";
+          btn.textContent = "Save changes";
         }
       }
 
@@ -4239,15 +4838,20 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       }
 
       function renderAccountState() {
+        const accountBtn = document.getElementById("accountBtn");
         const btnIcon = document.getElementById("accountBtnIcon");
         const btnPic = document.getElementById("accountBtnPic");
         if (currentCustomer && currentCustomer.picture) {
-          // Show the customer's uploaded photo in place of the emoji.
+          // Show the customer's uploaded photo in place of the emoji, and
+          // switch the button itself to a matching circular shape so the
+          // avatar isn't a circle awkwardly stuffed inside a square pill.
           if (btnPic) { btnPic.src = currentCustomer.picture; btnPic.style.display = "block"; }
           if (btnIcon) btnIcon.style.display = "none";
+          if (accountBtn) accountBtn.classList.add("has-avatar");
         } else {
           if (btnPic) btnPic.style.display = "none";
           if (btnIcon) { btnIcon.style.display = ""; }
+          if (accountBtn) accountBtn.classList.remove("has-avatar");
         }
 
         const signedOutBox = document.getElementById("accountSignedOut");
@@ -4319,6 +4923,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           actionBtn.style.display = isSeller ? "block" : "none";
           actionBtn.disabled = false;
         }
+
+        // The Profile tab is marked active by default in the static markup,
+        // but nothing used to populate its stat cards (Total Orders,
+        // Wishlist, Addresses, Total Spent) or Account Information grid
+        // (Full name, Mobile, Email, Member since) until the visitor
+        // clicked the already-active Profile tab again. That left the
+        // panel showing placeholder values ("0", "—", "Not added") on
+        // first open. Fill it in here too so it's correct as soon as the
+        // signed-in view renders.
+        renderCustomerProfileOverview();
       }
 
       function renderMarketingPreference() {
@@ -4443,7 +5057,11 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       function openCallbackRequestModal() {
         if (!currentCustomer) { openAccountModal(); return; }
         const ctx = document.getElementById("callbackRequestContext");
-        if (ctx) ctx.textContent = "We'll get in touch on WhatsApp about your account.";
+        if (ctx) ctx.textContent = "We'll call you back on the number below — no need to message us on WhatsApp.";
+        const nameEl = document.getElementById("callbackModalName");
+        if (nameEl) nameEl.value = currentCustomer.name || "";
+        const phoneEl = document.getElementById("callbackModalPhone");
+        if (phoneEl) phoneEl.value = currentCustomer.mobile || "";
         const reasonEl = document.getElementById("callbackModalReason");
         if (reasonEl) reasonEl.value = "";
         const errEl = document.getElementById("callbackModalError");
@@ -4457,10 +5075,16 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         if (overlay) overlay.classList.remove("open");
       }
       async function submitCallbackModal() {
+        const nameEl = document.getElementById("callbackModalName");
+        const phoneEl = document.getElementById("callbackModalPhone");
         const reasonEl = document.getElementById("callbackModalReason");
         const errEl = document.getElementById("callbackModalError");
         const btn = document.getElementById("callbackModalBtn");
+        const name = String((nameEl && nameEl.value) || "").trim();
+        const phone = String((phoneEl && phoneEl.value) || "").replace(/\D/g, "");
         const reason = String((reasonEl && reasonEl.value) || "").trim();
+        if (!name) { errEl.textContent = "Please enter your name."; errEl.style.display = "block"; return; }
+        if (!/^[6-9]\d{9}$/.test(phone)) { errEl.textContent = "Enter a valid 10-digit mobile number."; errEl.style.display = "block"; return; }
         if (!reason) { errEl.textContent = "Please tell us why you'd like a callback."; errEl.style.display = "block"; return; }
         errEl.style.display = "none";
         btn.disabled = true; btn.textContent = "Submitting...";
@@ -4468,13 +5092,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
           const res = await fetch("/api/customer/callback-request", {
             method: "POST",
             headers: { "Content-Type": "application/json", ...authHeaders() },
-            body: JSON.stringify({ reason }),
+            body: JSON.stringify({ name, phone, reason }),
           });
           const data = await res.json();
           if (!data.success) { errEl.textContent = data.message || "Could not submit your request."; errEl.style.display = "block"; return; }
           closeCallbackRequestModal();
-          showToast("Request submitted — connecting you to WhatsApp.");
-          window.open(DESIGN_MAKERS_WHATSAPP_WEB, "_blank");
+          showToast("Callback request submitted — we'll call you back soon.");
         } catch (e) {
           errEl.textContent = "Network error. Please try again.";
           errEl.style.display = "block";
@@ -6814,12 +7437,12 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       function updateWishlistButton(){ const b=document.getElementById("productWishlistBtn"); if(!b||!currentProduct)return; const on=isWishlisted(currentProduct.id); b.classList.toggle("active",on); b.textContent=on?"♥ Wishlisted":"♡ Wishlist"; }
       function addRecentlyViewed(id){ const ids=dmRead(dmScopedKey(DM_RECENT_KEY),[]).map(Number).filter(Number.isFinite).filter(x=>x!==Number(id)); ids.unshift(Number(id)); dmWrite(dmScopedKey(DM_RECENT_KEY),ids.slice(0,12)); syncExtrasToServer(); }
       function getProductByIdLocal(id){ return allProducts.find(p=>Number(p.id)===Number(id)); }
-      function miniProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;">🎁</div>')+'<div class="dm-mini-product-body"><div class="dm-mini-product-name">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
+      function miniProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;">🎁</div>')+'<div class="dm-mini-product-body"><div class="dm-mini-product-name">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--dm-text);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
       // Wishlist cards need an explicit Remove action — miniProductCard (used for
       // "Recently Viewed") intentionally has no remove button, which is why
       // items could be added to the wishlist but never taken back out from
       // the wishlist view itself. This card fixes that.
-      function wishlistProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product"><div class="dm-mini-product-imgwrap">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="openProductModal('+Number(p.id)+')">🎁</div>')+'<button type="button" class="dm-mini-remove" title="Remove from wishlist" onclick="event.stopPropagation();toggleWishlistById('+Number(p.id)+')">✕</button></div><div class="dm-mini-product-body"><div class="dm-mini-product-name" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--rosewood);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
+      function wishlistProductCard(p){ if(!p)return ""; const img=p.image||((p.images||[])[0])||""; return '<div class="dm-mini-product"><div class="dm-mini-product-imgwrap">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(p.name||"")+'" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">':'<div style="height:130px;background:var(--blush);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="openProductModal('+Number(p.id)+')">🎁</div>')+'<button type="button" class="dm-mini-remove" title="Remove from wishlist" onclick="event.stopPropagation();toggleWishlistById('+Number(p.id)+')">✕</button></div><div class="dm-mini-product-body"><div class="dm-mini-product-name" onclick="openProductModal('+Number(p.id)+')" style="cursor:pointer;">'+escapeHtml(p.name||"Product")+'</div><div style="color:var(--dm-text);font-weight:800;margin-top:4px;">₹'+fmtINR(getSalePrice(p)||p.price||0)+'</div><div class="dm-mini-actions"><button onclick="openProductModal('+Number(p.id)+')">View</button><button onclick="quickAddProduct('+Number(p.id)+')">Add to Cart</button></div></div></div>'; }
       function updateWishlistCount(){ const el=document.getElementById("wishlistCount"); if(el) el.textContent = wishlistIds().length; }
       function renderWishlist(){
         const ws=wishlistIds().map(getProductByIdLocal).filter(Boolean);
@@ -6876,10 +7499,111 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         }
       }
       function isBackstockRequested(){ if(!currentProduct)return false; return dmRead(dmScopedKey(DM_BACKSTOCK_KEY),[]).includes(String(currentProduct.id)+"::"+String(currentSize||"")); }
-      function renderSavedAddresses(){ const box=document.getElementById("savedAddressesList"); if(!box)return; const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); box.innerHTML=arr.length?arr.map((a,i)=>'<div class="dm-address-row"><input type="radio" name="savedAddress" '+(i===0?'checked':'')+' onchange="selectSavedAddress('+i+')"><div class="address-text"><strong>'+escapeHtml(a.label||"Address")+'</strong><br>'+escapeHtml(a.text||"")+'</div><button class="btn small secondary" onclick="removeSavedAddress('+i+')">Remove</button></div>').join(""):'<div class="modal-desc">No saved addresses yet.</div>'; }
-      function addSavedAddress(){ const text=prompt("Enter your full delivery address:"); if(!text||!text.trim())return; const label=prompt("Label (Home / Office / Other):","Home")||"Address"; const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); arr.unshift({label:label.trim(),text:text.trim()}); dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr.slice(0,10)); syncExtrasToServer(); renderSavedAddresses(); }
-      function removeSavedAddress(i){ const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); arr.splice(i,1); dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses(); }
-      function selectSavedAddress(i){ const a=dmRead(dmScopedKey(DM_ADDRESS_KEY),[])[i]; const el=document.getElementById("custAddress"); if(a&&el){el.value=a.text;try{localStorage.setItem("dm_last_address",a.text);}catch(e){} } }
+      // NEW: keeps checkout's custAddress field / dm_last_address in sync with
+      // whichever saved address is currently Default. Called any time the
+      // default address changes (set explicitly, first address added, default
+      // deleted so the next one is promoted, or the default address is edited).
+      function syncDefaultAddressToCheckout(defaultAddr){
+        if(!defaultAddr) return;
+        const el=document.getElementById("custAddress");
+        if(el) el.value=defaultAddr.text;
+        try{ localStorage.setItem("dm_last_address", defaultAddr.text); }catch(e){}
+      }
+      function renderSavedAddresses(){
+        const box=document.getElementById("savedAddressesList"); if(!box)return;
+        let arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
+        if(arr.length && !arr.some(a=>a.isDefault)){ arr = arr.map((a,i)=>({...a,isDefault:i===0})); dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); syncDefaultAddressToCheckout(arr[0]); }
+        arr=[...arr].sort((a,b)=>Number(!!b.isDefault)-Number(!!a.isDefault));
+        box.innerHTML=arr.length?arr.map((a,i)=>{
+          const label=escapeHtml(a.label||"Address"), text=escapeHtml(a.text||"");
+          const originalIndex=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]).findIndex(x=>x.text===a.text && x.label===a.label);
+          return '<div class="dm-address-row dm-profile-address-card">'+
+            '<div class="dm-profile-address-main"><div><strong>'+label+'</strong> '+(a.isDefault?'<span class="dm-address-default">Default</span>':'')+'</div><div class="address-text">'+text+'</div></div>'+
+            '<div class="dm-profile-address-actions">'+
+              (!a.isDefault?'<button class="btn small secondary" onclick="setDefaultSavedAddress('+originalIndex+')">Set Default</button>':'')+
+              '<button class="btn small secondary" onclick="editSavedAddress('+originalIndex+')">Edit</button>'+
+              '<button class="btn small secondary" onclick="removeSavedAddress('+originalIndex+')">Delete</button>'+
+            '</div></div>';
+        }).join(""):'<div class="modal-desc">No saved addresses yet.</div>';
+        const count=document.getElementById("profileAddressesCount"); if(count) count.textContent=arr.length;
+      }
+      function addSavedAddress(){ openAddressFormModal(null); }
+      function editSavedAddress(i){ openAddressFormModal(i); }
+      let dmAddressFormEditIndex = null;
+      let dmAddressFormLabel = "Home";
+      function pickAddressLabel(label){
+        dmAddressFormLabel = label;
+        ["Home","Office","Other"].forEach(l=>{
+          const btn=document.getElementById("addressLabel"+l+"Btn");
+          if(btn) btn.classList.toggle("active", l===label);
+        });
+        const customEl=document.getElementById("addressLabelCustom");
+        if(customEl) customEl.style.display = label==="Other" ? "block" : "none";
+      }
+      function openAddressFormModal(editIndex){
+        dmAddressFormEditIndex = (typeof editIndex==="number") ? editIndex : null;
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
+        const existing = dmAddressFormEditIndex!=null ? arr[dmAddressFormEditIndex] : null;
+        const title=document.getElementById("addressFormTitle"); if(title) title.textContent = existing ? "Edit Address" : "Add New Address";
+        const textEl=document.getElementById("addressFormText"); if(textEl) textEl.value = existing ? (existing.text||"") : "";
+        const customEl=document.getElementById("addressLabelCustom"); if(customEl){ customEl.value=""; customEl.style.display="none"; }
+        const label = existing ? (existing.label||"Home") : "Home";
+        if(existing && label!=="Home" && label!=="Office"){
+          pickAddressLabel("Other");
+          if(customEl){ customEl.value=label; customEl.style.display="block"; }
+        } else {
+          pickAddressLabel(label);
+        }
+        const errEl=document.getElementById("addressFormError"); if(errEl){ errEl.textContent=""; errEl.style.display="none"; }
+        const overlay=document.getElementById("addressFormOverlay"); if(overlay) overlay.classList.add("open");
+      }
+      function closeAddressFormModal(event){
+        if(event && event.target && event.target.id!=="addressFormOverlay") return;
+        const overlay=document.getElementById("addressFormOverlay"); if(overlay) overlay.classList.remove("open");
+      }
+      function submitAddressForm(){
+        const textEl=document.getElementById("addressFormText");
+        const errEl=document.getElementById("addressFormError");
+        const text=String((textEl&&textEl.value)||"").trim();
+        if(!text){ errEl.textContent="Please enter the full delivery address."; errEl.style.display="block"; return; }
+        let label=dmAddressFormLabel;
+        if(label==="Other"){
+          const customEl=document.getElementById("addressLabelCustom");
+          label=(customEl&&customEl.value.trim())||"Other";
+        }
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
+        if(dmAddressFormEditIndex!=null && arr[dmAddressFormEditIndex]){
+          arr[dmAddressFormEditIndex]={...arr[dmAddressFormEditIndex],text,label};
+          dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses();
+          if(arr[dmAddressFormEditIndex].isDefault) syncDefaultAddressToCheckout(arr[dmAddressFormEditIndex]);
+        } else {
+          const next=arr.length?{label,text,isDefault:false}:{label,text,isDefault:true};
+          arr.unshift(next);
+          dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr.slice(0,10)); syncExtrasToServer(); renderSavedAddresses();
+          if(next.isDefault) syncDefaultAddressToCheckout(next);
+        }
+        closeAddressFormModal();
+        showToast(dmAddressFormEditIndex!=null ? "Address updated." : "Address saved.");
+      }
+      function removeSavedAddress(i){
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); if(!arr[i])return;
+        if(!confirm("Delete this saved address?"))return;
+        const wasDefault=!!arr[i].isDefault; arr.splice(i,1);
+        if(wasDefault && arr.length) arr[0].isDefault=true;
+        dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses();
+        if(wasDefault && arr.length) syncDefaultAddressToCheckout(arr[0]);
+      }
+      function setDefaultSavedAddress(i){
+        const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]); if(!arr[i])return;
+        arr.forEach((a,idx)=>a.isDefault=idx===i);
+        dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses(); showToast("Default address updated.");
+        syncDefaultAddressToCheckout(arr[i]);
+      }
+      // Kept for backward compatibility — delegates to the Default concept above.
+      function selectSavedAddress(i){
+        const a=dmRead(dmScopedKey(DM_ADDRESS_KEY),[])[i];
+        if(a) syncDefaultAddressToCheckout(a);
+      }
       function toggleGiftFields(){ const on=document.getElementById("isGiftOrder")?.checked; const box=document.getElementById("giftFields"); if(box)box.style.display=on?"block":"none"; }
       function saveCurrentAddressIfUseful(){ const el=document.getElementById("custAddress"); if(!el||!el.value.trim())return; try{localStorage.setItem("dm_last_address",el.value.trim());}catch(e){} }
       function buyAgainOrder(orderId){
@@ -6914,27 +7638,232 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       let dmCustomerOrdersPoll = null;
       let dmCustomerOrdersCache = [];
 
+      let dmCustomerOrderFilter = "All";
+      let dmNotificationFilter = "All";
+      const DM_NOTIFICATION_READ_KEY = "dm_profile_notification_read_v1";
+      function profileNotificationReadKey(id) { return dmScopedKey(DM_NOTIFICATION_READ_KEY) + ":" + String(id); }
+      function isCustomerNotificationRead(id) { return dmRead(profileNotificationReadKey(id), false) === true; }
+      function setCustomerNotificationRead(id, value) { dmWrite(profileNotificationReadKey(id), !!value); }
+
       function showAccountSection(section) {
-        const profile = document.getElementById("accountProfileView");
-        const orders = document.getElementById("accountOrdersView");
-        const wishlist = document.getElementById("accountWishlistView");
-        const addresses = document.getElementById("accountAddressesView");
-        const profileTab = document.getElementById("accountProfileTab");
-        const ordersTab = document.getElementById("accountOrdersTab");
-        const wishlistTab = document.getElementById("accountWishlistTab");
-        const addressesTab = document.getElementById("accountAddressesTab");
-        if (profile) profile.style.display = section === "profile" ? "block" : "none";
-        if (orders) orders.style.display = section === "orders" ? "block" : "none";
-        if (wishlist) wishlist.style.display = section === "wishlist" ? "block" : "none";
-        if (addresses) addresses.style.display = section === "addresses" ? "block" : "none";
-        if (profileTab) profileTab.classList.toggle("active", section === "profile");
-        if (ordersTab) ordersTab.classList.toggle("active", section === "orders");
-        if (wishlistTab) wishlistTab.classList.toggle("active", section === "wishlist");
-        if (addressesTab) addressesTab.classList.toggle("active", section === "addresses");
+        const sections = {
+          profile: document.getElementById("accountProfileView"),
+          orders: document.getElementById("accountOrdersView"),
+          wishlist: document.getElementById("accountWishlistView"),
+          addresses: document.getElementById("accountAddressesView"),
+          settings: document.getElementById("accountSettingsView"),
+          notifications: document.getElementById("accountNotificationsView")
+        };
+        Object.keys(sections).forEach((key) => { if (sections[key]) sections[key].style.display = section === key ? "block" : "none"; });
+
+        const darkToggleRow = document.getElementById("dmDarkToggleRow");
+        if (darkToggleRow && !document.body.classList.contains("theme-rakshabandhan")) {
+          darkToggleRow.style.display = section === "profile" ? "flex" : "none";
+        }
+
+        const tabs = {
+          profile: document.getElementById("accountProfileTab"),
+          orders: document.getElementById("accountOrdersTab"),
+          wishlist: document.getElementById("accountWishlistTab"),
+          addresses: document.getElementById("accountAddressesTab"),
+          settings: document.getElementById("accountSettingsTab"),
+          notifications: document.getElementById("accountNotificationsTab")
+        };
+        Object.keys(tabs).forEach((key) => { if (tabs[key]) tabs[key].classList.toggle("active", section === key); });
+
+        if (section === "profile") renderCustomerProfileOverview();
         if (section === "orders") { loadCustomerOrders(); startCustomerOrderLiveUpdates(); }
         else stopCustomerOrderLiveUpdates();
         if (section === "wishlist") renderWishlist();
         if (section === "addresses") renderSavedAddresses();
+        if (section === "notifications") renderCustomerNotifications();
+      }
+
+      function renderCustomerProfileOverview() {
+        if (!currentCustomer) return;
+        const orders = Array.isArray(currentCustomer.orders) ? currentCustomer.orders : [];
+        const nonCancelled = orders.filter(o => String(o.status || "").toLowerCase() !== "cancelled");
+        const spent = Number(currentCustomer.totalSpent || nonCancelled.reduce((sum, o) => sum + Number(o.total || 0), 0)) || 0;
+        const addresses = dmRead(dmScopedKey(DM_ADDRESS_KEY), []);
+        const set = {
+          profileOrdersCount: orders.length,
+          profileWishlistCount: wishlistIds().length,
+          profileAddressesCount: addresses.length,
+          profileSpentValue: "₹" + fmtINR(spent),
+          profileInfoName: currentCustomer.name || "Customer",
+          profileInfoMobile: currentCustomer.mobile || "Not added",
+          profileInfoEmail: currentCustomer.email || "Not added",
+          profileInfoSince: currentCustomer.createdAt ? formatOrderDate(currentCustomer.createdAt, false) : "—"
+        };
+        Object.keys(set).forEach(id => { const el = document.getElementById(id); if (el) el.textContent = set[id]; });
+        updateCustomerNotificationBadge();
+      }
+
+      function setCustomerOrderFilter(filter, btn) {
+        dmCustomerOrderFilter = filter;
+        document.querySelectorAll("#accountOrdersView .dm-order-filter").forEach(b => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        renderCustomerOrdersView();
+      }
+
+      function renderCustomerOrdersView() {
+        const list = document.getElementById("customerOrdersList");
+        if (!list) return;
+        let orders = Array.isArray(dmCustomerOrdersCache) ? [...dmCustomerOrdersCache] : [];
+        if (dmCustomerOrderFilter !== "All") {
+          orders = orders.filter(o => {
+            const stage = String(o.fulfilmentStage || o.status || "").toLowerCase();
+            return dmCustomerOrderFilter === "Cancelled" ? stage.includes("cancel") : stage.includes(dmCustomerOrderFilter.toLowerCase());
+          });
+        }
+        const sort = document.getElementById("customerOrderSort")?.value || "newest";
+        orders.sort((a,b) => {
+          const av = new Date(a.createdAt || 0).getTime(), bv = new Date(b.createdAt || 0).getTime();
+          return sort === "oldest" ? av - bv : bv - av;
+        });
+        list.innerHTML = orders.length
+          ? orders.map(renderCustomerOrderCard).join("")
+          : '<div class="modal-desc">No orders found in this filter.</div>';
+      }
+
+      function buildCustomerNotifications() {
+        const out = [];
+        const orders = Array.isArray(dmCustomerOrdersCache) && dmCustomerOrdersCache.length
+          ? dmCustomerOrdersCache
+          : (Array.isArray(currentCustomer?.orders) ? currentCustomer.orders : []);
+
+        orders.slice(0, 8).forEach((order) => {
+          const stage = order.fulfilmentStage || order.status || "Order Received";
+          const id = "order-" + String(order.id);
+          let title = "Order update";
+          let message = (order.orderNumber || "Your order") + " is now " + stage + ".";
+          let icon = "📦";
+          let type = "Orders";
+          if (String(stage).toLowerCase().includes("deliver")) { title = "Order delivered"; icon = "✅"; message = (order.orderNumber || "Your order") + " has been delivered."; }
+          else if (String(stage).toLowerCase().includes("ship")) { title = "Order shipped"; icon = "🚚"; }
+          else if (String(stage).toLowerCase().includes("cancel")) { title = "Order cancelled"; icon = "✕"; }
+          out.push({ id, type, icon, title, message, time: order.updatedAt || order.createdAt || null, orderId: order.id });
+        });
+
+        out.push({
+          id: "account-welcome",
+          type: "Updates",
+          icon: "✨",
+          title: "Your Design Makers account is active",
+          message: "Manage your orders, wishlist and addresses from your account.",
+          time: currentCustomer?.createdAt || null
+        });
+
+        if (currentCustomer?.marketingOptIn !== false) {
+          out.push({
+            id: "offers-enabled",
+            type: "Offers",
+            icon: "🎁",
+            title: "Offers & product updates are enabled",
+            message: "You'll receive promotional updates when Design Makers has something new.",
+            time: null
+          });
+        }
+
+        const addresses = dmRead(dmScopedKey(DM_ADDRESS_KEY), []);
+        if (addresses.length === 0) {
+          out.push({
+            id: "address-reminder",
+            type: "Reminders",
+            icon: "📍",
+            title: "Add a delivery address",
+            message: "Save an address once so checkout is faster next time.",
+            time: null
+          });
+        }
+        return out;
+      }
+
+      function setNotificationFilter(filter, btn) {
+        dmNotificationFilter = filter;
+        document.querySelectorAll(".dm-notification-filter").forEach(b => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        renderCustomerNotifications();
+      }
+
+      function renderCustomerNotifications() {
+        const box = document.getElementById("customerNotificationsList");
+        if (!box) return;
+        const all = buildCustomerNotifications();
+        const filtered = dmNotificationFilter === "All" ? all : all.filter(n => n.type === dmNotificationFilter);
+        box.innerHTML = filtered.length ? filtered.map(n => {
+          const read = isCustomerNotificationRead(n.id);
+          const time = n.time ? formatOrderDate(n.time, true) : "";
+          return '<button type="button" class="dm-notification-card ' + (read ? "" : "unread") + '" onclick="openCustomerNotification(' + JSON.stringify(n.id).replace(/"/g, '&quot;') + ')">' +
+            '<span class="dm-notification-icon">' + n.icon + '</span>' +
+            '<span class="dm-notification-copy"><span class="dm-notification-title">' + escapeHtml(n.title) + '</span><span class="dm-notification-message">' + escapeHtml(n.message) + '</span><span class="dm-notification-time">' + escapeHtml(time || "Account update") + '</span></span>' +
+            (read ? '' : '<span class="dm-notification-unread" aria-label="Unread"></span>') +
+          '</button>';
+        }).join("") : '<div class="modal-desc">No notifications in this category.</div>';
+        updateCustomerNotificationBadge();
+      }
+
+      function openCustomerNotification(id) {
+        const item = buildCustomerNotifications().find(n => n.id === id);
+        if (!item) return;
+        setCustomerNotificationRead(id, true);
+        updateCustomerNotificationBadge();
+        if (item.orderId != null) {
+          showAccountSection("orders");
+          setTimeout(() => openCustomerOrderDetail(item.orderId), 0);
+        } else if (item.type === "Reminders") {
+          showAccountSection("addresses");
+        } else if (item.type === "Offers") {
+          showAccountSection("profile");
+          showToast("Offers and product updates are enabled.");
+        } else {
+          renderCustomerNotifications();
+        }
+      }
+
+      function markAllCustomerNotificationsRead() {
+        buildCustomerNotifications().forEach(n => setCustomerNotificationRead(n.id, true));
+        renderCustomerNotifications();
+      }
+
+      function updateCustomerNotificationBadge() {
+        const unread = buildCustomerNotifications().filter(n => !isCustomerNotificationRead(n.id)).length;
+        const badge = document.getElementById("accountNotificationBadge");
+        if (badge) { badge.textContent = unread; badge.style.display = unread ? "inline-flex" : "none"; }
+      }
+
+      function confirmCustomerLogout() {
+        if (window.confirm("Are you sure you want to logout from your account?")) signOutCustomer();
+      }
+
+      function openTermsModal() {
+        let overlay = document.getElementById("dmProfileTermsOverlay");
+        if (!overlay) {
+          overlay = document.createElement("div");
+          overlay.id = "dmProfileTermsOverlay";
+          overlay.className = "overlay";
+          overlay.innerHTML = '<div class="modal" style="max-width:560px;width:min(560px,94vw);"><button class="modal-close" onclick="closeTermsModal()">✕</button><div class="modal-body"><h2 class="modal-title">Terms & Conditions</h2><p class="modal-desc">By using Design Makers, you agree to use the website responsibly and provide accurate information for orders and delivery. Product pricing, availability, customization details and delivery estimates may change. Orders are subject to confirmation and applicable payment/delivery rules.</p><p class="modal-desc" style="margin-bottom:0;">For account or order assistance, use Contact Support from Settings.</p></div></div>';
+          document.body.appendChild(overlay);
+        }
+        overlay.classList.add("open");
+      }
+      function closeTermsModal() {
+        const overlay = document.getElementById("dmProfileTermsOverlay");
+        if (overlay) overlay.classList.remove("open");
+      }
+      function moveAllWishlistToBag() {
+        const ids = wishlistIds();
+        let added = 0, skipped = [];
+        ids.forEach(id => {
+          const p = getProductByIdLocal(id);
+          if (!p) { skipped.push("Unavailable product"); return; }
+          const stock = getDisplayStock(p, (p.sizes && p.sizes[0]) || null);
+          if (stock.qty === 0) { skipped.push(p.name || "Product"); return; }
+          cart.push({productId:p.id,name:p.name,price:getSalePrice(p)||p.price,originalPrice:p.price,onSale:Boolean(getSalePrice(p)),image:p.image,size:(p.sizes&&p.sizes[0])||null,qty:Math.min(p.moq||1, stock.qty > 0 ? stock.qty : (p.moq||1)),discounts:p.discounts||[]});
+          added++;
+        });
+        if (added) { updateCartCount(); saveCart(); showToast(added + " item" + (added === 1 ? "" : "s") + " moved to your bag."); }
+        if (skipped.length) showToast("Unavailable items were skipped.");
       }
 
       function dmStageIndex(stage) {
@@ -6942,13 +7871,24 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         return i < 0 ? 0 : i;
       }
 
+      // Picks the status-pill style (green "done", red "cancelled", or the
+      // default in-progress style) to match the order's real status —
+      // previously every card always used the same in-progress pill class
+      // regardless of whether the order was Delivered or Cancelled.
+      function dmOrderPillClass(stage) {
+        const s = String(stage || "").toLowerCase();
+        if (s.includes("cancel")) return "cancelled";
+        if (s.includes("deliver")) return "done";
+        return "active";
+      }
+
       function renderCustomerStageTimeline(stage) {
         const current = dmStageIndex(stage || "Order Received");
         return '<div style="display:flex;gap:4px;align-items:flex-start;overflow-x:auto;padding:8px 0 3px;">' +
           DM_FULFILMENT_STAGES.map((st, i) => {
             const done = i < current, active = i === current;
-            return '<div style="min-width:82px;text-align:center;font-size:10px;color:' + (done || active ? '#7d465c' : '#a999a0') + ';font-weight:' + (active ? '800' : '600') + ';">' +
-              '<div style="width:20px;height:20px;border-radius:50%;margin:0 auto 5px;background:' + (done || active ? '#d8ad63' : '#eee6e9') + ';color:' + (done || active ? '#fff' : '#a999a0') + ';display:flex;align-items:center;justify-content:center;">' + (done ? '✓' : active ? '●' : '○') + '</div>' +
+            return '<div style="min-width:82px;text-align:center;font-size:10px;color:' + (done || active ? 'var(--dm-timeline-active)' : 'var(--dm-timeline-muted)') + ';font-weight:' + (active ? '800' : '600') + ';">' +
+              '<div style="width:20px;height:20px;border-radius:50%;margin:0 auto 5px;background:' + (done || active ? 'var(--dm-timeline-dot-on)' : 'var(--dm-timeline-dot-off)') + ';color:' + (done || active ? '#fff' : 'var(--dm-timeline-muted)') + ';display:flex;align-items:center;justify-content:center;">' + (done ? '✓' : active ? '●' : '○') + '</div>' +
               escapeHtml(st) + '</div>';
           }).join('') + '</div>';
       }
@@ -6959,10 +7899,10 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const stage = order.fulfilmentStage || order.status || "Order Received";
         return '<div class="card" style="padding:16px;margin-bottom:12px;border:1px solid var(--blush-line);border-radius:16px;cursor:pointer;" onclick="openCustomerOrderDetail(' + Number(order.id) + ')">' +
           '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;">' +
-          '<div><strong style="color:var(--rosewood);">' + escapeHtml(order.orderNumber || '') + '</strong><div style="font-size:.75rem;color:var(--muted);margin-top:3px;">' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div>' +
-          '<span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
+          '<div><strong style="color:var(--dm-text);">' + escapeHtml(order.orderNumber || '') + '</strong><div style="font-size:.75rem;color:var(--muted);margin-top:3px;">' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div>' +
+          '<span class="dm-order-status-pill ' + dmOrderPillClass(stage) + '">' + escapeHtml(stage) + '</span></div>' +
           '<div style="margin-top:10px;font-size:.84rem;color:var(--dm-text);">' + escapeHtml(items.map(i => (i.name || 'Product') + (i.size ? ' · ' + i.size : '') + ' × ' + Number(i.qty || 0)).join(' • ')) + '</div>' +
-          '<div style="margin-top:8px;font-weight:800;color:var(--rosewood);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
+          '<div style="margin-top:8px;font-weight:800;color:var(--dm-text);">₹' + fmtINR(Number(order.total || 0)) + '</div>' +
           renderCustomerStageTimeline(stage) +
           '<div style="margin-top:10px;"><button class="btn small secondary" onclick="event.stopPropagation();buyAgainOrder(' + Number(order.id) + ')">🔄 Buy Again</button></div>' +
           '</div>';
@@ -6995,18 +7935,18 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
         const itemStages = Array.isArray(order.itemFulfilment) ? order.itemFulfilment : [];
         box.innerHTML = '<button class="btn small secondary" onclick="closeCustomerOrderDetail()" style="margin-bottom:12px;">← Back to Orders</button>' +
           '<div class="card" style="padding:18px;border:1px solid var(--blush-line);border-radius:16px;">' +
-          '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><h3 style="margin:0;color:var(--rosewood);">' + escapeHtml(order.orderNumber || '') + '</h3><div style="font-size:.78rem;color:var(--muted);margin-top:4px;">Order date: ' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div><span class="dm-order-status-pill active">' + escapeHtml(stage) + '</span></div>' +
+          '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;"><div><h3 style="margin:0;color:var(--dm-text);">' + escapeHtml(order.orderNumber || '') + '</h3><div style="font-size:.78rem;color:var(--muted);margin-top:4px;">Order date: ' + escapeHtml(formatOrderDate(order.createdAt, false)) + '</div></div><span class="dm-order-status-pill ' + dmOrderPillClass(stage) + '">' + escapeHtml(stage) + '</span></div>' +
           renderCustomerStageTimeline(stage) +
-          '<div style="margin-top:15px;font-weight:800;color:var(--rosewood);">Products</div>' +
-          (order.items || []).map((it, idx) => { const st = itemStages[idx]?.stage || stage; return '<div style="padding:10px 0;border-bottom:1px solid var(--line);"><div style="font-weight:700;">' + escapeHtml(it.name || 'Product') + '</div><div style="font-size:.78rem;color:var(--muted);">' + (it.size ? 'Size: '+escapeHtml(it.size)+' · ' : '') + 'Qty: '+Number(it.qty||0)+' · ₹'+fmtINR(Number(it.lineTotal||0))+'</div><div style="font-size:.76rem;color:#7d465c;margin-top:4px;">Stage: <strong>'+escapeHtml(st)+'</strong></div></div>'; }).join('') +
+          '<div style="margin-top:15px;font-weight:800;color:var(--dm-text);">Products</div>' +
+          (order.items || []).map((it, idx) => { const st = itemStages[idx]?.stage || stage; return '<div style="padding:10px 0;border-bottom:1px solid var(--line);"><div style="font-weight:700;">' + escapeHtml(it.name || 'Product') + '</div><div style="font-size:.78rem;color:var(--muted);">' + (it.size ? 'Size: '+escapeHtml(it.size)+' · ' : '') + 'Qty: '+Number(it.qty||0)+' · ₹'+fmtINR(Number(it.lineTotal||0))+'</div><div style="font-size:.76rem;color:var(--dm-timeline-active);margin-top:4px;">Stage: <strong>'+escapeHtml(st)+'</strong></div></div>'; }).join('') +
           (order.gift && order.gift.isGift
-            ? '<div style="margin-top:14px;font-weight:800;color:var(--rosewood);">🎁 Gift Order</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' +
+            ? '<div style="margin-top:14px;font-weight:800;color:var(--dm-text);">🎁 Gift Order</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' +
               (order.gift.recipientName ? 'To: ' + escapeHtml(order.gift.recipientName) + '<br>' : '') +
               (order.gift.message ? '“' + escapeHtml(order.gift.message) + '”<br>' : '') +
               (order.gift.hidePrice ? 'Price hidden from recipient' : '') +
               '</div>'
             : '') +
-          '<div style="margin-top:14px;font-weight:800;color:var(--rosewood);">Delivery</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' + escapeHtml(order.customer?.name || '') + '<br>' + escapeHtml(order.customer?.phone || '') + '<br>' + escapeHtml(order.customer?.address || '') + '</div>' +
+          '<div style="margin-top:14px;font-weight:800;color:var(--dm-text);">Delivery</div><div style="font-size:.82rem;color:var(--muted);margin-top:5px;">' + escapeHtml(order.customer?.name || '') + '<br>' + escapeHtml(order.customer?.phone || '') + '<br>' + escapeHtml(order.customer?.address || '') + '</div>' +
           '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-weight:800;">Total: ₹' + fmtINR(Number(order.total || 0)) + '</div></div>';
       }
 

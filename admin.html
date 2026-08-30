@@ -816,6 +816,7 @@
           <button class="dm-nav-item" id="tabBtnSellerlist" onclick="switchTab('sellerlist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v10h16V9"/><path d="M9 19v-6h6v6"/></svg>Live Sellers</button>
           <button class="dm-nav-item" id="tabBtnSellers" onclick="switchTab('sellers')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>Approval for Seller</button>
           <button class="dm-nav-item" id="tabBtnCustomers" onclick="switchTab('customers')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>Customers</button>
+          <button class="dm-nav-item" id="tabBtnCallbacks" onclick="switchTab('callbacks')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>Callback Requests</button>
           <button class="dm-nav-item hidden" id="tabBtnGiftcodes" onclick="switchTab('giftcodes')"><span style="font-size:16px;line-height:1;">🎁</span>Gift Codes</button>
           <button class="dm-nav-item hidden" id="tabBtnMarketing" onclick="switchTab('marketing')"><span style="font-size:16px;line-height:1;">📣</span>Marketing</button>
           <button class="dm-nav-item hidden" id="tabBtnAdmins" onclick="switchTab('admins')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/></svg>Admins</button>
@@ -1245,6 +1246,17 @@
             <div id="customersLoading">Loading customers...</div>
             <div id="customersList"></div>
             <div id="customersPager" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px;"></div>
+          </div>
+        </div>
+        <!-- CALLBACK REQUESTS TAB -->
+        <div class="tab-panel" id="tabCallbacks">
+          <div class="card" style="padding:0;overflow:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:16px 16px 0;">
+              <div><h3 style="margin:0 0 6px;color:var(--gold-soft);">📞 Callback Requests</h3><p class="phone" style="margin:0;">Customers asking for a call back — name, mobile number and reason. Update the status once you've called them.</p></div>
+              <button class="btn small secondary" style="margin:0 16px 10px 0;" onclick="loadCallbackRequestsTab()">↻ Refresh</button>
+            </div>
+            <div id="callbackRequestsLoading" style="padding:20px;color:var(--muted);">Loading callback requests...</div>
+            <div id="callbackRequestsTableWrap" style="display:none;"></div>
           </div>
         </div>
         <!-- GIFT CODES TAB (boss only) -->
@@ -2003,6 +2015,7 @@
         sellerlist: ["Live Sellers", "Approved sellers & their products"],
         sellers: ["Approval for Seller", "Review sellers & products"],
         customers: ["Customers", "Registered accounts"],
+        callbacks: ["Callback Requests", "Customers asking for a call back"],
         admins: ["Admins", "Team access & roles"],
         giftcodes: ["Gift Codes", "Create and manage customer discounts"],
         marketing: ["Marketing & Offers", "Customer campaigns and product updates"],
@@ -2058,7 +2071,7 @@
         currentTab = tab;
         dmPushHistoryState({ dmTab: tab });
 
-        ["overview", "products", "inventory", "orders", "homepage", "sellerlist", "sellers", "customers", "admins", "giftcodes", "marketing"].forEach((t) => {
+        ["overview", "products", "inventory", "orders", "homepage", "sellerlist", "sellers", "customers", "callbacks", "admins", "giftcodes", "marketing"].forEach((t) => {
           document.getElementById("tab" + capitalize(t)).classList.toggle("active", t === tab);
           document.getElementById("tabBtn" + capitalize(t)).classList.toggle("active", t === tab);
         });
@@ -2103,6 +2116,7 @@
           loadPendingProducts();
         }
         if (tab === "customers") loadCustomers();
+        if (tab === "callbacks") loadCallbackRequestsTab();
         if (tab === "admins") loadAdmins();
         if (tab === "giftcodes") loadGiftCodes();
         if (tab === "marketing") loadMarketing();
@@ -3186,6 +3200,124 @@
           await loadAdminNotifications();
           showToast("Callback request updated.");
         } catch (e) { showToast(e.message || "Unable to update callback request."); }
+      }
+
+      // ---------- CALLBACK REQUESTS TAB (full list, boss + every sub-admin) ----------
+      // Shares the same adminNotificationRequests data/state as the bell
+      // dropdown above (both hit the same requireAdmin-only endpoints, so
+      // any admin or sub-admin who can log in can already see this — there
+      // is no customer/seller path into these routes).
+      async function loadCallbackRequestsTab() {
+        const loading = document.getElementById("callbackRequestsLoading");
+        const wrap = document.getElementById("callbackRequestsTableWrap");
+        if (loading) loading.style.display = "block";
+        if (wrap) wrap.style.display = "none";
+        await loadAdminNotifications();
+        renderCallbackRequestsTable();
+        if (loading) loading.style.display = "none";
+        if (wrap) wrap.style.display = "block";
+        // Opening this dedicated tab is a clear "the admin has seen these"
+        // signal, same as clicking one open in the bell dropdown — mark any
+        // still-unread requests read here too so the bell badge clears.
+        const unread = adminNotificationRequests.filter(r => !(Array.isArray(r.readBy) && r.readBy.includes(myUsername)));
+        if (unread.length) {
+          await Promise.all(unread.map(r =>
+            fetch("/api/admin/callback-requests/" + encodeURIComponent(r.id) + "/read", { method:"PUT", headers:{ Authorization:"Bearer "+token, "Content-Type":"application/json" } })
+              .then(() => { r.readBy = Array.isArray(r.readBy) ? r.readBy : []; if (myUsername && !r.readBy.includes(myUsername)) r.readBy.push(myUsername); })
+              .catch(() => {})
+          ));
+          updateAdminNotificationBadge(adminNotificationRequests.filter(r => !(Array.isArray(r.readBy) && r.readBy.includes(myUsername))).length);
+        }
+      }
+
+      function renderCallbackRequestsTable() {
+        const wrap = document.getElementById("callbackRequestsTableWrap");
+        if (!wrap) return;
+        if (!adminNotificationRequests.length) {
+          wrap.innerHTML = '<div class="dm-empty" style="padding:20px;">No callback requests yet.</div>';
+          return;
+        }
+        const rows = adminNotificationRequests.slice().sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0)).map((r) => {
+          const when = r.createdAt ? new Date(r.createdAt).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+          const order = r.orderNumber ? escapeHtml(r.orderNumber) : '<span style="color:var(--muted);">General enquiry</span>';
+          const statusOptions = ['New','Contacted','Completed','Cancelled'].map(x => '<option value="'+x+'" '+(r.status===x?'selected':'')+'>'+x+'</option>').join('');
+          const reasonPreview = escapeHtml((r.reason || "").length > 60 ? (r.reason || "").slice(0, 60) + "…" : (r.reason || ""));
+          return '<tr>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);font-weight:700;">'+escapeHtml(r.name || "Customer")+'</td>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);white-space:nowrap;">'+escapeHtml(r.phone || "—")+'</td>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);max-width:260px;">'+reasonPreview+'</td>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);">'+order+'</td>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);white-space:nowrap;font-size:11.5px;color:var(--muted);">'+escapeHtml(when)+'</td>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);"><select class="checkout-input" style="padding:6px 8px;font-size:12px;width:auto;" onchange="updateCallbackRowStatus('+Number(r.id)+', this.value)">'+statusOptions+'</select></td>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);"><button class="btn small secondary" type="button" onclick="openCallbackRequestDetail('+Number(r.id)+')">View</button></td>' +
+          '</tr>';
+        }).join("");
+        wrap.innerHTML = '<table style="width:100%;border-collapse:collapse;min-width:960px;"><thead><tr style="background:var(--blush);text-align:left;">' +
+          '<th style="padding:12px 10px;">Name</th><th style="padding:12px 10px;">Mobile Number</th><th style="padding:12px 10px;">Reason</th>' +
+          '<th style="padding:12px 10px;">Order</th><th style="padding:12px 10px;">Received</th><th style="padding:12px 10px;">Status</th><th style="padding:12px 10px;">Details</th>' +
+          '</tr></thead><tbody>'+rows+'</tbody></table>';
+      }
+
+      // Full-detail popup for one callback request — the table row only
+      // shows a short preview of the reason, this shows everything.
+      function openCallbackRequestDetail(id) {
+        const r = adminNotificationRequests.find((x) => Number(x.id) === Number(id));
+        const overlay = document.getElementById("callbackDetailOverlay");
+        const body = document.getElementById("callbackDetailBody");
+        if (!overlay || !body || !r) return;
+        const when = r.createdAt ? new Date(r.createdAt).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+        const updated = r.updatedAt ? new Date(r.updatedAt).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+        const order = r.orderNumber ? '<div class="stat-card"><div class="stat-label">Order</div><div class="stat-value" style="font-size:14px;">'+escapeHtml(r.orderNumber)+'</div></div>' : '<div class="stat-card"><div class="stat-label">Order</div><div class="stat-value" style="font-size:14px;color:var(--muted);">General enquiry</div></div>';
+        const statusOptions = ['New','Contacted','Completed','Cancelled'].map(x => '<option value="'+x+'" '+(r.status===x?'selected':'')+'>'+x+'</option>').join('');
+        body.innerHTML =
+          '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Request ID '+escapeHtml(r.requestId || ('#'+r.id))+' · Received '+escapeHtml(when)+'</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px;">' +
+            '<div class="stat-card"><div class="stat-label">Name</div><div class="stat-value" style="font-size:14px;">'+escapeHtml(r.name || "Customer")+'</div></div>' +
+            '<div class="stat-card"><div class="stat-label">Phone</div><div class="stat-value" style="font-size:14px;">'+(r.phone ? '<a href="'+escapeHtml('https://wa.me/91'+String(r.phone).replace(/\\D/g,''))+'" target="_blank" style="color:inherit;">'+escapeHtml(r.phone)+'</a>' : '—')+'</div></div>' +
+            order +
+          '</div>' +
+          '<div style="padding:14px 16px;border-radius:10px;background:var(--field);margin-bottom:16px;">' +
+            '<div style="font-size:11px;color:var(--muted);font-weight:800;margin-bottom:6px;">FULL REASON</div>' +
+            '<div style="font-size:13.5px;line-height:1.6;white-space:pre-wrap;">'+escapeHtml(r.reason || "")+'</div>' +
+          '</div>' +
+          '<div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;">Last updated '+escapeHtml(updated)+'</div>' +
+          '<div><label style="font-size:11px;color:var(--muted);font-weight:800;">Status</label><select id="callbackDetailStatus" class="checkout-input" style="width:100%;margin-top:4px;">'+statusOptions+'</select></div>' +
+          '<button class="btn small" style="margin-top:10px;width:100%;" onclick="saveCallbackDetailStatus('+Number(r.id)+')">Save Status</button>';
+        overlay.style.display = "flex";
+      }
+
+      function closeCallbackRequestDetail() {
+        const overlay = document.getElementById("callbackDetailOverlay");
+        if (overlay) overlay.style.display = "none";
+      }
+
+      async function saveCallbackDetailStatus(id) {
+        const select = document.getElementById("callbackDetailStatus");
+        const status = select ? select.value : "";
+        try {
+          const res = await fetch("/api/admin/callback-requests/" + encodeURIComponent(id) + "/status", { method:"PUT", headers:{ Authorization:"Bearer "+token, "Content-Type":"application/json" }, body:JSON.stringify({status}) });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Unable to update callback request.");
+          const local = adminNotificationRequests.find(r => Number(r.id) === Number(id));
+          if (local) local.status = status;
+          renderCallbackRequestsTable();
+          showToast("Callback request updated.");
+          closeCallbackRequestDetail();
+        } catch (e) { showToast(e.message || "Unable to update callback request."); }
+      }
+
+      async function updateCallbackRowStatus(id, status) {
+        try {
+          const res = await fetch("/api/admin/callback-requests/" + encodeURIComponent(id) + "/status", { method:"PUT", headers:{ Authorization:"Bearer "+token, "Content-Type":"application/json" }, body:JSON.stringify({status}) });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Unable to update callback request.");
+          const local = adminNotificationRequests.find(r => Number(r.id) === Number(id));
+          if (local) local.status = status;
+          showToast("Callback request updated.");
+        } catch (e) {
+          showToast(e.message || "Unable to update callback request.");
+          renderCallbackRequestsTable();
+        }
       }
 
       document.addEventListener("click", function(e){
@@ -6075,6 +6207,15 @@
         <button class="btn small secondary" onclick="closeCustomerDetails()" style="position:absolute; top:14px; right:14px;">✕</button>
         <h3 style="margin:0 0 16px; color: var(--gold-soft);">Customer details</h3>
         <div id="customerDetailBody"></div>
+      </div>
+    </div>
+
+    <!-- CALLBACK REQUEST DETAILS MODAL -->
+    <div id="callbackDetailOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9998; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--cream); border:1px solid var(--blush-line); border-radius:12px; padding:24px; max-width:520px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
+        <button class="btn small secondary" onclick="closeCallbackRequestDetail()" style="position:absolute; top:14px; right:14px;">✕</button>
+        <h3 style="margin:0 0 16px; color: var(--gold-soft);">📞 Callback request details</h3>
+        <div id="callbackDetailBody"></div>
       </div>
     </div>
 
