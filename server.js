@@ -20,9 +20,36 @@ const app = express();
 // one handler references it.
 const DESIGN_MAKERS_WHATSAPP = "https://wa.me/917004847813";
 
+// Single source of truth for social links used across every outgoing email
+// (marketing/offer emails, callback-request emails, etc). Update here once
+// and every email footer picks up the change — TODO: confirm these are the
+// live, correct handles.
+const DESIGN_MAKERS_INSTAGRAM = "https://www.instagram.com/designmakers.in";
+const DESIGN_MAKERS_YOUTUBE = "https://youtube.com/@designmakershub";
+
 function buildWhatsAppUrl(number) {
   const digits = String(number || "").replace(/\D/g, "");
   return digits.length >= 8 ? `https://wa.me/${digits}` : DESIGN_MAKERS_WHATSAPP;
+}
+
+// Shared footer for transactional/marketing emails — Instagram, YouTube,
+// WhatsApp, each as a small icon badge + label so it reads as "follow us"
+// rather than plain text links. Kept in one place so a broken/changed link
+// only needs fixing once instead of hunting through every email template.
+function buildEmailSocialFooter() {
+  const badge = (href, bg, icon, label) =>
+    `<a href="${href}" target="_blank" style="display:inline-block;margin:0 7px 8px;text-decoration:none;">` +
+    `<span style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:${bg};color:#fffaf5;font-size:14px;text-align:center;vertical-align:middle;box-shadow:0 2px 6px rgba(107,48,40,0.18);">${icon}</span>` +
+    `<span style="display:inline-block;vertical-align:middle;margin-left:7px;font-size:12px;font-weight:700;letter-spacing:0.2px;color:#6b3028;">${label}</span></a>`;
+  const logoBadge = `<a href="${SITE_URL}" target="_blank" style="display:inline-block;margin:0 7px 8px;text-decoration:none;">` +
+    `<img src="${SITE_URL}/Logo.png" alt="DM" width="32" height="32" style="width:32px;height:32px;border-radius:50%;vertical-align:middle;box-shadow:0 2px 6px rgba(107,48,40,0.18);">` +
+    `<span style="display:inline-block;vertical-align:middle;margin-left:7px;font-size:12px;font-weight:700;letter-spacing:0.2px;color:#6b3028;">DM</span></a>`;
+  return `<div style="text-align:center;margin:0 0 6px;">` +
+    `<div style="font-size:10.5px;font-weight:800;color:#a56a2a;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:12px;">Follow Us For Offers &amp; New Arrivals</div>` +
+    badge(DESIGN_MAKERS_INSTAGRAM, "#a83a5c", "📷", "Instagram") +
+    badge(DESIGN_MAKERS_YOUTUBE, "#9c3b32", "▶", "YouTube") +
+    logoBadge +
+    `</div>`;
 }
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
@@ -248,10 +275,7 @@ function buildMarketingEmail(campaign, unsubscribeToken) {
     `<div style="font-size:15px;line-height:1.65;">${body}</div>` +
     grid + giftSection + button +
     `<hr style="border:0;border-top:1px solid #ead8d0;margin:28px 0 16px;">` +
-    `<div style="text-align:center;font-size:12px;margin:0 0 14px;">` +
-    `<a href="https://www.instagram.com/designmakers.in" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">Instagram</a>` +
-    `<a href="https://youtube.com/@designmakershub" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">YouTube</a>` +
-    `<a href="https://wa.me/7004847813" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">WhatsApp</a></div>` +
+    buildEmailSocialFooter() +
     `<p style="font-size:12px;color:#806e68;text-align:center;margin:0;">You're receiving this because you're subscribed to Design Makers offers & product updates.</p>` +
     `<p style="font-size:12px;text-align:center;margin:9px 0 0;"><a href="${unsubscribeUrl}" style="color:#6b3028;">Unsubscribe from offers &amp; product updates</a></p>` +
     `</div></div></body></html>`;
@@ -6122,43 +6146,77 @@ app.post("/api/orders/track", trackOrderLimiter, (req, res) => {
 // The website records a callback request; an admin/sub-admin calls the
 // customer back directly — there is no WhatsApp handoff in this flow.
 
+// Shared wrapper so both callback-request emails (admin + customer) look
+// like one consistent, premium brand — not two ad-hoc templates.
+function callbackEmailShell(innerHtml) {
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>` +
+    `<body style="margin:0;background:#f3e6e2;font-family:Georgia,'Times New Roman',serif;color:#2f2521;">` +
+    `<div style="max-width:560px;margin:0 auto;padding:32px 14px;">` +
+    `<div style="background:linear-gradient(135deg,#b8863f,#e3c07f 45%,#b8863f);padding:2px;border-radius:20px;box-shadow:0 14px 34px rgba(72,38,28,.14);">` +
+    `<div style="background:#fffdfb;border-radius:19px;padding:36px 32px;">` +
+    `<div style="text-align:center;margin-bottom:22px;">` +
+    `<img src="${SITE_URL}/Logo.png" alt="Design Makers" width="58" height="58" style="width:58px;height:58px;display:block;margin:0 auto 10px;">` +
+    `<div style="font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:700;letter-spacing:3px;color:#6b3028;">DESIGN MAKERS</div>` +
+    `<div style="font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:#b8863f;margin-top:4px;">Customized Gifts</div>` +
+    `</div>` +
+    `<div style="height:1px;background:linear-gradient(90deg,transparent,#dcb877,transparent);margin:0 0 26px;"></div>` +
+    `<div style="font-family:Arial,Helvetica,sans-serif;">` +
+    innerHtml +
+    `</div>` +
+    `<div style="height:1px;background:linear-gradient(90deg,transparent,#dcb877,transparent);margin:30px 0 22px;"></div>` +
+    `<div style="font-family:Arial,Helvetica,sans-serif;">` +
+    buildEmailSocialFooter() +
+    `<p style="font-size:11px;color:#b3a49d;text-align:center;letter-spacing:0.4px;margin:14px 0 0;">With warmth, Design Makers ✦ Gifts Made Personal</p>` +
+    `</div>` +
+    `</div></div></div></body></html>`;
+}
+
 function buildAdminCallbackRequestEmail(request) {
-  const orderLine = request.orderNumber
-    ? `<p style="margin:0 0 8px;"><b>Order:</b> ${request.orderNumber}</p>`
-    : `<p style="margin:0 0 8px;color:#8c7d78;">General enquiry (no order attached)</p>`;
-  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
-       <h2 style="color:#8a1c42;margin-bottom:4px;">🔔 New callback request</h2>
-       <p>A customer has submitted a callback request through the website.</p>
-       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
-         <p style="margin:0 0 8px;"><b>Request ID:</b> ${request.requestId}</p>
-         <p style="margin:0 0 8px;"><b>Name:</b> ${request.name || "Not provided"}</p>
-         <p style="margin:0 0 8px;"><b>Phone:</b> ${request.phone || "Not provided"}</p>
-         ${orderLine}
-         <p style="margin:0;"><b>Reason:</b> ${request.reason}</p>
+  const row = (label, value) =>
+    `<tr><td style="padding:9px 0;border-bottom:1px solid #f0e2d6;font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;width:110px;vertical-align:top;">${label}</td>` +
+    `<td style="padding:9px 0;border-bottom:1px solid #f0e2d6;font-size:14px;color:#33231f;vertical-align:top;">${value}</td></tr>`;
+  const orderValue = request.orderNumber ? escapeHtml(request.orderNumber) : '<span style="color:#a89892;">General enquiry — no order attached</span>';
+  const inner = `
+       <div style="text-align:center;margin-bottom:22px;">
+         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#b8863f;font-weight:700;">New Callback Request</div>
+         <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:8px 0 0;font-size:22px;font-weight:700;">A customer would like a call back</h2>
        </div>
-       <p style="font-size:0.85em;color:#8c7d78;">Open the admin panel's Callback Requests tab (or the bell icon) to mark this as contacted/completed.</p>
-       <p style="margin-top:18px;">— Design Makers Website</p>
-     </div>`;
+       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px;">
+         ${row("Request ID", escapeHtml(request.requestId))}
+         ${row("Name", escapeHtml(request.name || "Not provided"))}
+         ${row("Phone", `<a href="${buildWhatsAppUrl(request.phone)}" style="color:#8a1c42;font-weight:700;text-decoration:none;">${escapeHtml(request.phone || "Not provided")} ↗</a>`)}
+         ${row("Order", orderValue)}
+       </table>
+       <div style="background:#faf3ee;border-left:3px solid #b8863f;border-radius:8px;padding:16px 18px;margin:0 0 20px;">
+         <div style="font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;margin-bottom:6px;">Reason</div>
+         <div style="font-size:14px;line-height:1.6;color:#33231f;white-space:pre-wrap;">${escapeHtml(request.reason || "")}</div>
+       </div>
+       <p style="font-size:12.5px;color:#8c7d78;margin:0;text-align:center;">Open the admin panel's Callback Requests tab (or the bell icon) to mark this as contacted/completed.</p>`;
+  return callbackEmailShell(inner);
 }
 
 // Sent to the customer themselves, confirming their request went through —
 // separate from the admin-facing notification above.
 function buildCustomerCallbackConfirmationEmail(request) {
   const orderLine = request.orderNumber
-    ? `<p style="margin:0 0 8px;"><b>Regarding order:</b> ${request.orderNumber}</p>`
+    ? `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;margin:14px 0 3px;">Regarding Order</div><div style="font-size:14px;color:#33231f;">${escapeHtml(request.orderNumber)}</div>`
     : "";
-  return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;line-height:1.5;color:#2f2521;">
-       <h2 style="color:#8a1c42;margin-bottom:4px;">Your callback request has been submitted</h2>
-       <p>Hi ${escapeHtml(request.name || "there")},</p>
-       <p>We've received your callback request. Our team will connect with you shortly on <b>${escapeHtml(request.phone || "your registered number")}</b>.</p>
-       <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
-         <p style="margin:0 0 8px;"><b>Request ID:</b> ${request.requestId}</p>
-         ${orderLine}
-         <p style="margin:0;"><b>Your message:</b> ${escapeHtml(request.reason || "")}</p>
+  const inner = `
+       <div style="text-align:center;margin-bottom:22px;">
+         <div style="font-size:32px;margin-bottom:6px;">✅</div>
+         <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:0;font-size:22px;font-weight:700;">Your callback request is confirmed</h2>
        </div>
-       <p style="color:#8c7d78;font-size:13px;">If anything changes and you'd like to reach us sooner, you're welcome to message us on WhatsApp too.</p>
-       <p style="margin-top:18px;">— Design Makers</p>
-     </div>`;
+       <p style="font-size:15px;line-height:1.7;margin:0 0 8px;">Hi ${escapeHtml(request.name || "there")},</p>
+       <p style="font-size:15px;line-height:1.7;margin:0 0 22px;color:#5b4741;">Thank you for reaching out. Our team will personally connect with you shortly on <b style="color:#8a1c42;">${escapeHtml(request.phone || "your registered number")}</b>.</p>
+       <div style="background:#faf3ee;border:1px solid #ecd7dd;border-radius:12px;padding:18px 20px;margin:0 0 22px;">
+         <div style="font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;margin-bottom:3px;">Request ID</div>
+         <div style="font-size:15px;font-weight:700;color:#33231f;letter-spacing:0.5px;">${escapeHtml(request.requestId)}</div>
+         ${orderLine}
+         <div style="font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;margin:14px 0 3px;">Your Message</div>
+         <div style="font-size:14px;line-height:1.6;color:#33231f;white-space:pre-wrap;">${escapeHtml(request.reason || "")}</div>
+       </div>
+       <p style="color:#8c7d78;font-size:13px;line-height:1.6;margin:0;text-align:center;">If anything changes and you'd like to reach us sooner, you're always welcome to message us on WhatsApp.</p>`;
+  return callbackEmailShell(inner);
 }
 
 app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
