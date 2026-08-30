@@ -6454,15 +6454,33 @@ app.get("/api/admin/orders", requireAdmin, (req, res) => {
     .slice()
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   const { slice, meta } = paginate(req, sorted);
-  const orders = slice.map((order) => ({
+  const orders = slice.map((order) => enrichAdminOrder(database, order));
+  res.json({ success: true, orders, ...meta });
+});
+
+// Full detail for a single order — used by the admin "order details" modal
+// (opened from both the Orders tab and the Dashboard's Recent Orders list),
+// so it always reflects the latest status/payment/fulfilment state
+// regardless of which in-memory list the click came from.
+app.get("/api/admin/orders/:id", requireAdmin, (req, res) => {
+  const database = readDatabase();
+  const id = Number(req.params.id);
+  const order = database.orders.find((o) => o.id === id);
+  if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+  res.json({ success: true, order: enrichAdminOrder(database, order) });
+});
+
+// Tags each order's line items with seller identity and includes the
+// per-seller fulfilment breakdown — same enrichment used by both the
+// order list and the single-order detail endpoint above, kept in one
+// place so the two never drift out of sync.
+function enrichAdminOrder(database, order) {
+  return {
     ...order,
     sellerFulfilment: getSellerFulfilment(database, order).map(r => {
       const seller = database.sellers.find(s => s.id === r.sellerId);
       return { ...r, sellerName: seller ? (seller.shopTitle || seller.name) : "Unknown seller" };
     }),
-    // Tag each line item with who it came from — a seller's shop title,
-    // or null for products listed directly by an admin — so the admin
-    // panel can show whose products are actually being ordered.
     items: (order.items || []).map((item) => {
       const product = database.products.find((p) => p.id === item.productId);
       const seller = product && product.sellerId
@@ -6474,9 +6492,8 @@ app.get("/api/admin/orders", requireAdmin, (req, res) => {
         sellerName: seller ? (seller.shopTitle || seller.name) : null,
       };
     }),
-  }));
-  res.json({ success: true, orders, ...meta });
-});
+  };
+}
 
 const ORDER_STATUSES = ["New", "Processing", "Shipped", "Delivered", "Cancelled"];
 
