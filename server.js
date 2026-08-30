@@ -24,7 +24,7 @@ const DESIGN_MAKERS_WHATSAPP = "https://wa.me/917004847813";
 // (marketing/offer emails, callback-request emails, etc). Update here once
 // and every email footer picks up the change — TODO: confirm these are the
 // live, correct handles.
-const DESIGN_MAKERS_INSTAGRAM = "https://www.instagram.com/designmakers.in";
+const DESIGN_MAKERS_INSTAGRAM = "https://www.instagram.com/designmakers.site";
 const DESIGN_MAKERS_YOUTUBE = "https://youtube.com/@designmakershub";
 
 function buildWhatsAppUrl(number) {
