@@ -2893,11 +2893,24 @@ body.theme-rakshabandhan .mobile-action-bar {background:rgba(255,253,249,.94)!im
       body.dark-mode .dm-settings-tile,
       body.dark-mode .dm-profile-notice,
       body.dark-mode .dm-profile-address-card {
-        background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)) !important;
+        background: linear-gradient(145deg, rgba(255,255,255,.055), rgba(255,255,255,.018)), rgba(10,13,18,.62) !important;
         border: 1px solid rgba(255,255,255,.10) !important;
         box-shadow: 0 16px 40px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05) !important;
         backdrop-filter: blur(18px) saturate(160%);
         -webkit-backdrop-filter: blur(18px) saturate(160%);
+      }
+      /* Quick-action / settings cards sit over a busy blurred photo backdrop
+         in dark mode — bump the label contrast explicitly so it stays
+         readable instead of relying on the low-opacity glass tint alone. */
+      body.dark-mode .dm-profile-quick-card strong,
+      body.dark-mode .dm-settings-tile strong {
+        color: #f5f7fb;
+        text-shadow: 0 1px 3px rgba(0,0,0,.5);
+      }
+      body.dark-mode .dm-profile-quick-card small,
+      body.dark-mode .dm-settings-tile small {
+        color: #c3cbdc;
+        text-shadow: 0 1px 3px rgba(0,0,0,.5);
       }
       body.dark-mode .dm-profile-stat-card:hover,
       body.dark-mode .dm-profile-quick-card:hover,
