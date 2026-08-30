@@ -2435,19 +2435,25 @@
         const ids = ["ovRevenue","ovOrders","ovCustomers","ovProducts","ovPending","ovSellers","ovRecentOrders","ovQueue","ovInventoryHealth"];
         ids.forEach((id) => { const el = document.getElementById(id); if (el && (id === "ovRecentOrders" || id === "ovQueue" || id === "ovInventoryHealth")) el.innerHTML = '<div class="dm-empty">Loading…</div>'; });
         const auth = { Authorization: "Bearer " + token };
+        // Every widget's data is fetched together in one Promise.all instead
+        // of one-after-another — sellers / seller-applications / callback
+        // requests used to each be a separate awaited round trip *after*
+        // the first batch finished, which stacked their latencies on top of
+        // each other and made the whole dashboard noticeably slower to
+        // paint. Firing all of them at once means the page is only ever as
+        // slow as the single slowest request, not the sum of all of them.
+        const fetchJson = (url) => fetch(url, { headers: auth }).then(r => r.json()).catch(() => ({ success: false }));
         try {
-          const [productsRes, ordersRes, customersRes, pendingRes, inventoryRes] = await Promise.all([
-            fetch("/api/admin/products", { headers: auth }),
-            fetch("/api/admin/orders", { headers: auth }),
-            fetch("/api/admin/customers", { headers: auth }),
-            fetch("/api/admin/products/pending", { headers: auth }),
-            fetch("/api/admin/inventory", { headers: auth }),
+          const [productsData, ordersData, customersData, pendingData, inventoryData, sellersData, appsData, cbData] = await Promise.all([
+            fetchJson("/api/admin/products"),
+            fetchJson("/api/admin/orders"),
+            fetchJson("/api/admin/customers"),
+            fetchJson("/api/admin/products/pending"),
+            fetchJson("/api/admin/inventory"),
+            role === "boss" ? fetchJson("/api/admin/sellers") : Promise.resolve(null),
+            role === "boss" ? fetchJson("/api/admin/seller-applications") : Promise.resolve(null),
+            fetchJson("/api/admin/callback-requests"),
           ]);
-          const productsData = await productsRes.json();
-          const ordersData = await ordersRes.json();
-          const customersData = await customersRes.json();
-          const pendingData = await pendingRes.json();
-          const inventoryData = await inventoryRes.json();
           if (!productsData.success || !ordersData.success || !customersData.success) throw new Error("Could not load overview data");
 
           const ps = productsData.products || [];
@@ -2477,14 +2483,10 @@
 
           let dmSellerNameById = {};
           if (role === "boss") {
-            try {
-              const sellersRes = await fetch("/api/admin/sellers", { headers: auth });
-              const sellersData = await sellersRes.json();
-              const sellerList = sellersData.success ? (sellersData.sellers || []) : [];
-              sellerList.forEach(s => { dmSellerNameById[Number(s.id)] = s.name || s.shopTitle || ("Seller #" + s.id); });
-              document.getElementById("ovSellers").textContent = sellersData.success ? sellerList.length.toLocaleString("en-IN") : "—";
-              document.getElementById("ovSellersSub").textContent = sellersData.success ? "Approved live sellers" : "Could not load";
-            } catch(e) { document.getElementById("ovSellers").textContent = "—"; }
+            const sellerList = sellersData && sellersData.success ? (sellersData.sellers || []) : [];
+            sellerList.forEach(s => { dmSellerNameById[Number(s.id)] = s.name || s.shopTitle || ("Seller #" + s.id); });
+            document.getElementById("ovSellers").textContent = sellersData && sellersData.success ? sellerList.length.toLocaleString("en-IN") : "—";
+            document.getElementById("ovSellersSub").textContent = sellersData && sellersData.success ? "Approved live sellers" : "Could not load";
           } else {
             document.getElementById("ovSellers").textContent = "Restricted";
             document.getElementById("ovSellersSub").textContent = "Boss-only seller identity data";
@@ -2569,19 +2571,11 @@
           let dmBellTotal = pendingProducts.length;
           if (pendingProducts.length) queue.push({title:"Seller products",desc:pendingProducts.length+" product(s) waiting for approval",action:"Review in Seller Approvals",tab:"sellers"});
           if (role === "boss") {
-            try {
-              const appRes = await fetch("/api/admin/seller-applications", { headers: auth });
-              const appData = await appRes.json();
-              const pendingApps = appData.success ? (appData.applications||[]).filter(a => a.status === "pending") : [];
-              if (pendingApps.length) { queue.push({title:"Seller applications",desc:pendingApps.length+" application(s) waiting for approval",action:"Review applications",tab:"sellers"}); dmBellTotal += pendingApps.length; }
-            } catch(e) {}
+            const pendingApps = appsData && appsData.success ? (appsData.applications||[]).filter(a => a.status === "pending") : [];
+            if (pendingApps.length) { queue.push({title:"Seller applications",desc:pendingApps.length+" application(s) waiting for approval",action:"Review applications",tab:"sellers"}); dmBellTotal += pendingApps.length; }
           }
-          try {
-            const cbRes = await fetch("/api/admin/callback-requests", { headers: auth });
-            const cbData = await cbRes.json();
-            const newCallbacks = cbData.success ? (cbData.requests||[]).filter(r => r.status === "New") : [];
-            if (newCallbacks.length) { queue.push({title:"Callback requests",desc:newCallbacks.length+" customer(s) waiting for a call back",action:"Review in Callback Requests",tab:"callbacks"}); dmBellTotal += newCallbacks.length; }
-          } catch(e) {}
+          const newCallbacks = cbData && cbData.success ? (cbData.requests||[]).filter(r => r.status === "New") : [];
+          if (newCallbacks.length) { queue.push({title:"Callback requests",desc:newCallbacks.length+" customer(s) waiting for a call back",action:"Review in Callback Requests",tab:"callbacks"}); dmBellTotal += newCallbacks.length; }
           // Each item names its own tab explicitly (not just the action
           // button's wording) so it's unambiguous which section of the
           // admin panel the item belongs to before clicking through.
