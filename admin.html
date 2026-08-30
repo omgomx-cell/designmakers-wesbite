@@ -2163,10 +2163,13 @@
       }
 
       // ---- Page 1: Seller List ----
-      async function loadInventorySellers() {
-        invShowPage("sellers");
+      // silent=true is used by the 5s background auto-refresh: it re-fetches
+      // and re-renders the rows in place without first blanking the table to
+      // a "Loading…" placeholder, so the list doesn't flicker/disappear.
+      async function loadInventorySellers(silent) {
+        if (!silent) invShowPage("sellers");
         const body = document.getElementById("invSellerTableBody");
-        if (body) body.innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--muted);">Loading sellers…</td></tr>';
+        if (!silent && body) body.innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--muted);">Loading sellers…</td></tr>';
         const err = document.getElementById("invSellersError"); if (err) { err.textContent = ""; err.style.display = "none"; }
         try {
           const res = await fetch("/api/admin/inventory/sellers", { headers: { Authorization: "Bearer " + token } });
@@ -2175,7 +2178,7 @@
           invSellers = data.sellers || [];
           renderInventorySellers();
         } catch (e) {
-          if (body) body.innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:#a3002a;">Could not load sellers.</td></tr>';
+          if (!silent && body) body.innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:#a3002a;">Could not load sellers.</td></tr>';
           if (err) { err.textContent = e.message || "Unable to load sellers."; err.style.display = "block"; }
         }
       }
@@ -2228,9 +2231,9 @@
         await loadInventoryProducts();
       }
 
-      async function loadInventoryProducts() {
+      async function loadInventoryProducts(silent) {
         const body = document.getElementById("invProductTableBody");
-        if (body) body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Loading products…</td></tr>';
+        if (!silent && body) body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Loading products…</td></tr>';
         const err = document.getElementById("invProductsError"); if (err) { err.textContent = ""; err.style.display = "none"; }
         try {
           const res = await fetch("/api/admin/inventory/sellers/" + encodeURIComponent(invCurrentSellerKey) + "/products", { headers: { Authorization: "Bearer " + token } });
@@ -2240,7 +2243,7 @@
           populateInventoryCategoryFilter();
           renderInventoryProducts();
         } catch (e) {
-          if (body) body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#a3002a;">Could not load products.</td></tr>';
+          if (!silent && body) body.innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#a3002a;">Could not load products.</td></tr>';
           if (err) { err.textContent = e.message || "Unable to load products."; err.style.display = "block"; }
         }
       }
@@ -2309,9 +2312,9 @@
         await loadInventoryVariants();
       }
 
-      async function loadInventoryVariants() {
+      async function loadInventoryVariants(silent) {
         const body = document.getElementById("invVariantTableBody");
-        if (body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--muted);">Loading variants…</td></tr>';
+        if (!silent && body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--muted);">Loading variants…</td></tr>';
         const err = document.getElementById("invVariantsError"); if (err) { err.textContent = ""; err.style.display = "none"; }
         try {
           const res = await fetch("/api/admin/inventory/products/" + invCurrentProductId, { headers: { Authorization: "Bearer " + token } });
@@ -2339,7 +2342,7 @@
             : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;text-align:center;">No image available</div>';
           renderInventoryVariants();
         } catch (e) {
-          if (body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:#a3002a;">Could not load variants.</td></tr>';
+          if (!silent && body) body.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:#a3002a;">Could not load variants.</td></tr>';
           if (err) { err.textContent = e.message || "Unable to load variants."; err.style.display = "block"; }
         }
       }
@@ -6195,9 +6198,12 @@
         if (currentTab !== "inventory") return;
         const modalOpen = document.getElementById("invStockModalOverlay")?.classList.contains("open");
         if (modalOpen) return;
-        if (!document.getElementById("invPageSellers").classList.contains("hidden")) loadInventorySellers();
-        else if (!document.getElementById("invPageProducts").classList.contains("hidden")) loadInventoryProducts();
-        else if (!document.getElementById("invPageVariants").classList.contains("hidden")) loadInventoryVariants();
+        // silent=true: re-fetch and re-render rows in place, without first
+        // wiping the table to a "Loading…" placeholder — that wipe every 5s
+        // was what made the whole table flicker/disappear on this tab.
+        if (!document.getElementById("invPageSellers").classList.contains("hidden")) loadInventorySellers(true);
+        else if (!document.getElementById("invPageProducts").classList.contains("hidden")) loadInventoryProducts(true);
+        else if (!document.getElementById("invPageVariants").classList.contains("hidden")) loadInventoryVariants(true);
       }, 5000);
 
 </script>
