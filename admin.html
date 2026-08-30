@@ -3241,19 +3241,69 @@
           const when = r.createdAt ? new Date(r.createdAt).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
           const order = r.orderNumber ? escapeHtml(r.orderNumber) : '<span style="color:var(--muted);">General enquiry</span>';
           const statusOptions = ['New','Contacted','Completed','Cancelled'].map(x => '<option value="'+x+'" '+(r.status===x?'selected':'')+'>'+x+'</option>').join('');
+          const reasonPreview = escapeHtml((r.reason || "").length > 60 ? (r.reason || "").slice(0, 60) + "…" : (r.reason || ""));
           return '<tr>' +
             '<td style="padding:10px;border-bottom:1px solid var(--blush-line);font-weight:700;">'+escapeHtml(r.name || "Customer")+'</td>' +
             '<td style="padding:10px;border-bottom:1px solid var(--blush-line);white-space:nowrap;">'+escapeHtml(r.phone || "—")+'</td>' +
-            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);max-width:320px;white-space:pre-wrap;">'+escapeHtml(r.reason || "")+'</td>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);max-width:260px;">'+reasonPreview+'</td>' +
             '<td style="padding:10px;border-bottom:1px solid var(--blush-line);">'+order+'</td>' +
             '<td style="padding:10px;border-bottom:1px solid var(--blush-line);white-space:nowrap;font-size:11.5px;color:var(--muted);">'+escapeHtml(when)+'</td>' +
             '<td style="padding:10px;border-bottom:1px solid var(--blush-line);"><select class="checkout-input" style="padding:6px 8px;font-size:12px;width:auto;" onchange="updateCallbackRowStatus('+Number(r.id)+', this.value)">'+statusOptions+'</select></td>' +
+            '<td style="padding:10px;border-bottom:1px solid var(--blush-line);"><button class="btn small secondary" type="button" onclick="openCallbackRequestDetail('+Number(r.id)+')">View</button></td>' +
           '</tr>';
         }).join("");
-        wrap.innerHTML = '<table style="width:100%;border-collapse:collapse;min-width:900px;"><thead><tr style="background:var(--blush);text-align:left;">' +
+        wrap.innerHTML = '<table style="width:100%;border-collapse:collapse;min-width:960px;"><thead><tr style="background:var(--blush);text-align:left;">' +
           '<th style="padding:12px 10px;">Name</th><th style="padding:12px 10px;">Mobile Number</th><th style="padding:12px 10px;">Reason</th>' +
-          '<th style="padding:12px 10px;">Order</th><th style="padding:12px 10px;">Received</th><th style="padding:12px 10px;">Status</th>' +
+          '<th style="padding:12px 10px;">Order</th><th style="padding:12px 10px;">Received</th><th style="padding:12px 10px;">Status</th><th style="padding:12px 10px;">Details</th>' +
           '</tr></thead><tbody>'+rows+'</tbody></table>';
+      }
+
+      // Full-detail popup for one callback request — the table row only
+      // shows a short preview of the reason, this shows everything.
+      function openCallbackRequestDetail(id) {
+        const r = adminNotificationRequests.find((x) => Number(x.id) === Number(id));
+        const overlay = document.getElementById("callbackDetailOverlay");
+        const body = document.getElementById("callbackDetailBody");
+        if (!overlay || !body || !r) return;
+        const when = r.createdAt ? new Date(r.createdAt).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+        const updated = r.updatedAt ? new Date(r.updatedAt).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+        const order = r.orderNumber ? '<div class="stat-card"><div class="stat-label">Order</div><div class="stat-value" style="font-size:14px;">'+escapeHtml(r.orderNumber)+'</div></div>' : '<div class="stat-card"><div class="stat-label">Order</div><div class="stat-value" style="font-size:14px;color:var(--muted);">General enquiry</div></div>';
+        const statusOptions = ['New','Contacted','Completed','Cancelled'].map(x => '<option value="'+x+'" '+(r.status===x?'selected':'')+'>'+x+'</option>').join('');
+        body.innerHTML =
+          '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Request ID '+escapeHtml(r.requestId || ('#'+r.id))+' · Received '+escapeHtml(when)+'</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px;">' +
+            '<div class="stat-card"><div class="stat-label">Name</div><div class="stat-value" style="font-size:14px;">'+escapeHtml(r.name || "Customer")+'</div></div>' +
+            '<div class="stat-card"><div class="stat-label">Phone</div><div class="stat-value" style="font-size:14px;">'+(r.phone ? '<a href="'+escapeHtml('https://wa.me/91'+String(r.phone).replace(/\\D/g,''))+'" target="_blank" style="color:inherit;">'+escapeHtml(r.phone)+'</a>' : '—')+'</div></div>' +
+            order +
+          '</div>' +
+          '<div style="padding:14px 16px;border-radius:10px;background:var(--field);margin-bottom:16px;">' +
+            '<div style="font-size:11px;color:var(--muted);font-weight:800;margin-bottom:6px;">FULL REASON</div>' +
+            '<div style="font-size:13.5px;line-height:1.6;white-space:pre-wrap;">'+escapeHtml(r.reason || "")+'</div>' +
+          '</div>' +
+          '<div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;">Last updated '+escapeHtml(updated)+'</div>' +
+          '<div><label style="font-size:11px;color:var(--muted);font-weight:800;">Status</label><select id="callbackDetailStatus" class="checkout-input" style="width:100%;margin-top:4px;">'+statusOptions+'</select></div>' +
+          '<button class="btn small" style="margin-top:10px;width:100%;" onclick="saveCallbackDetailStatus('+Number(r.id)+')">Save Status</button>';
+        overlay.style.display = "flex";
+      }
+
+      function closeCallbackRequestDetail() {
+        const overlay = document.getElementById("callbackDetailOverlay");
+        if (overlay) overlay.style.display = "none";
+      }
+
+      async function saveCallbackDetailStatus(id) {
+        const select = document.getElementById("callbackDetailStatus");
+        const status = select ? select.value : "";
+        try {
+          const res = await fetch("/api/admin/callback-requests/" + encodeURIComponent(id) + "/status", { method:"PUT", headers:{ Authorization:"Bearer "+token, "Content-Type":"application/json" }, body:JSON.stringify({status}) });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || "Unable to update callback request.");
+          const local = adminNotificationRequests.find(r => Number(r.id) === Number(id));
+          if (local) local.status = status;
+          renderCallbackRequestsTable();
+          showToast("Callback request updated.");
+          closeCallbackRequestDetail();
+        } catch (e) { showToast(e.message || "Unable to update callback request."); }
       }
 
       async function updateCallbackRowStatus(id, status) {
@@ -6157,6 +6207,15 @@
         <button class="btn small secondary" onclick="closeCustomerDetails()" style="position:absolute; top:14px; right:14px;">✕</button>
         <h3 style="margin:0 0 16px; color: var(--gold-soft);">Customer details</h3>
         <div id="customerDetailBody"></div>
+      </div>
+    </div>
+
+    <!-- CALLBACK REQUEST DETAILS MODAL -->
+    <div id="callbackDetailOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9998; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--cream); border:1px solid var(--blush-line); border-radius:12px; padding:24px; max-width:520px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
+        <button class="btn small secondary" onclick="closeCallbackRequestDetail()" style="position:absolute; top:14px; right:14px;">✕</button>
+        <h3 style="margin:0 0 16px; color: var(--gold-soft);">📞 Callback request details</h3>
+        <div id="callbackDetailBody"></div>
       </div>
     </div>
 
