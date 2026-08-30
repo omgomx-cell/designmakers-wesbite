@@ -249,7 +249,7 @@ function buildMarketingEmail(campaign, unsubscribeToken) {
     grid + giftSection + button +
     `<hr style="border:0;border-top:1px solid #ead8d0;margin:28px 0 16px;">` +
     `<div style="text-align:center;font-size:12px;margin:0 0 14px;">` +
-    `<a href="https://www.instagram.com/designmakers.in" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">Instagram</a>` +
+    `<a href="https://www.instagram.com/designmakers.site" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">Instagram</a>` +
     `<a href="https://youtube.com/@designmakershub" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">YouTube</a>` +
     `<a href="https://wa.me/7004847813" target="_blank" style="color:#6b3028;text-decoration:none;margin:0 8px;">WhatsApp</a></div>` +
     `<p style="font-size:12px;color:#806e68;text-align:center;margin:0;">You're receiving this because you're subscribed to Design Makers offers & product updates.</p>` +

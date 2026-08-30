@@ -772,7 +772,7 @@ const defaultDatabase = {
     storeName: "Design Makers",
     tagline: "Gifts Made Personal",
     whatsapp: "7004847813",
-    instagram: "designmakers.in",
+    instagram: "designmakers.site",
     youtube: "designmakershub",
     currency: "INR",
     rewards: {
