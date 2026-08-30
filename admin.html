@@ -2480,17 +2480,23 @@
           const invLow = invConfigured.filter(r => Number(r.currentStock) > 0 && Number(r.currentStock) <= Number(r.lowStockThreshold || 5));
           const invHealthy = invConfigured.length - invOut.length - invLow.length;
           const invNeedsEntry = inventoryRows.filter(r => r.currentStock === null);
-          // Out-of-stock items shown first (most urgent) and given a distinct
-          // red "card" treatment; low-stock items follow in an amber list
-          // showing exactly how many units are left, so the two states are
-          // never confused with each other at a glance.
-          const invTopOut = invOut.slice(0, 8);
-          const invTopLow = invLow.slice().sort((a,b)=>Number(a.currentStock)-Number(b.currentStock)).slice(0, 8);
+          // The badge counts above stay exactly as-is (all configured rows,
+          // regardless of storefront visibility) — only the product list
+          // below is filtered, so a delisted/inactive product can no longer
+          // occupy a slot in the "needs attention" list. Out-of-stock rows
+          // are the most urgent and go first; low-stock rows (sorted by
+          // fewest units left) fill any remaining slots, so the combined
+          // list stays a tidy ~8-10 items instead of ballooning per section.
+          const ATTENTION_LIMIT = 10;
+          const invOutActive = invOut.filter(r => r.storefrontActive);
+          const invLowActiveSorted = invLow.filter(r => r.storefrontActive).slice().sort((a,b)=>Number(a.currentStock)-Number(b.currentStock));
+          const invTopOut = invOutActive.slice(0, ATTENTION_LIMIT);
+          const invTopLow = invLowActiveSorted.slice(0, Math.max(0, ATTENTION_LIMIT - invTopOut.length));
           const invBox = document.getElementById("ovInventoryHealth");
           if (invBox) {
             const outSection = invTopOut.length
               ? '<div style="margin-bottom:14px;">' +
-                  '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#a3002a;margin-bottom:8px;">🔴 Out of Stock' + (invOut.length > invTopOut.length ? ' (showing ' + invTopOut.length + ' of ' + invOut.length + ')' : '') + '</div>' +
+                  '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#a3002a;margin-bottom:8px;">🔴 Out of Stock' + (invOutActive.length > invTopOut.length ? ' (showing ' + invTopOut.length + ' of ' + invOutActive.length + ')' : '') + '</div>' +
                   '<div style="display:flex;flex-direction:column;gap:6px;">' +
                     invTopOut.map(r => '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fdecef;border:1px solid #f3c6ce;">' +
                       '<span style="font-weight:700;color:#7a0020;">' + escapeHtml(r.productName) + (r.variant ? ' <span style="font-weight:400;color:#a35566;">· ' + escapeHtml(r.variant) + '</span>' : '') + '</span>' +
@@ -2501,7 +2507,7 @@
               : '';
             const lowSection = invTopLow.length
               ? '<div>' +
-                  '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#b8790a;margin-bottom:8px;">🟡 Low Stock' + (invLow.length > invTopLow.length ? ' (showing ' + invTopLow.length + ' of ' + invLow.length + ')' : '') + '</div>' +
+                  '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#b8790a;margin-bottom:8px;">🟡 Low Stock' + (invLowActiveSorted.length > invTopLow.length ? ' (showing ' + invTopLow.length + ' of ' + invLowActiveSorted.length + ')' : '') + '</div>' +
                   '<div style="display:flex;flex-direction:column;gap:6px;">' +
                     invTopLow.map(r => '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fdf3e2;border:1px solid #f0dba8;">' +
                       '<span style="font-weight:700;color:#5c4108;">' + escapeHtml(r.productName) + (r.variant ? ' <span style="font-weight:400;color:#8a7442;">· ' + escapeHtml(r.variant) + '</span>' : '') + '</span>' +
@@ -2517,7 +2523,7 @@
               (invNeedsEntry.length ? '<span class="badge status-new">⚪ ' + invNeedsEntry.length + ' Need Entry</span>' : '') +
             '</div>' +
             (outSection + lowSection) +
-            (!invTopOut.length && !invTopLow.length ? '<div class="dm-empty">No out-of-stock or low-stock items right now. ✓</div>' : '');
+            (!invTopOut.length && !invTopLow.length ? '<div class="dm-empty">No out-of-stock or low-stock items on the live storefront right now. ✓</div>' : '');
           }
 
           const recent = os.slice().sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,6);
