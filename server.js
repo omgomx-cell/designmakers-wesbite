@@ -6183,51 +6183,81 @@ function callbackEmailShell(innerHtml) {
     `</div></div></div></body></html>`;
 }
 
+// Two-column "detail card" grid used by both callback emails below — same
+// underlying fields as before, just laid out as a soft bordered card
+// instead of plain table rows. Pass fields in pairs (they render 2-per-row);
+// an odd count leaves the last cell blank.
+function detailCard(fields) {
+  const cell = (label, value) =>
+    `<td style="width:50%;padding:14px 18px;vertical-align:top;">` +
+    `<div style="font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#b8863f;margin-bottom:5px;">— ${label}</div>` +
+    `<div style="font-size:14.5px;color:#33231f;font-weight:600;line-height:1.4;">${value}</div>` +
+    `</td>`;
+  let rows = "";
+  for (let i = 0; i < fields.length; i += 2) {
+    const a = fields[i], b = fields[i + 1];
+    rows += `<tr>${cell(a.label, a.value)}${b ? cell(b.label, b.value) : `<td style="width:50%;"></td>`}</tr>`;
+  }
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;background:#faf3ee;border:1px solid #ecd7dd;border-radius:14px;margin:0 0 22px;overflow:hidden;">${rows}</table>`;
+}
+
+// Small gold hairline + uppercase label used as a section kicker above a
+// heading (e.g. "— NEW CALLBACK REQUEST —").
+function sectionLabel(text) {
+  return `<div style="text-align:center;margin:0 0 22px;">` +
+    `<span style="display:inline-block;width:26px;height:1px;background:#c99a52;vertical-align:middle;margin-right:9px;"></span>` +
+    `<span style="font-size:10.5px;letter-spacing:2.2px;text-transform:uppercase;color:#b8863f;font-weight:700;vertical-align:middle;">${text}</span>` +
+    `<span style="display:inline-block;width:26px;height:1px;background:#c99a52;vertical-align:middle;margin-left:9px;"></span>` +
+    `</div>`;
+}
+
 function buildAdminCallbackRequestEmail(request) {
-  const row = (label, value) =>
-    `<tr><td style="padding:9px 0;border-bottom:1px solid #f0e2d6;font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;width:110px;vertical-align:top;">${label}</td>` +
-    `<td style="padding:9px 0;border-bottom:1px solid #f0e2d6;font-size:14px;color:#33231f;vertical-align:top;">${value}</td></tr>`;
-  const orderValue = request.orderNumber ? escapeHtml(request.orderNumber) : '<span style="color:#a89892;">General enquiry — no order attached</span>';
+  const orderValue = request.orderNumber ? escapeHtml(request.orderNumber) : '<span style="color:#a89892;font-weight:400;">General enquiry</span>';
   const inner = `
-       <div style="text-align:center;margin-bottom:22px;">
-         <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#b8863f;font-weight:700;">New Callback Request</div>
-         <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:8px 0 0;font-size:22px;font-weight:700;">A customer would like a call back</h2>
+       <div style="text-align:center;margin-bottom:26px;">
+         ${sectionLabel("New Callback Request")}
+         <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:-10px 0 0;font-size:23px;font-weight:700;line-height:1.35;">A customer would like<br>a call back</h2>
        </div>
-       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px;">
-         ${row("Request ID", escapeHtml(request.requestId))}
-         ${row("Name", escapeHtml(request.name || "Not provided"))}
-         ${row("Phone", `<a href="${buildWhatsAppUrl(request.phone)}" style="color:#8a1c42;font-weight:700;text-decoration:none;">${escapeHtml(request.phone || "Not provided")} ↗</a>`)}
-         ${row("Order", orderValue)}
-       </table>
-       <div style="background:#faf3ee;border-left:3px solid #b8863f;border-radius:8px;padding:16px 18px;margin:0 0 20px;">
-         <div style="font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;margin-bottom:6px;">Reason</div>
-         <div style="font-size:14px;line-height:1.6;color:#33231f;white-space:pre-wrap;">${escapeHtml(request.reason || "")}</div>
+       ${detailCard([
+         { label: "Request ID", value: escapeHtml(request.requestId) },
+         { label: "Order", value: orderValue },
+         { label: "Name", value: escapeHtml(request.name || "Not provided") },
+         { label: "Phone", value: `<a href="${buildWhatsAppUrl(request.phone)}" style="color:#8a1c42;text-decoration:none;">${escapeHtml(request.phone || "Not provided")} ↗</a>` },
+       ])}
+       <div style="text-align:center;margin-bottom:8px;">
+         <div style="font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#a56a2a;margin-bottom:9px;">Reason For The Call</div>
        </div>
-       <p style="font-size:12.5px;color:#8c7d78;margin:0;text-align:center;">Open the admin panel's Callback Requests tab (or the bell icon) to mark this as contacted/completed.</p>`;
+       <div style="background:#fffaf5;border:1px dashed #dfc5a8;border-radius:12px;padding:18px 20px;margin:0 0 20px;">
+         <div style="font-size:14.5px;line-height:1.7;color:#33231f;white-space:pre-wrap;font-style:italic;">“${escapeHtml(request.reason || "")}”</div>
+       </div>
+       <p style="font-size:12.5px;color:#8c7d78;margin:0;text-align:center;line-height:1.6;">Open the admin panel's Callback Requests tab (or the bell icon) to mark this as contacted/completed.</p>`;
   return callbackEmailShell(inner);
 }
 
 // Sent to the customer themselves, confirming their request went through —
-// separate from the admin-facing notification above.
+// separate from the admin-facing notification above. Uses an animated GIF
+// checkmark (icon-check.gif) — plays in Gmail/Apple Mail/Outlook.com/most
+// mobile clients; falls back to a static first frame in older Outlook
+// desktop, so it degrades safely either way.
 function buildCustomerCallbackConfirmationEmail(request) {
-  const orderLine = request.orderNumber
-    ? `<div style="font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;margin:14px 0 3px;">Regarding Order</div><div style="font-size:14px;color:#33231f;">${escapeHtml(request.orderNumber)}</div>`
-    : "";
+  const fields = [{ label: "Request ID", value: `<span style="letter-spacing:0.4px;">${escapeHtml(request.requestId)}</span>` }];
+  if (request.orderNumber) fields.push({ label: "Regarding Order", value: escapeHtml(request.orderNumber) });
+
   const inner = `
-       <div style="text-align:center;margin-bottom:22px;">
-         <img src="${SITE_URL}/icon-check.png" alt="Confirmed" width="44" height="44" style="width:44px;height:44px;display:block;margin:0 auto 10px;">
-         <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:0;font-size:22px;font-weight:700;">Your callback request is confirmed</h2>
+       <div style="text-align:center;margin-bottom:24px;">
+         <img src="${SITE_URL}/icon-check.gif" alt="Confirmed" width="46" height="46" style="width:46px;height:46px;display:block;margin:0 auto 14px;">
+         <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:0;font-size:23px;font-weight:700;line-height:1.35;">Your callback request<br>is confirmed</h2>
        </div>
-       <p style="font-size:15px;line-height:1.7;margin:0 0 8px;">Hi ${escapeHtml(request.name || "there")},</p>
-       <p style="font-size:15px;line-height:1.7;margin:0 0 22px;color:#5b4741;">Thank you for reaching out. Our team will personally connect with you shortly on <b style="color:#8a1c42;">${escapeHtml(request.phone || "your registered number")}</b>.</p>
-       <div style="background:#faf3ee;border:1px solid #ecd7dd;border-radius:12px;padding:18px 20px;margin:0 0 22px;">
-         <div style="font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;margin-bottom:3px;">Request ID</div>
-         <div style="font-size:15px;font-weight:700;color:#33231f;letter-spacing:0.5px;">${escapeHtml(request.requestId)}</div>
-         ${orderLine}
-         <div style="font-size:10.5px;font-weight:800;letter-spacing:0.6px;text-transform:uppercase;color:#a56a2a;margin:14px 0 3px;">Your Message</div>
-         <div style="font-size:14px;line-height:1.6;color:#33231f;white-space:pre-wrap;">${escapeHtml(request.reason || "")}</div>
+       <p style="font-size:15.5px;line-height:1.75;margin:0 0 6px;color:#2f2521;">Dear ${escapeHtml(request.name || "Guest")},</p>
+       <p style="font-size:15px;line-height:1.75;margin:0 0 24px;color:#5b4741;">Thank you for reaching out to us. Our team will personally connect with you shortly on <b style="color:#8a1c42;">${escapeHtml(request.phone || "your registered number")}</b>.</p>
+       ${detailCard(fields)}
+       <div style="text-align:center;margin-bottom:8px;">
+         <div style="font-size:9.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#a56a2a;margin-bottom:9px;">What You Told Us</div>
        </div>
-       <p style="color:#8c7d78;font-size:13px;line-height:1.6;margin:0;text-align:center;">If anything changes and you'd like to reach us sooner, you're always welcome to message us on WhatsApp.</p>`;
+       <div style="background:#fffaf5;border:1px dashed #dfc5a8;border-radius:12px;padding:18px 20px;margin:0 0 22px;">
+         <div style="font-size:14.5px;line-height:1.7;color:#33231f;white-space:pre-wrap;font-style:italic;">“${escapeHtml(request.reason || "")}”</div>
+       </div>
+       <p style="color:#8c7d78;font-size:13px;line-height:1.7;margin:0;text-align:center;">If anything changes and you'd like to reach us sooner, you're always welcome to message us on WhatsApp.</p>`;
   return callbackEmailShell(inner);
 }
 
