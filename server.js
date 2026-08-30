@@ -37,18 +37,15 @@ function buildWhatsAppUrl(number) {
 // rather than plain text links. Kept in one place so a broken/changed link
 // only needs fixing once instead of hunting through every email template.
 function buildEmailSocialFooter() {
-  const badge = (href, bg, icon, label) =>
+  const iconBadge = (href, iconUrl, label, w, h) =>
     `<a href="${href}" target="_blank" style="display:inline-block;margin:0 7px 8px;text-decoration:none;">` +
-    `<span style="display:inline-block;width:32px;height:32px;line-height:32px;border-radius:50%;background:${bg};color:#fffaf5;font-size:14px;text-align:center;vertical-align:middle;box-shadow:0 2px 6px rgba(107,48,40,0.18);">${icon}</span>` +
+    `<img src="${iconUrl}" width="${w}" height="${h}" alt="${label}" style="width:${w}px;height:${h}px;vertical-align:middle;">` +
     `<span style="display:inline-block;vertical-align:middle;margin-left:7px;font-size:12px;font-weight:700;letter-spacing:0.2px;color:#6b3028;">${label}</span></a>`;
-  const logoBadge = `<a href="${SITE_URL}" target="_blank" style="display:inline-block;margin:0 7px 8px;text-decoration:none;">` +
-    `<img src="${SITE_URL}/Logo.png" alt="DM" width="32" height="32" style="width:32px;height:32px;border-radius:50%;vertical-align:middle;box-shadow:0 2px 6px rgba(107,48,40,0.18);">` +
-    `<span style="display:inline-block;vertical-align:middle;margin-left:7px;font-size:12px;font-weight:700;letter-spacing:0.2px;color:#6b3028;">DM</span></a>`;
   return `<div style="text-align:center;margin:0 0 6px;">` +
     `<div style="font-size:10.5px;font-weight:800;color:#a56a2a;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:12px;">Follow Us For Offers &amp; New Arrivals</div>` +
-    badge(DESIGN_MAKERS_INSTAGRAM, "#a83a5c", "📷", "Instagram") +
-    badge(DESIGN_MAKERS_YOUTUBE, "#9c3b32", "▶", "YouTube") +
-    logoBadge +
+    iconBadge(DESIGN_MAKERS_INSTAGRAM, `${SITE_URL}/icon-instagram.png`, "Instagram", 32, 32) +
+    iconBadge(DESIGN_MAKERS_YOUTUBE, `${SITE_URL}/icon-youtube.png`, "YouTube", 45, 32) +
+    iconBadge(SITE_URL, `${SITE_URL}/Logo.png`, "DM", 32, 32) +
     `</div>`;
 }
 const PORT = process.env.PORT || 3000;
@@ -6150,21 +6147,36 @@ app.post("/api/orders/track", trackOrderLimiter, (req, res) => {
 // like one consistent, premium brand — not two ad-hoc templates.
 function callbackEmailShell(innerHtml) {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>` +
-    `<body style="margin:0;background:#f3e6e2;font-family:Georgia,'Times New Roman',serif;color:#2f2521;">` +
-    `<div style="max-width:560px;margin:0 auto;padding:32px 14px;">` +
-    `<div style="background:linear-gradient(135deg,#b8863f,#e3c07f 45%,#b8863f);padding:2px;border-radius:20px;box-shadow:0 14px 34px rgba(72,38,28,.14);">` +
-    `<div style="background:#fffdfb;border-radius:19px;padding:36px 32px;">` +
-    `<div style="text-align:center;margin-bottom:22px;">` +
-    `<img src="${SITE_URL}/Logo.png" alt="Design Makers" width="58" height="58" style="width:58px;height:58px;display:block;margin:0 auto 10px;">` +
-    `<div style="font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:700;letter-spacing:3px;color:#6b3028;">DESIGN MAKERS</div>` +
-    `<div style="font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:#b8863f;margin-top:4px;">Customized Gifts</div>` +
+    `<body style="margin:0;background:#efe1d8;font-family:Georgia,'Times New Roman',serif;color:#2f2521;">` +
+    `<div style="max-width:560px;margin:0 auto;padding:36px 14px;">` +
+    // Outer gold-foil frame with a soft diagonal sheen band across it
+    `<div style="background:linear-gradient(120deg,#8a6423 0%,#e9c988 22%,#fff6df 30%,#e9c988 38%,#b8863f 55%,#e3c07f 78%,#8a6423 100%);padding:2.5px;border-radius:22px;box-shadow:0 20px 46px rgba(72,38,28,.22),0 2px 8px rgba(72,38,28,.12);">` +
+    `<div style="background:#fffdfb;border-radius:21px;overflow:hidden;">` +
+
+    // Hero band — deep rosewood-to-maroon gradient with gold hairline base
+    `<div style="background:linear-gradient(155deg,#7a1638 0%,#8a1c42 45%,#6b1230 100%);padding:34px 32px 26px;text-align:center;position:relative;">` +
+    `<div style="width:64px;height:64px;margin:0 auto 12px;border-radius:50%;background:radial-gradient(circle,rgba(246,217,168,0.28) 0%,rgba(246,217,168,0) 70%);padding:6px;">` +
+    `<img src="${SITE_URL}/Logo.png" alt="Design Makers" width="52" height="52" style="width:52px;height:52px;display:block;margin:0 auto;">` +
     `</div>` +
-    `<div style="height:1px;background:linear-gradient(90deg,transparent,#dcb877,transparent);margin:0 0 26px;"></div>` +
-    `<div style="font-family:Arial,Helvetica,sans-serif;">` +
+    `<div style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;letter-spacing:4px;color:#f8ecd8;">DESIGN MAKERS</div>` +
+    `<div style="font-size:10.5px;letter-spacing:3px;text-transform:uppercase;color:#e3b979;margin-top:5px;">✦ Customized Gifts ✦</div>` +
+    `</div>` +
+    `<div style="height:3px;background:linear-gradient(90deg,#8a6423,#f6d9a8,#b8863f,#f6d9a8,#8a6423);"></div>` +
+
+    // Content
+    `<div style="padding:32px 32px 8px;font-family:Arial,Helvetica,sans-serif;">` +
     innerHtml +
     `</div>` +
-    `<div style="height:1px;background:linear-gradient(90deg,transparent,#dcb877,transparent);margin:30px 0 22px;"></div>` +
-    `<div style="font-family:Arial,Helvetica,sans-serif;">` +
+
+    // Ornamental divider
+    `<div style="text-align:center;margin:28px 0 4px;">` +
+    `<span style="display:inline-block;width:70px;height:1px;background:linear-gradient(90deg,transparent,#dcb877);vertical-align:middle;"></span>` +
+    `<span style="display:inline-block;margin:0 10px;color:#b8863f;font-size:13px;vertical-align:middle;">✦</span>` +
+    `<span style="display:inline-block;width:70px;height:1px;background:linear-gradient(90deg,#dcb877,transparent);vertical-align:middle;"></span>` +
+    `</div>` +
+
+    // Footer band — soft blush tint
+    `<div style="background:#fbf1ec;padding:22px 32px 28px;font-family:Arial,Helvetica,sans-serif;">` +
     buildEmailSocialFooter() +
     `<p style="font-size:11px;color:#b3a49d;text-align:center;letter-spacing:0.4px;margin:14px 0 0;">With warmth, Design Makers ✦ Gifts Made Personal</p>` +
     `</div>` +
@@ -6203,7 +6215,7 @@ function buildCustomerCallbackConfirmationEmail(request) {
     : "";
   const inner = `
        <div style="text-align:center;margin-bottom:22px;">
-         <div style="font-size:32px;margin-bottom:6px;">✅</div>
+         <img src="${SITE_URL}/icon-check.png" alt="Confirmed" width="44" height="44" style="width:44px;height:44px;display:block;margin:0 auto 10px;">
          <h2 style="font-family:Georgia,'Times New Roman',serif;color:#8a1c42;margin:0;font-size:22px;font-weight:700;">Your callback request is confirmed</h2>
        </div>
        <p style="font-size:15px;line-height:1.7;margin:0 0 8px;">Hi ${escapeHtml(request.name || "there")},</p>
