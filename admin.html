@@ -536,7 +536,8 @@
       .dm-card-title.dm-clickable:hover h3 { color:var(--rosewood-dark); }
       .dm-card-title h3 { margin:0; font-size:14px; font-weight:750; }
       .dm-card-title span { color:var(--muted); font-size:11px; }
-      .dm-order-row { display:grid; grid-template-columns:100px minmax(0,1fr) 100px 105px; gap:10px; align-items:center; padding:12px 0; border-top:1px solid var(--line); font-size:12px; }
+      .dm-order-row { display:grid; grid-template-columns:100px minmax(0,1fr) 100px 105px; gap:10px; align-items:center; padding:12px 0; border-top:1px solid var(--line); font-size:12px; border-radius:8px; transition:background .15s ease; }
+      .dm-order-row:hover { background:var(--gold-bg); padding-left:8px; padding-right:8px; margin:0 -8px; }
       .dm-order-row:first-child { border-top:0; }
       .dm-order-id { color:var(--gold-soft); font-weight:700; }
       .dm-order-customer { color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -905,10 +906,6 @@
                 <div id="ovQueue"><div class="dm-empty">Loading…</div></div>
               </section>
             </div>
-            <section class="dm-overview-card" style="margin-top:16px;">
-              <div class="dm-card-title dm-clickable" onclick="switchTab('products')" style="cursor:pointer;" title="View Products"><h3>Top Products by Units Ordered</h3><span>Based on recorded orders</span></div>
-              <div id="ovTopProducts"><div class="dm-empty">Loading…</div></div>
-            </section>
             <section class="dm-overview-card" style="margin-top:16px;">
               <div class="dm-card-title dm-clickable" onclick="switchTab('inventory')" style="cursor:pointer;" title="View Inventory"><h3>Inventory Health</h3><span>Live stock</span></div>
               <div id="ovInventoryHealth"><div class="dm-empty">Loading…</div></div>
@@ -2422,8 +2419,8 @@
 
       // ---------- EXECUTIVE OVERVIEW ----------
       async function loadAdminOverview() {
-        const ids = ["ovRevenue","ovOrders","ovCustomers","ovProducts","ovPending","ovSellers","ovRecentOrders","ovQueue","ovTopProducts","ovInventoryHealth"];
-        ids.forEach((id) => { const el = document.getElementById(id); if (el && (id === "ovRecentOrders" || id === "ovQueue" || id === "ovTopProducts" || id === "ovInventoryHealth")) el.innerHTML = '<div class="dm-empty">Loading…</div>'; });
+        const ids = ["ovRevenue","ovOrders","ovCustomers","ovProducts","ovPending","ovSellers","ovRecentOrders","ovQueue","ovInventoryHealth"];
+        ids.forEach((id) => { const el = document.getElementById(id); if (el && (id === "ovRecentOrders" || id === "ovQueue" || id === "ovInventoryHealth")) el.innerHTML = '<div class="dm-empty">Loading…</div>'; });
         const auth = { Authorization: "Bearer " + token };
         try {
           const [productsRes, ordersRes, customersRes, pendingRes, inventoryRes] = await Promise.all([
@@ -2483,23 +2480,51 @@
           const invLow = invConfigured.filter(r => Number(r.currentStock) > 0 && Number(r.currentStock) <= Number(r.lowStockThreshold || 5));
           const invHealthy = invConfigured.length - invOut.length - invLow.length;
           const invNeedsEntry = inventoryRows.filter(r => r.currentStock === null);
-          const invTopLow = invLow.slice().sort((a,b)=>Number(a.currentStock)-Number(b.currentStock)).slice(0,6);
+          // Out-of-stock items shown first (most urgent) and given a distinct
+          // red "card" treatment; low-stock items follow in an amber list
+          // showing exactly how many units are left, so the two states are
+          // never confused with each other at a glance.
+          const invTopOut = invOut.slice(0, 8);
+          const invTopLow = invLow.slice().sort((a,b)=>Number(a.currentStock)-Number(b.currentStock)).slice(0, 8);
           const invBox = document.getElementById("ovInventoryHealth");
           if (invBox) {
-            invBox.innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">' +
+            const outSection = invTopOut.length
+              ? '<div style="margin-bottom:14px;">' +
+                  '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#a3002a;margin-bottom:8px;">🔴 Out of Stock' + (invOut.length > invTopOut.length ? ' (showing ' + invTopOut.length + ' of ' + invOut.length + ')' : '') + '</div>' +
+                  '<div style="display:flex;flex-direction:column;gap:6px;">' +
+                    invTopOut.map(r => '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fdecef;border:1px solid #f3c6ce;">' +
+                      '<span style="font-weight:700;color:#7a0020;">' + escapeHtml(r.productName) + (r.variant ? ' <span style="font-weight:400;color:#a35566;">· ' + escapeHtml(r.variant) + '</span>' : '') + '</span>' +
+                      '<span class="badge status-cancelled" style="white-space:nowrap;">🔴 Out of stock</span>' +
+                    '</div>').join('') +
+                  '</div>' +
+                '</div>'
+              : '';
+            const lowSection = invTopLow.length
+              ? '<div>' +
+                  '<div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#b8790a;margin-bottom:8px;">🟡 Low Stock' + (invLow.length > invTopLow.length ? ' (showing ' + invTopLow.length + ' of ' + invLow.length + ')' : '') + '</div>' +
+                  '<div style="display:flex;flex-direction:column;gap:6px;">' +
+                    invTopLow.map(r => '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fdf3e2;border:1px solid #f0dba8;">' +
+                      '<span style="font-weight:700;color:#5c4108;">' + escapeHtml(r.productName) + (r.variant ? ' <span style="font-weight:400;color:#8a7442;">· ' + escapeHtml(r.variant) + '</span>' : '') + '</span>' +
+                      '<strong style="color:#b8790a;white-space:nowrap;">' + Number(r.currentStock) + ' left</strong>' +
+                    '</div>').join('') +
+                  '</div>' +
+                '</div>'
+              : '';
+            invBox.innerHTML = '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">' +
               '<span class="badge status-delivered">🟢 ' + invHealthy + ' In Stock</span>' +
               '<span class="badge status-processing">🟡 ' + invLow.length + ' Low Stock</span>' +
               '<span class="badge status-cancelled">🔴 ' + invOut.length + ' Out of Stock</span>' +
               (invNeedsEntry.length ? '<span class="badge status-new">⚪ ' + invNeedsEntry.length + ' Need Entry</span>' : '') +
             '</div>' +
-            (invTopLow.length ? invTopLow.map(r => '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);"><span style="font-weight:700;">' + escapeHtml(r.productName) + (r.variant ? ' · ' + escapeHtml(r.variant) : '') + '</span><strong style="color:#b54708;">' + Number(r.currentStock) + ' left</strong></div>').join('') : '<div class="dm-empty">No low-stock items right now.</div>');
+            (outSection + lowSection) +
+            (!invTopOut.length && !invTopLow.length ? '<div class="dm-empty">No out-of-stock or low-stock items right now. ✓</div>' : '');
           }
 
           const recent = os.slice().sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,6);
           document.getElementById("ovRecentOrders").innerHTML = recent.length ? recent.map(o => {
             const customer = o.customer && (o.customer.name || o.customer.phone) ? (o.customer.name || o.customer.phone) : "Customer";
             const statusClass = String(o.status||"").toLowerCase().replace(/[^a-z]/g,"");
-            return `<div class="dm-order-row"><div class="dm-order-id">${escapeHtml(o.orderNumber || ("#" + o.id))}</div><div class="dm-order-customer">${escapeHtml(customer)}</div><div><span class="badge status status-${statusClass}">${escapeHtml(o.status || "New")}</span></div><div class="dm-order-amount">${fmtINR(o.total || 0)}</div></div>`;
+            return `<div class="dm-order-row" onclick="openOrderDetails(${Number(o.id)})" style="cursor:pointer;" title="View order details"><div class="dm-order-id">${escapeHtml(o.orderNumber || ("#" + o.id))}</div><div class="dm-order-customer">${escapeHtml(customer)}</div><div><span class="badge status status-${statusClass}">${escapeHtml(o.status || "New")}</span></div><div class="dm-order-amount">${fmtINR(o.total || 0)}</div></div>`;
           }).join("") : '<div class="dm-empty">No orders recorded yet.</div>';
 
           const queue = [];
@@ -2521,12 +2546,6 @@
             bellCountEl.classList.toggle("hidden", dmBellTotal === 0);
           }
 
-          const productMap = new Map(ps.map(p => [p.id, p.name || "Unnamed product"]));
-          const totals = {};
-          os.forEach(o => (o.items||[]).forEach(it => { const key = it.productId; if (!totals[key]) totals[key] = {name: productMap.get(key) || it.name || "Product", qty:0, revenue:0}; totals[key].qty += Number(it.qty)||0; totals[key].revenue += Number(it.lineTotal)||0; }));
-          const top = Object.values(totals).sort((a,b)=>b.qty-a.qty).slice(0,6);
-          document.getElementById("ovTopProducts").innerHTML = top.length ? top.map((p,i) => `<div class="dm-queue-item"><div class="dm-queue-main"><strong>#${i+1} · ${escapeHtml(p.name)}</strong><span>${p.qty} unit(s) ordered</span></div><span class="dm-pill">${fmtINR(p.revenue)}</span></div>`).join("") : '<div class="dm-empty">No product sales data yet.</div>';
-
           // Order status + catalog health donuts — computed from the same real os/ps arrays above.
           const statusCounts = {};
           os.forEach(o => { const k = o.status || "New"; statusCounts[k] = (statusCounts[k] || 0) + 1; });
@@ -2544,7 +2563,7 @@
         } catch (err) {
           document.getElementById("ovRecentOrders").innerHTML = '<div class="dm-empty">Could not load overview. <button class="btn small secondary" onclick="loadAdminOverview()">Retry</button></div>';
           document.getElementById("ovQueue").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
-          document.getElementById("ovTopProducts").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
+          document.getElementById("ovInventoryHealth").innerHTML = '<div class="dm-empty">Overview data unavailable.</div>';
         }
       }
 
@@ -3333,6 +3352,111 @@
       });
 
       setInterval(() => { if (token) loadAdminNotifications(); }, 30000);
+
+      async function openOrderDetails(id) {
+        const overlay = document.getElementById("orderDetailOverlay");
+        const body = document.getElementById("orderDetailBody");
+        body.innerHTML = '<p class="empty-state" style="margin:0;">Loading…</p>';
+        overlay.style.display = "flex";
+        try {
+          const res = await fetch("/api/admin/orders/" + id, { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (!data.success) {
+            body.innerHTML = '<p class="empty-state">' + escapeHtml(data.message || "Could not load order.") + '</p>';
+            return;
+          }
+          const o = data.order;
+          const isCancelled = o.status === "Cancelled";
+          const placedText = o.createdAt ? new Date(o.createdAt).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+
+          const itemsHtml = (o.items || []).map(it => {
+            const thumb = it.image ? '<img src="' + escapeHtml(it.image) + '" style="width:40px;height:40px;border-radius:8px;object-fit:cover;margin-right:10px;vertical-align:middle;">' : '';
+            const sellerTag = it.sellerName ? ' <span style="font-size:11px;color:var(--muted);">· sold by ' + escapeHtml(it.sellerName) + '</span>' : '';
+            return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);">' +
+              '<div style="display:flex;align-items:center;min-width:0;">' + thumb +
+                '<div style="min-width:0;"><div style="font-weight:700;">' + escapeHtml(it.name || "Product") + (it.size ? ' <span style="font-weight:400;color:var(--muted);">(' + escapeHtml(it.size) + ')</span>' : '') + sellerTag + '</div>' +
+                '<div style="font-size:12px;color:var(--muted);">Qty ' + Number(it.qty||0) + ' × ' + fmtINR(it.price||0) + '</div></div>' +
+              '</div>' +
+              '<strong style="white-space:nowrap;">' + fmtINR(it.lineTotal||0) + '</strong>' +
+            '</div>';
+          }).join("") || '<p style="color:var(--muted);font-size:13px;margin:0;">No items recorded.</p>';
+
+          const giftHtml = o.gift && o.gift.isGift
+            ? '<div style="margin:14px 0;padding:10px 12px;border:1px solid var(--blush-line);background:#fff8f0;border-radius:10px;">' +
+                '<strong>🎁 Gift order</strong>' +
+                (o.gift.recipientName ? '<div style="font-size:12px;margin-top:4px;">To: ' + escapeHtml(o.gift.recipientName) + '</div>' : '') +
+                (o.gift.message ? '<div style="font-size:12px;margin-top:2px;font-style:italic;">“' + escapeHtml(o.gift.message) + '”</div>' : '') +
+                (o.gift.hidePrice ? '<div style="font-size:11px;color:var(--muted);margin-top:2px;">Price hidden from recipient</div>' : '') +
+              '</div>'
+            : '';
+
+          const isPaid = o.paymentStatus === "paid";
+          const paymentHtml = isPaid
+            ? '<span class="badge status-delivered">✓ Paid' + (o.paidAt ? ' · ' + new Date(o.paidAt).toLocaleString("en-IN", { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }) : '') + '</span>'
+            : '<span class="badge status-new">Payment pending</span>';
+
+          const history = Array.isArray(o.statusHistory) && o.statusHistory.length ? o.statusHistory : [{ status: o.status || "New", at: o.createdAt }];
+          const historyHtml = history.map((h, idx) => {
+            const isLast = idx === history.length - 1;
+            const when = h.at ? new Date(h.at).toLocaleString("en-IN", { day:"numeric", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "—";
+            return '<div style="display:flex;gap:10px;">' +
+              '<div style="display:flex;flex-direction:column;align-items:center;">' +
+                '<div style="width:10px;height:10px;border-radius:50%;background:' + (isLast ? 'var(--rosewood-dark)' : 'var(--gold-soft)') + ';margin-top:4px;"></div>' +
+                (idx < history.length - 1 ? '<div style="width:1px;flex:1;background:var(--line);margin-top:2px;"></div>' : '') +
+              '</div>' +
+              '<div style="padding-bottom:14px;">' +
+                '<div style="font-weight:700;">' + escapeHtml(h.status || "—") + '</div>' +
+                '<div style="font-size:12px;color:var(--muted);">' + when + '</div>' +
+              '</div>' +
+            '</div>';
+          }).join("");
+
+          const sellerFulfilment = Array.isArray(o.sellerFulfilment) ? o.sellerFulfilment : [];
+          const sellerHtml = sellerFulfilment.length
+            ? sellerFulfilment.map(r => {
+                const decisionText = r.decision === 'accepted' ? 'Accepted' : r.decision === 'taken_over' ? 'Admin Takeover' : r.decision === 'declined' ? 'Declined' : 'Pending';
+                return '<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px;">' +
+                  '<span><strong>' + escapeHtml(r.sellerName || 'Seller') + '</strong></span>' +
+                  '<span>' + escapeHtml(decisionText) + ' · ' + escapeHtml(r.stage || 'Order Received') + '</span>' +
+                '</div>';
+              }).join("")
+            : '';
+
+          body.innerHTML =
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px;flex-wrap:wrap;">' +
+              '<div><div style="font-size:19px;font-weight:800;color:var(--rosewood-dark);">' + escapeHtml(o.orderNumber || ("#"+o.id)) + '</div>' +
+              '<div style="font-size:12px;color:var(--muted);">Placed ' + placedText + '</div></div>' +
+              '<span class="badge status-' + String(o.status||"New").toLowerCase() + '" style="font-size:12px;">' + escapeHtml(o.status || "New") + '</span>' +
+            '</div>' +
+            '<div style="margin:12px 0;padding:10px 12px;background:var(--surface,rgba(0,0,0,.02));border:1px solid var(--line);border-radius:10px;">' +
+              '<div style="font-weight:700;">' + escapeHtml(o.customer ? o.customer.name : "—") + '</div>' +
+              '<div style="font-size:12px;color:var(--muted);">' + escapeHtml(o.customer ? o.customer.phone : "—") + '</div>' +
+              (o.customer && o.customer.address ? '<div style="font-size:12px;color:var(--muted);margin-top:4px;">📍 ' + escapeHtml(o.customer.address) + '</div>' : '') +
+            '</div>' +
+            giftHtml +
+            '<h4 style="margin:16px 0 6px;color:var(--gold-soft);">Items</h4>' +
+            '<div>' + itemsHtml + '</div>' +
+            '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;">' +
+              (o.listedSubtotal ? '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--muted);">Listed subtotal</span><span>' + fmtINR(o.listedSubtotal) + '</span></div>' : '') +
+              (o.totalDiscount ? '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--muted);">Discount</span><span style="color:#1c7a3f;">−' + fmtINR(o.totalDiscount) + '</span></div>' : '') +
+              (o.giftCode ? '<div style="display:flex;justify-content:space-between;padding:3px 0;"><span style="color:var(--muted);">Gift code</span><span>' + escapeHtml(o.giftCode) + '</span></div>' : '') +
+              '<div style="display:flex;justify-content:space-between;padding:3px 0;font-weight:800;font-size:15px;">' +
+                '<span>Total' + (isCancelled ? ' <span style="font-weight:400;font-size:11px;color:var(--danger);">(not counted — cancelled)</span>' : '') + '</span>' +
+                '<span style="' + (isCancelled ? 'text-decoration:line-through;color:var(--muted);' : '') + '">' + fmtINR(o.total||0) + '</span>' +
+              '</div>' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;"><span style="color:var(--muted);">' + escapeHtml(o.paymentMethod || "COD") + '</span>' + paymentHtml + '</div>' +
+            '</div>' +
+            (sellerHtml ? '<h4 style="margin:16px 0 6px;color:var(--gold-soft);">Seller fulfilment</h4><div>' + sellerHtml + '</div>' : '') +
+            '<h4 style="margin:16px 0 8px;color:var(--gold-soft);">Order timeline</h4>' +
+            '<div>' + historyHtml + '</div>';
+        } catch (err) {
+          body.innerHTML = '<p class="empty-state">Network error loading order.</p>';
+        }
+      }
+
+      function closeOrderDetails() {
+        document.getElementById("orderDetailOverlay").style.display = "none";
+      }
 
       async function openCustomerDetails(id) {
         const overlay = document.getElementById("customerDetailOverlay");
@@ -5468,7 +5592,8 @@
               '<div class="card order-card">' +
                 '<div class="order-head">' +
                   '<span class="order-num">' + escapeHtml(o.orderNumber) + "</span>" +
-                  '<span class="order-date">' + formatDate(o.createdAt) + "</span>" +
+                  '<span class="order-date">' + formatDate(o.createdAt) + '</span>' +
+                  '<button type="button" class="btn small secondary" onclick="openOrderDetails(' + o.id + ')" style="margin-left:auto;">View full details</button>' +
                 "</div>" +
                 '<div class="meta">' +
                   escapeHtml(o.customer ? o.customer.name : "—") + " · " + escapeHtml(o.customer ? o.customer.phone : "—") +
@@ -6213,7 +6338,16 @@
       }, 5000);
 
 </script>
-        <!-- CUSTOMER DETAILS MODAL -->
+        <!-- ORDER DETAILS MODAL -->
+    <div id="orderDetailOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9998; align-items:center; justify-content:center; padding:16px;">
+      <div style="background:var(--cream); border:1px solid var(--blush-line); border-radius:12px; padding:24px; max-width:640px; width:100%; max-height:88vh; overflow-y:auto; position:relative;">
+        <button class="btn small secondary" onclick="closeOrderDetails()" style="position:absolute; top:14px; right:14px;">✕</button>
+        <h3 style="margin:0 0 16px; color: var(--gold-soft);">Order details</h3>
+        <div id="orderDetailBody"></div>
+      </div>
+    </div>
+
+    <!-- CUSTOMER DETAILS MODAL -->
     <div id="customerDetailOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9998; align-items:center; justify-content:center; padding:16px;">
       <div style="background:var(--cream); border:1px solid var(--blush-line); border-radius:12px; padding:24px; max-width:520px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
         <button class="btn small secondary" onclick="closeCustomerDetails()" style="position:absolute; top:14px; right:14px;">✕</button>
