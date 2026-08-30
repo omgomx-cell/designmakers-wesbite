@@ -3831,6 +3831,15 @@ function getInventoryRows(database) {
     const sizes = Array.isArray(product.sizes) ? product.sizes : [];
     const variantStock = product.variantStock && typeof product.variantStock === "object" ? product.variantStock : {};
     const variantConfigured = product.variantStockConfigured && typeof product.variantStockConfigured === "object" ? product.variantStockConfigured : {};
+    // Same public-eligibility rule used by the storefront (/api/products)
+    // and /api/inventory/availability — a row is only "live on the
+    // storefront" when the product is active, approved, not hidden, and
+    // its seller (if any) isn't banned. Exposed so the admin overview's
+    // Inventory Health widget can skip products the customer can't
+    // actually see, instead of flagging stock issues on delisted items.
+    const seller = product.sellerId ? (database.sellers || []).find((s) => s.id === product.sellerId) : null;
+    const sellerBanned = !!(seller && seller.banned);
+    const storefrontActive = !!(product.active && product.approved !== false && !product.hidden && !sellerBanned);
     const common = {
       productId: product.id,
       // Kept alongside productId (not replacing it) so every existing
@@ -3841,6 +3850,7 @@ function getInventoryRows(database) {
       productName: product.name || "",
       stockConfigured: product.stockConfigured !== false,
       lowStockThreshold: Math.max(0, Number(product.lowStockThreshold ?? 5) || 5),
+      storefrontActive,
     };
     if (sizes.length) {
       // Every size gets its own inventory row, even before stock has been
