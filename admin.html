@@ -522,7 +522,8 @@
 
       #overviewPanel { animation:dmFade .22s ease both; }
       .dm-overview-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin-bottom:16px; }
-      .dm-kpi { position:relative; overflow:hidden; min-height:118px; padding:16px; border-radius:14px; background:var(--surface); border:1px solid var(--line); }
+      .dm-kpi { position:relative; overflow:hidden; min-height:118px; padding:16px; border-radius:14px; background:var(--surface); border:1px solid var(--line); transition:transform .15s ease, box-shadow .15s ease; }
+      .dm-kpi:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.08); border-color:var(--gold-soft); }
       .dm-kpi::after { content:""; position:absolute; width:90px; height:90px; border-radius:50%; right:-35px; top:-35px; background:var(--gold-bg); }
       .dm-kpi .label { color:var(--muted); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; }
       .dm-kpi .value { font-size:25px; font-weight:800; letter-spacing:-.03em; margin-top:10px; color:var(--ink); }
@@ -530,6 +531,9 @@
       .dm-overview-cols { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr); gap:16px; }
       .dm-overview-card { padding:18px; border-radius:14px; background:var(--surface); border:1px solid var(--line); }
       .dm-card-title { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:14px; }
+      .dm-card-title.dm-clickable { cursor:pointer; border-radius:8px; padding:4px 6px; margin-left:-6px; margin-right:-6px; transition:background .15s ease; }
+      .dm-card-title.dm-clickable:hover { background:var(--gold-bg); }
+      .dm-card-title.dm-clickable:hover h3 { color:var(--rosewood-dark); }
       .dm-card-title h3 { margin:0; font-size:14px; font-weight:750; }
       .dm-card-title span { color:var(--muted); font-size:11px; }
       .dm-order-row { display:grid; grid-template-columns:100px minmax(0,1fr) 100px 105px; gap:10px; align-items:center; padding:12px 0; border-top:1px solid var(--line); font-size:12px; }
@@ -884,16 +888,16 @@
               <button class="btn small secondary" onclick="loadAdminOverview()">↻ Refresh overview</button>
             </div>
             <div class="dm-overview-grid">
-              <div class="dm-kpi"><div class="dm-kpi-icon green">💰</div><div class="label">Revenue</div><div class="value" id="ovRevenue">—</div><div class="sub">Excludes cancelled orders</div></div>
-              <div class="dm-kpi"><div class="dm-kpi-icon gold">🛍️</div><div class="label">Orders</div><div class="value" id="ovOrders">—</div><div class="sub">All recorded orders</div></div>
-              <div class="dm-kpi"><div class="dm-kpi-icon blue">👥</div><div class="label">Customers</div><div class="value" id="ovCustomers">—</div><div class="sub">Registered accounts</div></div>
-              <div class="dm-kpi"><div class="dm-kpi-icon purple">📦</div><div class="label">Products</div><div class="value" id="ovProducts">—</div><div class="sub" id="ovProductsSub">Approved / live</div></div>
-              <div class="dm-kpi"><div class="dm-kpi-icon orange">⏳</div><div class="label">Pending</div><div class="value" id="ovPending">—</div><div class="sub">Seller products awaiting review</div></div>
-              <div class="dm-kpi"><div class="dm-kpi-icon teal">🏪</div><div class="label">Sellers</div><div class="value" id="ovSellers">—</div><div class="sub" id="ovSellersSub">Boss-only identity data</div></div>
+              <div class="dm-kpi" onclick="switchTab('orders')" style="cursor:pointer;" title="View Orders"><div class="dm-kpi-icon green">💰</div><div class="label">Revenue</div><div class="value" id="ovRevenue">—</div><div class="sub">Excludes cancelled orders</div></div>
+              <div class="dm-kpi" onclick="switchTab('orders')" style="cursor:pointer;" title="View Orders"><div class="dm-kpi-icon gold">🛍️</div><div class="label">Orders</div><div class="value" id="ovOrders">—</div><div class="sub">All recorded orders</div></div>
+              <div class="dm-kpi" onclick="switchTab('customers')" style="cursor:pointer;" title="View Customers"><div class="dm-kpi-icon blue">👥</div><div class="label">Customers</div><div class="value" id="ovCustomers">—</div><div class="sub">Registered accounts</div></div>
+              <div class="dm-kpi" onclick="switchTab('products')" style="cursor:pointer;" title="View Products"><div class="dm-kpi-icon purple">📦</div><div class="label">Products</div><div class="value" id="ovProducts">—</div><div class="sub" id="ovProductsSub">Approved / live</div></div>
+              <div class="dm-kpi" onclick="switchTab('sellers')" style="cursor:pointer;" title="View Seller Approvals"><div class="dm-kpi-icon orange">⏳</div><div class="label">Pending</div><div class="value" id="ovPending">—</div><div class="sub">Seller products awaiting review</div></div>
+              <div class="dm-kpi" onclick="switchTab('sellerlist')" style="cursor:pointer;" title="View Live Sellers"><div class="dm-kpi-icon teal">🏪</div><div class="label">Sellers</div><div class="value" id="ovSellers">—</div><div class="sub" id="ovSellersSub">Boss-only identity data</div></div>
             </div>
             <div class="dm-overview-cols">
               <section class="dm-overview-card">
-                <div class="dm-card-title"><h3>Recent Orders</h3><span>Latest 6</span></div>
+                <div class="dm-card-title dm-clickable" onclick="switchTab('orders')" style="cursor:pointer;" title="View Orders"><h3>Recent Orders</h3><span>Latest 6</span></div>
                 <div id="ovRecentOrders"><div class="dm-empty">Loading…</div></div>
               </section>
               <section class="dm-overview-card">
@@ -902,25 +906,25 @@
               </section>
             </div>
             <section class="dm-overview-card" style="margin-top:16px;">
-              <div class="dm-card-title"><h3>Top Products by Units Ordered</h3><span>Based on recorded orders</span></div>
+              <div class="dm-card-title dm-clickable" onclick="switchTab('products')" style="cursor:pointer;" title="View Products"><h3>Top Products by Units Ordered</h3><span>Based on recorded orders</span></div>
               <div id="ovTopProducts"><div class="dm-empty">Loading…</div></div>
             </section>
             <section class="dm-overview-card" style="margin-top:16px;">
-              <div class="dm-card-title"><h3>Inventory Health</h3><span>Live stock</span></div>
+              <div class="dm-card-title dm-clickable" onclick="switchTab('inventory')" style="cursor:pointer;" title="View Inventory"><h3>Inventory Health</h3><span>Live stock</span></div>
               <div id="ovInventoryHealth"><div class="dm-empty">Loading…</div></div>
             </section>
             <div class="dm-donut-row">
               <section class="dm-overview-card dm-donut-card">
                 <div class="dm-donut" id="ovOrderDonut"><div class="dm-donut-hole"><span id="ovOrderDonutTotal">0</span><small>Orders</small></div></div>
                 <div style="flex:1;min-width:0;">
-                  <div class="dm-card-title" style="margin-bottom:8px;"><h3>Order Status</h3><span>Live</span></div>
+                  <div class="dm-card-title dm-clickable" onclick="switchTab('orders')" style="margin-bottom:8px;cursor:pointer;" title="View Orders"><h3>Order Status</h3><span>Live</span></div>
                   <div id="ovOrderLegend"><div class="dm-empty">Loading…</div></div>
                 </div>
               </section>
               <section class="dm-overview-card dm-donut-card">
                 <div class="dm-donut" id="ovCatalogDonut"><div class="dm-donut-hole"><span id="ovCatalogDonutTotal">0</span><small>Products</small></div></div>
                 <div style="flex:1;min-width:0;">
-                  <div class="dm-card-title" style="margin-bottom:8px;"><h3>Catalog Health</h3><span>Live</span></div>
+                  <div class="dm-card-title dm-clickable" onclick="switchTab('products')" style="margin-bottom:8px;cursor:pointer;" title="View Products"><h3>Catalog Health</h3><span>Live</span></div>
                   <div id="ovCatalogLegend"><div class="dm-empty">Loading…</div></div>
                 </div>
               </section>
@@ -5359,9 +5363,11 @@
 
       const STATUS_OPTIONS = ["New", "Processing", "Shipped", "Delivered", "Cancelled"];
 
-      async function loadOrders(page) {
+      // silent=true (used by the 5s Orders auto-refresh) skips the
+      // "Loading orders..." flash — same fix as the Inventory tab.
+      async function loadOrders(page, silent) {
         page = page || 1;
-        document.getElementById("ordersLoading").classList.remove("hidden");
+        if (!silent) document.getElementById("ordersLoading").classList.remove("hidden");
         try {
           const [listRes, statsRes] = await Promise.all([
             fetch("/api/admin/orders?page=" + page + "&limit=50", { headers: { Authorization: "Bearer " + token } }),
@@ -5380,7 +5386,7 @@
           renderOrders();
           renderPager(document.getElementById("ordersPager"), data, loadOrders);
         } finally {
-          document.getElementById("ordersLoading").classList.add("hidden");
+          if (!silent) document.getElementById("ordersLoading").classList.add("hidden");
         }
       }
 
@@ -6187,7 +6193,7 @@
         });
       })();
           // Keep seller fulfilment stages fresh for admins/sub-admins while the Orders tab is open.
-      setInterval(() => { if (currentTab === "orders") loadOrders(); }, 5000);
+      setInterval(() => { if (currentTab === "orders") loadOrders(undefined, true); }, 5000);
           // Keep the Inventory tab's stock numbers live — so a seller
           // updating their own stock from the Seller Inventory tab shows
           // up here without the admin needing to manually refresh. Only
