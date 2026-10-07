@@ -51,6 +51,25 @@ function buildEmailSocialFooter() {
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
 
+// One permanent domain: designmakers.shop. Old/alternate domains (the .site
+// one, www versions) 301-redirect to the same path on SITE_URL, so Google
+// treats .shop as the single real site. Only GET/HEAD are redirected so a
+// stale open page can't have a POST (order, login) turned into a GET.
+const ALIAS_HOSTS = new Set([
+  "designmakers.site",
+  "www.designmakers.site",
+  "www.designmakers.shop",
+]);
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "")
+    .split(",")[0].trim().toLowerCase().replace(/:\d+$/, "");
+  if (ALIAS_HOSTS.has(host) && host !== new URL(SITE_URL).hostname) {
+    return res.redirect(301, SITE_URL + req.originalUrl);
+  }
+  next();
+});
+
 // Gzip/deflate-compress every response (HTML, JSON, JS, CSS) before it goes
 // over the wire. This is the single biggest win for the ~240KB+ HTML/JSON
 // payloads this site sends on every page load.
@@ -305,7 +324,7 @@ async function verifyGoogleToken(idToken) {
 // Graph/social-share previews, and the sitemap. Overridable via env var in
 // case the production domain ever differs from the current default —
 // nothing else about routing changes based on this.
-const SITE_URL = (process.env.SITE_URL || "https://designmakers.site").replace(/\/+$/, "");
+const SITE_URL = (process.env.SITE_URL || "https://designmakers.shop").replace(/\/+$/, "");
 
 // Same slugify logic as buildProductUrl()/slugifyProductName() in
 // index.html — kept identical so server-generated canonical/sitemap URLs
@@ -561,12 +580,16 @@ app.use((req, res, next) => {
 const BLOCKED_STATIC_PATHS = /^\/(server\.js|database\.js|products-store\.js|package(-lock)?\.json|node_modules(\/|$))/i;
 app.use((req, res, next) => {
   if (BLOCKED_STATIC_PATHS.test(req.path)) return res.status(404).end();
+  // one canonical home URL for Google ("/index.html" → "/")
+  if (req.path === "/index.html") return res.redirect(301, "/");
   next();
 });
 
 // Serve website files
 app.use(
   express.static(__dirname, {
+    // "/" is rendered by seo.js (per-page SEO tags), not served as a raw file.
+    index: false,
     // etag/lastModified stay ON globally now so static assets (images, css,
     // js) get proper 304-revalidation and browser caching. HTML explicitly
     // overrides this below to "no-cache" so admin/product changes still
@@ -5172,6 +5195,22 @@ app.delete("/api/admin/products/:id", requireAdmin, canDeleteProducts, (req, res
 });
 
 // ================================
+// SEO: home, product & category pages, sitemap.xml, robots.txt, Google feed
+// (see seo.js — must be registered before any page route)
+// ================================
+require("./seo")(app, {
+  readDatabase,
+  SITE_URL,
+  slugifyProductName,
+  escapeHtml,
+  escapeJsonForHtml,
+  isSaleActive,
+  getStockForVariant,
+  sameAs: [DESIGN_MAKERS_INSTAGRAM, DESIGN_MAKERS_YOUTUBE],
+  rootDir: __dirname,
+});
+
+// ================================
 // ADMIN DASHBOARD PAGE
 // ================================
 
@@ -5198,190 +5237,6 @@ app.get("/sellerapplication", (req, res) => {
 // Old application link — keep working, just redirect to the new one
 app.get("/sell", (req, res) => {
   res.redirect(301, "/sellerapplication");
-});
-
-// ================================
-// HOME PAGE
-// ================================
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// Shareable product links, e.g. /product/123/photo-print-mug — the
-// name-slug is only there to make the link readable/SEO-friendly, the
-// front-end reads the numeric id and ignores the slug. Serving the same
-// index.html here (not a redirect) is what lets a pasted link — WhatsApp,
-// a new tab, anywhere — open straight into that product instead of 404ing.
-//
-// The URLs and client-side behavior are unchanged from before — the only
-// addition is that the <head> tags (title/description/OG/canonical/
-// JSON-LD) sent for these two routes are now filled in with the real
-// product's own data server-side, instead of the site-wide defaults, so a
-// pasted WhatsApp/social link actually shows the product's name, photo and
-// price in the preview instead of the generic "Design Makers" card.
-app.get("/product/:id", (req, res) => {
-  sendProductPage(req, res, req.params.id, null);
-});
-app.get("/product/:id/:slug", (req, res) => {
-  sendProductPage(req, res, req.params.id, req.params.slug);
-});
-
-let indexHtmlTemplateCache = null;
-function getIndexHtmlTemplate() {
-  // Cached in memory after the first read — the file on disk doesn't
-  // change at runtime, so there's no need to hit the filesystem on every
-  // single product-page request.
-  if (indexHtmlTemplateCache === null) {
-    indexHtmlTemplateCache = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
-  }
-  return indexHtmlTemplateCache;
-}
-
-function sendProductPage(req, res, idParam, slugParam) {
-  try {
-    const productId = Number(idParam);
-    const database = readDatabase();
-    const product = Number.isFinite(productId)
-      ? database.products.find((p) => p.id === productId && p.active && p.approved !== false && !p.hidden)
-      : null;
-
-    if (!product) {
-      // Unknown/inactive product: still serve the normal page (the
-      // frontend already shows its own "product not found" state) with
-      // the site-wide default meta tags, exactly as before this change.
-      return res.sendFile(path.join(__dirname, "index.html"));
-    }
-
-    const canonicalUrl = `${SITE_URL}/product/${product.id}/${slugifyProductName(product.name)}`;
-    const description = String(product.description || "").trim().slice(0, 160) ||
-      `${product.name} — customized and delivered by Design Makers.`;
-    const storedImages = Array.isArray(product.images) && product.images.length
-      ? product.images
-      : (product.image ? [product.image] : []);
-    const firstImage = storedImages[0];
-    const imageUrl = firstImage
-      ? (typeof firstImage === "string" && firstImage.startsWith("data:image/")
-          ? `${SITE_URL}/product-image/${product.id}/0`
-          : firstImage)
-      : `${SITE_URL}/Logo.png`;
-    const title = `${product.name} — Design Makers`;
-
-    const jsonLd = {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      name: product.name,
-      description,
-      image: [imageUrl],
-      category: product.category || undefined,
-      offers: {
-        "@type": "Offer",
-        priceCurrency: "INR",
-        price: product.price,
-        availability: product.active ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-        url: canonicalUrl,
-      },
-    };
-
-    let html = getIndexHtmlTemplate();
-    html = html.replace(
-      "<title>Design Makers - Personalized Gifts</title>",
-      `<title>${escapeHtml(title)}</title>`,
-    );
-    html = html.replace(
-      /<meta name="description" content="[^"]*" \/>/,
-      `<meta name="description" content="${escapeHtml(description)}" />`,
-    );
-    html = html.replace(
-      /<link rel="canonical" href="[^"]*" \/>/,
-      `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
-    );
-    html = html.replace(
-      /<meta property="og:type" content="[^"]*" \/>/,
-      `<meta property="og:type" content="product" />`,
-    );
-    html = html.replace(
-      /<meta property="og:title" content="[^"]*" \/>/,
-      `<meta property="og:title" content="${escapeHtml(title)}" />`,
-    );
-    html = html.replace(
-      /<meta property="og:description" content="[^"]*" \/>/,
-      `<meta property="og:description" content="${escapeHtml(description)}" />`,
-    );
-    html = html.replace(
-      /<meta property="og:image" content="[^"]*" \/>/,
-      `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`,
-    );
-    html = html.replace(
-      /<meta property="og:url" content="[^"]*" \/>/,
-      `<meta property="og:url" content="${escapeHtml(canonicalUrl)}" />`,
-    );
-    html = html.replace(
-      "<!--SEO_JSONLD-->",
-      `<script type="application/ld+json">${escapeJsonForHtml(jsonLd)}</script>`,
-    );
-
-    res.set("Content-Type", "text/html");
-    res.send(html);
-  } catch (error) {
-    console.error("Product page SEO render failed, falling back to default page:", error.message);
-    res.sendFile(path.join(__dirname, "index.html"));
-  }
-}
-
-// ================================
-// SEO: robots.txt + sitemap.xml
-// ================================
-
-app.get("/robots.txt", (req, res) => {
-  res.type("text/plain").send(
-    [
-      "User-agent: *",
-      "Allow: /",
-      "Disallow: /admin",
-      "Disallow: /seller",
-      "Disallow: /api/",
-      "",
-      `Sitemap: ${SITE_URL}/sitemap.xml`,
-      "",
-    ].join("\n"),
-  );
-});
-
-app.get("/sitemap.xml", (req, res) => {
-  try {
-    const database = readDatabase();
-    const bannedSellerIds = new Set(
-      (database.sellers || []).filter((s) => s.banned).map((s) => s.id),
-    );
-    const urls = [
-      { loc: `${SITE_URL}/`, priority: "1.0" },
-      { loc: `${SITE_URL}/sellerapplication`, priority: "0.3" },
-    ];
-    (database.products || [])
-      .filter(
-        (p) =>
-          p.active &&
-          p.approved !== false &&
-          !p.hidden &&
-          !(p.sellerId && bannedSellerIds.has(p.sellerId)),
-      )
-      .forEach((p) => {
-        urls.push({ loc: `${SITE_URL}/product/${p.id}/${slugifyProductName(p.name)}`, priority: "0.8" });
-      });
-
-    const xml =
-      `<?xml version="1.0" encoding="UTF-8"?>\n` +
-      `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-      urls.map((u) => `  <url><loc>${escapeHtml(u.loc)}</loc><priority>${u.priority}</priority></url>`).join("\n") +
-      `\n</urlset>`;
-
-    res.set("Content-Type", "application/xml");
-    res.send(xml);
-  } catch (error) {
-    console.error(error);
-    res.status(500).type("text/plain").send("");
-  }
 });
 
 // ================================

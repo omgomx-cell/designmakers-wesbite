@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Design Makers - Personalized Gifts</title>
     <meta name="description" content="Design Makers — personalized photo mugs, cushions, keychains and gifts, customized just for you and delivered. Order easily via WhatsApp, Cash on Delivery." />
-    <link rel="canonical" href="https://designmakers.site/" />
+    <link rel="canonical" href="https://designmakers.shop/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Design Makers" />
     <meta property="og:title" content="Design Makers - Personalized Gifts" />
     <meta property="og:description" content="Personalized photo mugs, cushions, keychains and gifts, customized just for you and delivered. Order easily via WhatsApp, Cash on Delivery." />
-    <meta property="og:image" content="https://designmakers.site/Logo.png" />
-    <meta property="og:url" content="https://designmakers.site/" />
+    <meta property="og:image" content="https://designmakers.shop/Logo.png" />
+    <meta property="og:url" content="https://designmakers.shop/" />
     <meta name="twitter:card" content="summary_large_image" />
     <!--SEO_JSONLD-->
     <link rel="icon" type="image/png" href="Logo.png" />
@@ -6752,7 +6752,15 @@ function dmApplyFestivalTheme(theme) {
       // browser back/forward buttons open/close the modal correctly.
       function openProductFromUrlIfPresent() {
         const pid = getProductIdFromLocation();
-        if (pid) openProductModal(pid, true);
+        if (pid) { openProductModal(pid, true); return; }
+        // /category/<slug> (SEO category page) → open that category
+        const m = window.location.pathname.match(/^\/category\/([^\/]+)/);
+        if (m) {
+          const slug = decodeURIComponent(m[1]);
+          const cat = [...new Set(allProducts.map((p) => p.category).filter(Boolean))]
+            .find((x) => slugifyProductName(x) === slug);
+          if (cat) openCategoryModal(cat, null);
+        }
       }
 
       window.addEventListener("popstate", function () {
