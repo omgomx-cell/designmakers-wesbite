@@ -14,38 +14,38 @@
       /* ===== ROSEWOOD + GOLD PREMIUM GLASS THEME — same palette as the admin panel,
          single source of truth, no dark/light toggle ===== */
       :root {
-        --rosewood: #a3134f;
-        --rosewood-dark: #7a0e3c;
-        --rosewood-bright: #d81b60;
-        --blush: #fdeef4;
-        --blush-line: rgba(163,19,79,0.14);
-        --gold: #b8863f;
-        --gold-soft: #a5732e;
-        --cream: #fff7fa;
-        --ink: #2a1420;
-        --muted: #8c6f7a;
-        --surface: rgba(255,255,255,.62);
-        --field: rgba(255,255,255,.45);
-        --line: rgba(163,19,79,0.13);
-        --success: #1f9d55;
-        --success-bg: rgba(31,157,85,0.10);
-        --danger: #d6455a;
-        --danger-bg: rgba(214,69,90,0.10);
-        --warn: #b8863f;
-        --warn-bg: rgba(184,134,63,0.10);
-        --info: #2f6fed;
-        --info-bg: rgba(47,111,237,0.10);
-        --gold-bg: rgba(184,134,63,0.12);
+        --rosewood: #CB4DB9;
+        --rosewood-dark: #790D97;
+        --rosewood-bright: #E47CAD;
+        --blush: rgba(203,77,185,0.14);
+        --blush-line: rgba(255,225,193,0.14);
+        --gold: #FFC57D;
+        --gold-soft: #FFC57D;
+        --cream: #1D1D1D;
+        --ink: #FFE1C1;
+        --muted: rgba(255,225,193,0.62);
+        --surface: rgba(37,30,38,.72);
+        --field: rgba(255,225,193,.07);
+        --line: rgba(255,225,193,0.14);
+        --success: #5fd48a;
+        --success-bg: rgba(95,212,138,0.14);
+        --danger: #ff7a8a;
+        --danger-bg: rgba(255,122,138,0.14);
+        --warn: #FFC57D;
+        --warn-bg: rgba(255,197,125,0.14);
+        --info: #8ab4ff;
+        --info-bg: rgba(138,180,255,0.14);
+        --gold-bg: rgba(255,197,125,0.12);
       }
-      html { background:#fdeef4; }
+      html { background:#1D1D1D; }
       body {
         font-family: "Inter", sans-serif;
         color: var(--ink);
         min-height: 100vh;
         background:
-          radial-gradient(1100px 560px at 8% -10%, rgba(216,27,96,.12), transparent 60%),
-          radial-gradient(950px 620px at 98% 4%, rgba(184,134,63,.13), transparent 55%),
-          radial-gradient(800px 520px at 45% 105%, rgba(163,19,79,.10), transparent 60%),
+          radial-gradient(1100px 560px at 8% -10%, rgba(203,77,185,.12), transparent 60%),
+          radial-gradient(950px 620px at 98% 4%, rgba(255,197,125,.13), transparent 55%),
+          radial-gradient(800px 520px at 45% 105%, rgba(121,13,151,.10), transparent 60%),
           linear-gradient(180deg, #fff8fa 0%, #fdeef4 55%, #fbe4ee 100%);
         background-attachment: fixed;
       }
@@ -70,7 +70,7 @@
         border: 1px solid rgba(255,255,255,.5);
         border-radius: 16px;
         padding: 28px 24px;
-        box-shadow: 0 8px 28px rgba(163,19,79,.10), inset 0 1px 0 rgba(255,255,255,.6);
+        box-shadow: 0 8px 28px rgba(121,13,151,.10), inset 0 1px 0 rgba(255,255,255,.6);
       }
       .card h1 { font-size: 1.4em; margin-bottom: 6px; }
       .desc { font-size: 0.9em; color: var(--muted); margin-bottom: 20px; line-height: 1.4; }
@@ -147,7 +147,7 @@
         backdrop-filter: blur(22px) saturate(160%);
         -webkit-backdrop-filter: blur(22px) saturate(160%);
         border-right:1px solid rgba(255,255,255,.5);
-        box-shadow: 4px 0 24px rgba(163,19,79,.06);
+        box-shadow: 4px 0 24px rgba(121,13,151,.06);
         padding:22px 16px; z-index:70;
       }
       .dm-sidebar-logo{ display:flex; flex-direction:column; align-items:center; gap:3px; margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid var(--line); }
@@ -164,25 +164,25 @@
         cursor:pointer; width:100%; font-family:inherit;
         backdrop-filter: blur(10px) saturate(150%);
         -webkit-backdrop-filter: blur(10px) saturate(150%);
-        box-shadow: 0 2px 8px rgba(163,19,79,.05), inset 0 1px 0 rgba(255,255,255,.35);
+        box-shadow: 0 2px 8px rgba(121,13,151,.05), inset 0 1px 0 rgba(255,255,255,.35);
         transition: background-color .2s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1), border-color .2s cubic-bezier(.4,0,.2,1), box-shadow .2s cubic-bezier(.4,0,.2,1);
       }
       .dm-nav-item svg{ width:17px; height:17px; flex:0 0 17px; }
       .dm-nav-item:hover{ background:rgba(255,255,255,.4); border-color:rgba(255,255,255,.45); color:var(--ink); }
       .dm-nav-item.active{
-        background:linear-gradient(135deg, rgba(216,27,96,.82), rgba(163,19,79,.86));
+        background:linear-gradient(135deg, rgba(203,77,185,.82), rgba(121,13,151,.86));
         backdrop-filter: blur(12px) saturate(170%);
         -webkit-backdrop-filter: blur(12px) saturate(170%);
         color:#fff;
         border:1px solid rgba(255,255,255,.35);
-        box-shadow:0 6px 18px rgba(163,19,79,.32), inset 0 1px 0 rgba(255,255,255,.3);
+        box-shadow:0 6px 18px rgba(121,13,151,.32), inset 0 1px 0 rgba(255,255,255,.3);
       }
-      .dm-nav-item.active:hover{ background:linear-gradient(135deg, rgba(216,27,96,.88), rgba(163,19,79,.92)); }
+      .dm-nav-item.active:hover{ background:linear-gradient(135deg, rgba(203,77,185,.88), rgba(121,13,151,.92)); }
       .dm-nav-item.active svg{ color:#fff; }
       .dm-sidebar-bottom{ border-top:1px solid var(--line); padding-top:14px; margin-top:10px; display:flex; flex-direction:column; gap:10px; }
       .dm-view-store{ display:flex; align-items:center; gap:9px; font-size:12.3px; font-weight:650; color:var(--muted); text-decoration:none; padding:9px 10px; border-radius:9px; }
       .dm-view-store svg{ width:15px; height:15px; }
-      .dm-view-store:hover{ background:rgba(163,19,79,.07); color:var(--ink); }
+      .dm-view-store:hover{ background:rgba(121,13,151,.07); color:var(--ink); }
       .dm-sidebar-profile{ display:flex; align-items:center; gap:9px; padding:8px; border-radius:12px; background:rgba(255,255,255,.4); border:1px solid var(--line); }
       .dm-sidebar-avatar{ width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--rosewood-dark),var(--gold)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:800; flex:0 0 32px; }
       .dm-sidebar-name{ font-size:12px; font-weight:750; color:var(--ink); line-height:1.3; }
@@ -199,7 +199,7 @@
         backdrop-filter: blur(20px) saturate(160%);
         -webkit-backdrop-filter: blur(20px) saturate(160%);
         border-bottom:1px solid rgba(255,255,255,.5);
-        box-shadow: 0 4px 24px rgba(163,19,79,.05);
+        box-shadow: 0 4px 24px rgba(121,13,151,.05);
       }
       .dm-topbar-menu{ display:none; background:none; border:none; color:var(--ink); cursor:pointer; padding:4px; }
       .dm-topbar-title h1{ margin:0; font-size:16.5px; color:var(--ink); font-family:"Playfair Display",Georgia,serif; }
@@ -244,7 +244,7 @@
         width: 100%;
         backdrop-filter: blur(18px) saturate(160%);
         -webkit-backdrop-filter: blur(18px) saturate(160%);
-        box-shadow: 0 10px 32px rgba(163,19,79,.14), inset 0 1px 0 rgba(255,255,255,.6);
+        box-shadow: 0 10px 32px rgba(121,13,151,.14), inset 0 1px 0 rgba(255,255,255,.6);
       }
       #invStockModalOverlay h2 { font-family: "Playfair Display", serif; font-size: 1.15em; margin-bottom: 4px; color: var(--gold-soft); }
       .inv-badge { display:inline-block; font-size:0.72em; font-weight:700; padding:2px 8px; border-radius:20px; }
@@ -263,7 +263,7 @@
         -webkit-backdrop-filter: blur(18px) saturate(160%);
         border: 1px solid rgba(255,255,255,.5);
         border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(163,19,79,.08);
+        box-shadow: 0 6px 20px rgba(121,13,151,.08);
         overflow: hidden;
       }
       .p-card img { width: 100%; height: 130px; object-fit: cover; display: block; background: var(--blush); }
@@ -306,7 +306,7 @@
         width: 100%;
         backdrop-filter: blur(18px) saturate(160%);
         -webkit-backdrop-filter: blur(18px) saturate(160%);
-        box-shadow: 0 10px 32px rgba(163,19,79,.14), inset 0 1px 0 rgba(255,255,255,.6);
+        box-shadow: 0 10px 32px rgba(121,13,151,.14), inset 0 1px 0 rgba(255,255,255,.6);
       }
       #editModalOverlay h2 { font-family: "Playfair Display", serif; font-size: 1.15em; margin-bottom: 16px; color: var(--gold-soft); }
       #editModalOverlay .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
@@ -390,7 +390,66 @@
       }
 
     </style>
-  </head>
+  
+    <style id="dmViolaTheme">
+      /* ===== VIOLA THEME — #790D97 #CB4DB9 #FFC57D #FFE1C1 on charcoal ===== */
+      :root { color-scheme: dark; --border: rgba(255,225,193,.14); }
+      html { background:#1D1D1D; }
+      body {
+        color:#FFE1C1;
+        background:
+          radial-gradient(900px 620px at 50% 28%, rgba(121,13,151,.38), transparent 65%),
+          radial-gradient(700px 500px at 92% 92%, rgba(203,77,185,.14), transparent 60%),
+          radial-gradient(600px 420px at 6% 80%, rgba(255,197,125,.06), transparent 60%),
+          linear-gradient(180deg,#1D1D1D 0%,#181518 100%) !important;
+        background-attachment:fixed;
+      }
+      * { scrollbar-color:#790D97 #251E26; }
+      ::placeholder { color:rgba(255,225,193,.4); }
+      select option { background:#251E26 !important; color:#FFE1C1 !important; }
+
+      .card,.p-card,.order-row,.form-card,.seller-kpi,.seller-panel-card {
+        background:rgba(37,30,38,.72) !important;
+        border:1px solid rgba(255,225,193,.14) !important;
+        box-shadow:0 10px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,225,193,.06) !important;
+      }
+      #loginScreen .card { box-shadow:0 30px 90px rgba(121,13,151,.38), 0 0 0 1px rgba(203,77,185,.2) !important; }
+      .p-card:hover,.seller-kpi:hover { border-color:rgba(203,77,185,.45) !important; }
+
+      /* Buttons — purple to orchid, like the palette's gradient bar */
+      button.submit,.btn:not(.secondary):not(.danger) {
+        background:linear-gradient(135deg,#790D97,#CB4DB9) !important;
+        color:#fff !important; border:none;
+        box-shadow:0 6px 18px rgba(121,13,151,.45);
+      }
+      button.submit:hover,.btn:not(.secondary):not(.danger):hover { filter:brightness(1.14); }
+      .btn.secondary { background:rgba(203,77,185,.16); color:#FFC57D; border:1px solid rgba(203,77,185,.32); }
+      .btn.danger { border:1px solid rgba(255,122,138,.3); }
+      button.link-btn { color:#FFC57D; }
+
+      input:focus,textarea:focus,select:focus { border-color:#CB4DB9 !important; box-shadow:0 0 0 3px rgba(203,77,185,.2); }
+
+      /* Sidebar + topbar */
+      .dm-sidebar { background:rgba(29,24,31,.86); border-right:1px solid rgba(255,225,193,.10); box-shadow:4px 0 24px rgba(0,0,0,.4); }
+      .dm-nav-item { background:rgba(255,225,193,.04); border:1px solid rgba(255,225,193,.08); box-shadow:none; color:rgba(255,225,193,.7); }
+      .dm-nav-item:hover { background:rgba(203,77,185,.14); border-color:rgba(203,77,185,.35); color:#FFE1C1; }
+      .dm-nav-item.active { background:linear-gradient(135deg,#790D97,#CB4DB9); color:#fff; border:1px solid rgba(255,225,193,.28); box-shadow:0 6px 20px rgba(121,13,151,.5), inset 0 1px 0 rgba(255,225,193,.18); }
+      .dm-nav-item.active:hover { background:linear-gradient(135deg,#790D97,#CB4DB9); filter:brightness(1.12); }
+      .dm-view-store:hover { background:rgba(203,77,185,.12); color:#FFE1C1; }
+      .dm-sidebar-profile { background:rgba(255,225,193,.06); }
+      .dm-sidebar-avatar { background:linear-gradient(135deg,#790D97,#FFC57D); color:#fff; }
+      .dm-topbar { background:rgba(29,24,31,.82); border-bottom:1px solid rgba(255,225,193,.10); box-shadow:0 4px 24px rgba(0,0,0,.35); }
+
+      /* Modals */
+      #invStockModalOverlay,#editModalOverlay { background:rgba(12,6,14,.74); }
+      #invStockModalOverlay .modal-card,#editModalOverlay .modal-card {
+        background:rgba(37,30,38,.94); border:1px solid rgba(255,225,193,.16);
+        box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(203,77,185,.15);
+      }
+      .order-status { background:rgba(203,77,185,.16); color:#FFC57D; }
+      .inv-badge.inv-none { background:rgba(203,77,185,.16); color:#FFC57D; }
+    </style>
+</head>
   <body>
     <!-- ============ LOGIN SCREEN ============ -->
     <div id="loginScreen">
@@ -515,9 +574,9 @@
           <div id="sellerOverview">
             <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
               <div>
-                <div style="color:#8c6f7a;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Seller Business Center</div>
+                <div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Seller Business Center</div>
                 <h2 style="margin:4px 0 0;font-size:25px;letter-spacing:-.03em;"><span id="sellerOverviewGreeting">Welcome back</span>, <span id="sellerOverviewName">Seller</span> 👋</h2>
-                <p style="margin:6px 0 0;color:#8c6f7a;font-size:12px;">Your live business performance from actual orders and products.</p>
+                <p style="margin:6px 0 0;color:var(--muted);font-size:12px;">Your live business performance from actual orders and products.</p>
               </div>
               <button class="btn small secondary" onclick="loadSellerOverview()">↻ Refresh</button>
             </div>
@@ -1727,9 +1786,9 @@
             </div>
             <div class="item-line">${itemsText}</div>
             <div class="item-line">Your total: ₹${o.sellerTotal}</div>
-            ${o.gift && o.gift.isGift ? `<div class="item-line" style="color:#8c6f7a;">🎁 Gift order${o.gift.hidePrice ? " — do not include a price slip" : ""}</div>` : ""}
-            <div class="item-line" style="margin-top:6px;color:#8c6f7a;">👤 ${escapeHtml(customerName)} · ${escapeHtml(customerPhone)}</div>
-            ${address ? `<div class="item-line" style="color:#8c6f7a;">📍 ${escapeHtml(address)}</div>` : ""}
+            ${o.gift && o.gift.isGift ? `<div class="item-line" style="color:var(--muted);">🎁 Gift order${o.gift.hidePrice ? " — do not include a price slip" : ""}</div>` : ""}
+            <div class="item-line" style="margin-top:6px;color:var(--muted);">👤 ${escapeHtml(customerName)} · ${escapeHtml(customerPhone)}</div>
+            ${address ? `<div class="item-line" style="color:var(--muted);">📍 ${escapeHtml(address)}</div>` : ""}
             <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);">
               <div class="item-line"><strong>Seller decision:</strong> ${hasDeclined ? "Declined — awaiting admin takeover" : hasAccepted ? "Accepted" : "Pending"}</div>
               ${hasPending ? `<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
@@ -1737,7 +1796,7 @@
                 <button class="btn small secondary" onclick="sellerDecision(${o.id}, 'declined')">✕ Decline</button>
               </div>` : ""}
               ${hasAccepted ? `<div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;"><label class="item-line"><strong>Stage</strong></label><select class="checkout-input" style="width:auto;min-width:170px;padding:7px 10px;" onchange="sellerUpdateStage(${o.id}, this.value)">${stageOptions}</select></div>` : ""}
-              ${hasDeclined ? `<div class="item-line" style="margin-top:7px;color:#b42318;">Design Makers admin has been notified and can take over fulfilment.</div>` : ""}
+              ${hasDeclined ? `<div class="item-line" style="margin-top:7px;color:var(--danger);">Design Makers admin has been notified and can take over fulfilment.</div>` : ""}
             </div>
           `;
           list.appendChild(row);
