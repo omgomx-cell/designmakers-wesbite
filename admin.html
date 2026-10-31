@@ -837,6 +837,76 @@
       .mascot-speech { background:#253745 !important; border-color:#9BA8AB !important; color:#CCD0CF !important; }
       .mascot-speech::after { border-top-color:#9BA8AB !important; }
     </style>
+
+
+    <style id="dmBgFix">
+      /* background on html so the login screen's margin can't leave a dark strip above/below */
+      html { background:
+          radial-gradient(1100px 560px at 8% -10%, rgba(74,92,106,.32), transparent 60%),
+          radial-gradient(950px 620px at 98% 4%, rgba(37,55,69,.55), transparent 55%),
+          radial-gradient(800px 520px at 45% 105%, rgba(37,55,69,.45), transparent 60%),
+          linear-gradient(180deg,#06141B 0%,#0b1a24 55%,#11212D 100%);
+        background-attachment:fixed; min-height:100%; }
+      body { background:transparent !important; min-height:100vh; }
+    </style>
+
+    <style id="dmAdminPalettes">
+      /* Colour switch: default = Slate (unchanged). Viola applies only when html has data-dm-palette="viola". */
+      .dm-palette-switch{ background:var(--field); color:var(--ink); border:1px solid var(--line); border-radius:999px; padding:7px 12px; font-size:12px; font-weight:650; cursor:pointer; font-family:inherit; white-space:nowrap; }
+      .dm-palette-switch:hover{ border-color:var(--gold); }
+      html[data-dm-palette="viola"]{--rosewood:#CB4DB9 !important;--rosewood-dark:#790D97 !important;--rosewood-bright:#E47CAD !important;--blush:rgba(203,77,185,.14) !important;--blush-line:rgba(255,225,193,.14) !important;--gold:#FFC57D !important;--gold-soft:#FFC57D !important;--cream:#1D1D1D !important;--ink:#FFE1C1 !important;--muted:rgba(255,225,193,.62) !important;--surface:#251E26 !important;--field:#2f2433 !important;--line:rgba(255,225,193,.14) !important;--success:#5fd48a !important;--success-bg:rgba(95,212,138,.14) !important;--danger:#ff7a8a !important;--danger-bg:rgba(255,122,138,.14) !important;--warn:#FFC57D !important;--warn-bg:rgba(255,197,125,.14) !important;--info:#8ab4ff !important;--info-bg:rgba(138,180,255,.14) !important;--gold-bg:rgba(255,197,125,.12) !important;color-scheme:dark !important;}
+      html[data-dm-palette="viola"]{background:radial-gradient(900px 620px at 50% 28%,rgba(121,13,151,.38),transparent 65%),radial-gradient(700px 500px at 92% 92%,rgba(203,77,185,.14),transparent 60%),radial-gradient(600px 420px at 6% 80%,rgba(255,197,125,.06),transparent 60%),linear-gradient(180deg,#1D1D1D 0%,#181518 100%) !important;background-attachment:fixed !important;min-height:100% !important;}
+      html[data-dm-palette="viola"] body{background:transparent !important;color:#FFE1C1 !important;min-height:100vh !important;}
+      html[data-dm-palette="viola"] *{scrollbar-color:#790D97 #251E26 !important;}
+      html[data-dm-palette="viola"] ::placeholder{color:rgba(255,225,193,.4) !important;}
+      html[data-dm-palette="viola"] header{background:#251E26 !important;border-bottom:1px solid rgba(255,225,193,.12) !important;}
+      html[data-dm-palette="viola"] .card, html[data-dm-palette="viola"] .stat-card, html[data-dm-palette="viola"] .dm-overview-card, html[data-dm-palette="viola"] .dm-kpi, html[data-dm-palette="viola"] .modal-card, html[data-dm-palette="viola"] .dm-hero-admin, html[data-dm-palette="viola"] .sd-about, html[data-dm-palette="viola"] .sd-chip{background:rgba(37,30,38,.74) !important;border:1px solid rgba(255,225,193,.14) !important;box-shadow:0 10px 32px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,225,193,.06) !important;}
+      html[data-dm-palette="viola"] .dm-kpi:hover, html[data-dm-palette="viola"] .dm-overview-card:hover{border-color:rgba(203,77,185,.45) !important;box-shadow:0 14px 34px rgba(0,0,0,.5),0 0 24px rgba(203,77,185,.18) !important;}
+      html[data-dm-palette="viola"] .theme-card{background:#2f2433 !important;}
+      html[data-dm-palette="viola"] #loginScreen::before{background:rgba(121,13,151,.35) !important;}
+      html[data-dm-palette="viola"] #loginScreen::after{background:rgba(255,197,125,.08) !important;}
+      html[data-dm-palette="viola"] #loginScreen .card{border:1px solid rgba(203,77,185,.3) !important;box-shadow:0 30px 90px rgba(121,13,151,.38),0 0 0 1px rgba(203,77,185,.2) !important;}
+      html[data-dm-palette="viola"] #loginScreen input:focus{border-color:rgba(203,77,185,.8) !important;box-shadow:0 0 0 3px rgba(203,77,185,.2) !important;}
+      html[data-dm-palette="viola"] #loginScreen .dm-login-badge{border-color:rgba(203,77,185,.35) !important;background:rgba(121,13,151,.25) !important;color:#FFC57D !important;}
+      html[data-dm-palette="viola"] .dm-secure-note{border-top-color:rgba(255,225,193,.12) !important;}
+      html[data-dm-palette="viola"] #dmLoginLogo{filter:drop-shadow(0 0 16px rgba(255,197,125,.3)) !important;}
+      html[data-dm-palette="viola"] .btn:not(.secondary):not(.danger){background:linear-gradient(135deg,#790D97,#CB4DB9) !important;color:#fff !important;border:none !important;box-shadow:0 6px 18px rgba(121,13,151,.45) !important;}
+      html[data-dm-palette="viola"] .btn:not(.secondary):not(.danger):hover{background:linear-gradient(135deg,#790D97,#CB4DB9) !important;filter:brightness(1.14) !important;}
+      html[data-dm-palette="viola"] .btn.secondary{background:rgba(203,77,185,.16) !important;color:#FFC57D !important;border:1px solid rgba(203,77,185,.32) !important;}
+      html[data-dm-palette="viola"] .btn.danger{border:1px solid rgba(255,122,138,.3) !important;}
+      html[data-dm-palette="viola"] .fab{background:linear-gradient(135deg,#790D97,#CB4DB9) !important;color:#fff !important;box-shadow:0 6px 20px rgba(121,13,151,.5) !important;}
+      html[data-dm-palette="viola"] input:focus, html[data-dm-palette="viola"] textarea:focus, html[data-dm-palette="viola"] select:focus{border-color:#CB4DB9 !important;box-shadow:0 0 0 3px rgba(203,77,185,.2) !important;}
+      html[data-dm-palette="viola"] select option{background:#251E26 !important;color:#FFE1C1 !important;}
+      html[data-dm-palette="viola"] select option:checked, html[data-dm-palette="viola"] select option:hover{background:#2f2433 !important;color:#FFE1C1 !important;}
+      html[data-dm-palette="viola"] .cat-dropdown{box-shadow:0 8px 24px rgba(0,0,0,.55) !important;}
+      html[data-dm-palette="viola"] .dm-sidebar{background:rgba(29,24,31,.86) !important;border-right:1px solid rgba(255,225,193,.10) !important;box-shadow:4px 0 24px rgba(0,0,0,.4) !important;}
+      html[data-dm-palette="viola"] .dm-nav-item{background:rgba(255,225,193,.04) !important;border:1px solid rgba(255,225,193,.08) !important;box-shadow:none !important;color:rgba(255,225,193,.7) !important;}
+      html[data-dm-palette="viola"] .dm-nav-item:hover{background:rgba(203,77,185,.14) !important;border-color:rgba(203,77,185,.35) !important;color:#FFE1C1 !important;}
+      html[data-dm-palette="viola"] .dm-nav-item.active{background:linear-gradient(135deg,#790D97,#CB4DB9) !important;color:#fff !important;border:1px solid rgba(255,225,193,.28) !important;box-shadow:0 6px 20px rgba(121,13,151,.5),inset 0 1px 0 rgba(255,225,193,.18) !important;}
+      html[data-dm-palette="viola"] .dm-nav-item.active:hover{background:linear-gradient(135deg,#790D97,#CB4DB9) !important;filter:brightness(1.12) !important;}
+      html[data-dm-palette="viola"] .dm-view-store:hover{background:rgba(203,77,185,.12) !important;color:#FFE1C1 !important;}
+      html[data-dm-palette="viola"] .dm-sidebar-profile{background:rgba(255,225,193,.06) !important;}
+      html[data-dm-palette="viola"] .dm-sidebar-avatar{background:linear-gradient(135deg,#790D97,#FFC57D) !important;color:#fff !important;}
+      html[data-dm-palette="viola"] .dm-topbar{background:rgba(29,24,31,.82) !important;border-bottom:1px solid rgba(255,225,193,.10) !important;box-shadow:0 4px 24px rgba(0,0,0,.35) !important;}
+      html[data-dm-palette="viola"] .dm-topbar-search{background:rgba(255,225,193,.06) !important;border:1px solid rgba(255,225,193,.16) !important;color:rgba(255,225,193,.62) !important;}
+      html[data-dm-palette="viola"] .dm-bell-badge{background:#FFC57D !important;color:#1D1D1D !important;}
+      html[data-dm-palette="viola"] .dm-notification-panel{background:#251E26 !important;border:1px solid rgba(255,225,193,.18) !important;box-shadow:0 20px 50px rgba(0,0,0,.55) !important;}
+      html[data-dm-palette="viola"] .dm-notification-item.unread{background:rgba(203,77,185,.10) !important;}
+      html[data-dm-palette="viola"] .dm-kpi-icon.gold, html[data-dm-palette="viola"] .dm-kpi-icon.purple, html[data-dm-palette="viola"] .dm-kpi-icon.orange, html[data-dm-palette="viola"] .dm-kpi-icon.teal{background:rgba(203,77,185,.16) !important;}
+      html[data-dm-palette="viola"] #modalOverlay, html[data-dm-palette="viola"] .seller-modal-overlay, html[data-dm-palette="viola"] .seller-detail-overlay{background:rgba(12,6,14,.74) !important;}
+      html[data-dm-palette="viola"] .mascot-speech{background:#2f2433 !important;border-color:#CB4DB9 !important;color:#FFE1C1 !important;}
+      html[data-dm-palette="viola"] .mascot-speech::after{border-top-color:#CB4DB9 !important;}
+    </style>
+    <script>
+      (function(){
+        var K='dmAdminPalette';
+        function apply(p){ if(p==='viola') document.documentElement.setAttribute('data-dm-palette','viola'); else document.documentElement.removeAttribute('data-dm-palette'); }
+        try{ apply(localStorage.getItem(K)); }catch(e){}
+        function label(){ var b=document.getElementById('dmPaletteBtn'); if(b) b.textContent = document.documentElement.getAttribute('data-dm-palette')==='viola' ? '\uD83D\uDD35 Slate colours' : '\uD83D\uDFE3 Viola colours'; }
+        window.dmToggleAdminPalette=function(){ var next = document.documentElement.getAttribute('data-dm-palette')==='viola' ? 'slate' : 'viola'; apply(next); try{ localStorage.setItem(K,next); }catch(e){} label(); };
+        document.addEventListener('DOMContentLoaded',label);
+      })();
+    </script>
 </head>
   <body>
     <!-- FLOATING SOAP BUBBLE — drifts over the whole page, pops when clicked -->
@@ -927,6 +997,7 @@
             <input type="text" placeholder="Search anything..." disabled />
           </div>
           <div class="dm-topbar-actions">
+            <button class="dm-palette-switch" id="dmPaletteBtn" onclick="dmToggleAdminPalette()" title="Switch colour theme">🟣 Viola colours</button>
             <button class="hidden" id="backupBtn" onclick="downloadBackup()">Download Backup</button>
             <button class="dm-bell" id="dmBellBtn" onclick="switchTab('sellers')" title="Pending approvals">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
