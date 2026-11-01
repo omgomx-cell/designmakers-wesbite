@@ -8144,5 +8144,96 @@ function dmApplyFestivalTheme(theme) {
         try{renderWishlist();renderSavedAddresses();checkBackInStockAlerts();}catch(e){}
       });
 </script>
-  </body>
+  <!-- DM-LIQUID-GLASS-START: admin-selectable "glass" theme, public storefront only. Everything is scoped to body.theme-glass. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap">
+<style id="dm-glass-css">
+body.theme-glass .dm-dark-toggle-row{display:none!important}
+body.theme-glass{background:linear-gradient(120deg,#efe7e1 0%,#e9e2dd 45%,#b9bec8 100%)!important;color:#1b1b22}
+body.theme-glass .add-cart-btn,body.theme-glass .hero-btn,body.theme-glass .btn-primary{
+position:relative;overflow:hidden;font-family:'Poppins',system-ui,sans-serif!important;font-weight:700!important;letter-spacing:.3px;color:#fff!important;
+border:2px solid rgba(255,255,255,.75)!important;border-radius:999px!important;
+background:linear-gradient(180deg,rgba(124,92,255,.95),rgba(124,92,255,.72))!important;
+box-shadow:0 10px 22px rgba(124,92,255,.38),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -6px 12px rgba(255,255,255,.18)!important;
+text-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .15s,filter .15s;will-change:transform;-webkit-tap-highlight-color:transparent}
+body.theme-glass #productWhatsappBtn,body.theme-glass .dm-glass-wa{background:linear-gradient(180deg,rgba(40,200,180,.95),rgba(40,200,180,.72))!important;box-shadow:0 10px 22px rgba(40,200,180,.38),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -6px 12px rgba(255,255,255,.18)!important}
+body.theme-glass .add-cart-btn:disabled,body.theme-glass .add-cart-btn[disabled]{background:rgba(160,160,170,.5)!important;box-shadow:none!important;filter:none}
+body.theme-glass .add-cart-btn:hover:not(:disabled){filter:brightness(1.05)}
+body.theme-glass .add-cart-btn:active{transform:scale(.95)!important}
+body.theme-glass .add-cart-btn::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .2s;background:radial-gradient(circle 70px at var(--mx,50%) var(--my,50%),rgba(255,255,255,.65),transparent 70%)}
+body.theme-glass .add-cart-btn:hover::before{opacity:1}
+.dm-wa-ico{width:20px;height:20px;vertical-align:-4px;margin-right:8px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.dm-rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.6);transform:scale(0);animation:dmRip .65s ease-out forwards;pointer-events:none}
+@keyframes dmRip{to{transform:scale(1);opacity:0}}
+.dm-sp{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:50%;pointer-events:none;animation:dmSp .6s ease-out forwards;z-index:5}
+@keyframes dmSp{to{transform:translate(var(--x),var(--y)) scale(0);opacity:0}}
+.dm-fly{position:fixed;z-index:99999;width:46px;height:46px;border-radius:50%;background:#fff center/cover no-repeat;border:2px solid #fff;box-shadow:0 8px 20px rgba(124,92,255,.5);pointer-events:none;transition:transform .8s cubic-bezier(.5,-.3,.8,.5),opacity .8s}
+.dm-bump{animation:dmBump .5s}
+@keyframes dmBump{30%{transform:scale(1.25) rotate(-8deg)}60%{transform:scale(.95)}100%{transform:none}}
+.dm-pop{animation:dmPop .45s}
+@keyframes dmPop{40%{transform:scale(1.35)}70%{transform:scale(.9)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.dm-rip,.dm-sp,.dm-fly,.dm-bump,.dm-pop{animation:none!important;transition:none!important}}
+</style>
+<script id="dm-glass-js">
+(function(){
+var WA='<svg class="dm-wa-ico" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
+function on(){return document.body.classList.contains('theme-glass')}
+function addWaIcon(){if(!on())return;var b=document.getElementById('productWhatsappBtn');if(b&&!b.querySelector('.dm-wa-ico'))b.insertAdjacentHTML('afterbegin',WA)}
+// Activate / deactivate from the admin-selected theme
+function sync(theme){
+  var b=document.body,was=on();
+  if(theme==='glass'){
+    b.classList.add('theme-glass');
+    if(!was){ if(b.classList.contains('dark-mode')){ b.setAttribute('data-dm-glass-dark','1') } try{applyDarkMode(false)}catch(e){}
+      document.querySelectorAll('.dm-dark-toggle-row').forEach(function(el){el.style.display='none'}); }
+    addWaIcon();setTimeout(function(){if(on()&&b.classList.contains('dark-mode')){try{applyDarkMode(false)}catch(e){}}},1500);
+  }else if(was){
+    b.classList.remove('theme-glass');
+    document.querySelectorAll('.dm-dark-toggle-row').forEach(function(el){el.style.display=''});
+    if(b.getAttribute('data-dm-glass-dark')==='1'){b.removeAttribute('data-dm-glass-dark');var s=null;try{s=localStorage.getItem('dm_dark_mode')}catch(e){}try{applyDarkMode(s==='1')}catch(e){}}
+  }
+}
+fetch('/api/settings').then(function(r){return r.json()}).then(function(d){sync(d&&d.success&&d.settings?d.settings.theme:null)}).catch(function(){});
+new MutationObserver(addWaIcon).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+// Ripple on every button
+document.addEventListener('click',function(e){
+  if(!on())return;var b=e.target.closest('.add-cart-btn');if(!b||b.disabled)return;
+  var r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2,d=document.createElement('span');
+  d.className='dm-rip';d.style.cssText='width:'+s+'px;height:'+s+'px;left:'+(e.clientX-r.left-s/2)+'px;top:'+(e.clientY-r.top-s/2)+'px';
+  b.appendChild(d);setTimeout(function(){d.remove()},700);
+},true);
+// Wishlist heart burst
+document.addEventListener('click',function(e){
+  if(!on())return;var h=e.target.closest('[onclick*="oggleWishlist"],.wishlist-btn,.wish-btn,#wishlistBtn');if(!h)return;
+  if(getComputedStyle(h).position==='static')h.style.position='relative';
+  h.classList.remove('dm-pop');void h.offsetWidth;h.classList.add('dm-pop');
+  var c=['#ff2d6f','#ff9843','#ffd23f','#7c5cff','#28c8b4'];
+  for(var i=0;i<12;i++){var p=document.createElement('i'),a=i/12*6.283,k=34+Math.random()*14;p.className='dm-sp';p.style.background=c[i%5];p.style.setProperty('--x',Math.cos(a)*k+'px');p.style.setProperty('--y',Math.sin(a)*k+'px');h.appendChild(p);(function(q){setTimeout(function(){q.remove()},650)})(p)}
+},true);
+// Add to cart: product photo flies to the cart icon, cart bumps
+document.addEventListener('click',function(e){
+  if(!on()||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  var b=e.target.closest('#addCartBtn');if(!b||b.disabled)return;
+  var img=document.querySelector('#productModal img, .product-modal img, .modal-content img'),cart=document.getElementById('cartCount');cart=cart&&(cart.parentElement||cart);
+  if(!img||!cart)return;
+  var a=img.getBoundingClientRect(),c=cart.getBoundingClientRect(),f=document.createElement('div');
+  f.className='dm-fly';f.style.backgroundImage='url("'+img.currentSrc+'")';f.style.left=(a.left+a.width/2-23)+'px';f.style.top=(a.top+a.height/2-23)+'px';document.body.appendChild(f);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){f.style.transform='translate('+(c.left+c.width/2-a.left-a.width/2)+'px,'+(c.top+c.height/2-a.top-a.height/2)+'px) scale(.3)';f.style.opacity='.4'})});
+  setTimeout(function(){f.remove();cart.classList.remove('dm-bump');void cart.offsetWidth;cart.classList.add('dm-bump')},800);
+},true);
+// PC hover: magnetic pull + cursor glow
+if(matchMedia('(hover:hover)').matches){
+  document.addEventListener('mousemove',function(e){
+    if(!on())return;var b=e.target.closest&&e.target.closest('.add-cart-btn');if(!b||b.disabled)return;
+    var r=b.getBoundingClientRect();b.style.setProperty('--mx',(e.clientX-r.left)+'px');b.style.setProperty('--my',(e.clientY-r.top)+'px');
+    b.style.transition='transform .1s';b.style.transform='translate('+((e.clientX-r.left-r.width/2)*.2)+'px,'+((e.clientY-r.top-r.height/2)*.3)+'px) scale(1.03)';
+  });
+  document.addEventListener('mouseout',function(e){
+    var b=e.target.closest&&e.target.closest('.add-cart-btn');if(!b||b.contains(e.relatedTarget))return;
+    b.style.transition='transform .45s cubic-bezier(.3,1.6,.5,1)';b.style.transform='';
+  });
+}
+})();
+</script>
+<!-- DM-LIQUID-GLASS-END -->
+</body>
 </html>
