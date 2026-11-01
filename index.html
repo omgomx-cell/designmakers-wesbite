@@ -8144,7 +8144,75 @@ function dmApplyFestivalTheme(theme) {
         try{renderWishlist();renderSavedAddresses();checkBackInStockAlerts();}catch(e){}
       });
 </script>
-  <!-- DM-LIQUID-GLASS-START: admin-selectable "glass" theme, public storefront only. Everything is scoped to body.theme-glass. -->
+  <!-- DM-PILLNAV-START: floating pill bottom bar for phones, same layout in every theme (only colours change per theme) -->
+<style id="dm-pillnav-css">
+.dm-pn{display:none}
+@media (max-width:640px){
+  .mobile-action-bar{display:none!important}
+  body{padding-bottom:96px}
+  .dm-pn{display:flex;gap:10px;align-items:center;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:90;justify-content:center;
+    --pn-bg:rgba(255,255,255,.82);--pn-edge:rgba(255,255,255,.95);--pn-ink:#1b1b22;--pn-ico:#8d8d95;--pn-act:rgba(0,0,0,.07);--pn-badge:#e5252a}
+  body.dark-mode .dm-pn{--pn-bg:rgba(30,30,36,.82);--pn-edge:rgba(255,255,255,.18);--pn-ink:#f2f2f6;--pn-ico:#a3a3ae;--pn-act:rgba(255,255,255,.12)}
+  body.theme-rakshabandhan:not(.dark-mode) .dm-pn{--pn-act:rgba(176,132,26,.18);--pn-ink:#5a1a2a;--pn-ico:#a8872f}
+  body.theme-rakshabandhan.dark-mode .dm-pn{--pn-act:rgba(212,175,55,.22);--pn-ink:#f6e3a1;--pn-ico:#c9a94d}
+  body.theme-deepawali .dm-pn{--pn-act:rgba(232,167,58,.25);--pn-ink:#ffd98a;--pn-ico:#c99a48}
+  body.theme-dushera .dm-pn{--pn-act:rgba(242,161,58,.25);--pn-ink:#ffcf8a;--pn-ico:#c98d3d}
+  body.theme-dhanteras .dm-pn{--pn-act:rgba(214,168,74,.25);--pn-ink:#f0d48a;--pn-ico:#b8934a}
+  body.theme-chhath .dm-pn{--pn-act:rgba(245,139,66,.25);--pn-ink:#ffc99a;--pn-ico:#d08a55}
+  body.theme-glass .dm-pn{--pn-bg:rgba(255,255,255,.78);--pn-ink:#1b1b22;--pn-ico:#8d8d95;--pn-act:rgba(0,0,0,.07)}
+  .dm-pn .pill,.dm-pn .cartb{background:var(--pn-bg);border:2px solid var(--pn-edge);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);box-shadow:0 12px 28px rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.55)}
+  .dm-pn .pill{display:flex;align-items:center;gap:4px;padding:6px;border-radius:999px;flex:1;max-width:340px;justify-content:space-between}
+  .dm-pn button{border:0;background:transparent;color:var(--pn-ico);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;height:44px;min-width:44px;padding:0 12px;border-radius:999px;font:700 13px system-ui,sans-serif;-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s,transform .15s;position:relative}
+  .dm-pn button svg{width:23px;height:23px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .dm-pn button:active{transform:scale(.9)}
+  .dm-pn button .lbl{display:none}
+  .dm-pn button.on{background:var(--pn-act);color:var(--pn-ink)}
+  .dm-pn button.on .lbl{display:inline}
+  .dm-pn button.on svg{fill:currentColor}
+  .dm-pn .cartb{width:58px;height:58px;border-radius:50%;padding:0;color:var(--pn-ink)}
+  .dm-pn .cartb svg{width:25px;height:25px}
+  .dm-pn .bdg{position:absolute;top:6px;right:5px;min-width:19px;height:19px;border-radius:10px;background:var(--pn-badge);color:#fff;font:700 11px system-ui,sans-serif;display:grid;place-items:center;padding:0 4px}
+  .dm-pn .bdg.z{display:none}
+  .dm-pn .bump{animation:pnBump .45s}
+  @keyframes pnBump{35%{transform:scale(1.3)}100%{transform:scale(1)}}
+}
+</style>
+<script id="dm-pillnav-js">
+(function(){
+var I={
+home:'<path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+search:'<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+heart:'<path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.6 4.5 6.9 4.5c2 0 3.9 1.1 5.1 2.9 1.2-1.8 3.1-2.9 5.1-2.9 3.3 0 5.3 3.1 4.1 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/>',
+bell:'<path d="M6 16V11a6 6 0 1 1 12 0v5l1.6 2H4.4z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+cart:'<path d="M2 3h3l2.4 12.2a1.5 1.5 0 0 0 1.5 1.2h8.3a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6"/><circle cx="9.5" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/>'};
+function svg(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+I[k]+'</svg>'}
+var nav=document.createElement('nav');nav.className='dm-pn';nav.setAttribute('aria-label','Quick navigation');
+nav.innerHTML='<div class="pill">'+
+ [['home','Home'],['search','Search'],['heart','Wishlist'],['bell','Alerts']].map(function(a){return '<button type="button" data-k="'+a[0]+'" aria-label="'+a[1]+'">'+svg(a[0])+'<span class="lbl">'+a[1]+'</span></button>'}).join('')+
+ '</div><button type="button" class="cartb" data-k="cart" aria-label="Cart">'+svg('cart')+'<span class="bdg z" id="dmPnBadge">0</span></button>';
+document.body.appendChild(nav);
+function set(k){nav.querySelectorAll('.pill button').forEach(function(b){b.classList.toggle('on',b.dataset.k===k)})}
+set('home');
+function g(f){try{return typeof window[f]==='function'?window[f]:null}catch(e){return null}}
+nav.addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;var k=b.dataset.k,f;
+  if(k==='home'){set('home');var sp=document.getElementById('searchBarPanel');if(sp&&sp.classList.contains('open')&&(f=g('toggleSearchBar')))f(false);window.scrollTo({top:0,behavior:'smooth'})}
+  else if(k==='search'){set('search');if(f=g('toggleSearchBar'))f()}
+  else if(k==='heart'){set('heart');if(f=g('openWishlistModal'))f()}
+  else if(k==='bell'){set('bell');if(f=g('openAccountModal'))f();try{if(currentCustomer&&(f=g('showAccountSection')))f('notifications')}catch(x){}}
+  else if(k==='cart'){if(f=g('openCart'))f()}
+});
+// go back to Home when nothing is open any more
+var t;function settle(){clearTimeout(t);t=setTimeout(function(){var sp=document.getElementById('searchBarPanel');if(!document.querySelector('.overlay.open')&&!(sp&&sp.classList.contains('open')))set('home')},350)}
+new MutationObserver(settle).observe(document.body,{attributes:true,subtree:true,attributeFilter:['class']});
+// live cart badge, copied from the header count
+var cc=document.getElementById('cartCount'),bd=document.getElementById('dmPnBadge'),last='';
+function sync(){if(!cc)return;var n=(cc.textContent||'0').trim();bd.textContent=n;bd.classList.toggle('z',!+n);if(n!==last&&last!==''){bd.classList.remove('bump');void bd.offsetWidth;bd.classList.add('bump')}last=n}
+if(cc){new MutationObserver(sync).observe(cc,{childList:true,characterData:true,subtree:true});sync()}
+})();
+</script>
+<!-- DM-PILLNAV-END -->
+<!-- DM-LIQUID-GLASS-START: admin-selectable "glass" theme, public storefront only. Everything is scoped to body.theme-glass. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap">
 <style id="dm-glass-css">
 body.theme-glass .dm-dark-toggle-row{display:none!important}
