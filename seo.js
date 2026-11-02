@@ -47,7 +47,7 @@ module.exports = function registerSeo(app, deps) {
 
   const BRAND = "Design Makers";
   const DEFAULT_DESC =
-    "Design Makers — personalized photo mugs, cushions, keychains, frames and gifts, customized just for you and delivered. Order easily via WhatsApp, Cash on Delivery.";
+    "Design Makers — Your One-Stop Customisation Hub. Gifts That Say It's Made For You: personalised photo mugs, cushions, frames, keychains and more. Cash on Delivery, order easily via WhatsApp.";
 
   // ---------------------------------------------------------------- helpers
 
@@ -320,11 +320,12 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
         .join("");
 
       sendPage(res, 200, {
-        title: `Personalized Gifts Online — Photo Mugs, Cushions, Frames | ${BRAND}`,
+        title: `${BRAND} | Your One-Stop Customisation Hub — Personalised Gifts Online`,
         description: DEFAULT_DESC,
         canonical: `${SITE_URL}/`,
-        ogImage: sharp ? `${SITE_URL}/og/home.jpg` : undefined,
-        ogImageCard: !!sharp,
+        // Ready-made 1200x630 share card (og-home.jpg) — works without sharp.
+        ogImage: `${SITE_URL}/og-home.jpg`,
+        ogImageCard: true,
         jsonLd: [org, site],
         bodyHtml: `<nav><h2>Shop by category</h2><ul>${catLinks}</ul><h2>Popular personalized gifts</h2><ul>${prodLinks}</ul></nav>`,
       });
