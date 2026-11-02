@@ -5207,6 +5207,7 @@ require("./seo")(app, {
   isSaleActive,
   getStockForVariant,
   sameAs: [DESIGN_MAKERS_INSTAGRAM, DESIGN_MAKERS_YOUTUBE],
+  phone: "+" + DESIGN_MAKERS_WHATSAPP.replace(/\D/g, ""),
   rootDir: __dirname,
 });
 
