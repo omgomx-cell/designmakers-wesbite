@@ -35,6 +35,16 @@ module.exports = function registerSeo(app, deps) {
     rootDir,
   } = deps;
 
+  // Optional: used only to build 1200x630 WhatsApp/Facebook share-card photos.
+  // If the package isn't installed on the host, everything silently falls back
+  // to the plain product photo (nothing breaks).
+  let sharp = null;
+  try {
+    sharp = require("sharp");
+  } catch (e) {
+    sharp = null;
+  }
+
   const BRAND = "Design Makers";
   const DEFAULT_DESC =
     "Design Makers — personalized photo mugs, cushions, keychains, frames and gifts, customized just for you and delivered. Order easily via WhatsApp, Cash on Delivery.";
@@ -122,7 +132,7 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
   const isoDate = (ms) => new Date(ms).toISOString().slice(0, 10);
 
   // Fills the real per-page <head> tags + crawlable body block into index.html
-  function renderPage({ title, description, canonical, ogType = "website", ogImage, jsonLd = [], bodyHtml = "", noindex = false }) {
+  function renderPage({ title, description, canonical, ogType = "website", ogImage, ogImageCard = false, jsonLd = [], bodyHtml = "", noindex = false }) {
     let html = getTemplate();
     const t = escapeHtml(title);
     const d = escapeHtml(description);
@@ -148,6 +158,13 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
         `    <meta name="twitter:description" content="${d}" />\n` +
         `    <meta name="twitter:image" content="${img}" />\n` +
         `    <meta property="og:locale" content="en_IN" />\n` +
+        `    <meta property="og:image:secure_url" content="${img}" />\n` +
+        (ogImageCard
+          ? `    <meta property="og:image:type" content="image/jpeg" />\n` +
+            `    <meta property="og:image:width" content="1200" />\n` +
+            `    <meta property="og:image:height" content="630" />\n`
+          : "") +
+        `    <meta property="og:image:alt" content="${t}" />\n` +
         `    <meta name="robots" content="${noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}" />`,
     );
 
@@ -192,6 +209,71 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
     });
     return map;
   }
+
+  // --------------------------------------------------------- share-card photo
+  // WhatsApp / Facebook only show a big Flipkart-style preview photo when the
+  // image is landscape (1200x630) and light (well under ~300 KB). Product photos
+  // are square, often big, and stored inside the database, so /og/<id>.jpg builds
+  // a 1200x630 card on the fly: the photo centred on a soft blurred copy of itself.
+
+  const cardCache = new Map();
+
+  function storedImages(p) {
+    return Array.isArray(p.images) && p.images.length ? p.images : p.image ? [p.image] : [];
+  }
+
+  // returns { url, card } — card=true means it is our 1200x630 share card
+  function shareImage(p) {
+    const first = storedImages(p)[0];
+    if (sharp && typeof first === "string" && first.startsWith("data:image/")) {
+      return { url: `${SITE_URL}/og/${p.id}.jpg`, card: true };
+    }
+    return { url: imageUrls(p)[0], card: false };
+  }
+
+  async function buildCard(buf) {
+    const base = sharp(buf, { failOn: "none" }).rotate();
+    const bg = await base.clone().resize(1200, 630, { fit: "cover" }).blur(40).modulate({ brightness: 1.08 }).toBuffer();
+    const fg = await base.clone().resize({ width: 1100, height: 560, fit: "inside" }).toBuffer();
+    return sharp(bg)
+      .composite([{ input: fg, gravity: "centre" }])
+      .jpeg({ quality: 80, mozjpeg: true })
+      .toBuffer();
+  }
+
+  app.get("/og/:file", async (req, res) => {
+    try {
+      const m = /^(\d+|home)\.jpg$/.exec(req.params.file || "");
+      if (!sharp || !m) return res.status(404).type("text/plain").send("");
+
+      let src;
+      let key;
+      if (m[1] === "home") {
+        src = fs.readFileSync(path.join(rootDir, "Logo.png"));
+        key = "home";
+      } else {
+        const product = visibleProducts(readDatabase()).find((p) => p.id === Number(m[1]));
+        const raw = product ? storedImages(product)[0] : "";
+        const parsed = typeof raw === "string" ? /^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/.exec(raw) : null;
+        if (!parsed) return res.status(404).type("text/plain").send("");
+        src = Buffer.from(parsed[1], "base64");
+        key = `${m[1]}:${raw.length}:${raw.slice(-40)}`; // changes when the photo changes
+      }
+
+      let out = cardCache.get(key);
+      if (!out) {
+        out = await buildCard(src);
+        if (cardCache.size >= 300) cardCache.delete(cardCache.keys().next().value);
+        cardCache.set(key, out);
+      }
+      res.set("Content-Type", "image/jpeg");
+      res.set("Cache-Control", "public, max-age=86400");
+      res.send(out);
+    } catch (err) {
+      console.error("og image failed:", err.message);
+      res.status(404).type("text/plain").send("");
+    }
+  });
 
   // ------------------------------------------------------------------- home
 
@@ -241,6 +323,8 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
         title: `Personalized Gifts Online — Photo Mugs, Cushions, Frames | ${BRAND}`,
         description: DEFAULT_DESC,
         canonical: `${SITE_URL}/`,
+        ogImage: sharp ? `${SITE_URL}/og/home.jpg` : undefined,
+        ogImageCard: !!sharp,
         jsonLd: [org, site],
         bodyHtml: `<nav><h2>Shop by category</h2><ul>${catLinks}</ul><h2>Popular personalized gifts</h2><ul>${prodLinks}</ul></nav>`,
       });
@@ -353,7 +437,8 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
         description,
         canonical: url,
         ogType: "product",
-        ogImage: imgs[0],
+        ogImage: shareImage(product).url,
+        ogImageCard: shareImage(product).card,
         jsonLd: [productLd, breadcrumb(crumbs)],
         bodyHtml,
       });
@@ -402,7 +487,8 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
         title: `${name} — Personalized ${name} Online | ${BRAND}`,
         description: `Shop personalized ${name.toLowerCase()} online at ${BRAND}. ${list.length} custom ${list.length === 1 ? "design" : "designs"} starting at ${inr(Math.min(...list.map((p) => priceInfo(p).final)))}. Order via WhatsApp, Cash on Delivery.`,
         canonical: url,
-        ogImage: imageUrls(list[0])[0],
+        ogImage: shareImage(list[0]).url,
+        ogImageCard: shareImage(list[0]).card,
         jsonLd: [itemList, breadcrumb([{ name: "Home", url: `${SITE_URL}/` }, { name, url }])],
         bodyHtml: `<h1>${escapeHtml(name)}</h1><ul>${links}</ul>`,
       });
