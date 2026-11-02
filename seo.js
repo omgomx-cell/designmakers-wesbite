@@ -31,6 +31,7 @@ module.exports = function registerSeo(app, deps) {
     isSaleActive,
     getStockForVariant,
     sameAs = [],
+    phone = "",
     rootDir,
   } = deps;
 
@@ -208,6 +209,18 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
         logo: `${SITE_URL}/Logo.png`,
         sameAs: sameAs.filter(Boolean),
       };
+      if (phone) {
+        org.telephone = phone;
+        org.contactPoint = [
+          {
+            "@type": "ContactPoint",
+            telephone: phone,
+            contactType: "customer service",
+            areaServed: "IN",
+            availableLanguage: ["en", "hi"],
+          },
+        ];
+      }
       const site = {
         "@context": "https://schema.org",
         "@type": "WebSite",
@@ -401,20 +414,58 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
 
   // ------------------------------------------------------ robots + sitemap
 
+  // Same crawl rules for every bot. AI search/answer crawlers get their own
+  // explicit group (a bot-specific group replaces the "*" group, so the
+  // Disallow lines must be repeated inside it).
+  const AI_CRAWLERS = [
+    "GPTBot", "OAI-SearchBot", "ChatGPT-User", // OpenAI / ChatGPT
+    "ClaudeBot", "Claude-SearchBot", "Claude-User", // Anthropic / Claude
+    "PerplexityBot", "Perplexity-User", // Perplexity
+    "Google-Extended", // Gemini / Google AI training opt-in
+    "Applebot-Extended", // Apple Intelligence
+  ];
+  const CRAWL_RULES = ["Allow: /", "Disallow: /admin", "Disallow: /seller", "Disallow: /sellerapplication", "Disallow: /api/"];
+
   app.get("/robots.txt", (req, res) => {
-    res.type("text/plain").send(
-      [
-        "User-agent: *",
-        "Allow: /",
-        "Disallow: /admin",
-        "Disallow: /seller",
-        "Disallow: /sellerapplication",
-        "Disallow: /api/",
+    const lines = ["User-agent: *", ...CRAWL_RULES, ""];
+    AI_CRAWLERS.forEach((bot) => {
+      lines.push(`User-agent: ${bot}`, ...CRAWL_RULES, "");
+    });
+    lines.push(`Sitemap: ${SITE_URL}/sitemap.xml`, "");
+    res.type("text/plain").send(lines.join("\n"));
+  });
+
+  // llms.txt — plain-text summary for AI assistants: who we are, what we sell,
+  // and where the real pages are. Built live from the database.
+  app.get("/llms.txt", (req, res) => {
+    try {
+      const database = readDatabase();
+      const products = visibleProducts(database);
+      const cats = categoriesOf(products);
+      const out = [
+        `# ${BRAND}`,
         "",
-        `Sitemap: ${SITE_URL}/sitemap.xml`,
+        `> ${DEFAULT_DESC}`,
         "",
-      ].join("\n"),
-    );
+        `Website: ${SITE_URL}/`,
+      ];
+      if (phone) out.push(`WhatsApp / phone: ${phone}`);
+      out.push("", "## Categories", "");
+      cats.forEach((list, name) => {
+        out.push(`- [${name}](${categoryUrl(name)}): ${list.length} product${list.length === 1 ? "" : "s"}`);
+      });
+      out.push("", "## Products", "");
+      products.slice(0, 100).forEach((p) => {
+        out.push(`- [${clean(p.name)}](${productUrl(p)}): ${inr(priceInfo(p).final)}${inStock(p) ? "" : " (out of stock)"}`);
+      });
+      out.push("", "## Machine-readable", "", `- [Sitemap](${SITE_URL}/sitemap.xml)`, `- [Google Merchant feed](${SITE_URL}/feed/google-merchant.xml)`, "");
+      res.set("Content-Type", "text/plain; charset=utf-8");
+      res.set("Cache-Control", "public, max-age=3600");
+      res.send(out.join("\n"));
+    } catch (err) {
+      console.error("llms.txt failed:", err.message);
+      res.status(500).type("text/plain").send("");
+    }
   });
 
   app.get("/sitemap.xml", (req, res) => {
