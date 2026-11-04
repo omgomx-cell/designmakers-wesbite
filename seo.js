@@ -371,10 +371,20 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
       const stats = reviewStats(database, product.id);
       const category = clean(product.category);
 
-      const description =
-        clip(product.description, 158) ||
-        `Buy ${product.name} online — personalized ${category ? category.toLowerCase() + " " : ""}gift by ${BRAND}, ${inr(pi.final)}. Order via WhatsApp, Cash on Delivery.`;
-      const title = `${clip(product.name, 42)} — Buy Online ${inr(pi.final)} | ${BRAND}`;
+      // Search-friendly name: add "Personalized" unless the name already says
+      // "Personalized" / "Custom" (e.g. "Custom Badge" stays as is).
+      const rawName = clean(product.name);
+      const seoName = /^(personali[sz]ed|custom)\b/i.test(rawName) ? rawName : `Personalized ${rawName}`;
+      const descTail = ` Custom gift by ${BRAND}. Cash on Delivery, order via WhatsApp.`;
+      const rawDesc = clean(product.description);
+      // Admin-written descriptions of 110+ characters are used as written; shorter
+      // ones get the gifting/delivery line appended; missing ones are generated.
+      const description = !rawDesc
+        ? clip(`Buy ${seoName} online at ${inr(pi.final)}.${descTail}`, 200)
+        : rawDesc.length < 110
+          ? clip(rawDesc.replace(/[\s.]+$/, "") + "." + descTail, 200)
+          : clip(rawDesc, 158);
+      const title = `${clip(seoName, 48)} Online — ${inr(pi.final)} | ${BRAND}`;
 
       const priceValidUntil = pi.saleEndsAt ? isoDate(pi.saleEndsAt) : isoDate(Date.now() + 90 * 864e5);
 
@@ -431,6 +441,7 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
         `<p>Price: ${escapeHtml(inr(pi.final))}${pi.sale ? ` (was ${escapeHtml(inr(pi.price))})` : ""} — ${stock ? "In stock" : "Out of stock"}</p>` +
         (category ? `<p>Category: <a href="${escapeHtml(`/category/${slugifyProductName(category)}`)}">${escapeHtml(category)}</a></p>` : "") +
         (related ? `<h2>More ${escapeHtml(category)}</h2><ul>${related}</ul>` : "") +
+        faqHtml(product.name) +
         `</article>`;
 
       sendPage(res, 200, {
@@ -522,6 +533,23 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
     res.type("text/plain").send(lines.join("\n"));
   });
 
+  // Delivery-time rule: 100+ pieces take 2 days, under 100 take 1 day, same day on request.
+  function faqItems(productName) {
+    const n = productName ? clean(productName) : "";
+    return [
+      [n ? `How long does it take to make ${n}?` : "How long does it take to make an order?",
+       "Orders of 100 or more pieces take 2 days. Orders of fewer than 100 pieces take 1 day. Same-day delivery is possible depending on the requirement; tell us your deadline on WhatsApp."],
+      ["How do I place an order?", "Add the product to your cart and confirm the order on WhatsApp. No login is needed to chat with us."],
+      ["What payment methods do you accept?", "Cash on Delivery (COD)."],
+      ["Do you take bulk or corporate orders?", "Yes. 100 or more pieces are ready in 2 days. Contact us on WhatsApp for bulk pricing."],
+    ];
+  }
+  function faqHtml(productName) {
+    return `<section><h2>Frequently asked questions</h2>` +
+      faqItems(productName).map(([q, a]) => `<h3>${escapeHtml(q)}</h3><p>${escapeHtml(a)}</p>`).join("") +
+      `</section>`;
+  }
+
   // llms.txt — plain-text summary for AI assistants: who we are, what we sell,
   // and where the real pages are. Built live from the database.
   app.get("/llms.txt", (req, res) => {
@@ -545,7 +573,9 @@ const clean = (s) => String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace
       products.slice(0, 100).forEach((p) => {
         out.push(`- [${clean(p.name)}](${productUrl(p)}): ${inr(priceInfo(p).final)}${inStock(p) ? "" : " (out of stock)"}`);
       });
-      out.push("", "## Machine-readable", "", `- [Sitemap](${SITE_URL}/sitemap.xml)`, `- [Google Merchant feed](${SITE_URL}/feed/google-merchant.xml)`, "");
+      out.push("", "## FAQ", "");
+      faqItems("").forEach(([q, a]) => { out.push(`**${q}**`, a, ""); });
+      out.push("## Machine-readable", "", `- [Sitemap](${SITE_URL}/sitemap.xml)`, `- [Google Merchant feed](${SITE_URL}/feed/google-merchant.xml)`, "");
       res.set("Content-Type", "text/plain; charset=utf-8");
       res.set("Cache-Control", "public, max-age=3600");
       res.send(out.join("\n"));
