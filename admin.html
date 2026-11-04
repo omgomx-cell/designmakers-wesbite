@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="en">
   <head>
+<script>
+/* Marks requests as coming from a really-active person (mouse / keyboard / touch in the last minute).
+   The server only extends the 30-minute idle login timer for those requests, so background polling in an
+   abandoned tab can never keep a session alive. */
+(function(){var last=Date.now(),bump=function(){last=Date.now()};["pointerdown","keydown","touchstart","wheel","scroll"].forEach(function(ev){window.addEventListener(ev,bump,{passive:true,capture:true})});var nf=window.fetch;if(!nf)return;window.fetch=function(input,init){try{if(Date.now()-last<60000){var o=init?Object.assign({},init):{};var h=new Headers(o.headers||(typeof Request!=="undefined"&&input instanceof Request?input.headers:undefined)||{});h.set("X-DM-Active","1");o.headers=h;return nf.call(window,input,o);}}catch(e){}return nf.call(window,input,init);};})();
+</script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Design Makers - Admin</title>
@@ -1514,7 +1521,7 @@
             <label>New Admin Username</label>
             <input type="text" id="newAdminUsername" placeholder="e.g. priya" />
             <label>New Admin Password</label>
-            <input type="text" id="newAdminPassword" placeholder="min 6 characters" />
+            <input type="text" id="newAdminPassword" placeholder="min 10 characters" />
             <label>Registered Email *</label>
             <input type="email" id="newAdminEmail" placeholder="subadmin@example.com" autocomplete="email" />
             <label>Phone Number *</label>
@@ -1690,7 +1697,7 @@
           <button class="btn small secondary" onclick="generateRandomPasswordModal()">Generate &amp; email a random password</button>
 
           <label style="margin-top:14px;">Or set a specific password</label>
-          <input type="text" id="sellerModalCustomPassword" placeholder="At least 6 characters" autocomplete="off" />
+          <input type="text" id="sellerModalCustomPassword" placeholder="At least 8 characters" autocomplete="off" />
           <button class="btn small" style="margin-top:6px;" onclick="setCustomPasswordModal()">Set this password</button>
 
           <div id="sellerModalPasswordStatus" style="font-size:13px;margin-top:8px;min-height:18px;font-weight:600;"></div>
@@ -1905,9 +1912,9 @@
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js" integrity="sha384-Xl/CUCfJbzsngMp0CFxkmF0VW/8C160IsGujqeQlIhaGxKz2+JsIGORFqtCPeldF" crossorigin="anonymous"></script>
     <script>
       let token = localStorage.getItem("dm_admin_token") || null;
       let role = localStorage.getItem("dm_admin_role") || null;
@@ -4331,9 +4338,9 @@
         const statusEl = document.getElementById("sellerModalPasswordStatus");
         const pw = document.getElementById("sellerModalCustomPassword").value;
 
-        if (pw.length < 6) {
+        if (pw.length < 8) {
           statusEl.style.color = "var(--danger)";
-          statusEl.textContent = "Password must be at least 6 characters.";
+          statusEl.textContent = "Password must be at least 8 characters.";
           return;
         }
 
@@ -4444,7 +4451,7 @@
           }
           statusEl.style.color = "var(--success)";
           statusEl.textContent = "✓ Opened in a new tab.";
-          window.open("/sell?impersonate=" + encodeURIComponent(data.token), "_blank");
+          window.open("/seller?impersonate=1", "_blank"); // the server already set the seller login cookie; nothing secret goes in the URL
         } catch (err) {
           statusEl.style.color = "var(--danger)";
           statusEl.textContent = "Network error — check your connection and try again.";
@@ -6353,12 +6360,12 @@
       async function editAdminCredentials(username) {
         const newUsername = prompt("New username for \"" + username + "\" (leave as-is to keep):", username);
         if (newUsername === null) return;
-        const newPassword = prompt("New password (leave blank to keep current, min 6 characters):", "");
+        const newPassword = prompt("New password (leave blank to keep current, min 10 characters):", "");
         if (newPassword === null) return;
 
         const trimmedUsername = newUsername.trim();
         if (!trimmedUsername) { alert("Username cannot be empty."); return; }
-        if (newPassword && newPassword.length < 6) { alert("Password should be at least 6 characters."); return; }
+        if (newPassword && newPassword.length < 10) { alert("Password should be at least 10 characters."); return; }
 
         try {
           const res = await fetch("/api/admin/admins/" + encodeURIComponent(username) + "/credentials", {

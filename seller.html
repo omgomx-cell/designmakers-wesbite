@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="en">
   <head>
+<script>
+/* Marks requests as coming from a really-active person (mouse / keyboard / touch in the last minute).
+   The server only extends the 30-minute idle login timer for those requests, so background polling in an
+   abandoned tab can never keep a session alive. */
+(function(){var last=Date.now(),bump=function(){last=Date.now()};["pointerdown","keydown","touchstart","wheel","scroll"].forEach(function(ev){window.addEventListener(ev,bump,{passive:true,capture:true})});var nf=window.fetch;if(!nf)return;window.fetch=function(input,init){try{if(Date.now()-last<60000){var o=init?Object.assign({},init):{};var h=new Headers(o.headers||(typeof Request!=="undefined"&&input instanceof Request?input.headers:undefined)||{});h.set("X-DM-Active","1");o.headers=h;return nf.call(window,input,o);}}catch(e){}return nf.call(window,input,init);};})();
+</script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Seller Dashboard - Design Makers</title>
@@ -517,7 +524,7 @@
           <input type="password" id="mcCurrentPassword" autocomplete="off" />
 
           <label for="mcNewPassword">New password</label>
-          <input type="password" id="mcNewPassword" placeholder="At least 6 characters" autocomplete="new-password" />
+          <input type="password" id="mcNewPassword" placeholder="At least 8 characters" autocomplete="new-password" />
 
           <label for="mcConfirmPassword">Confirm new password</label>
           <input type="password" id="mcConfirmPassword" autocomplete="new-password" />
@@ -997,8 +1004,8 @@
           errorEl.style.display = "block";
           return;
         }
-        if (newPassword.length < 6) {
-          errorEl.textContent = "New password must be at least 6 characters.";
+        if (newPassword.length < 8) {
+          errorEl.textContent = "New password must be at least 8 characters.";
           errorEl.style.display = "block";
           return;
         }
@@ -1056,6 +1063,7 @@
       }
 
       function doLogout() {
+        try { fetch("/api/seller/logout", { method: "POST" }).catch(function () {}); } catch (e) {}
         clearToken();
         document.getElementById("dashboard").style.display = "none";
         document.getElementById("loginScreen").style.display = "flex";
@@ -1903,9 +1911,11 @@
         // the token arrives as ?impersonate=... — store it like a normal
         // login token, then strip it from the visible URL.
         const urlParams = new URLSearchParams(window.location.search);
-        const impersonateToken = urlParams.get("impersonate");
-        if (impersonateToken) {
-          setToken(impersonateToken);
+        const impersonateFlag = urlParams.get("impersonate");
+        if (impersonateFlag) {
+          // The admin panel's "Log in as this seller" call already set the
+          // login cookie; this only records that a session exists.
+          setToken("cookie-session");
           window.history.replaceState({}, "", window.location.pathname);
         }
 

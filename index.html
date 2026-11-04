@@ -1,6 +1,17 @@
 <!doctype html>
 <html lang="en">
   <head>
+<script>
+/* Marks requests as coming from a really-active person (mouse / keyboard / touch in the last minute).
+   The server only extends the 30-minute idle login timer for those requests, so background polling in an
+   abandoned tab can never keep a session alive. */
+(function(){var last=Date.now(),bump=function(){last=Date.now()};["pointerdown","keydown","touchstart","wheel","scroll"].forEach(function(ev){window.addEventListener(ev,bump,{passive:true,capture:true})});var nf=window.fetch;if(!nf)return;window.fetch=function(input,init){try{if(Date.now()-last<60000){var o=init?Object.assign({},init):{};var h=new Headers(o.headers||(typeof Request!=="undefined"&&input instanceof Request?input.headers:undefined)||{});h.set("X-DM-Active","1");o.headers=h;return nf.call(window,input,o);}}catch(e){}return nf.call(window,input,init);};})();
+</script>
+<script>
+/* If the server says the customer's login has ended (idle timeout / signed out elsewhere), drop the signed-in look. */
+(function(){var nf=window.fetch;if(!nf)return;window.fetch=function(i,n){return nf.call(window,i,n).then(function(r){try{var u=typeof i==="string"?i:(i&&i.url)||"";if(r.status===401&&/\/api\/customer\//.test(u)&&!/\/(login|google-login|register|logout|forgot-password)/.test(u)&&window.dmOnCustomerSessionExpired)window.dmOnCustomerSessionExpired();}catch(e){}return r;});};})();
+</script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Design Makers | Your One-Stop Customisation Hub</title>
@@ -3864,7 +3875,7 @@ function dmApplyFestivalTheme(theme) {
         <div id="forgotPasswordStepOtp" style="display:none;">
           <p class="modal-desc" id="forgotPasswordOtpDesc" style="margin-bottom:18px;">Enter the 6-digit code we emailed you, along with your new password.</p>
           <input type="text" id="forgotPasswordOtp" class="checkout-input" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="width:100%;margin-bottom:10px;" />
-          <input type="password" id="forgotPasswordNewPassword" class="checkout-input" placeholder="New password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
+          <input type="password" id="forgotPasswordNewPassword" class="checkout-input" placeholder="New password (min 8 characters)" style="width:100%;margin-bottom:10px;" />
           <input type="password" id="forgotPasswordConfirmPassword" class="checkout-input" placeholder="Confirm new password" style="width:100%;margin-bottom:10px;" />
           <div class="modal-error" id="forgotPasswordOtpError" style="display:none;"></div>
           <button class="add-cart-btn" id="forgotPasswordResetBtn" onclick="submitForgotPasswordVerifyOtp()">Reset password</button>
@@ -3890,7 +3901,7 @@ function dmApplyFestivalTheme(theme) {
         <div id="currentPasswordRow" style="margin-bottom:10px;">
           <input type="password" id="currentPasswordInput" class="checkout-input" placeholder="Current password" style="width:100%;" />
         </div>
-        <input type="password" id="newPasswordInput" class="checkout-input" placeholder="New password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
+        <input type="password" id="newPasswordInput" class="checkout-input" placeholder="New password (min 8 characters)" style="width:100%;margin-bottom:10px;" />
         <input type="password" id="confirmNewPasswordInput" class="checkout-input" placeholder="Confirm new password" style="width:100%;margin-bottom:10px;" />
         <div class="modal-error" id="changePasswordError" style="display:none;"></div>
         <button class="add-cart-btn" id="changePasswordBtn" onclick="submitChangePassword()">Update password</button>
@@ -3957,7 +3968,7 @@ function dmApplyFestivalTheme(theme) {
               <input type="text" id="registerName" class="checkout-input" placeholder="Your name" style="width:100%;margin-bottom:10px;" />
               <input type="tel" id="registerMobile" class="checkout-input" placeholder="WhatsApp mobile number" maxlength="10" inputmode="numeric" style="width:100%;margin-bottom:6px;" />
               <p style="font-size:0.78em;color:var(--muted);margin:0 0 10px;">📱 Use your <strong>WhatsApp number</strong> — we send order updates there.</p>
-              <input type="password" id="registerPassword" class="checkout-input" placeholder="Choose a password (min 6 characters)" style="width:100%;margin-bottom:10px;" />
+              <input type="password" id="registerPassword" class="checkout-input" placeholder="Choose a password (min 8 characters)" style="width:100%;margin-bottom:10px;" />
               <input type="password" id="registerPasswordConfirm" class="checkout-input" placeholder="Confirm password" style="width:100%;margin-bottom:10px;" />
               <div class="modal-error" id="registerError" style="display:none;"></div>
               <button class="add-cart-btn" onclick="submitCustomerRegister()">Create account</button>
@@ -4493,8 +4504,8 @@ function dmApplyFestivalTheme(theme) {
           errorEl.style.display = "block";
           return;
         }
-        if (password.length < 6) {
-          errorEl.textContent = "Password should be at least 6 characters.";
+        if (password.length < 8) {
+          errorEl.textContent = "Password should be at least 8 characters.";
           errorEl.style.display = "block";
           return;
         }
@@ -4732,8 +4743,8 @@ function dmApplyFestivalTheme(theme) {
           errorEl.style.display = "block";
           return;
         }
-        if (!next || next.length < 6) {
-          errorEl.textContent = "New password should be at least 6 characters.";
+        if (!next || next.length < 8) {
+          errorEl.textContent = "New password should be at least 8 characters.";
           errorEl.style.display = "block";
           return;
         }
@@ -4807,8 +4818,8 @@ function dmApplyFestivalTheme(theme) {
           errorEl.style.display = "block";
           return;
         }
-        if (!next || next.length < 6) {
-          errorEl.textContent = "New password should be at least 6 characters.";
+        if (!next || next.length < 8) {
+          errorEl.textContent = "New password should be at least 8 characters.";
           errorEl.style.display = "block";
           return;
         }
@@ -4925,7 +4936,17 @@ function dmApplyFestivalTheme(theme) {
         }
       }
 
+      // Called by the fetch wrapper in <head> when the server ends the login (idle timeout etc).
+      window.dmOnCustomerSessionExpired = function () {
+        if (!getCustomerToken() && !currentCustomer) return;
+        localStorage.removeItem("dm_customer_token");
+        currentCustomer = null;
+        try { renderAccountState(); } catch (e) {}
+      };
+
       function signOutCustomer() {
+        // Destroy the session on the server too (not just forget it in this tab).
+        try { fetch("/api/customer/logout", { method: "POST" }).catch(function () {}); } catch (e) {}
         localStorage.removeItem("dm_customer_token");
         currentCustomer = null;
         // The cart is saved on the account — clear it from this device on
@@ -5421,6 +5442,7 @@ function dmApplyFestivalTheme(theme) {
       }
 
       function signOutSeller() {
+        try { fetch("/api/seller/logout", { method: "POST" }).catch(function () {}); } catch (e) {}
         localStorage.removeItem("sellerToken");
         localStorage.removeItem("sellerShopTitle");
         closeSellerDashModal();

@@ -10,6 +10,14 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const compression = require("compression");
 
+// ================================
+// ENVIRONMENT FLAGS
+// ================================
+// "Production" = NODE_ENV=production, or running on Render (Render always
+// sets RENDER=true). In production the server refuses to start with
+// missing/weak secrets, forces HTTPS, and marks every cookie Secure.
+const IS_PROD = process.env.NODE_ENV === "production" || !!process.env.RENDER;
+
 const { connectDB, readDatabase, writeDatabase, getNextId, GIFT_ADDON, reserveCustomerMobile, releaseCustomerMobile } = require("./database");
 
 const app = express();
@@ -50,6 +58,27 @@ function buildEmailSocialFooter() {
 }
 const PORT = process.env.PORT || 3000;
 app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
+// ================================
+// HTTPS ONLY (production)
+// ================================
+// Every plain-HTTP request is redirected to HTTPS (GET/HEAD) or rejected
+// (anything else, so a form/API call can never travel unencrypted). The
+// redirect target is always a known host — never a raw Host header value —
+// so it can't be abused as an open redirect. /api/status is exempt so a
+// host's internal health check (often plain HTTP) keeps working.
+app.use((req, res, next) => {
+  if (!IS_PROD || req.secure || req.path === "/api/status") return next();
+  if (req.method === "GET" || req.method === "HEAD") {
+    const siteHost = new URL(SITE_URL).host;
+    const reqHost = String(req.headers.host || "").toLowerCase();
+    const bare = reqHost.replace(/:\d+$/, "");
+    const host = (bare === siteHost || ALIAS_HOSTS.has(bare)) ? bare : siteHost;
+    return res.redirect(301, `https://${host}${req.originalUrl}`);
+  }
+  return res.status(400).json({ success: false, message: "HTTPS is required." });
+});
 
 // One permanent domain: designmakers.shop. Old/alternate domains (the .site
 // one, www versions) 301-redirect to the same path on SITE_URL, so Google
@@ -91,7 +120,46 @@ app.use(compression());
 // completes), which is exactly the "Continue with Google" bug this fixes.
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    // Content-Security-Policy: the pages still use inline <script>/onclick,
+    // so 'unsafe-inline' stays for scripts/styles — but EVERYTHING else is
+    // locked down: only this site, Google sign-in, Google Fonts and the
+    // three pinned admin libraries can load; no plugins, no foreign frames,
+    // no <base> hijacking, no form posts to other sites, and in production
+    // any stray http:// sub-resource is auto-upgraded to https:// (which is
+    // what stops "mixed content" browser warnings).
+    // Set CSP_REPORT_ONLY=true in the environment to test without enforcing.
+    contentSecurityPolicy: {
+      useDefaults: false,
+      reportOnly: process.env.CSP_REPORT_ONLY === "true",
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "https://accounts.google.com/gsi/",
+          "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/",
+          "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/",
+          "https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/",
+        ],
+        scriptSrcAttr: ["'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com/gsi/style"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        mediaSrc: ["'self'", "data:", "blob:"],
+        connectSrc: ["'self'", "https://accounts.google.com/gsi/"],
+        frameSrc: ["https://accounts.google.com/gsi/"],
+        workerSrc: ["'self'", "blob:"],
+        objectSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'self'"],
+        ...(IS_PROD ? { upgradeInsecureRequests: [] } : {}),
+      },
+    },
+    // HSTS: tell browsers to use HTTPS for this domain for a full year, so
+    // they never even attempt plain HTTP again after the first visit.
+    // (Only sent over HTTPS, so it has no effect on local http://localhost.)
+    strictTransportSecurity: { maxAge: 31536000, includeSubDomains: false, preload: false },
     crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
   })
@@ -378,23 +446,9 @@ function generateSellerPassword() {
   return out;
 }
 
-// Generates the initial seller password from their shop name + Aadhaar,
-// e.g. "Kanak Gifts" + last-4 "7391" -> "Kanak#7391" — easy for the seller
-// to remember/guess-recall themselves. Only used the first time (at
-// approval); a later admin "Reset password" still falls back to a random
-// one via generateSellerPassword(), since regenerating this same formula
-// would just hand back the identical password.
-function generateShopBasedPassword(shopTitle, aadhaarLast4) {
-  const firstWord = String(shopTitle || "").trim().split(/\s+/)[0] || "";
-  const cleaned = firstWord.replace(/[^a-zA-Z0-9]/g, "") || "Shop";
-  const capitalized = cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
-  const last4 = String(aadhaarLast4 || "").padStart(4, "0").slice(-4);
-  return `${capitalized}#${last4}`;
-}
-
 function getClientIp(req) {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (forwarded) return forwarded.split(",")[0].trim();
+  // req.ip honours the single trusted proxy hop configured above; the raw
+  // X-Forwarded-For header is client-controlled and must never be trusted.
   return req.ip || "unknown";
 }
 
@@ -414,7 +468,37 @@ function getClientIp(req) {
 // visible reason. Set a real JWT_SECRET in your host's environment
 // variables for production; this fallback only exists so local/dev runs
 // don't crash, and is now at least consistent within itself.
-const JWT_SECRET = process.env.JWT_SECRET || "dev-only-secret-change-me-in-production";
+let JWT_SECRET = String(process.env.JWT_SECRET || "");
+
+// Startup security gate. A forged login cookie, a guessable boss password, or
+// plaintext Aadhaar/bank details are all full-compromise problems, so in
+// production the server REFUSES TO START until all three are configured
+// properly (set them in Render > Environment). In development it only warns.
+(function enforceSecurityConfig() {
+  const problems = [];
+  if (JWT_SECRET.length < 32) {
+    problems.push("JWT_SECRET  -> a random string of 32+ characters (signs every login cookie).");
+  }
+  const adminPw = String(process.env.ADMIN1_PASSWORD || "");
+  if (!adminPw || adminPw === "ChangeMe123!") {
+    problems.push("ADMIN1_PASSWORD  -> a strong boss password (the built-in default is public).");
+  }
+  if (!/^[0-9a-fA-F]{64}$/.test(String(process.env.PII_ENCRYPTION_KEY || ""))) {
+    problems.push("PII_ENCRYPTION_KEY  -> 64 hex characters (encrypts seller Aadhaar/PAN/bank details).");
+  }
+  if (!problems.length) return;
+  const list = problems.map((p) => "   - " + p).join("\n");
+  if (IS_PROD) {
+    console.error(
+      "\n🛑 Design Makers will not start: required security settings are missing.\n" +
+      "Set these environment variables, then redeploy:\n" + list + "\n" +
+      "Generate a random value with:  node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"\n",
+    );
+    process.exit(1);
+  }
+  console.warn("⚠️  Development mode — these should be set before going live:\n" + list);
+  if (JWT_SECRET.length < 32) JWT_SECRET = crypto.randomBytes(48).toString("hex"); // per-process, dev only
+})();
 
 // ================================
 // PII ENCRYPTION (Aadhaar / PAN / bank account / IFSC — at rest)
@@ -478,6 +562,9 @@ const BOSS_ACCOUNT = {
 };
 
 const MAX_LOGIN_ATTEMPTS = 3;
+// Compared against when a username doesn't exist, so "no such user" and
+// "wrong password" take the same time and can't be told apart by timing.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("dm-dummy-password-not-real", 10);
 
 // ================================
 // CONCURRENT SESSION LIMIT — max 2 active logins per username at once.
@@ -492,15 +579,15 @@ const MAX_LOGIN_ATTEMPTS = 3;
 // other piece of app state.
 const MAX_CONCURRENT_SESSIONS = 2;
 
-function registerSession(database, username, sessionId) {
+function registerSession(database, username, sessionId, maxSessions = MAX_CONCURRENT_SESSIONS) {
   if (!database.activeSessions) database.activeSessions = {};
   if (!database.activeSessions[username]) database.activeSessions[username] = [];
   database.activeSessions[username].push(sessionId);
   // If this login pushes the account over the limit, the oldest session(s)
   // are evicted — that device/tab will get "logged in elsewhere" on its
   // next request instead of continuing to work silently.
-  if (database.activeSessions[username].length > MAX_CONCURRENT_SESSIONS) {
-    database.activeSessions[username] = database.activeSessions[username].slice(-MAX_CONCURRENT_SESSIONS);
+  if (database.activeSessions[username].length > maxSessions) {
+    database.activeSessions[username] = database.activeSessions[username].slice(-maxSessions);
   }
 }
 
@@ -529,8 +616,44 @@ if (!process.env.ADMIN1_PASSWORD) {
 }
 
 // Middleware
-app.use(express.json({ limit: "15mb" }));
-app.use(express.urlencoded({ extended: true }));
+// Request-body limits. Only routes that really carry photos (product/seller
+// uploads, reviews, profile photo, seller application documents) may send big
+// bodies, and only AFTER the person is expected to be logged in or applying.
+// Everything else — login, OTP, orders, tracking, google sign-in — is capped
+// at 200 KB so an anonymous caller can't make the server chew on 15 MB at a time.
+const largeJson = express.json({ limit: "15mb" });
+const smallJson = express.json({ limit: "200kb" });
+const LARGE_BODY_PATHS = /^\/api\/(admin|seller|customer)\/|^\/api\/seller-applications|^\/api\/products\/\d+\/reviews/;
+const SMALL_BODY_OVERRIDE = /\/(login|google-login|register|logout|forgot-password|request-otp|verify-otp|change-password)(\/|$)/;
+app.use((req, res, next) => {
+  const big = LARGE_BODY_PATHS.test(req.path) && !SMALL_BODY_OVERRIDE.test(req.path);
+  return (big ? largeJson : smallJson)(req, res, next);
+});
+app.use(express.urlencoded({ extended: false, limit: "100kb" }));
+
+// ================================
+// CSRF DEFENCE-IN-DEPTH + API FLOOD GUARD
+// ================================
+// Session cookies are SameSite=Strict, which already stops other sites from
+// riding a login. This adds a second lock: any state-changing API call that
+// announces an Origin must be coming from this very site.
+app.use("/api", (req, res, next) => {
+  if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") return next();
+  const origin = req.headers.origin;
+  if (!origin) return next();
+  try {
+    const originHost = new URL(origin).host;
+    if (originHost === String(req.headers.host || "") || originHost === new URL(SITE_URL).host) return next();
+  } catch (_) { /* malformed Origin -> blocked below */ }
+  return res.status(403).json({ success: false, message: "Request blocked." });
+});
+
+// Generous overall cap per IP (shared mobile/office IPs are common in India,
+// and the admin/seller panels poll every few seconds) — this only stops floods.
+app.use("/api", (req, res, next) => {
+  if (req.path === "/status") return next();
+  return apiFloodLimiter(req, res, next);
+});
 
 // If a request body is too large or malformed JSON, Express's default
 // behavior is to send back an HTML error page — which breaks any frontend
@@ -585,57 +708,212 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve website files
-app.use(
-  express.static(__dirname, {
-    // "/" is rendered by seo.js (per-page SEO tags), not served as a raw file.
-    index: false,
-    // etag/lastModified stay ON globally now so static assets (images, css,
-    // js) get proper 304-revalidation and browser caching. HTML explicitly
-    // overrides this below to "no-cache" so admin/product changes still
-    // show up immediately on next navigation/reopen.
-    etag: true,
-    lastModified: true,
-    setHeaders: (res, filePath) => {
-      if (filePath.endsWith(".html")) {
-        // HTML pages (index.html, admin.html) must always be revalidated —
-        // this is what was causing "close and reopen still shows old data".
-        res.set("Cache-Control", "no-cache");
-      } else if (/\.(png|jpe?g|webp|gif|svg|ico|css|js|woff2?)$/.test(filePath)) {
-        // Static assets rarely change day-to-day; cache them for a day so
-        // repeat visits don't re-download the same images every time.
-        res.set("Cache-Control", "public, max-age=86400");
-      }
-    },
-  }),
-);
+// Serve website files — ONLY real static assets (images, fonts, icons).
+// Everything else in the project folder (source code, .md notes, package
+// files, the leftover admin.html_script_*.js copies, demo pages) is never
+// served from disk. Pages themselves are delivered by explicit routes.
+const PUBLIC_ASSET_EXT = /\.(png|jpe?g|webp|gif|svg|ico|avif|mp4|webm|woff2?|ttf|otf|webmanifest)$/i;
+const staticAssets = express.static(__dirname, {
+  index: false,
+  etag: true,
+  lastModified: true,
+  dotfiles: "ignore",
+  // Static assets rarely change day-to-day; cache them for a day.
+  setHeaders: (res) => { res.set("Cache-Control", "public, max-age=86400"); },
+});
+app.use((req, res, next) => (PUBLIC_ASSET_EXT.test(req.path) ? staticAssets(req, res, next) : next()));
+
+// ================================
+// SESSIONS — HttpOnly cookies, idle timeout, server-side revoke
+// ================================
+// Logins are carried by an HttpOnly + Secure + SameSite=Strict cookie, never
+// by anything JavaScript can read (so a script-injection bug can't steal a
+// login the way it could with localStorage tokens).
+//   * Idle timeout: the cookie only lives IDLE minutes (admin/seller 30). It is
+//     re-issued — "slid" — only while the person is genuinely using the page
+//     (the pages send X-DM-Active when there was real mouse/keyboard/touch
+//     activity), so background polling can never keep an abandoned tab logged in.
+//   * Absolute cap: no session outlives its cap even if constantly used.
+//   * Server-side registry: every session ID is also recorded in the database,
+//     so logout / password change / account removal destroys it for real.
+//   * A brand-new session ID is generated on every login (and any previous
+//     one for that browser is revoked) — nothing a client supplies is reused.
+// Customers default to a 24-hour idle window (they are shoppers, and their cart
+// lives on the server); set CUSTOMER_IDLE_MINUTES=30 to make it 30 minutes.
+const SESSION_MARKER = "cookie-session"; // harmless placeholder the front-end keeps instead of a real token
+function envMinutes(name, fallback) {
+  const n = Number(process.env[name]);
+  return Number.isFinite(n) && n >= 1 ? n : fallback;
+}
+const SESSION_POLICY = {
+  admin:    { cookie: "dm_admin",    idleMs: envMinutes("ADMIN_IDLE_MINUTES", 30) * 60000,       absoluteMs: 12 * 3600000,       maxConcurrent: 2 },
+  seller:   { cookie: "dm_seller",   idleMs: envMinutes("SELLER_IDLE_MINUTES", 30) * 60000,      absoluteMs: 12 * 3600000,       maxConcurrent: 3 },
+  customer: { cookie: "dm_customer", idleMs: envMinutes("CUSTOMER_IDLE_MINUTES", 1440) * 60000,  absoluteMs: 30 * 24 * 3600000,  maxConcurrent: 5 },
+};
+
+function isSecureRequest(req) { return IS_PROD || req.secure; }
+// "__Host-" cookies can only be set by this exact host over HTTPS (no
+// sub-domain can overwrite them) — used whenever the connection is secure.
+function sessionCookieName(req, kind) { return (isSecureRequest(req) ? "__Host-" : "") + SESSION_POLICY[kind].cookie; }
+function sessionKey(kind, id) { return kind === "admin" ? String(id) : `${kind}:${id}`; }
+
+function readCookie(req, name) {
+  const raw = req.headers.cookie;
+  if (!raw) return null;
+  for (const part of raw.split(";")) {
+    const i = part.indexOf("=");
+    if (i < 0) continue;
+    if (part.slice(0, i).trim() === name) {
+      try { return decodeURIComponent(part.slice(i + 1).trim()); } catch (_) { return null; }
+    }
+  }
+  return null;
+}
+
+function setSessionCookie(req, res, kind, claims, sessionId, startedAt) {
+  const policy = SESSION_POLICY[kind];
+  const now = Date.now();
+  const sa = startedAt || now;
+  const ttlMs = Math.max(1000, Math.min(policy.idleMs, sa + policy.absoluteMs - now));
+  const token = jwt.sign({ ...claims, kind, sid: sessionId, sa }, JWT_SECRET, {
+    algorithm: "HS256",
+    expiresIn: Math.floor(ttlMs / 1000),
+  });
+  res.cookie(sessionCookieName(req, kind), token, {
+    httpOnly: true,
+    secure: isSecureRequest(req),
+    sameSite: "strict",
+    path: "/",
+    maxAge: ttlMs,
+  });
+}
+
+function clearSessionCookie(req, res, kind) {
+  res.clearCookie(sessionCookieName(req, kind), {
+    httpOnly: true,
+    secure: isSecureRequest(req),
+    sameSite: "strict",
+    path: "/",
+  });
+}
+
+// Returns the verified session payload, or null (missing / forged / expired /
+// past its absolute cap / belongs to a different kind of account).
+function readSession(req, kind) {
+  const token = readCookie(req, sessionCookieName(req, kind));
+  if (!token) return null;
+  try {
+    const p = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
+    if (p.kind !== kind || !p.sid) return null;
+    if (Date.now() > Number(p.sa) + SESSION_POLICY[kind].absoluteMs) return null;
+    return p;
+  } catch (_) {
+    return null;
+  }
+}
+
+// Idle-timeout "slide": re-issue the same session with a fresh idle window,
+// but only when the request really came from an active person.
+function slideSession(req, res, kind, payload) {
+  if (req.headers["x-dm-active"] !== "1") return;
+  if (Date.now() - Number(payload.iat) * 1000 < 30000) return; // at most one new cookie per 30s
+  const { iat, exp, kind: _k, sid, sa, ...claims } = payload;
+  setSessionCookie(req, res, kind, claims, sid, sa);
+}
+
+function revokeAllSessions(database, key) {
+  if (database.activeSessions) delete database.activeSessions[key];
+}
+function revokeOtherSessions(database, key, keepSessionId) {
+  if (!database.activeSessions || !database.activeSessions[key]) return;
+  database.activeSessions[key] = database.activeSessions[key].filter((id) => id === keepSessionId);
+}
+
+// Starts a brand-new session: fresh ID, old one for this browser revoked,
+// registered server-side, cookie issued.
+function startSession(req, res, database, kind, registryKey, claims) {
+  const previous = readSession(req, kind);
+  if (previous) revokeSession(database, registryKey, previous.sid);
+  const sessionId = crypto.randomUUID();
+  registerSession(database, registryKey, sessionId, SESSION_POLICY[kind].maxConcurrent);
+  writeDatabase(database);
+  setSessionCookie(req, res, kind, claims, sessionId);
+  return sessionId;
+}
+function startCustomerSession(req, res, database, customer) {
+  startSession(req, res, database, "customer", sessionKey("customer", customer.id), { type: "customer", customerId: customer.id });
+  return SESSION_MARKER;
+}
+function startSellerSession(req, res, database, seller) {
+  startSession(req, res, database, "seller", sessionKey("seller", seller.id), { type: "seller", sellerId: seller.id });
+  return SESSION_MARKER;
+}
 
 // ================================
 // ADMIN AUTH MIDDLEWARE
 // ================================
 
 function requireAdmin(req, res, next) {
-  const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-
-  if (!token) {
-    return res.status(401).json({ success: false, message: "Login required." });
+  const payload = readSession(req, "admin");
+  if (!payload) {
+    return res.status(401).json({
+      success: false,
+      message: req.headers.cookie ? "Session expired. Please log in again." : "Login required.",
+    });
   }
-
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    const database = readDatabase();
-    if (!isSessionActive(database, payload.username, payload.sessionId)) {
-      return res.status(401).json({
-        success: false,
-        message: "You've been logged out — either this session ended or the account hit its 2-device login limit and got signed in elsewhere.",
-      });
-    }
-    req.admin = { username: payload.username, role: payload.role || "admin", sessionId: payload.sessionId };
-    next();
-  } catch (error) {
-    return res.status(401).json({ success: false, message: "Session expired. Please log in again." });
+  const database = readDatabase();
+  const stillValid = isSessionActive(database, payload.username, payload.sid) && (
+    payload.role === "boss"
+      ? payload.username === BOSS_ACCOUNT.username
+      : database.admins.some((a) => a.username === payload.username && !a.locked)
+  );
+  if (!stillValid) {
+    clearSessionCookie(req, res, "admin");
+    return res.status(401).json({
+      success: false,
+      message: "You've been logged out — either this session ended or the account hit its 2-device login limit and got signed in elsewhere.",
+    });
   }
+  slideSession(req, res, "admin", payload);
+  req.admin = { username: payload.username, role: payload.role || "admin", sessionId: payload.sid };
+  next();
+}
+
+// ------------------------------------------------------------------
+// WHAT EACH SUB-ADMIN DESIGNATION MAY USE (the boss can use everything)
+// ------------------------------------------------------------------
+//   catalogue  : products, categories, homepage sections, approving seller products
+//   sales      : orders, payment marking, callbacks, customer list / details
+//   storefront : sale banner + hero product (marketing content)
+// A sub-admin whose account has NO designation set keeps working in all
+// areas (so nobody is locked out by this update) — give every sub-admin a
+// designation to restrict them. To switch the area checks off in an
+// emergency, set ADMIN_AREA_ENFORCEMENT=off in the environment.
+const ADMIN_AREAS = {
+  catalogue: ["Product Listing Manager"],
+  sales: ["Sales Manager"],
+  storefront: ["Product Listing Manager", "Sales Manager"],
+};
+function requireArea(area) {
+  return (req, res, next) => {
+    if (process.env.ADMIN_AREA_ENFORCEMENT === "off") return next();
+    if (req.admin && req.admin.role === "boss") return next();
+    const account = readDatabase().admins.find((a) => a.username === (req.admin && req.admin.username));
+    if (!account) return res.status(403).json({ success: false, message: "Admin account not found." });
+    const designation = String(account.designation || "").trim();
+    if (!designation || (ADMIN_AREAS[area] || []).includes(designation)) return next();
+    return res.status(403).json({
+      success: false,
+      message: "Your role (" + designation + ") doesn't include this part of the admin panel. Ask the boss if you need access.",
+    });
+  };
+}
+
+// Shows only the last few characters of a sensitive value.
+function maskSensitive(value, keep = 4) {
+  const v = String(value || "");
+  if (!v) return "";
+  return "•".repeat(Math.max(0, v.length - keep)) + v.slice(-keep);
 }
 
 function requireBoss(req, res, next) {
@@ -648,33 +926,28 @@ function requireBoss(req, res, next) {
 // ================================
 // CUSTOMER / SELLER AUTH MIDDLEWARE
 // ================================
-// Separate from admin auth above — customers/sellers log in with Google,
-// never with a username/password, and their tokens carry a customerId
-// instead of a username.
+// Separate from admin auth above — customers/sellers log in with Google or
+// a password, and their sessions carry a customerId / sellerId instead of a
+// username. Each kind has its own cookie, so one can never act as another.
 
 function requireCustomer(req, res, next) {
-  const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-
-  if (!token) {
+  const payload = readSession(req, "customer");
+  if (!payload) {
     return res.status(401).json({ success: false, message: "Please sign in to continue." });
   }
-
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    if (payload.type !== "customer") {
-      return res.status(401).json({ success: false, message: "Please sign in to continue." });
-    }
-    const database = readDatabase();
-    const customer = database.customers.find((c) => c.id === payload.customerId);
-    if (!customer) {
-      return res.status(401).json({ success: false, message: "Account not found. Please sign in again." });
-    }
-    req.customer = customer;
-    next();
-  } catch (error) {
+  const database = readDatabase();
+  if (!isSessionActive(database, sessionKey("customer", payload.customerId), payload.sid)) {
+    clearSessionCookie(req, res, "customer");
     return res.status(401).json({ success: false, message: "Session expired. Please sign in again." });
   }
+  const customer = database.customers.find((c) => c.id === payload.customerId);
+  if (!customer) {
+    return res.status(401).json({ success: false, message: "Account not found. Please sign in again." });
+  }
+  slideSession(req, res, "customer", payload);
+  req.customer = customer;
+  req.sessionId = payload.sid;
+  next();
 }
 
 // ================================
@@ -726,12 +999,24 @@ const trackOrderLimiter = makeLimiter(15, 10, "Too many lookup attempts. Please 
 // password reset.
 const customerForgotPasswordLimiter = makeLimiter(60, 5, "Too many reset requests. Please try again later.");
 
+// Overall flood guard for /api, plus tighter caps on public write endpoints
+// that anyone on the internet can call without logging in.
+const apiFloodLimiter = makeLimiter(15, 3000, "Too many requests. Please slow down and try again shortly.");
+const orderLimiter = makeLimiter(60, 30, "Too many orders from this connection. Please try again later.");
+const reviewLimiter = makeLimiter(60, 20, "Too many reviews submitted. Please try again later.");
+const callbackLimiter = makeLimiter(60, 10, "Too many callback requests. Please try again later.");
+const viewCountLimiter = makeLimiter(15, 300, "Too many requests.");
+// The export OTP is only 6 digits, so guessing it must be throttled too.
+const exportVerifyLimiter = makeLimiter(15, 10, "Too many verification attempts. Please wait and try again.");
+
 // ================================
 // ADMIN LOGIN
 // ================================
 
 app.post("/api/admin/login", loginLimiter, (req, res) => {
-  const { username, password } = req.body || {};
+  const body = req.body || {};
+  const username = typeof body.username === "string" ? body.username.slice(0, 64) : "";
+  const password = typeof body.password === "string" ? body.password : "";
   const ip = getClientIp(req);
   const userAgent = req.headers["user-agent"] || "unknown";
 
@@ -765,11 +1050,8 @@ app.post("/api/admin/login", loginLimiter, (req, res) => {
     }
     logAttempt(database, "boss", true);
     database.bossLastLogin = { ip, at: new Date().toISOString() };
-    const sessionId = crypto.randomUUID();
-    registerSession(database, username, sessionId);
-    writeDatabase(database);
-    const token = jwt.sign({ username, role: "boss", sessionId }, JWT_SECRET, { expiresIn: "7d" });
-    return res.json({ success: true, token, username, role: "boss" });
+    startSession(req, res, database, "admin", username, { username, role: "boss" });
+    return res.json({ success: true, token: SESSION_MARKER, username, role: "boss" });
   }
 
   // Sub-admin account — stored in database.json, hashed, with a 3-strike lockout.
@@ -777,6 +1059,7 @@ app.post("/api/admin/login", loginLimiter, (req, res) => {
   const account = database.admins.find((a) => a.username === username);
 
   if (!account) {
+    bcrypt.compareSync(password, DUMMY_PASSWORD_HASH);
     logAttempt(database, "admin", false);
     writeDatabase(database);
     return res.status(401).json({ success: false, message: "Invalid username or password." });
@@ -812,20 +1095,28 @@ app.post("/api/admin/login", loginLimiter, (req, res) => {
   account.failedAttempts = 0;
   account.lastLogin = { ip, at: new Date().toISOString() };
   logAttempt(database, "admin", true);
-  const sessionId = crypto.randomUUID();
-  registerSession(database, username, sessionId);
-  writeDatabase(database);
-
-  const token = jwt.sign({ username, role: "admin", sessionId }, JWT_SECRET, { expiresIn: "7d" });
-  res.json({ success: true, token, username, role: "admin" });
+  startSession(req, res, database, "admin", username, { username, role: "admin" });
+  res.json({ success: true, token: SESSION_MARKER, username, role: "admin" });
 });
 
-app.post("/api/admin/logout", requireAdmin, (req, res) => {
-  const database = readDatabase();
-  revokeSession(database, req.admin.username, req.admin.sessionId);
-  writeDatabase(database);
-  res.json({ success: true });
-});
+// Logout destroys the session for real: it is removed from the server-side
+// registry (so the cookie is dead even if someone kept a copy) and the
+// cookie is cleared. Works even if the cookie had already expired.
+function makeLogoutHandler(kind, keyOf) {
+  return (req, res) => {
+    const payload = readSession(req, kind);
+    if (payload) {
+      const database = readDatabase();
+      revokeSession(database, keyOf(payload), payload.sid);
+      writeDatabase(database);
+    }
+    clearSessionCookie(req, res, kind);
+    res.json({ success: true });
+  };
+}
+app.post("/api/admin/logout", makeLogoutHandler("admin", (p) => p.username));
+app.post("/api/customer/logout", makeLogoutHandler("customer", (p) => sessionKey("customer", p.customerId)));
+app.post("/api/seller/logout", makeLogoutHandler("seller", (p) => sessionKey("seller", p.sellerId)));
 
 app.get("/api/admin/me", requireAdmin, (req, res) => {
   if (req.admin.role === "boss") {
@@ -890,8 +1181,8 @@ app.post("/api/customer/register", signupLimiter, async (req, res) => {
   if (!isValidMobile(cleanMobile)) {
     return res.status(400).json({ success: false, message: "Enter a valid 10-digit mobile number." });
   }
-  if (!password || String(password).length < 6) {
-    return res.status(400).json({ success: false, message: "Password should be at least 6 characters." });
+  if (!password || String(password).length < 8) {
+    return res.status(400).json({ success: false, message: "Password should be at least 8 characters." });
   }
 
   const duplicateMessage = "An account with this mobile number already exists. Please log in instead.";
@@ -948,11 +1239,7 @@ app.post("/api/customer/register", signupLimiter, async (req, res) => {
     database.customers.push(customer);
     writeDatabase(database);
 
-    const token = jwt.sign(
-      { type: "customer", customerId: customer.id },
-      JWT_SECRET,
-      { expiresIn: "30d" },
-    );
+    const token = startCustomerSession(req, res, database, customer);
 
     res.json({
       success: true,
@@ -1010,11 +1297,7 @@ app.post("/api/customer/login", loginLimiter, (req, res) => {
     return res.status(401).json({ success: false, message: "Incorrect password. Please try again." });
   }
 
-  const token = jwt.sign(
-    { type: "customer", customerId: customer.id },
-    JWT_SECRET,
-    { expiresIn: "30d" },
-  );
+  const token = startCustomerSession(req, res, database, customer);
 
   res.json({
     success: true,
@@ -1045,7 +1328,8 @@ app.post("/api/customer/google-login", loginLimiter, async (req, res) => {
   try {
     profile = await verifyGoogleToken(idToken);
   } catch (err) {
-    return res.status(400).json({ success: false, message: err.message || "Google sign-in failed." });
+    console.error("Google sign-in failed:", err && err.message);
+    return res.status(400).json({ success: false, message: "Google sign-in failed. Please try again." });
   }
 
   const database = readDatabase();
@@ -1077,7 +1361,7 @@ app.post("/api/customer/google-login", loginLimiter, async (req, res) => {
     writeDatabase(database);
   }
 
-  const token = jwt.sign({ type: "customer", customerId: customer.id }, JWT_SECRET, { expiresIn: "30d" });
+  const token = startCustomerSession(req, res, database, customer);
   res.json({
     success: true,
     token,
@@ -1449,8 +1733,8 @@ app.post("/api/customer/forgot-password/verify-otp", customerForgotPasswordLimit
   const otp = String((req.body || {}).otp || "").trim();
   const newPassword = String((req.body || {}).newPassword || "");
 
-  if (newPassword.length < 6) {
-    return res.status(400).json({ success: false, message: "New password should be at least 6 characters." });
+  if (newPassword.length < 8) {
+    return res.status(400).json({ success: false, message: "New password should be at least 8 characters." });
   }
 
   const database = readDatabase();
@@ -1468,7 +1752,8 @@ app.post("/api/customer/forgot-password/verify-otp", customerForgotPasswordLimit
   const customer = database.customers.find((c) => c.id === request.customerId);
   if (!customer) return res.status(404).json({ success: false, message: "Account not found." });
 
-  customer.passwordHash = bcrypt.hashSync(newPassword, 10);
+  customer.passwordHash = bcrypt.hashSync(newPassword, 12);
+  revokeAllSessions(database, sessionKey("customer", customer.id)); // reset = sign out everywhere
   database.customerPasswordResetOtps = database.customerPasswordResetOtps.filter((x) => x.requestId !== requestId);
   writeDatabase(database);
 
@@ -1482,8 +1767,8 @@ app.post("/api/customer/forgot-password/verify-otp", customerForgotPasswordLimit
 app.post("/api/customer/change-password", requireCustomer, (req, res) => {
   const { currentPassword, newPassword } = req.body || {};
   const cleanNew = String(newPassword || "");
-  if (cleanNew.length < 6) {
-    return res.status(400).json({ success: false, message: "New password should be at least 6 characters." });
+  if (cleanNew.length < 8) {
+    return res.status(400).json({ success: false, message: "New password should be at least 8 characters." });
   }
 
   const database = readDatabase();
@@ -1496,7 +1781,8 @@ app.post("/api/customer/change-password", requireCustomer, (req, res) => {
     }
   }
 
-  customer.passwordHash = bcrypt.hashSync(cleanNew, 10);
+  customer.passwordHash = bcrypt.hashSync(cleanNew, 12);
+  revokeOtherSessions(database, sessionKey("customer", customer.id), req.sessionId); // other devices are signed out
   writeDatabase(database);
 
   res.json({ success: true, message: "Password updated successfully.", hasPassword: true });
@@ -1878,10 +2164,10 @@ app.post("/api/seller-applications", signupLimiter, async (req, res) => {
     "New seller application — Design Makers",
     `<p>New seller application received:</p>
      <ul>
-       <li><b>Name:</b> ${name}</li>
-       <li><b>Shop title:</b> ${shopTitle}</li>
-       <li><b>Email:</b> ${email}</li>
-       <li><b>Phone:</b> ${phone}</li>
+       <li><b>Name:</b> ${escapeHtml(name)}</li>
+       <li><b>Shop title:</b> ${escapeHtml(shopTitle)}</li>
+       <li><b>Email:</b> ${escapeHtml(email)}</li>
+       <li><b>Phone:</b> ${escapeHtml(phone)}</li>
        <li><b>Aadhaar (last 4):</b> ${application.aadhaarLast4}</li>
      </ul>
      <p>Review and approve it from the admin panel's Sellers tab.</p>`,
@@ -1917,7 +2203,7 @@ app.post("/api/seller/login", loginLimiter, (req, res) => {
     writeDatabase(database);
   }
 
-  const token = jwt.sign({ type: "seller", sellerId: seller.id }, JWT_SECRET, { expiresIn: "30d" });
+  const token = startSellerSession(req, res, database, seller);
   res.json({
     success: true,
     token,
@@ -1940,7 +2226,8 @@ app.post("/api/seller/google-login", loginLimiter, async (req, res) => {
   try {
     profile = await verifyGoogleToken(idToken);
   } catch (err) {
-    return res.status(400).json({ success: false, message: err.message || "Google sign-in failed." });
+    console.error("Google sign-in failed:", err && err.message);
+    return res.status(400).json({ success: false, message: "Google sign-in failed. Please try again." });
   }
 
   const database = readDatabase();
@@ -1961,7 +2248,7 @@ app.post("/api/seller/google-login", loginLimiter, async (req, res) => {
     writeDatabase(database);
   }
 
-  const token = jwt.sign({ type: "seller", sellerId: seller.id }, JWT_SECRET, { expiresIn: "30d" });
+  const token = startSellerSession(req, res, database, seller);
   res.json({
     success: true,
     token,
@@ -2013,6 +2300,7 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, require
   // A reset password is now always one-time — force a fresh password on
   // the seller's next login instead of leaving this one valid forever.
   seller.mustChangePassword = true;
+  revokeAllSessions(database, sessionKey("seller", seller.id));
   // Clear out any stale unsent-password flag before we know how this one goes.
   delete seller.pendingPlainPassword;
   request.status = "resolved";
@@ -2033,7 +2321,7 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, require
   );
 
   if (!emailResult.sent) {
-    seller.pendingPlainPassword = newPassword;
+    seller.pendingPlainPassword = encryptPII(newPassword);
   }
   writeDatabase(database);
 
@@ -2049,21 +2337,19 @@ app.put("/api/admin/seller-password-requests/:id/resolve", requireAdmin, require
 });
 
 function requireSeller(req, res, next) {
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (!token) return res.status(401).json({ success: false, message: "Not logged in." });
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    if (payload.type !== "seller") throw new Error("wrong token type");
-    const database = readDatabase();
-    const seller = database.sellers.find((s) => s.id === payload.sellerId);
-    if (!seller) return res.status(401).json({ success: false, message: "Seller account not found." });
-    if (seller.banned) return res.status(403).json({ success: false, message: "This seller account has been suspended." });
-    req.seller = seller;
-    next();
-  } catch (error) {
+  const payload = readSession(req, "seller");
+  if (!payload) return res.status(401).json({ success: false, message: "Not logged in." });
+  const database = readDatabase();
+  if (!isSessionActive(database, sessionKey("seller", payload.sellerId), payload.sid)) {
+    clearSessionCookie(req, res, "seller");
     return res.status(401).json({ success: false, message: "Session expired. Please log in again." });
   }
+  const seller = database.sellers.find((s) => s.id === payload.sellerId);
+  if (!seller) return res.status(401).json({ success: false, message: "Seller account not found." });
+  if (seller.banned) return res.status(403).json({ success: false, message: "This seller account has been suspended." });
+  slideSession(req, res, "seller", payload);
+  req.seller = seller;
+  next();
 }
 
 // ================================
@@ -2115,7 +2401,7 @@ function computeCustomerAccountStatus(c) {
   return "Active";
 }
 
-app.get("/api/admin/customers", requireAdmin, (req, res) => {
+app.get("/api/admin/customers", requireAdmin, requireArea("sales"), (req, res) => {
   const database = readDatabase();
   const orders = database.orders || [];
   const sorted = (database.customers || [])
@@ -2246,7 +2532,7 @@ app.post("/api/admin/export/request-otp", exportOtpLimiter, requireAdmin, async 
   res.json({ success: true, requestId, emailMasked: maskEmail(email), expiresInSeconds: 600 });
 });
 
-app.post("/api/admin/export/verify-otp", requireAdmin, (req, res) => {
+app.post("/api/admin/export/verify-otp", requireAdmin, exportVerifyLimiter, (req, res) => {
   if (req.admin.role === "boss") return res.json({ success: true, exportGrant: null });
   const requestId = String((req.body || {}).requestId || "");
   const otp = String((req.body || {}).otp || "").trim();
@@ -2308,7 +2594,7 @@ app.get("/api/admin/customers/export", requireAdmin, (req, res) => {
 });
 
 // Full details for one customer, including their order history.
-app.get("/api/admin/customers/:id", requireAdmin, (req, res) => {
+app.get("/api/admin/customers/:id", requireAdmin, requireArea("sales"), (req, res) => {
   const database = readDatabase();
   const customer = (database.customers || []).find((c) => c.id === Number(req.params.id));
   if (!customer) {
@@ -2396,7 +2682,7 @@ app.get("/api/admin/customers/:id", requireAdmin, (req, res) => {
 });
 
 // Permanently delete a customer account.
-app.delete("/api/admin/customers/:id", requireAdmin, async (req, res) => {
+app.delete("/api/admin/customers/:id", requireAdmin, requireBoss, async (req, res) => {
   const database = readDatabase();
   const idx = (database.customers || []).findIndex((c) => c.id === Number(req.params.id));
   if (idx === -1) {
@@ -2413,7 +2699,7 @@ app.delete("/api/admin/customers/:id", requireAdmin, async (req, res) => {
   res.json({ success: true, message: "Customer account deleted.", name: removed.name });
 });
 
-app.post("/api/admin/customers/:id/reset-password", requireAdmin, (req, res) => {
+app.post("/api/admin/customers/:id/reset-password", requireAdmin, requireBoss, (req, res) => {
   const database = readDatabase();
   const customer = database.customers.find((c) => c.id === Number(req.params.id));
   if (!customer) {
@@ -2421,7 +2707,8 @@ app.post("/api/admin/customers/:id/reset-password", requireAdmin, (req, res) => 
   }
 
   const newPassword = generateSellerPassword();
-  customer.passwordHash = bcrypt.hashSync(newPassword, 10);
+  customer.passwordHash = bcrypt.hashSync(newPassword, 12);
+  revokeAllSessions(database, sessionKey("customer", customer.id));
   writeDatabase(database);
 
   res.json({
@@ -2450,7 +2737,7 @@ app.post("/api/admin/sellers/:id/login-as", requireAdmin, requireBoss, (req, res
     return res.status(403).json({ success: false, message: "This seller is banned — unban them first." });
   }
 
-  const token = jwt.sign({ type: "seller", sellerId: seller.id }, JWT_SECRET, { expiresIn: "1d" });
+  const token = startSellerSession(req, res, database, seller);
   res.json({
     success: true,
     token,
@@ -2463,6 +2750,7 @@ app.post("/api/admin/sellers/:id/login-as", requireAdmin, requireBoss, (req, res
 // ================================
 
 app.get("/api/admin/sellers", requireAdmin, (req, res) => {
+  const isBoss = req.admin.role === "boss";
   const database = readDatabase();
   const allProducts = database.products || [];
   const allOrders = database.orders || [];
@@ -2506,13 +2794,16 @@ app.get("/api/admin/sellers", requireAdmin, (req, res) => {
         aadhaarLast4: s.aadhaarLast4 || "",
         // Decrypted here, at the point of an authorized admin actually
         // viewing it — see PII_ENCRYPTION_KEY above. Never stored decrypted.
-        aadhaarFull: decryptPII(s.aadhaarFull || ""),
-        panNumber: decryptPII(s.panNumber || ""),
-        dob: s.dob || "",
+        // Full identity / bank details are for the boss only. Sub-admins see
+        // masked values (their exports already need an email OTP — this closes
+        // the same gap on the on-screen list).
+        aadhaarFull: isBoss ? decryptPII(s.aadhaarFull || "") : maskSensitive(decryptPII(s.aadhaarFull || "")),
+        panNumber: isBoss ? decryptPII(s.panNumber || "") : maskSensitive(decryptPII(s.panNumber || "")),
+        dob: isBoss ? (s.dob || "") : "",
         gender: s.gender || "",
-        bankAccountNumber: decryptPII(s.bankAccountNumber || ""),
-        ifscCode: decryptPII(s.ifscCode || ""),
-        upiId: s.upiId || "",
+        bankAccountNumber: isBoss ? decryptPII(s.bankAccountNumber || "") : maskSensitive(decryptPII(s.bankAccountNumber || "")),
+        ifscCode: isBoss ? decryptPII(s.ifscCode || "") : maskSensitive(decryptPII(s.ifscCode || "")),
+        upiId: isBoss ? (s.upiId || "") : maskSensitive(s.upiId || ""),
         gstNumber: s.gstNumber || "",
         notes: s.notes || "",
         createdAt: s.createdAt,
@@ -2769,6 +3060,7 @@ app.put("/api/admin/sellers/:id/reset-password", requireAdmin, requireBoss, asyn
   // A reset password is now always one-time — force a fresh password on
   // the seller's next login instead of leaving this one valid forever.
   seller.mustChangePassword = true;
+  revokeAllSessions(database, sessionKey("seller", seller.id));
   // Clear out any stale unsent-password flag before we know how this one goes.
   delete seller.pendingPlainPassword;
   writeDatabase(database);
@@ -2787,7 +3079,7 @@ app.put("/api/admin/sellers/:id/reset-password", requireAdmin, requireBoss, asyn
   );
 
   if (!emailResult.sent) {
-    seller.pendingPlainPassword = newPassword;
+    seller.pendingPlainPassword = encryptPII(newPassword);
   }
   writeDatabase(database);
 
@@ -2819,8 +3111,8 @@ app.put("/api/admin/sellers/:id/set-password", requireAdmin, requireBoss, (req, 
   if (!seller) return res.status(404).json({ success: false, message: "Seller not found." });
 
   const newPassword = String((req.body || {}).password || "");
-  if (newPassword.length < 6) {
-    return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
+  if (newPassword.length < 8) {
+    return res.status(400).json({ success: false, message: "Password must be at least 8 characters." });
   }
 
   seller.passwordHash = bcrypt.hashSync(newPassword, 10);
@@ -2829,6 +3121,7 @@ app.put("/api/admin/sellers/:id/set-password", requireAdmin, requireBoss, (req, 
   // the boss just typed, not a one-time one, so no forced change either.
   delete seller.pendingPlainPassword;
   delete seller.mustChangePassword;
+  revokeAllSessions(database, sessionKey("seller", seller.id));
   writeDatabase(database);
 
   res.json({
@@ -2853,7 +3146,7 @@ app.get("/api/admin/sellers/:id/pending-password", requireAdmin, requireBoss, (r
       message: "No unsent password on file for this seller — their credentials email went through, or it's already been marked as shared.",
     });
   }
-  res.json({ success: true, sellerId: seller.sellerId, password: seller.pendingPlainPassword });
+  res.json({ success: true, sellerId: seller.sellerId, password: decryptPII(seller.pendingPlainPassword) });
 });
 
 // Boss-only: once the boss has shared the password with the seller some
@@ -2919,11 +3212,11 @@ function buildSellerWelcomeEmail({ name, shopTitle, sellerId, plainPassword, mod
     : `<p style="margin:14px 0 0;font-size:0.85em;color:#8c7d78;">Please keep this password safe — we recommend not sharing it with anyone.</p>`;
 
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
-       <h2 style="color:#8a1c42;margin-bottom:4px;">Welcome to the family, ${name}! 🎉💗</h2>
-       <p style="font-size:1.05em;">We're so happy to have you here. Your seller application for <b>${shopTitle}</b> has been approved — your little shop now has a home on Design Makers.</p>
+       <h2 style="color:#8a1c42;margin-bottom:4px;">Welcome to the family, ${escapeHtml(name)}! 🎉💗</h2>
+       <p style="font-size:1.05em;">We're so happy to have you here. Your seller application for <b>${escapeHtml(shopTitle)}</b> has been approved — your little shop now has a home on Design Makers.</p>
        <p>Every design, every product you list from here is a story you get to tell — and we can't wait to see what you create. You can start listing products, set your own prices, and open your doors whenever you're ready.</p>
        <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
-         <p style="margin:0 0 8px;"><b>Seller ID:</b> ${sellerId}</p>
+         <p style="margin:0 0 8px;"><b>Seller ID:</b> ${escapeHtml(sellerId)}</p>
          <p style="margin:0;"><b>${credentialLabel}:</b> ${plainPassword}</p>
          ${credentialNote}
        </div>
@@ -2941,10 +3234,10 @@ function buildSellerWelcomeEmail({ name, shopTitle, sellerId, plainPassword, mod
 function buildPasswordResetOtpEmail({ name, shopTitle, sellerId, otp, loginUrl }) {
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
        <h2 style="color:#8a1c42;margin-bottom:4px;">Your password has been reset</h2>
-       <p>Hi ${name},</p>
-       <p>Here's a one-time password to get back into <b>${shopTitle}</b>:</p>
+       <p>Hi ${escapeHtml(name)},</p>
+       <p>Here's a one-time password to get back into <b>${escapeHtml(shopTitle)}</b>:</p>
        <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
-         <p style="margin:0 0 8px;"><b>Seller ID:</b> ${sellerId}</p>
+         <p style="margin:0 0 8px;"><b>Seller ID:</b> ${escapeHtml(sellerId)}</p>
          <p style="margin:0;"><b>One-Time Password:</b> ${otp}</p>
          <p style="margin:14px 0 0;font-size:0.9em;color:#8a1c42;background:#fff7e6;border:1px solid #f3d9a0;border-radius:8px;padding:10px 14px;">🔒 This password works <b>once</b>. The moment you log in with it, we'll ask you to choose a new password of your own — so only you will know it from then on.</p>
        </div>
@@ -2971,7 +3264,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
   // Initial password is derived from their shop name + Aadhaar last-4 —
   // e.g. "Kanak Gifts" -> "Kanak#7391" — so it's easy for the seller to
   // remember/recall themselves.
-  const plainPassword = generateShopBasedPassword(application.shopTitle, application.aadhaarLast4);
+  const plainPassword = generateSellerPassword();
 
   const seller = {
     id: nextNum,
@@ -3028,7 +3321,7 @@ app.put("/api/admin/seller-applications/:id/approve", requireAdmin, requireBoss,
   // log in) so the boss can come back later — even in a new session — and
   // look it up from the Live Sellers tab instead of only seeing it once here.
   if (!emailResult.sent) {
-    seller.pendingPlainPassword = plainPassword;
+    seller.pendingPlainPassword = encryptPII(plainPassword);
     writeDatabase(database);
   }
 
@@ -3055,7 +3348,7 @@ app.put("/api/admin/seller-applications/:id/reject", requireAdmin, requireBoss, 
   await sendMail(
     application.email,
     "Update on your Design Makers seller application",
-    `<p>Hi ${application.name},</p>
+    `<p>Hi ${escapeHtml(application.name)},</p>
      <p>Thanks for your interest in selling on Design Makers. After review, we're not able to approve your application at this time.</p>`,
   );
 
@@ -3170,8 +3463,8 @@ app.post("/api/admin/admins", requireAdmin, requireBoss, (req, res) => {
   if (username === BOSS_ACCOUNT.username) {
     return res.status(400).json({ success: false, message: "That username is reserved for the boss account." });
   }
-  if (password.length < 6) {
-    return res.status(400).json({ success: false, message: "Password should be at least 6 characters." });
+  if (password.length < 10) {
+    return res.status(400).json({ success: false, message: "Password should be at least 10 characters." });
   }
   if (designation && !ADMIN_DESIGNATIONS.includes(designation)) {
     return res.status(400).json({ success: false, message: "Invalid designation." });
@@ -3263,10 +3556,11 @@ app.put("/api/admin/admins/:username/credentials", requireAdmin, requireBoss, (r
   if (newUsername !== account.username && database.admins.some((a) => a.username === newUsername)) {
     return res.status(400).json({ success: false, message: "That username already exists." });
   }
-  if (newPassword && newPassword.length < 6) {
-    return res.status(400).json({ success: false, message: "Password should be at least 6 characters." });
+  if (newPassword && newPassword.length < 10) {
+    return res.status(400).json({ success: false, message: "Password should be at least 10 characters." });
   }
 
+  revokeAllSessions(database, account.username); // old username's sessions end now
   account.username = newUsername;
   if (newPassword) {
     account.passwordHash = bcrypt.hashSync(newPassword, 10);
@@ -3305,6 +3599,7 @@ app.delete("/api/admin/admins/:username", requireAdmin, requireBoss, (req, res) 
     return res.status(404).json({ success: false, message: "Admin not found." });
   }
 
+  revokeAllSessions(database, req.params.username);
   database.admins.splice(index, 1);
   writeDatabase(database);
 
@@ -4304,7 +4599,7 @@ app.delete("/api/admin/gift-codes/:id", requireAdmin, requireBoss, (req, res) =>
   res.json({ success:true });
 });
 
-app.get("/api/admin/products", requireAdmin, (req, res) => {
+app.get("/api/admin/products", requireAdmin, requireArea("catalogue"), (req, res) => {
   const database = readDatabase();
   ensureProductCodes(database);
   writeDatabase(database);
@@ -4312,7 +4607,7 @@ app.get("/api/admin/products", requireAdmin, (req, res) => {
 });
 
 // Create a product
-app.post("/api/admin/products", requireAdmin, (req, res) => {
+app.post("/api/admin/products", requireAdmin, requireArea("catalogue"), (req, res) => {
   const { errors, product } = validateProductInput(req.body || {});
 
   if (errors.length) {
@@ -4381,6 +4676,9 @@ app.post("/api/seller/products", requireSeller, (req, res) => {
     variantStockConfigured: {},
     sellerWhatsappNumber: req.seller.whatsappNumber || req.seller.phone || "",
     ...product,
+    // Homepage "hot"/badge promotion is decided by the admin only.
+    hotProduct: false,
+    buyBadgePercent: 10,
   };
   database.products.push(newProduct);
   writeDatabase(database);
@@ -4420,12 +4718,10 @@ app.put("/api/seller/products/:id", requireSeller, (req, res) => {
     return res.status(403).json({ success: false, message: "You can only edit your own products." });
   }
 
-  // The seller's edit form doesn't have a buyBadgePercent field — only the
-  // admin's Homepage Sections tab sets that. Don't let a normal edit reset
-  // it back to the default.
-  if (req.body.buyBadgePercent === undefined) {
-    product.buyBadgePercent = database.products[index].buyBadgePercent ?? 10;
-  }
+  // Homepage promotion (hot / badge %) is admin-only: whatever a seller
+  // sends for these two fields is ignored and the existing values are kept.
+  product.buyBadgePercent = database.products[index].buyBadgePercent ?? 10;
+  product.hotProduct = !!database.products[index].hotProduct;
 
   // Keep a snapshot of the last-live version so the admin review screen can
   // show a before/after summary of exactly what the seller changed. Only
@@ -4506,8 +4802,8 @@ async function notifyAdminsSellerDecision(database, order, seller, decision, rea
     ? `Seller declined order ${order.orderNumber} — action required`
     : `Seller accepted order ${order.orderNumber}`;
   const body = decision === "declined"
-    ? `<p><b>${seller.shopTitle || seller.name}</b> declined part of order <b>${order.orderNumber}</b>.</p><p>Reason: ${String(reason || "Not provided").replace(/[<>&\"]/g, "")}</p><p>Open Admin → Orders to review and take over the fulfilment if required.</p>`
-    : `<p><b>${seller.shopTitle || seller.name}</b> accepted order <b>${order.orderNumber}</b>.</p>`;
+    ? `<p><b>${escapeHtml(seller.shopTitle || seller.name)}</b> declined part of order <b>${escapeHtml(order.orderNumber)}</b>.</p><p>Reason: ${String(reason || "Not provided").replace(/[<>&\"]/g, "")}</p><p>Open Admin → Orders to review and take over the fulfilment if required.</p>`
+    : `<p><b>${escapeHtml(seller.shopTitle || seller.name)}</b> accepted order <b>${escapeHtml(order.orderNumber)}</b>.</p>`;
   try { await sendMail(ADMIN_NOTIFY_EMAIL, subject, body); } catch (e) { console.error("Seller decision admin email failed:", e.message); }
 }
 
@@ -4520,6 +4816,8 @@ app.post("/api/seller/orders/:id/decision", requireSeller, async (req, res) => {
   if (!["accepted", "declined"].includes(decision)) return res.status(400).json({ success: false, message: "Invalid seller decision." });
   const records = ensureSellerFulfilment(database, order).filter(r => r.sellerId === req.seller.id);
   if (!records.length) return res.status(403).json({ success: false, message: "This order does not contain your products." });
+  if (["Cancelled", "Delivered"].includes(order.status)) return res.status(403).json({ success: false, message: "This order is already closed." });
+  if (records.some(r => ["Ready to Ship", "Shipped", "Out for Delivery", "Delivered"].includes(r.stage))) return res.status(403).json({ success: false, message: "This order is already being fulfilled, so the decision can no longer be changed." });
   if (decision === "declined" && !reason) return res.status(400).json({ success: false, message: "Please provide a reason for declining the order." });
   const now = new Date().toISOString();
   records.forEach(r => {
@@ -4543,6 +4841,7 @@ app.put("/api/seller/orders/:id/stage", requireSeller, (req, res) => {
   if (!SELLER_FULFILMENT_STAGES.includes(stage)) return res.status(400).json({ success: false, message: "Invalid fulfilment stage." });
   const records = ensureSellerFulfilment(database, order).filter(r => r.sellerId === req.seller.id);
   if (!records.length) return res.status(403).json({ success: false, message: "This order does not contain your products." });
+  if (order.status === "Cancelled") return res.status(403).json({ success: false, message: "This order was cancelled." });
   if (records.some(r => r.decision === "declined")) return res.status(403).json({ success: false, message: "This order was declined and is awaiting admin takeover." });
   const now = new Date().toISOString();
   records.forEach(r => { if (r.decision === "accepted") { r.stage = stage; r.updatedAt = now; r.updatedBy = `seller:${req.seller.id}`; } });
@@ -4566,11 +4865,28 @@ function sellerOrderPayload(database, order, seller) {
   const gift = order.gift && order.gift.isGift
     ? { isGift: true, hidePrice: !!order.gift.hidePrice }
     : { isGift: false };
-  return { ...order, items, sellerTotal, sellerFulfilment: fulfilment, gift };
+  // Explicit allow-list: a seller gets the delivery details and THEIR lines —
+  // never the customer's account ID, the whole-order totals (which include
+  // other sellers' items), payment/coupon internals, status log or the admin's
+  // takeover history of other sellers.
+  const c = order.customer || {};
+  return {
+    id: order.id,
+    orderNumber: order.orderNumber,
+    createdAt: order.createdAt,
+    status: order.status,
+    paymentMethod: order.paymentMethod,
+    paymentStatus: order.paymentStatus,
+    customer: { name: c.name, phone: c.phone, address: c.address },
+    items,
+    sellerTotal,
+    sellerFulfilment: fulfilment,
+    gift,
+  };
 }
 
 // Main admin can take over only the seller's lines that were declined.
-app.put("/api/admin/orders/:id/seller-takeover", requireAdmin, async (req, res) => {
+app.put("/api/admin/orders/:id/seller-takeover", requireAdmin, requireArea("sales"), async (req, res) => {
   const database = readDatabase();
   const order = database.orders.find(o => o.id === Number(req.params.id));
   if (!order) return res.status(404).json({ success: false, message: "Order not found." });
@@ -4587,7 +4903,7 @@ app.put("/api/admin/orders/:id/seller-takeover", requireAdmin, async (req, res) 
   res.json({ success: true, message: "Design Makers has taken over the declined seller items.", order });
 });
 
-app.put("/api/admin/orders/:id/seller-stage", requireAdmin, (req, res) => {
+app.put("/api/admin/orders/:id/seller-stage", requireAdmin, requireArea("sales"), (req, res) => {
   const database = readDatabase();
   const order = database.orders.find(o => o.id === Number(req.params.id));
   if (!order) return res.status(404).json({ success: false, message: "Order not found." });
@@ -4682,7 +4998,7 @@ app.post("/api/seller/profile-update-request", requireSeller, (req, res) => {
   sendMail(
     ADMIN_NOTIFY_EMAIL,
     "Seller profile update request — Design Makers",
-    `<p>${req.seller.name} (${req.seller.sellerId}) requested a profile update.</p>
+    `<p>${escapeHtml(req.seller.name)} (${escapeHtml(req.seller.sellerId)}) requested a profile update.</p>
      <p>Review it from the admin panel's Sellers tab.</p>`,
   );
 
@@ -4731,7 +5047,7 @@ app.put("/api/admin/seller-profile-update-requests/:id", requireAdmin, requireBo
 // ADMIN: APPROVE SELLER PRODUCTS
 // ================================
 
-app.get("/api/admin/products/pending", requireAdmin, (req, res) => {
+app.get("/api/admin/products/pending", requireAdmin, requireArea("catalogue"), (req, res) => {
   const database = readDatabase();
   const isBoss = req.admin.role === "boss";
   const pending = database.products
@@ -4754,7 +5070,7 @@ app.get("/api/admin/products/pending", requireAdmin, (req, res) => {
   res.json({ success: true, products: pending });
 });
 
-app.put("/api/admin/products/:id/approve", requireAdmin, (req, res) => {
+app.put("/api/admin/products/:id/approve", requireAdmin, requireArea("catalogue"), (req, res) => {
   const database = readDatabase();
   const product = database.products.find((p) => p.id === Number(req.params.id));
   if (!product) return res.status(404).json({ success: false, message: "Product not found." });
@@ -4766,7 +5082,7 @@ app.put("/api/admin/products/:id/approve", requireAdmin, (req, res) => {
   res.json({ success: true, message: "Product approved and now live.", product });
 });
 
-app.put("/api/admin/products/:id/reject", requireAdmin, (req, res) => {
+app.put("/api/admin/products/:id/reject", requireAdmin, requireArea("catalogue"), (req, res) => {
   const database = readDatabase();
   const product = database.products.find((p) => p.id === Number(req.params.id));
   if (!product) return res.status(404).json({ success: false, message: "Product not found." });
@@ -4795,7 +5111,7 @@ app.put("/api/admin/products/:id/reject", requireAdmin, (req, res) => {
 // is a small extra list (boss-only to add to) so a new category shows up in
 // the dropdown/suggestions immediately, even before any product uses it.
 
-app.get("/api/admin/categories", requireAdmin, (req, res) => {
+app.get("/api/admin/categories", requireAdmin, requireArea("catalogue"), (req, res) => {
   const database = readDatabase();
   const names = new Set();
   database.products.forEach((p) => {
@@ -5024,7 +5340,7 @@ function computeHomepageRankings(database, limit) {
 
 // Read-only — lets the admin panel show what will appear on the homepage
 // before anything goes live on the storefront. Doesn't touch the database.
-app.get("/api/admin/homepage-preview", requireAdmin, (req, res) => {
+app.get("/api/admin/homepage-preview", requireAdmin, requireArea("catalogue"), (req, res) => {
   try {
     const database = readDatabase();
     res.json({ success: true, ...computeHomepageRankings(database) });
@@ -5040,7 +5356,7 @@ app.get("/api/admin/homepage-preview", requireAdmin, (req, res) => {
 // NOTE: this must be registered BEFORE the /api/admin/products/:id route
 // below — otherwise Express matches "homepage-sections" as an :id and this
 // route never gets hit.
-app.put("/api/admin/products/homepage-sections", requireAdmin, (req, res) => {
+app.put("/api/admin/products/homepage-sections", requireAdmin, requireArea("catalogue"), (req, res) => {
   const buyBadgePercents = req.body.buyBadgePercents && typeof req.body.buyBadgePercents === "object" ? req.body.buyBadgePercents : {};
   const moqs = req.body.moqs && typeof req.body.moqs === "object" ? req.body.moqs : {};
 
@@ -5065,7 +5381,7 @@ app.put("/api/admin/products/homepage-sections", requireAdmin, (req, res) => {
 });
 
 // Update a product
-app.put("/api/admin/products/:id", requireAdmin, (req, res) => {
+app.put("/api/admin/products/:id", requireAdmin, requireArea("catalogue"), (req, res) => {
   const { errors, product } = validateProductInput(req.body || {});
 
   if (errors.length) {
@@ -5125,7 +5441,7 @@ app.put("/api/admin/products/:id", requireAdmin, (req, res) => {
 // of their delete permission. A hidden product is excluded from the
 // public storefront/API the same way an unapproved or seller-banned
 // product already is (see the isPubliclyEligible checks elsewhere).
-app.put("/api/admin/products/:id/hidden", requireAdmin, (req, res) => {
+app.put("/api/admin/products/:id/hidden", requireAdmin, requireArea("catalogue"), (req, res) => {
   const database = readDatabase();
   const id = Number(req.params.id);
   const product = database.products.find((p) => p.id === id);
@@ -5179,7 +5495,7 @@ function canDeleteProducts(req, res, next) {
   return res.status(403).json({ success: false, message: "You don't have permission to delete products. Ask the boss to grant it." });
 }
 
-app.delete("/api/admin/products/:id", requireAdmin, canDeleteProducts, (req, res) => {
+app.delete("/api/admin/products/:id", requireAdmin, requireArea("catalogue"), canDeleteProducts, (req, res) => {
   const database = readDatabase();
   const id = Number(req.params.id);
   const index = database.products.findIndex((p) => p.id === id);
@@ -5414,7 +5730,7 @@ app.get("/api/products/:id", (req, res) => {
 // Fired once from the storefront each time a shopper opens a product's
 // detail modal. Feeds the automatic Popular (all-time views) / Trending
 // (last 7 days) homepage rows above — see computeHomepageRankings.
-app.post("/api/products/:id/view", (req, res) => {
+app.post("/api/products/:id/view", viewCountLimiter, (req, res) => {
   try {
     const database = readDatabase();
     const productId = Number(req.params.id);
@@ -5464,7 +5780,7 @@ app.get("/api/products/:id/reviews", (req, res) => {
   }
 });
 
-app.post("/api/products/:id/reviews", requireCustomer, (req, res) => {
+app.post("/api/products/:id/reviews", requireCustomer, reviewLimiter, (req, res) => {
   const database = readDatabase();
   const productId = Number(req.params.id);
   const product = database.products.find((p) => p.id === productId);
@@ -5571,7 +5887,8 @@ app.get("/product-image/:id{/:index}", (req, res) => {
     const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(imgSrc);
     if (!match) {
       // Not a base64 data URI (e.g. already a real hosted URL) — just redirect to it.
-      return res.redirect(imgSrc);
+      if (/^https:\/\//i.test(imgSrc)) return res.redirect(imgSrc);
+      return res.status(404).send("No photo for this product.");
     }
 
     const buffer = Buffer.from(match[2], "base64");
@@ -5610,15 +5927,12 @@ app.get("/api/phone-brands", (req, res) => {
 // "did this customer actually buy this product" before allowing a review).
 // Login is still NOT required to order — this only reads the token if present.
 function getOptionalCustomerId(req) {
-  const header = req.headers.authorization || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-  if (!token) return null;
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    return payload.type === "customer" ? payload.customerId : null;
-  } catch (error) {
-    return null;
-  }
+  const payload = readSession(req, "customer");
+  if (!payload) return null;
+  const database = readDatabase();
+  return isSessionActive(database, sessionKey("customer", payload.customerId), payload.sid)
+    ? payload.customerId
+    : null;
 }
 
 // Duplicate-order guard — catches the case the frontend's button-disable
@@ -5738,7 +6052,7 @@ app.get("/api/customer/back-in-stock", requireCustomer, (req, res) => {
   res.json({ success: true, subscriptions: mine.map(({ productId, size }) => ({ productId, size })) });
 });
 
-app.post("/api/orders", async (req, res) => {
+app.post("/api/orders", orderLimiter, async (req, res) => {
   return withInventoryLock(async () => {
     try {
       const database = readDatabase();
@@ -5869,20 +6183,20 @@ function buildSellerNewOrderEmail({ seller, order }) {
   const itemsHtml = (order.items || [])
     .map(
       (item) =>
-        `<li>${item.name}${item.size ? " (" + item.size + ")" : ""} × ${item.qty} — ₹${item.lineTotal}</li>`,
+        `<li>${escapeHtml(item.name)}${item.size ? " (" + item.size + ")" : ""} × ${item.qty} — ₹${item.lineTotal}</li>`,
     )
     .join("");
 
   return `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;">
        <h2 style="color:#8a1c42;margin-bottom:4px;">You've got a new order! 🎉</h2>
-       <p>Hi ${seller.name},</p>
-       <p><b>${order.orderNumber}</b> just came in for <b>${seller.shopTitle}</b>. Here's what to pack and where it's headed:</p>
+       <p>Hi ${escapeHtml(seller.name)},</p>
+       <p><b>${escapeHtml(order.orderNumber)}</b> just came in for <b>${escapeHtml(seller.shopTitle)}</b>. Here's what to pack and where it's headed:</p>
        <div style="background:#f8ecef;border:1px solid #ecd7dd;border-radius:10px;padding:16px 20px;margin:20px 0;">
          <p style="margin:0 0 8px;"><b>Items:</b></p>
          <ul style="margin:0 0 12px;padding-left:20px;">${itemsHtml}</ul>
          <p style="margin:0 0 8px;"><b>Your total:</b> ₹${order.sellerTotal !== undefined ? order.sellerTotal : order.total}</p>
-         <p style="margin:0 0 8px;"><b>Customer:</b> ${order.customer.name} · ${order.customer.phone}</p>
-         <p style="margin:0;"><b>Delivery address:</b> ${order.customer.address || "Not provided — contact the customer directly."}</p>
+         <p style="margin:0 0 8px;"><b>Customer:</b> ${escapeHtml(order.customer.name)} · ${escapeHtml(order.customer.phone)}</p>
+         <p style="margin:0;"><b>Delivery address:</b> ${escapeHtml(order.customer.address || "Not provided — contact the customer directly.")}</p>
        </div>
        <p style="font-size:0.85em;color:#8c7d78;">Payment is Cash on Delivery. You can see this order any time in the Orders tab of your Seller Dashboard.</p>
        <p style="margin-top:18px;">— Team Design Makers</p>
@@ -6127,7 +6441,7 @@ function buildCustomerCallbackConfirmationEmail(request) {
   return callbackEmailShell(inner);
 }
 
-app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
+app.post("/api/customer/callback-request", requireCustomer, callbackLimiter, (req, res) => {
   try {
     const customer = req.customer;
     const reason = String((req.body && req.body.reason) || "").trim().slice(0, 500);
@@ -6224,7 +6538,7 @@ app.post("/api/customer/callback-request", requireCustomer, (req, res) => {
 
 // Admin notification feed for callback requests. readBy is per-admin so one
 // admin viewing a notification does not silently mark it read for everyone.
-app.get("/api/admin/callback-requests", requireAdmin, (req, res) => {
+app.get("/api/admin/callback-requests", requireAdmin, requireArea("sales"), (req, res) => {
   try {
     const database = readDatabase();
     const username = String(req.admin?.username || "").trim();
@@ -6242,7 +6556,7 @@ app.get("/api/admin/callback-requests", requireAdmin, (req, res) => {
   }
 });
 
-app.put("/api/admin/callback-requests/:id/read", requireAdmin, (req, res) => {
+app.put("/api/admin/callback-requests/:id/read", requireAdmin, requireArea("sales"), (req, res) => {
   try {
     const database = readDatabase();
     const request = (database.callbackRequests || []).find((r) => String(r.id) === String(req.params.id));
@@ -6259,7 +6573,7 @@ app.put("/api/admin/callback-requests/:id/read", requireAdmin, (req, res) => {
   }
 });
 
-app.put("/api/admin/callback-requests/:id/status", requireAdmin, (req, res) => {
+app.put("/api/admin/callback-requests/:id/status", requireAdmin, requireArea("sales"), (req, res) => {
   try {
     const allowed = new Set(["New", "Contacted", "Completed", "Cancelled"]);
     const status = String(req.body?.status || "").trim();
@@ -6287,7 +6601,9 @@ app.get("/api/admin/backup", requireAdmin, requireBoss, (req, res) => {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   res.setHeader("Content-Disposition", `attachment; filename="database-backup-${stamp}.json"`);
   res.setHeader("Content-Type", "application/json");
-  res.send(JSON.stringify(database, null, 2));
+  res.setHeader("Cache-Control", "no-store");
+  const { activeSessions, ...backup } = database; // live session IDs are never exported
+  res.send(JSON.stringify(backup, null, 2));
 });
 
 // ================================
@@ -6298,7 +6614,7 @@ app.get("/api/admin/backup", requireAdmin, requireBoss, (req, res) => {
 // ALL orders, independent of pagination on the list endpoint below — these
 // numbers need to stay accurate even when the admin is looking at page 3 of
 // a paginated order list.
-app.get("/api/admin/orders/stats", requireAdmin, (req, res) => {
+app.get("/api/admin/orders/stats", requireAdmin, requireArea("sales"), (req, res) => {
   const database = readDatabase();
   const orders = database.orders || [];
   const activeOrders = orders.filter((o) => o.status !== "Cancelled");
@@ -6314,7 +6630,7 @@ app.get("/api/admin/orders/stats", requireAdmin, (req, res) => {
   });
 });
 
-app.get("/api/admin/orders", requireAdmin, (req, res) => {
+app.get("/api/admin/orders", requireAdmin, requireArea("sales"), (req, res) => {
   const database = readDatabase();
   const sorted = database.orders
     .slice()
@@ -6328,7 +6644,7 @@ app.get("/api/admin/orders", requireAdmin, (req, res) => {
 // (opened from both the Orders tab and the Dashboard's Recent Orders list),
 // so it always reflects the latest status/payment/fulfilment state
 // regardless of which in-memory list the click came from.
-app.get("/api/admin/orders/:id", requireAdmin, (req, res) => {
+app.get("/api/admin/orders/:id", requireAdmin, requireArea("sales"), (req, res) => {
   const database = readDatabase();
   const id = Number(req.params.id);
   const order = database.orders.find((o) => o.id === id);
@@ -6381,7 +6697,7 @@ function markOrderPaid(order) {
 // Admin manually confirms payment after seeing the customer's WhatsApp
 // message. This is the placeholder for what a payment gateway webhook
 // will do automatically once one is wired up.
-app.put("/api/admin/orders/:id/mark-paid", requireAdmin, (req, res) => {
+app.put("/api/admin/orders/:id/mark-paid", requireAdmin, requireArea("sales"), (req, res) => {
   const database = readDatabase();
   const id = Number(req.params.id);
   const order = database.orders.find((o) => o.id === id);
@@ -6394,12 +6710,14 @@ app.put("/api/admin/orders/:id/mark-paid", requireAdmin, (req, res) => {
   }
 
   markOrderPaid(order);
+  order.paymentMarkedBy = req.admin.username;
+  order.paymentMarkedAt = new Date().toISOString();
   writeDatabase(database);
 
   res.json({ success: true, order });
 });
 
-app.put("/api/admin/orders/:id/status", requireAdmin, (req, res) => {
+app.put("/api/admin/orders/:id/status", requireAdmin, requireArea("sales"), (req, res) => {
   return withInventoryLock(async () => {
     const database = readDatabase();
     const id = Number(req.params.id);
@@ -6466,7 +6784,7 @@ app.get("/api/settings", (req, res) => {
 });
 
 // Pinned "sale is live" banner shown at the top of the storefront.
-app.put("/api/admin/settings/sale-banner", requireAdmin, (req, res) => {
+app.put("/api/admin/settings/sale-banner", requireAdmin, requireArea("storefront"), (req, res) => {
   try {
     const { enabled, text } = req.body || {};
     const database = readDatabase();
@@ -6483,7 +6801,7 @@ app.put("/api/admin/settings/sale-banner", requireAdmin, (req, res) => {
 });
 
 // Admin-selectable homepage hero product.
-app.put("/api/admin/settings/hero-product", requireAdmin, (req, res) => {
+app.put("/api/admin/settings/hero-product", requireAdmin, requireArea("storefront"), (req, res) => {
   try {
     const rawId = req.body ? req.body.productId : null;
     const productId = rawId === null || rawId === "" || rawId === undefined ? null : Number(rawId);
@@ -6505,7 +6823,7 @@ app.put("/api/admin/settings/hero-product", requireAdmin, (req, res) => {
 });
 
 // Festival theme applied across the whole storefront (normal / rakshabandhan / deepawali / dushera / dhanteras / chhath).
-app.put("/api/admin/settings/theme", requireAdmin, (req, res) => {
+app.put("/api/admin/settings/theme", requireAdmin, requireBoss, (req, res) => {
   try {
     const VALID_THEMES = ["normal", "rakshabandhan", "deepawali", "dushera", "dhanteras", "chhath", "glass"];
     const { theme } = req.body || {};
@@ -6536,75 +6854,26 @@ app.use("/api", (req, res) => {
 // Last line of defense — if any route throws something unexpected, this
 // makes sure the response is still JSON (not an HTML crash page), so the
 // frontend can show a real error instead of a blank generic failure.
+// Unknown non-API URLs: a plain 404, never a framework error page.
+app.use((req, res) => {
+  res.status(404).type("text/plain").send("Page not found.");
+});
+
+// Full details go to the server log only. The visitor only ever sees a clean,
+// human-readable message — never a stack trace, file path, or raw error text.
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
+  console.error("Unhandled error:", err && err.stack ? err.stack : err);
   if (res.headersSent) return next(err);
-  res.status(500).json({ success: false, message: "Something went wrong on our end. Please try again." });
+  const status = err && Number.isInteger(err.status) && err.status >= 400 && err.status < 500 ? err.status : 500;
+  res.status(status).json({
+    success: false,
+    message: status === 500 ? "Something went wrong on our end. Please try again." : "Invalid request.",
+  });
 });
 
 // ================================
 // START SERVER
 // ================================
-
-function ensureDemoSeller() {
-  const database = readDatabase();
-  const existing = (database.sellers || []).find((s) => s.sellerId === "DM-SLR-DEMO");
-  if (existing) {
-    let changed = false;
-    if (!existing.whatsappNumber) { existing.whatsappNumber = "6299195149"; changed = true; }
-    if (!existing.photo) {
-      try {
-        const logoPath = path.join(__dirname, "God-of-DM-DP.png");
-        if (fs.existsSync(logoPath)) {
-          existing.photo = `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}`;
-          changed = true;
-        }
-      } catch (_) {}
-    }
-    if (changed) writeDatabase(database);
-    return;
-  }
-  const logoPath = path.join(__dirname, "God-of-DM-DP.png");
-  let photo = "";
-  try {
-    if (fs.existsSync(logoPath)) photo = `data:image/png;base64,${fs.readFileSync(logoPath).toString("base64")}`;
-  } catch (_) {}
-  const seller = {
-    id: getNextId(database.sellers || []),
-    sellerId: "DM-SLR-DEMO",
-    passwordHash: bcrypt.hashSync("GodOfDM#2026", 10),
-    name: "God of DM",
-    email: "oyeaom@gmail.com",
-    phone: "6299195149",
-    whatsappNumber: "6299195149",
-    altPhone: "",
-    shopTitle: "God of DM",
-    businessType: "Demo Seller",
-    businessAddress: "",
-    city: "",
-    state: "",
-    pincode: "",
-    aadhaarLast4: "1032",
-    aadhaarFull: encryptPII("895915971032"),
-    panNumber: "",
-    dob: "",
-    gender: "",
-    bankAccountNumber: "",
-    ifscCode: "",
-    upiId: "",
-    gstNumber: "",
-    notes: "Demo seller created for WhatsApp routing testing.",
-    photo,
-    applicationId: null,
-    createdAt: new Date().toISOString(),
-    banned: false,
-    mustChangePassword: false,
-  };
-  database.sellers = database.sellers || [];
-  database.sellers.push(seller);
-  writeDatabase(database);
-  console.log("Demo seller created: DM-SLR-DEMO (God of DM)");
-}
 
 connectDB()
   .then(() => {
