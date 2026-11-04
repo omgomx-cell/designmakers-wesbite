@@ -1003,6 +1003,9 @@ const customerForgotPasswordLimiter = makeLimiter(60, 5, "Too many reset request
 // that anyone on the internet can call without logging in.
 const apiFloodLimiter = makeLimiter(15, 3000, "Too many requests. Please slow down and try again shortly.");
 const orderLimiter = makeLimiter(60, 30, "Too many orders from this connection. Please try again later.");
+// Local-delivery check: a few tries per 10 minutes is plenty for a real customer,
+// and stops anyone probing the endpoint repeatedly to triangulate the shop.
+const localCheckLimiter = makeLimiter(10, 12, "Too many location checks. Please try again in a few minutes.");
 const reviewLimiter = makeLimiter(60, 20, "Too many reviews submitted. Please try again later.");
 const callbackLimiter = makeLimiter(60, 10, "Too many callback requests. Please try again later.");
 const viewCountLimiter = makeLimiter(15, 300, "Too many requests.");
@@ -6052,12 +6055,59 @@ app.get("/api/customer/back-in-stock", requireCustomer, (req, res) => {
   res.json({ success: true, subscriptions: mine.map(({ productId, size }) => ({ productId, size })) });
 });
 
+
+// ================================
+// LOCAL DELIVERY CHECK (shop location stays on the server)
+// ================================
+// The customer may tap "Share my location" at checkout. The browser asks for
+// permission itself; nothing is read silently. The shop's coordinates live
+// ONLY here (or in SHOP_LAT / SHOP_LNG environment variables, which override
+// these defaults) — never in index.html or any file the browser can load.
+// The endpoint answers a single yes/no. It never returns the distance or the
+// shop position.
+const SHOP_LAT = Number(process.env.SHOP_LAT || 25.6203819);
+const SHOP_LNG = Number(process.env.SHOP_LNG || 85.1326105);
+const LOCAL_RADIUS_KM = Number(process.env.LOCAL_RADIUS_KM || 10);
+
+function distanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
+// Returns {lat, lng, accuracy} for a sane coordinate pair, else null.
+function parseCustomerLocation(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const lat = Number(raw.lat);
+  const lng = Number(raw.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  const acc = Number(raw.accuracy);
+  return {
+    lat: Math.round(lat * 1e6) / 1e6,
+    lng: Math.round(lng * 1e6) / 1e6,
+    accuracy: Number.isFinite(acc) && acc >= 0 ? Math.min(Math.round(acc), 100000) : null,
+  };
+}
+
+app.post("/api/delivery/local-check", localCheckLimiter, (req, res) => {
+  const loc = parseCustomerLocation(req.body);
+  if (!loc) return res.status(400).json({ success: false, message: "Invalid location." });
+  if (!Number.isFinite(SHOP_LAT) || !Number.isFinite(SHOP_LNG)) return res.json({ success: true, local: false });
+  const local = distanceKm(SHOP_LAT, SHOP_LNG, loc.lat, loc.lng) <= LOCAL_RADIUS_KM;
+  return res.json({ success: true, local });
+});
+
 app.post("/api/orders", orderLimiter, async (req, res) => {
   return withInventoryLock(async () => {
     try {
       const database = readDatabase();
       ensureProductCodes(database);
       const { customer, items, giftCode, gift } = req.body || {};
+      const orderLocation = parseCustomerLocation(req.body && req.body.location);
       const phone = normalizePhone(customer && customer.phone);
       const name = customer && String(customer.name || "").trim();
       const address = customer && String(customer.address || "").trim();
@@ -6094,6 +6144,9 @@ app.post("/api/orders", orderLimiter, async (req, res) => {
           id: getNextId(database.orders),
           orderNumber: generateOrderNumber(database),
           customer: { name, phone, address },
+          // Where the customer was when they placed the order (only if they chose to share it).
+          // Shown to admins only; the seller order view uses an allow-list that excludes it.
+          ...(orderLocation ? { location: { ...orderLocation, capturedAt: new Date().toISOString() } } : {}),
           customerId: getOptionalCustomerId(req),
           items: pricing.pricedItems,
           listedSubtotal: Math.round(pricing.listedSubtotal * 100) / 100,
