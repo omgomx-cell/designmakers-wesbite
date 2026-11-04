@@ -3579,6 +3579,16 @@
 
       setInterval(() => { if (token) loadAdminNotifications(); }, 30000);
 
+      // Link to where the customer was when they placed the order (only if they shared it).
+      function orderLocationHtml(o) {
+        const l = o && o.location;
+        const lat = l ? Number(l.lat) : NaN, lng = l ? Number(l.lng) : NaN;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return "";
+        const acc = Number(l.accuracy);
+        return '<div style="font-size:12px;margin-top:4px;"><a href="https://www.google.com/maps?q=' + lat + ',' + lng + '" target="_blank" rel="noopener noreferrer">🗺 Order placed from here, open in Google Maps</a>' +
+          (Number.isFinite(acc) && acc > 0 ? ' <span style="color:var(--muted);">(±' + acc + ' m)</span>' : '') + '</div>';
+      }
+
       async function openOrderDetails(id) {
         const overlay = document.getElementById("orderDetailOverlay");
         const body = document.getElementById("orderDetailBody");
@@ -3658,6 +3668,7 @@
               '<div style="font-weight:700;">' + escapeHtml(o.customer ? o.customer.name : "—") + '</div>' +
               '<div style="font-size:12px;color:var(--muted);">' + escapeHtml(o.customer ? o.customer.phone : "—") + '</div>' +
               (o.customer && o.customer.address ? '<div style="font-size:12px;color:var(--muted);margin-top:4px;">📍 ' + escapeHtml(o.customer.address) + '</div>' : '') +
+              orderLocationHtml(o) +
             '</div>' +
             giftHtml +
             '<h4 style="margin:16px 0 6px;color:var(--gold-soft);">Items</h4>' +
@@ -5827,6 +5838,7 @@
                 (o.customer && o.customer.address
                   ? '<div class="meta" style="font-size:12px;">📍 ' + escapeHtml(o.customer.address) + "</div>"
                   : "") +
+                orderLocationHtml(o) +
                 '<div class="order-items">' + escapeHtml(itemsText) + "</div>" +
                 (o.gift && o.gift.isGift
                   ? '<div class="meta" style="font-size:12px;margin-top:4px;">🎁 Gift order' +
