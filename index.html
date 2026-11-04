@@ -3698,7 +3698,11 @@ function dmApplyFestivalTheme(theme) {
           <input type="tel" id="custPhone" class="checkout-input" placeholder="10-digit phone number" maxlength="10" />
         </div>
         <div class="checkout-fields" id="addressFields" style="display:none;margin-bottom:12px;">
-          <textarea id="custAddress" class="checkout-input" rows="3" placeholder="Full delivery address — house/flat no., street, area, city, state, PIN code" style="width:100%;resize:vertical;font-family:inherit;"></textarea>
+          <textarea id="custAddress" oninput="renderCartTotals()" class="checkout-input" rows="3" placeholder="Full delivery address — house/flat no., street, area, city, state, PIN code" style="width:100%;resize:vertical;font-family:inherit;"></textarea>
+          <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <button type="button" class="btn small secondary" id="shareLocationBtn" onclick="shareMyLocation()">📍 Share my location (optional)</button>
+            <span id="shareLocationStatus" style="font-size:.8rem;color:var(--muted);"></span>
+          </div>
         </div>
         <div class="dm-gift-box">
           <label><input type="checkbox" id="isGiftOrder" onchange="toggleGiftFields()"> 🎁 This is a gift</label>
@@ -3707,6 +3711,10 @@ function dmApplyFestivalTheme(theme) {
             <textarea id="giftMessage" class="checkout-input" maxlength="300" placeholder="Gift message" rows="2" style="width:100%;resize:vertical;margin-bottom:8px;"></textarea>
             <label style="font-size:.82rem;color:var(--muted);"><input type="checkbox" id="hideGiftPrice"> Hide price from recipient</label>
           </div>
+        </div>
+        <div id="freeDeliveryBar" style="display:none;margin:0 0 10px;padding:10px 12px;border-radius:10px;background:#fff7e6;border:1px solid #f3d9a4;font-size:.85rem;line-height:1.4;">
+          <div id="freeDeliveryText"></div>
+          <div style="height:6px;border-radius:99px;background:rgba(0,0,0,.08);margin-top:7px;overflow:hidden;"><div id="freeDeliveryFill" style="height:100%;width:0;background:#e0a526;transition:width .25s;"></div></div>
         </div>
         <div class="cart-total-row"><span>Subtotal</span><span id="cartSubtotal">₹0</span></div>
         <div class="cart-total-row"><span>Bulk discount</span><span id="cartDiscount">−₹0</span></div>
@@ -7059,6 +7067,74 @@ function dmApplyFestivalTheme(theme) {
         const label = document.getElementById("checkoutBtnLabel"); if (label) label.textContent = issues.length ? "Review unavailable items" : "Checkout on WhatsApp";
       }
 
+      // ---- Free delivery: Rs 2,000+ everywhere; Rs 999+ for local (Patna) customers ----
+      // "Local" = address shows a Patna PIN (800001-800030) or the word "Patna",
+      // OR the customer shared their location and the server said they are within
+      // the shop radius. The shop's own coordinates are NEVER in this file.
+      const DM_FREE_MIN_PATNA = 999;
+      const DM_FREE_MIN_OTHER = 2000;
+      let dmLocation = null;          // {lat, lng, accuracy} — only if the customer tapped Share
+      let dmLocalByLocation = false;  // server's yes/no for "within delivery radius"
+
+      function isPatnaAddress(text) {
+        const t = String(text || "");
+        const pin = t.match(/(?:^|\D)(\d{6})(?:\D|$)/);
+        if (pin) { const n = Number(pin[1]); return n >= 800001 && n <= 800030; }
+        return /patna/i.test(t);
+      }
+      function isLocalCustomer() {
+        const a = document.getElementById("custAddress");
+        return dmLocalByLocation || isPatnaAddress(a ? a.value : "");
+      }
+      function freeDeliveryMin() { return isLocalCustomer() ? DM_FREE_MIN_PATNA : DM_FREE_MIN_OTHER; }
+
+      function updateFreeDeliveryBar(total) {
+        const bar = document.getElementById("freeDeliveryBar");
+        if (!bar) return;
+        if (!cart.length) { bar.style.display = "none"; return; }
+        const local = isLocalCustomer();
+        const min = local ? DM_FREE_MIN_PATNA : DM_FREE_MIN_OTHER;
+        const text = document.getElementById("freeDeliveryText");
+        const fill = document.getElementById("freeDeliveryFill");
+        const hint = local ? "" : " (Patna? Free on ₹" + fmtINR(DM_FREE_MIN_PATNA) + "+)";
+        bar.style.display = "block";
+        if (total >= min) {
+          bar.style.background = "#e8f7ee"; bar.style.borderColor = "#b8e2c6";
+          text.textContent = "🎉 You've unlocked FREE delivery!";
+          fill.style.width = "100%"; fill.style.background = "#2e9e5b";
+        } else {
+          bar.style.background = "#fff7e6"; bar.style.borderColor = "#f3d9a4";
+          text.textContent = "🚚 Add ₹" + fmtINR(min - total) + " more to get FREE delivery (" + (local ? "Patna: orders ₹" + fmtINR(min) + "+" : "orders ₹" + fmtINR(min) + "+") + ")" + hint;
+          fill.style.width = Math.max(3, Math.min(100, (total / min) * 100)) + "%"; fill.style.background = "#e0a526";
+        }
+      }
+
+      // Asks the browser for permission ONLY when the button is tapped.
+      function shareMyLocation() {
+        const st = document.getElementById("shareLocationStatus");
+        const btn = document.getElementById("shareLocationBtn");
+        if (!navigator.geolocation) { st.textContent = "Location is not supported on this device."; return; }
+        st.textContent = "Waiting for permission…"; btn.disabled = true;
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: Math.round(pos.coords.accuracy || 0) };
+          try {
+            const res = await fetch("/api/delivery/local-check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(loc) });
+            const data = await res.json();
+            dmLocation = loc;
+            dmLocalByLocation = !!(data && data.success && data.local);
+            st.textContent = "Location shared ✓";
+          } catch (e) {
+            dmLocation = loc; dmLocalByLocation = false;
+            st.textContent = "Location shared ✓ (could not check delivery area — your address will be used)";
+          }
+          btn.disabled = false;
+          renderCartTotals();
+        }, () => {
+          st.textContent = "Location not shared. You can just type your address.";
+          btn.disabled = false;
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+      }
+
       function renderCartTotals() {
         let subtotal = 0;
         let afterDiscount = 0;
@@ -7081,6 +7157,7 @@ function dmApplyFestivalTheme(theme) {
         const giftEl = document.getElementById("giftCodeDiscount");
         if (giftEl) giftEl.textContent = "−₹" + fmtINR(giftCodeDiscount);
         document.getElementById("cartTotal").textContent = "₹" + fmtINR(finalTotal);
+        updateFreeDeliveryBar(finalTotal);
 
         updateWaPreview(subtotal, discountAmt + Number(giftCodeDiscount || 0), finalTotal);
       }
@@ -7338,6 +7415,7 @@ function dmApplyFestivalTheme(theme) {
             headers: { "Content-Type": "application/json", ...authHeaders() },
             body: JSON.stringify({
               customer: { name, phone, address },
+              location: dmLocation || undefined,
               giftCode: appliedGiftCode || "",
               gift: giftOrder ? { isGift: true, recipientName: giftRecipientName, message: giftMessage, hidePrice: hideGiftPrice } : { isGift: false },
               items: cart.map((item) => ({ productId: item.productId, size: item.size, qty: item.qty })),
@@ -7383,6 +7461,7 @@ function dmApplyFestivalTheme(theme) {
             lines.push("*Gift code (" + (order.giftCode || "") + "):* −₹" + fmtINR(order.giftDiscount));
           }
           lines.push("*Total:* ₹" + fmtINR(order.total));
+          if (order.total >= freeDeliveryMin()) lines.push("*Delivery:* FREE");
           lines.push("*Payment:* Cash on Delivery (COD)");
 
           lines.push("");
@@ -7394,6 +7473,8 @@ function dmApplyFestivalTheme(theme) {
 
           cart = [];
           appliedGiftCode = ""; giftCodeDiscount = 0;
+          dmLocation = null; dmLocalByLocation = false;
+          { const st = document.getElementById("shareLocationStatus"); if (st) st.textContent = ""; }
           updateCartCount();
           saveCart();
           closeCart();
