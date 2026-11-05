@@ -1,0 +1,47 @@
+/* Normal skin for the new homepage: layout from homepage.html, colours only. */
+:host{
+  --rose:#8a1c42;--rose-d:#6b1433;--blush:#f6e6e1;--line:#e9d3cc;--cream:#f6ece4;
+  --ink:#2a1710;--muted:#7a6a63;
+}
+.xxroot{background:#f4e8df!important}
+.xxroot::before{background:radial-gradient(520px 520px at 92% 10%,rgba(214,170,120,.35),transparent 70%),radial-gradient(620px 620px at 4% 45%,rgba(232,190,170,.4),transparent 70%)!important}
+.perks-sec{background:#f4e8df}
+.top{background:rgba(255,255,255,.94)}
+.top::after{background:linear-gradient(90deg,transparent,#b8863f 20%,#e3c25a 50%,#b8863f 80%,transparent)}
+.search .sb,.icons .cc,.cats .bd{background:linear-gradient(135deg,#9a2049,#6b1433)}
+.search .si,.pr-k,.pc-c,.pb-tag,.wcap{color:#b8863f}
+.cats a::after{background:linear-gradient(90deg,#b8863f,#e3c25a)}
+.pill{background:#f1dccf;color:#8a1c42}
+.hero{background:radial-gradient(120% 90% at 85% 10%,#fbe9dc 0%,#f6e2d4 50%,#f1d9ca 100%)}
+.hero::before{background:#ecd0bd}
+.hero::after{background:#e7c2b0}
+.hero h1{color:#2a1710}
+.hero h1 em,.hero h1 .sq,.hero h1 .ht{color:#8a1c42}
+.hero .sub{color:#7a6a63}
+.hero .btn.p{background:linear-gradient(180deg,#9a2049,#6b1433);border-color:#6b1433}
+.btn.p:hover{background:#6b1433}
+.chip span{color:#8a1c42}
+.tag,.step::before{background:linear-gradient(180deg,#9a2049,#6b1433)!important}
+.perks-sec .perks{border-color:#e9d3cc}
+.perks-sec .perks div{border-left-color:#e9d3cc}
+.perks-sec .perks b{color:#2a1710}
+.perks-sec .perks .pi,.step .si{background:#f1dccf;color:#8a1c42}
+section.gh .pb.her{background:radial-gradient(circle at 88% 18%,rgba(255,255,255,.95),transparent 42%),radial-gradient(circle at 8% 105%,rgba(214,120,140,.5),transparent 58%),linear-gradient(135deg,#f6dbd9,#eab9bd 58%,#f6dbd9)}
+section.gh .pb.him{background:radial-gradient(circle at 88% 18%,rgba(255,255,255,.95),transparent 42%),radial-gradient(circle at 8% 105%,rgba(214,165,80,.55),transparent 58%),linear-gradient(135deg,#f8e6c6,#ecc98e 58%,#f8e6c6)}
+section.gh .pb.him .pb-tag{color:#b8863f}
+section.cta{background:radial-gradient(60% 90% at 10% 0%,#fffaf7,transparent 62%),radial-gradient(55% 80% at 100% 100%,rgba(255,255,255,.9),transparent 62%),linear-gradient(135deg,#f3dccb,#e9c8b2 42%,#f5e0cf 64%,#e3bfa8)!important}
+section.cta h2{color:#2a1710}
+section.cta p{color:#7a6a63}
+section.cta .g{background:linear-gradient(180deg,#9a2049,#6b1433)}
+section.cta .g:hover{background:linear-gradient(180deg,#9a2049,#8a1c42)}
+section.cta .ps-s figcaption{color:#2a1710}
+section.cta .ps-d button{background:rgba(138,28,66,.28)}
+section.cta .ps-d button.on,.ps-d button.on{background:#8a1c42}
+.pc-bar{background:rgba(138,28,66,.28)}
+.pc-bar i{background:linear-gradient(90deg,#b8863f,#8a1c42)}
+.pc-s{border-top-color:#e9d3cc}
+.pc-ht[aria-pressed=true]{background:#8a1c42!important}
+.sh-cats button[aria-pressed=true]{background:#8a1c42;border-color:#8a1c42}
+footer.ft{background:#1d1512}
+.ft-wa{background:#b8863f}
+.ft-tg span,.ft-tag{border-color:#e3c25a;color:#e3c25a}

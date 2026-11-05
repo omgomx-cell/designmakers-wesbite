@@ -1,0 +1,134 @@
+/* ==========================================================================
+   Festival skin (Deepawali / Dushera / Dhanteras / Chhath) for the new homepage.
+   LAYOUT comes from homepage.html. This file only recolours it, and reads the
+   colours of the ACTIVE festival theme from the body's --fx-* variables, so one
+   file serves all four themes (each theme keeps its own palette).
+   ========================================================================== */
+:host{
+  --rose:var(--fx-p);--rose-d:var(--fx-s);--blush:rgba(255,255,255,.07);
+  --line:var(--fx-border);--cream:rgba(255,255,255,.05);
+  --ink:var(--fx-text);--muted:var(--fx-muted);
+  --pane:rgba(255,255,255,.06);--pane-2:rgba(18,12,18,.72);
+}
+.xxroot{background:transparent!important;color:var(--ink)}
+.xxroot::before{display:none!important}
+.perks-sec{background:transparent!important}
+.sec h2,.shop h2,h2{color:var(--ink)}
+.lead{color:var(--muted)}
+
+/* announcement + header */
+.ann{background:var(--fx-strip);color:var(--fx-stripc)}
+.ann span{color:var(--fx-s)}
+.top{background:rgba(12,8,12,.62)!important;-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.top::after{background:linear-gradient(90deg,transparent,var(--fx-p) 20%,var(--fx-s) 50%,var(--fx-p) 80%,transparent)}
+.logo,.logo b,.lt b{color:var(--ink)}
+.lt small{color:var(--muted)}
+.search{background:rgba(255,255,255,.08);border:1.5px solid var(--line)}
+.search input{color:var(--ink)}
+.search:focus-within{background:rgba(255,255,255,.14);border-color:var(--fx-p)}
+.search .si{color:var(--fx-s)}
+.search .sb{background:var(--fx-cta);color:var(--fx-ctatext)}
+.icons a{color:var(--ink)}
+.icons a:hover{background:rgba(255,255,255,.12)}
+.icons .cc,.cats .bd{background:var(--fx-p);color:var(--fx-ctatext)}
+.cats a{color:var(--ink)}
+.cats a:hover,.cats a.on{color:var(--fx-s)}
+.cats a::after{background:var(--fx-cta)}
+.cats{border-top-color:var(--line)}
+
+/* hero */
+.hero{background:radial-gradient(60% 70% at 86% 10%,var(--fx-glow),transparent 70%),radial-gradient(50% 60% at 4% 100%,rgba(255,255,255,.05),transparent 70%)}
+.hero::before,.hero::after{background:var(--fx-glow);opacity:.3}
+.pill{background:rgba(255,255,255,.08);color:var(--fx-s);border:1px solid var(--line)}
+.hero h1{color:var(--ink)}
+.hero h1 em,.hero h1 .sq,.hero h1 .ht{color:var(--fx-s)}
+.hero .sub{color:var(--muted)}
+.btn.p,.hero .btn.p{background:var(--fx-cta);color:var(--fx-ctatext);border-color:transparent}
+.btn.p:hover,.hero .btn.p:hover{filter:brightness(1.08);background:var(--fx-cta)}
+.btn.o{color:var(--ink);border-color:var(--line)}
+.btn.o:hover{background:rgba(255,255,255,.1)}
+.card{background:rgba(255,255,255,.06)}
+.chip{background:rgba(14,10,14,.82);color:var(--ink);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.chip span{color:var(--fx-s)}
+.tag{background:var(--fx-p);color:var(--fx-ctatext)}
+.perks div{border-left-color:var(--line)}
+.perks b{color:var(--ink)}
+.perks-sec .perks{background:var(--pane);border:1px solid var(--line)}
+.perks-sec .perks div{border-left:1px solid var(--line)}
+.perks-sec .perks b{color:var(--ink)}
+.perks-sec .perks .pi{background:rgba(255,255,255,.1);color:var(--fx-s)}
+
+/* category tiles */
+.tc{background:linear-gradient(rgba(22,16,22,.92),rgba(22,16,22,.92)) padding-box,linear-gradient(135deg,var(--fx-s),var(--fx-p) 35%,var(--fx-a) 55%,var(--fx-s)) border-box!important}
+.tl{background:rgba(14,10,14,.78);color:var(--ink)}
+.arr button{background:rgba(255,255,255,.1);color:var(--ink);border:1px solid var(--line)}
+
+/* Gift for Her / Him */
+section.gh .pb.her{background:radial-gradient(circle at 8% 105%,var(--fx-glow),transparent 58%),linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.02))}
+section.gh .pb.him{background:radial-gradient(circle at 8% 105%,var(--fx-glow),transparent 58%),linear-gradient(135deg,rgba(255,255,255,.07),rgba(0,0,0,.12))}
+section.gh .pb::before{background:linear-gradient(135deg,var(--fx-s),rgba(255,255,255,.05) 35%,rgba(255,255,255,.05) 65%,var(--fx-p))}
+section.gh .pb::after{background:linear-gradient(115deg,rgba(255,255,255,.12),transparent 60%)}
+section.gh .pb-c{background:rgba(12,8,12,.62);border:1px solid var(--line)}
+.pb h3{color:var(--ink)}
+section.gh .pb p,.pb p{color:var(--muted)}
+.pb-tag,section.gh .pb.him .pb-tag{color:var(--fx-s)}
+
+/* steps + product cards */
+.step,.pc{background:var(--pane)!important;border:1px solid var(--line)!important;color:var(--ink)}
+.step::before{background:var(--fx-cta)!important;color:var(--fx-ctatext)}
+.step .si{color:var(--fx-s);background:rgba(255,255,255,.08);border:1px solid var(--line)}
+.step b,.pc-n{color:var(--ink)}
+.step span{color:var(--muted)}
+.pc-o,.pc-ht{background:var(--pane-2)!important;color:var(--fx-s);border:1px solid var(--line)}
+.pc-ht[aria-pressed=true]{background:var(--fx-p)!important;color:var(--fx-ctatext)}
+.pc-rk{background:var(--fx-p);color:var(--fx-ctatext)}
+.pc-c,.pr-k,.wcap{color:var(--fx-s)}
+.pc-m{color:var(--muted)}
+.pc-bar{background:rgba(255,255,255,.12)}
+.pc-bar i{background:var(--fx-cta)}
+.pc-s{border-top-color:var(--line)}
+
+/* "Not sure what to gift?" */
+section.cta{background:radial-gradient(60% 90% at 10% 0%,var(--fx-glow),transparent 62%),linear-gradient(135deg,rgba(255,255,255,.05),rgba(0,0,0,.28))!important}
+section.cta::before{background:linear-gradient(90deg,transparent,var(--fx-s) 35%,var(--fx-p) 65%,transparent);opacity:.5}
+section.cta::after{background:linear-gradient(90deg,transparent,rgba(0,0,0,.4) 40%,transparent)}
+section.cta .ctat,section.cta .ps{background:rgba(255,255,255,.07)}
+section.cta .ctat::before,section.cta .ps::before{background:linear-gradient(135deg,var(--fx-s),rgba(255,255,255,.08) 35%,rgba(255,255,255,.08) 65%,var(--fx-p))}
+section.cta .ctat::after{background:linear-gradient(115deg,rgba(255,255,255,.1),transparent 55%)}
+section.cta h2{color:var(--ink)}
+section.cta p{color:var(--muted)}
+section.cta .g{background:var(--fx-cta);color:var(--fx-ctatext);border:1px solid var(--line)}
+section.cta .g:hover{background:var(--fx-cta);filter:brightness(1.08)}
+section.cta .g svg{fill:var(--fx-ctatext)}
+section.cta .ps-s figcaption{color:var(--ink);background:rgba(14,10,14,.75);border:1px solid var(--line)}
+section.cta .ps-d{background:rgba(255,255,255,.1);border:1px solid var(--line)}
+section.cta .ps-d button{background:rgba(255,255,255,.3)}
+section.cta .ps-d button.on{background:var(--fx-s)}
+.ps-t{border-color:var(--fx-p)}
+
+/* footer */
+footer.ft{background:rgba(0,0,0,.5)}
+.ft-trust{background:rgba(255,255,255,.04)}
+.ft-tg span{border-color:var(--fx-p);color:var(--fx-p)}
+.ft-tag{color:var(--fx-p)}
+.ft nav a:hover,.ft-ph:hover{color:var(--fx-p)}
+.ft-wa{background:var(--fx-p);color:var(--fx-ctatext)}
+.ft-wa:hover{background:var(--fx-s)}
+footer.ft .lt b{color:var(--fx-s)}
+
+/* Shop / offers / best-sellers popup */
+#dmShop{background:var(--dm-dark-surface,#140c14);color:var(--ink);border:1px solid var(--line)}
+#dmShop::backdrop{background:rgba(0,0,0,.65)}
+.sh-head h2{color:var(--fx-s)}
+.sh-head span{color:var(--muted)}
+.sh-x{background:rgba(255,255,255,.08);color:var(--ink);border-color:var(--line)}
+.sh-x:hover{background:rgba(255,255,255,.16);color:var(--fx-s)}
+.sh-cats,.sh-cats button{border-color:var(--line)}
+.sh-cats button{background:rgba(255,255,255,.06);color:var(--ink)}
+.sh-cats button:hover{border-color:var(--fx-p);color:var(--fx-s)}
+.sh-cats button[aria-pressed=true]{background:var(--fx-p);border-color:var(--fx-p);color:var(--fx-ctatext)}
+.sh-msg{color:var(--muted)}
+
+/* remove the bright diagonal sweep behind the text on dark backgrounds */
+section.cta .cwash{display:none!important}
+section.cta::before{opacity:.25!important}

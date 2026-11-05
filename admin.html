@@ -905,13 +905,121 @@
       html[data-dm-palette="viola"] .mascot-speech{background:#2f2433 !important;border-color:#CB4DB9 !important;color:#FFE1C1 !important;}
       html[data-dm-palette="viola"] .mascot-speech::after{border-top-color:#CB4DB9 !important;}
     </style>
+
+    <style id="dmAdminGlass">
+      /* ===== Admin palette 3: GLASS - light, see-through panels over bold colour orbs (applies only when html has data-dm-palette="glass") ===== */
+      html[data-dm-palette="glass"]{--rosewood:#6a4cf0 !important;--rosewood-dark:#4a35b8 !important;--rosewood-bright:#8f73ff !important;--blush:rgba(124,92,255,.14) !important;--blush-line:rgba(255,255,255,.8) !important;--gold:#5b3fd6 !important;--gold-soft:#7c5cff !important;--cream:#eee8ff !important;--ink:#1b1b22 !important;--muted:#565665 !important;--surface:rgba(255,255,255,.34) !important;--field:rgba(255,255,255,.62) !important;--line:rgba(255,255,255,.85) !important;--success:#0f9d63 !important;--success-bg:rgba(15,157,99,.14) !important;--danger:#d6304a !important;--danger-bg:rgba(214,48,74,.12) !important;--warn:#b7791f !important;--warn-bg:rgba(183,121,31,.14) !important;--info:#2f6fe0 !important;--info-bg:rgba(47,111,224,.12) !important;--gold-bg:rgba(124,92,255,.12) !important;color-scheme:light !important;
+        --gl-blur:blur(20px) saturate(250%) brightness(1.06);
+        --gl-fill:linear-gradient(112deg,rgba(255,255,255,0) 28%,rgba(255,255,255,.4) 40%,rgba(255,255,255,0) 52%),linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,.14) 45%,rgba(255,255,255,.08) 62%,rgba(255,255,255,.36));
+        --gl-edge:inset 1.5px 1.5px 0 rgba(255,255,255,1),inset -1.5px -1.5px 0 rgba(255,255,255,.5),inset 0 0 24px rgba(255,255,255,.4),0 0 0 1px rgba(255,255,255,.65);
+        --gl-drop:0 24px 48px -12px rgba(70,50,170,.34),0 6px 14px rgba(70,50,170,.12);}
+      html[data-dm-palette="glass"]{background:
+          radial-gradient(circle 120px at 97% 7%,#ff4fb0 0 96%,transparent 100%),
+          radial-gradient(circle 110px at 70% 99%,#27e0c4 0 96%,transparent 100%),
+          radial-gradient(circle 150px at 0% 30%,#7b5cff 0 96%,transparent 100%),
+          radial-gradient(circle 130px at 101% 58%,#27e0c4 0 96%,transparent 100%),
+          radial-gradient(circle 120px at 3% 96%,#ff4fb0 0 96%,transparent 100%),
+          radial-gradient(circle 100px at 38% 101%,#7b5cff 0 96%,transparent 100%),
+          linear-gradient(180deg,#e4d9ff,#ffe0f0 40%,#cdf7ee 75%,#e0d6ff) !important;background-attachment:fixed !important;min-height:100% !important;}
+      html[data-dm-palette="glass"]  body{background:transparent !important;color:#1b1b22 !important;min-height:100vh !important;}
+      html[data-dm-palette="glass"]  *{scrollbar-color:#8f73ff rgba(255,255,255,.4) !important;}
+      html[data-dm-palette="glass"]  ::placeholder{color:rgba(27,27,34,.45) !important;}
+      html[data-dm-palette="glass"] .card,html[data-dm-palette="glass"] .stat-card,html[data-dm-palette="glass"] .dm-overview-card,html[data-dm-palette="glass"] .dm-kpi,html[data-dm-palette="glass"] .modal-card,html[data-dm-palette="glass"] .dm-hero-admin,html[data-dm-palette="glass"] .sd-about,html[data-dm-palette="glass"] .sd-chip,html[data-dm-palette="glass"] .theme-card{background:var(--gl-fill) !important;-webkit-backdrop-filter:var(--gl-blur);backdrop-filter:var(--gl-blur);border:0 !important;box-shadow:var(--gl-edge),var(--gl-drop) !important;color:#1b1b22 !important;}
+      html[data-dm-palette="glass"] .theme-card.active{background:linear-gradient(135deg,rgba(124,92,255,.38),rgba(255,255,255,.2)) !important;box-shadow:var(--gl-edge),0 0 0 3px #7c5cff,var(--gl-drop) !important;}
+      html[data-dm-palette="glass"] .dm-kpi:hover,html[data-dm-palette="glass"] .dm-overview-card:hover{box-shadow:var(--gl-edge),0 28px 52px -12px rgba(70,50,170,.46) !important;transform:translateY(-3px);}
+      html[data-dm-palette="glass"] header,html[data-dm-palette="glass"] .dm-topbar{background:var(--gl-fill) !important;-webkit-backdrop-filter:var(--gl-blur);backdrop-filter:var(--gl-blur);border-bottom:0 !important;box-shadow:var(--gl-edge),0 12px 30px rgba(70,50,170,.16) !important;color:#1b1b22 !important;}
+      html[data-dm-palette="glass"] .dm-sidebar{background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(255,255,255,.14) 55%,rgba(255,255,255,.34)) !important;-webkit-backdrop-filter:var(--gl-blur);backdrop-filter:var(--gl-blur);border-right:0 !important;box-shadow:var(--gl-edge),8px 0 30px rgba(70,50,170,.16) !important;}
+      html[data-dm-palette="glass"] .dm-nav-item{background:rgba(255,255,255,.28) !important;border:1px solid rgba(255,255,255,.75) !important;box-shadow:inset 0 1px 0 #fff !important;color:#3b3b4a !important;}
+      html[data-dm-palette="glass"] .dm-nav-item:hover{background:rgba(255,255,255,.62) !important;border-color:#fff !important;color:#4a35b8 !important;}
+      html[data-dm-palette="glass"] .dm-nav-item.active,html[data-dm-palette="glass"] .dm-nav-item.active:hover{background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,0) 50%),linear-gradient(135deg,#9a7dff,#6a4cf0 60%,#5738d8) !important;color:#fff !important;border:1.5px solid rgba(255,255,255,.85) !important;box-shadow:0 12px 24px -6px rgba(106,76,240,.55),inset 2px 2px 3px rgba(255,255,255,.85),inset -3px -3px 7px rgba(30,10,120,.4) !important;}
+      html[data-dm-palette="glass"] .dm-view-store:hover{background:rgba(255,255,255,.55) !important;color:#4a35b8 !important;}
+      html[data-dm-palette="glass"] .dm-sidebar-profile{background:rgba(255,255,255,.4) !important;}
+      html[data-dm-palette="glass"] .dm-sidebar-avatar{background:linear-gradient(135deg,#6a4cf0,#27e0c4) !important;color:#fff !important;}
+      html[data-dm-palette="glass"] .dm-topbar-search{background:rgba(255,255,255,.6) !important;border:1px solid #fff !important;color:#565665 !important;box-shadow:inset 0 2px 5px rgba(88,92,128,.12) !important;}
+      html[data-dm-palette="glass"] .dm-bell-badge{background:#ff4fb0 !important;color:#fff !important;}
+      html[data-dm-palette="glass"] .dm-notification-panel{background:rgba(255,255,255,.82) !important;-webkit-backdrop-filter:blur(30px) saturate(220%);backdrop-filter:blur(30px) saturate(220%);border:0 !important;box-shadow:var(--gl-edge),0 24px 56px rgba(50,40,120,.4) !important;}
+      html[data-dm-palette="glass"] .dm-notification-item.unread{background:rgba(124,92,255,.12) !important;}
+      html[data-dm-palette="glass"] .btn:not(.secondary):not(.danger),html[data-dm-palette="glass"] .fab{background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,0) 46%),linear-gradient(135deg,#9a7dff,#6a4cf0 60%,#5738d8) !important;color:#fff !important;border:1.5px solid rgba(255,255,255,.85) !important;text-shadow:0 1px 3px rgba(0,0,0,.3);box-shadow:0 12px 24px -6px rgba(106,76,240,.55),inset 2px 2px 3px rgba(255,255,255,.85),inset -3px -3px 7px rgba(30,10,120,.4) !important;}
+      html[data-dm-palette="glass"] .btn:not(.secondary):not(.danger):hover{filter:brightness(1.08) !important;transform:translateY(-2px);}
+      html[data-dm-palette="glass"] .btn.secondary{background:rgba(255,255,255,.55) !important;color:#4a35b8 !important;border:1.5px solid #fff !important;box-shadow:inset 0 1px 0 #fff,0 4px 10px rgba(70,50,170,.14) !important;}
+      html[data-dm-palette="glass"] .btn.danger{border:1.5px solid rgba(255,255,255,.85) !important;}
+      html[data-dm-palette="glass"] input,html[data-dm-palette="glass"] textarea,html[data-dm-palette="glass"] select{background:rgba(255,255,255,.62) !important;color:#1b1b22 !important;border:1.5px solid rgba(255,255,255,.9) !important;box-shadow:inset 0 2px 5px rgba(88,92,128,.12) !important;}
+      html[data-dm-palette="glass"] input:focus,html[data-dm-palette="glass"] textarea:focus,html[data-dm-palette="glass"] select:focus{border-color:#7c5cff !important;box-shadow:0 0 0 3px rgba(124,92,255,.22) !important;}
+      html[data-dm-palette="glass"] select option{background:#fff !important;color:#1b1b22 !important;}
+      html[data-dm-palette="glass"] .cat-dropdown{background:rgba(255,255,255,.88) !important;box-shadow:0 12px 30px rgba(50,40,120,.35) !important;}
+      html[data-dm-palette="glass"] #loginScreen::before{background:rgba(124,92,255,.5) !important;}
+      html[data-dm-palette="glass"] #loginScreen::after{background:rgba(255,79,176,.4) !important;}
+      html[data-dm-palette="glass"] #loginScreen .card{box-shadow:var(--gl-edge),0 30px 80px rgba(70,50,170,.4) !important;}
+      html[data-dm-palette="glass"] #loginScreen .dm-login-badge{border-color:#fff !important;background:rgba(255,255,255,.6) !important;color:#4a35b8 !important;}
+      html[data-dm-palette="glass"] .dm-secure-note{border-top-color:rgba(255,255,255,.8) !important;}
+      html[data-dm-palette="glass"] .dm-kpi-icon.gold,html[data-dm-palette="glass"] .dm-kpi-icon.purple,html[data-dm-palette="glass"] .dm-kpi-icon.orange,html[data-dm-palette="glass"] .dm-kpi-icon.teal{background:rgba(255,255,255,.6) !important;}
+      html[data-dm-palette="glass"] #modalOverlay,html[data-dm-palette="glass"] .seller-modal-overlay,html[data-dm-palette="glass"] .seller-detail-overlay{background:rgba(60,50,120,.35) !important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
+      html[data-dm-palette="glass"] .mascot-speech{background:rgba(255,255,255,.9) !important;border-color:#7c5cff !important;color:#1b1b22 !important;}
+      html[data-dm-palette="glass"] .mascot-speech::after{border-top-color:#7c5cff !important;}
+      /* ----- palette picker (dropdown with the 3 colour themes) ----- */
+      .dm-palette-wrap{position:relative;display:inline-block}
+      .dm-palette-menu{position:absolute;right:0;top:calc(100% + 10px);min-width:230px;z-index:2000;padding:8px;border-radius:18px;background:var(--surface);border:1px solid var(--line);box-shadow:0 22px 50px rgba(0,0,0,.5);display:none;flex-direction:column;gap:6px;opacity:0;transform:translateY(-6px) scale(.97);transition:opacity .18s,transform .22s cubic-bezier(.34,1.56,.64,1)}
+      .dm-palette-menu.open{display:flex;opacity:1;transform:none}
+      .dm-palette-opt{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:13px;border:1px solid transparent;background:transparent;color:var(--ink);font-weight:600;font-size:13px;line-height:1.2;font-family:inherit;cursor:pointer;text-align:left;transition:background .15s,border-color .15s}
+      .dm-palette-opt:hover{background:var(--blush);border-color:var(--line)}
+      .dm-palette-opt[aria-checked="true"]{border-color:var(--gold);background:var(--blush)}
+      .dm-palette-opt .sw{flex:none;width:44px;height:28px;border-radius:9px;box-shadow:0 0 0 1px rgba(255,255,255,.25) inset,0 4px 10px rgba(0,0,0,.25)}
+      .dm-palette-opt small{display:block;font-weight:500;font-size:11px;color:var(--muted);margin-top:2px}
+      .dm-palette-opt .ck{margin-left:auto;opacity:0;font-size:15px;color:var(--gold)}
+      .dm-palette-opt[aria-checked="true"] .ck{opacity:1}
+      html[data-dm-palette="glass"] #backupBtn{background:rgba(255,255,255,.6) !important;color:#4a35b8 !important;border:1.5px solid #fff !important;border-radius:999px !important;padding:7px 12px !important;font-weight:650;box-shadow:inset 0 1px 0 #fff,0 4px 10px rgba(70,50,170,.14) !important}
+      html[data-dm-palette="glass"] .dm-palette-menu{background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(30px) saturate(220%);backdrop-filter:blur(30px) saturate(220%);border:0;box-shadow:var(--gl-edge),0 24px 56px rgba(50,40,120,.4)}
+      html[data-dm-palette="glass"] .dm-palette-switch{background:rgba(255,255,255,.65);border:1.5px solid #fff;color:#4a35b8;box-shadow:inset 0 1px 0 #fff,0 4px 10px rgba(70,50,170,.14)}
+      @media (prefers-reduced-motion:reduce){.dm-palette-menu{transition:none}}
+    </style>
+    <style id="dmAdminLogoAvatar">
+      /* Admin avatar = the Design Makers logo, no circle / no background (JS still writes initials into it, so the text is hidden) */
+      html .dm-sidebar-avatar, html[data-dm-palette] .dm-sidebar-avatar{
+        background:url("Logo.png") center/contain no-repeat !important;
+        color:transparent !important; font-size:0 !important; text-shadow:none !important;
+        border:0 !important; border-radius:0 !important; box-shadow:none !important; overflow:visible !important;
+        width:42px !important; height:42px !important; flex:0 0 42px !important;
+        filter:drop-shadow(0 3px 6px rgba(0,0,0,.35)) drop-shadow(0 0 10px rgba(255,214,140,.28));
+        transition:transform .35s cubic-bezier(.34,1.56,.64,1),filter .3s}
+      html .dm-topbar-profile .dm-sidebar-avatar, html[data-dm-palette] .dm-topbar-profile .dm-sidebar-avatar{width:40px !important;height:40px !important;flex:0 0 40px !important}
+      html[data-dm-palette="glass"] .dm-sidebar-avatar{filter:drop-shadow(0 4px 8px rgba(70,50,170,.4)) drop-shadow(0 0 12px rgba(255,255,255,.9))}
+      .dm-sidebar-profile:hover .dm-sidebar-avatar,.dm-topbar-profile:hover .dm-sidebar-avatar{transform:scale(1.1) rotate(-4deg)}
+      @media (prefers-reduced-motion:reduce){.dm-sidebar-avatar{transition:none}}
+
+      /* Glass palette: the two profile chips become proper glass pills */
+      html[data-dm-palette="glass"] .dm-sidebar-profile,
+      html[data-dm-palette="glass"] .dm-topbar-profile{
+        background:linear-gradient(112deg,rgba(255,255,255,0) 28%,rgba(255,255,255,.5) 42%,rgba(255,255,255,0) 56%),linear-gradient(135deg,rgba(255,255,255,.62),rgba(255,255,255,.18) 50%,rgba(255,255,255,.4)) !important;
+        -webkit-backdrop-filter:blur(18px) saturate(250%);backdrop-filter:blur(18px) saturate(250%);
+        border:0 !important;border-radius:20px !important;
+        box-shadow:inset 1.5px 1.5px 0 #fff,inset -1.5px -1.5px 0 rgba(255,255,255,.55),inset 0 0 18px rgba(255,255,255,.45),0 12px 26px -8px rgba(70,50,170,.4),0 0 0 1px rgba(255,255,255,.65) !important}
+      html[data-dm-palette="glass"] .dm-topbar-profile{padding:5px 14px 5px 8px !important}
+      html[data-dm-palette="glass"] .dm-sidebar-name{color:#1b1b22 !important}
+      html[data-dm-palette="glass"] .dm-sidebar-role{color:#565665 !important}
+      /* the other topbar controls get the same lit edge */
+      html[data-dm-palette="glass"] .dm-bell{background:linear-gradient(135deg,rgba(255,255,255,.7),rgba(255,255,255,.28)) !important;border:0 !important;border-radius:50% !important;box-shadow:inset 1.5px 1.5px 0 #fff,inset -1.5px -1.5px 0 rgba(255,255,255,.5),0 6px 14px -4px rgba(70,50,170,.35) !important;color:#4a35b8 !important}
+      html[data-dm-palette="glass"] .dm-palette-switch,html[data-dm-palette="glass"] #backupBtn{background:linear-gradient(135deg,rgba(255,255,255,.75),rgba(255,255,255,.3)) !important;border:0 !important;box-shadow:inset 1.5px 1.5px 0 #fff,inset -1.5px -1.5px 0 rgba(255,255,255,.5),0 8px 16px -6px rgba(70,50,170,.4) !important}
+      html[data-dm-palette="glass"] .dm-kpi-icon{box-shadow:inset 1.5px 1.5px 0 #fff,0 6px 12px -4px rgba(70,50,170,.3) !important;border-radius:14px}
+      html[data-dm-palette="glass"] .dm-sidebar-bottom{border-top-color:rgba(255,255,255,.8) !important}
+    </style>
     <script>
       (function(){
         var K='dmAdminPalette';
-        function apply(p){ if(p==='viola') document.documentElement.setAttribute('data-dm-palette','viola'); else document.documentElement.removeAttribute('data-dm-palette'); }
+        var NAMES={slate:'Slate colours',viola:'Viola colours',glass:'Glass colours'};
+        var DOT={slate:'\uD83D\uDD35',viola:'\uD83D\uDFE3',glass:'\uD83D\uDCA0'};
+        function cur(){ var v=document.documentElement.getAttribute('data-dm-palette'); return (v==='viola'||v==='glass')?v:'slate'; }
+        function apply(p){ if(p==='viola'||p==='glass') document.documentElement.setAttribute('data-dm-palette',p); else document.documentElement.removeAttribute('data-dm-palette'); }
         try{ apply(localStorage.getItem(K)); }catch(e){}
-        function label(){ var b=document.getElementById('dmPaletteBtn'); if(b) b.textContent = document.documentElement.getAttribute('data-dm-palette')==='viola' ? '\uD83D\uDD35 Slate colours' : '\uD83D\uDFE3 Viola colours'; }
-        window.dmToggleAdminPalette=function(){ var next = document.documentElement.getAttribute('data-dm-palette')==='viola' ? 'slate' : 'viola'; apply(next); try{ localStorage.setItem(K,next); }catch(e){} label(); };
+        function label(){
+          var b=document.getElementById('dmPaletteBtn'); if(b) b.textContent = DOT[cur()]+' '+NAMES[cur()]+' \u25BE';
+          var o=document.querySelectorAll('.dm-palette-opt'); for(var i=0;i<o.length;i++) o[i].setAttribute('aria-checked', o[i].getAttribute('data-p')===cur()?'true':'false');
+        }
+        function menu(){ return document.getElementById('dmPaletteMenu'); }
+        function close(){ var m=menu(); if(m){ m.classList.remove('open'); } var b=document.getElementById('dmPaletteBtn'); if(b) b.setAttribute('aria-expanded','false'); }
+        window.dmToggleAdminPalette=function(ev){ if(ev&&ev.stopPropagation) ev.stopPropagation(); var m=menu(); if(!m) return; var open=!m.classList.contains('open'); m.classList.toggle('open',open); var b=document.getElementById('dmPaletteBtn'); if(b) b.setAttribute('aria-expanded',open?'true':'false'); };
+        window.dmSetAdminPalette=function(p){ if(!NAMES[p]) p='slate'; apply(p); try{ localStorage.setItem(K,p); }catch(e){} label(); close(); };
+        document.addEventListener('click',function(e){ var w=document.getElementById('dmPaletteWrap'); if(w && !w.contains(e.target)) close(); });
+        document.addEventListener('keydown',function(e){ if(e.key==='Escape') close(); });
         document.addEventListener('DOMContentLoaded',label);
       })();
     </script>
@@ -1005,7 +1113,14 @@
             <input type="text" placeholder="Search anything..." disabled />
           </div>
           <div class="dm-topbar-actions">
-            <button class="dm-palette-switch" id="dmPaletteBtn" onclick="dmToggleAdminPalette()" title="Switch colour theme">🟣 Viola colours</button>
+            <div class="dm-palette-wrap" id="dmPaletteWrap">
+              <button class="dm-palette-switch" id="dmPaletteBtn" onclick="dmToggleAdminPalette(event)" title="Choose colour theme" aria-haspopup="true" aria-expanded="false">🔵 Slate colours ▾</button>
+              <div class="dm-palette-menu" id="dmPaletteMenu" role="menu" aria-label="Admin colour theme">
+                <button type="button" class="dm-palette-opt" data-p="slate" role="menuitemradio" aria-checked="true" onclick="dmSetAdminPalette('slate')"><span class="sw" style="background:linear-gradient(135deg,#06141B,#4A5C6A 60%,#9BA8AB)"></span><span>Slate<small>Dark navy</small></span><span class="ck">✓</span></button>
+                <button type="button" class="dm-palette-opt" data-p="viola" role="menuitemradio" aria-checked="false" onclick="dmSetAdminPalette('viola')"><span class="sw" style="background:linear-gradient(135deg,#1D1D1D,#790D97 55%,#FFC57D)"></span><span>Viola<small>Dark plum and gold</small></span><span class="ck">✓</span></button>
+                <button type="button" class="dm-palette-opt" data-p="glass" role="menuitemradio" aria-checked="false" onclick="dmSetAdminPalette('glass')"><span class="sw" style="background:linear-gradient(135deg,#7b5cff,#27e0c4 55%,#ffd1e8)"></span><span>Glass<small>Light, clear see-through glass</small></span><span class="ck">✓</span></button>
+              </div>
+            </div>
             <button class="hidden" id="backupBtn" onclick="downloadBackup()">Download Backup</button>
             <button class="dm-bell" id="dmBellBtn" onclick="switchTab('sellers')" title="Pending approvals">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>

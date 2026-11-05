@@ -1,0 +1,47 @@
+/* Rakshabandhan skin for the new homepage: layout from homepage.html, colours only. */
+:host{
+  --rose:#b0123c;--rose-d:#8a0c2e;--blush:#fde4e3;--line:#f0c9cb;--cream:#fff3ef;
+  --ink:#3a0e1b;--muted:#7d5560;
+}
+.xxroot{background:#fff1ee!important}
+.xxroot::before{background:radial-gradient(520px 520px at 92% 10%,rgba(252,121,124,.35),transparent 70%),radial-gradient(620px 620px at 4% 40%,rgba(246,205,140,.45),transparent 70%)!important}
+.perks-sec{background:#fde9e6}
+.top{background:rgba(255,255,255,.94)}
+.top::after{background:linear-gradient(90deg,transparent,#c99a1e 20%,#f3dc8e 50%,#c99a1e 80%,transparent)}
+.search .sb,.icons .cc,.cats .bd{background:linear-gradient(135deg,#c81d4a,#8a0c2e)}
+.search .si,.pr-k,.pc-c,.pb-tag,.wcap{color:#c99a1e}
+.cats a::after{background:linear-gradient(90deg,#c99a1e,#f3dc8e)}
+.pill{background:#fbd3d8;color:#b0123c}
+.hero{background:radial-gradient(120% 90% at 85% 10%,#ffe0d8 0%,#ffd2cf 45%,#f7c4c4 100%)}
+.hero::before{background:#f6b6b9}
+.hero::after{background:#f9d28d}
+.hero h1{color:#3a0e1b}
+.hero h1 em,.hero h1 .sq,.hero h1 .ht{color:#b0123c}
+.hero .sub{color:#7d5560}
+.hero .btn.p{background:linear-gradient(180deg,#c81d4a,#8a0c2e);border-color:#8a0c2e}
+.btn.p:hover{background:#8a0c2e}
+.chip span{color:#b0123c}
+.tag,.step::before{background:linear-gradient(180deg,#c81d4a,#8a0c2e)!important}
+.perks-sec .perks{border-color:#f0c9cb}
+.perks-sec .perks div{border-left-color:#f0c9cb}
+.perks-sec .perks b{color:#3a0e1b}
+.perks-sec .perks .pi,.step .si{background:#fbd3d8;color:#b0123c}
+section.gh .pb.her{background:radial-gradient(circle at 88% 18%,rgba(255,255,255,.95),transparent 42%),radial-gradient(circle at 8% 105%,rgba(252,121,124,.6),transparent 58%),linear-gradient(135deg,#ffdadc,#f9a9b4 58%,#ffdadc)}
+section.gh .pb.him{background:radial-gradient(circle at 88% 18%,rgba(255,255,255,.95),transparent 42%),radial-gradient(circle at 8% 105%,rgba(235,175,70,.6),transparent 58%),linear-gradient(135deg,#fff0c9,#f5cd7a 58%,#fff0c9)}
+section.gh .pb.him .pb-tag{color:#c99a1e}
+section.cta{background:radial-gradient(60% 90% at 10% 0%,#fffaf7,transparent 62%),radial-gradient(55% 80% at 100% 100%,rgba(255,255,255,.9),transparent 62%),linear-gradient(135deg,#ffd9d6,#f9b9bf 42%,#ffe0cf 64%,#f6a9b3)!important}
+section.cta h2{color:#3a0e1b}
+section.cta p{color:#7d5560}
+section.cta .g{background:linear-gradient(180deg,#c81d4a,#8a0c2e)}
+section.cta .g:hover{background:linear-gradient(180deg,#c81d4a,#b0123c)}
+section.cta .ps-s figcaption{color:#3a0e1b}
+section.cta .ps-d button{background:rgba(176,18,60,.28)}
+section.cta .ps-d button.on,.ps-d button.on{background:#b0123c}
+.pc-bar{background:rgba(176,18,60,.28)}
+.pc-bar i{background:linear-gradient(90deg,#c99a1e,#b0123c)}
+.pc-s{border-top-color:#f0c9cb}
+.pc-ht[aria-pressed=true]{background:#b0123c!important}
+.sh-cats button[aria-pressed=true]{background:#b0123c;border-color:#b0123c}
+footer.ft{background:#2a0a12}
+.ft-wa{background:#c99a1e}
+.ft-tg span,.ft-tag{border-color:#f3dc8e;color:#f3dc8e}

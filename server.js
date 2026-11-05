@@ -5544,6 +5544,19 @@ app.get("/xx/xx.js", (req, res) => {
   res.set("Cache-Control", "no-cache");
   res.type("application/javascript").sendFile(path.join(__dirname, "xx", "xx.js"));
 });
+// Liquid Glass colour skin for the new homepage (same layout as "xx", glass colours).
+app.get("/xx/glass.css", (req, res) => {
+  res.set("Cache-Control", "no-cache");
+  res.type("text/css").sendFile(path.join(__dirname, "xx", "glass.css"));
+});
+
+// Colour skins for the new homepage (normal, rakshabandhan, festival = the 4 dark festival themes).
+app.get("/xx/skin-:name.css", (req, res) => {
+  const name = String(req.params.name || "");
+  if (!["normal", "rakshabandhan", "festival"].includes(name)) return res.status(404).end();
+  res.set("Cache-Control", "no-cache");
+  res.type("text/css").sendFile(path.join(__dirname, "xx", "skin-" + name + ".css"));
+});
 
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));

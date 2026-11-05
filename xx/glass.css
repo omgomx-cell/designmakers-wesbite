@@ -1,0 +1,335 @@
+/* ==========================================================================
+   Liquid Glass skin for the new "xx" homepage.
+   LAYOUT, FONTS, SIZES and SPACING come from homepage.html (unchanged).
+   This file only swaps the COLOURS / MATERIAL to the Liquid Glass look:
+   lilac + mint + pink aurora, frosted white panels, violet primary buttons,
+   teal WhatsApp buttons. It is loaded into the same shadow root after
+   homepage.html, so everything here wins by order.
+   ========================================================================== */
+
+:host{
+  --rose:#6a4cf0;--rose-d:#4a35b8;--blush:rgba(196,181,253,.38);
+  --line:rgba(255,255,255,.85);--cream:rgba(255,255,255,.42);
+  --ink:#1b1b22;--muted:#5d5d6b;
+  --g-violet:linear-gradient(180deg,rgba(124,92,255,.95),rgba(124,92,255,.72));
+  --g-teal:linear-gradient(180deg,rgba(40,200,180,.95),rgba(40,200,180,.72));
+  --g-panel:linear-gradient(145deg,rgba(255,255,255,.66),rgba(255,255,255,.16));
+  --g-rim:0 22px 48px rgba(88,92,128,.2),0 2px 6px rgba(88,92,128,.08),inset 0 2px 0 rgba(255,255,255,.95),inset 0 -14px 26px rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,255,255,.4);
+  --g-btn-v:0 10px 22px rgba(124,92,255,.38),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -6px 12px rgba(255,255,255,.18);
+  --g-btn-t:0 10px 22px rgba(40,200,180,.38),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -6px 12px rgba(255,255,255,.18);
+}
+
+/* page: transparent so the Liquid Glass aurora behind the page shows through */
+.xxroot{background:transparent!important;color:var(--ink)}
+.xxroot::before{display:none!important}
+.perks-sec{background:transparent!important}
+
+/* ---- announcement bar ---- */
+.ann{background:rgba(255,255,255,.35);color:var(--muted);-webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);border-bottom:1px solid rgba(255,255,255,.7)}
+.ann span{color:#7c5cff}
+
+/* ---- header ---- */
+.top{background:var(--g-panel);-webkit-backdrop-filter:blur(26px) saturate(190%);backdrop-filter:blur(26px) saturate(190%);box-shadow:0 10px 30px rgba(88,92,128,.16),inset 0 -1px 0 rgba(255,255,255,.8)}
+.top::after{background:linear-gradient(90deg,transparent,#a58bff 20%,#5fe0cc 50%,#f5a0d0 80%,transparent)}
+.logo,.logo b{color:var(--ink)}
+.lt small{color:var(--muted)}
+.search{background:linear-gradient(160deg,#fff,rgba(255,255,255,.6));border:1.5px solid #fff;box-shadow:inset 0 2px 6px rgba(88,92,128,.12),0 6px 16px rgba(88,92,128,.1)}
+.search:focus-within{background:#fff;border-color:#7c5cff;box-shadow:0 0 0 4px rgba(124,92,255,.14)}
+.search .si{color:#7c5cff}
+.search .sb{background:linear-gradient(135deg,#8f73ff,#6a4cf0)}
+.search .sb:hover{box-shadow:0 4px 12px rgba(124,92,255,.4)}
+.icons a:hover{background:rgba(196,181,253,.3);color:#5b3fd6}
+.icons .cc{background:linear-gradient(180deg,#8f73ff,#6a4cf0)}
+.cats a::after{background:linear-gradient(90deg,#7c5cff,#5fe0cc)}
+.cats a:hover,.cats a.on{color:#5b3fd6}
+.cats .bd{background:linear-gradient(180deg,#8f73ff,#6a4cf0)}
+@media (min-width:900px){.cats{border-top-color:rgba(255,255,255,.75)}}
+
+/* ---- hero ---- */
+.hero{background:radial-gradient(60% 70% at 88% 12%,rgba(176,156,255,.45),transparent 70%),radial-gradient(50% 60% at 6% 100%,rgba(80,226,204,.38),transparent 70%),linear-gradient(145deg,rgba(255,255,255,.42),rgba(255,255,255,.06))}
+.hero::before{background:rgba(160,135,255,.55);opacity:.45}
+.hero::after{background:rgba(250,140,200,.55)}
+.pill{background:linear-gradient(160deg,#fff,rgba(255,255,255,.5));color:#5b3fd6;box-shadow:0 0 0 1.5px #fff,0 6px 14px rgba(124,92,255,.16),inset 0 -3px 6px rgba(124,92,255,.08)}
+.hero h1{color:var(--ink)}
+.hero h1 em,.hero h1 .sq,.hero h1 .ht{color:#6a4cf0}
+.hero .sub{color:var(--muted)}
+.hero .btn.p,.btn.p{background:var(--g-violet);border-color:rgba(255,255,255,.75);color:#fff;box-shadow:var(--g-btn-v);text-shadow:0 1px 3px rgba(0,0,0,.3)}
+.hero .btn.p:hover,.btn.p:hover{background:var(--g-violet);filter:brightness(1.05)}
+.hero .btn.wg,.btn.wg{background:var(--g-teal);border-color:rgba(255,255,255,.75);color:#fff;box-shadow:var(--g-btn-t);text-shadow:0 1px 3px rgba(0,0,0,.25)}
+.btn.wg:hover{background:var(--g-teal);filter:brightness(1.05);border-color:rgba(255,255,255,.75)}
+.btn.o{border-color:#6a4cf0;color:#5b3fd6}.btn.o:hover{background:rgba(255,255,255,.7)}
+.wcap{color:#5b3fd6}
+
+/* hero picture grid */
+.card{background:rgba(255,255,255,.4);box-shadow:0 0 0 1.5px rgba(255,255,255,.85),var(--g-rim)}
+.chip{background:rgba(255,255,255,.78);border:1px solid #fff;-webkit-backdrop-filter:blur(12px) saturate(170%);backdrop-filter:blur(12px) saturate(170%);box-shadow:0 6px 16px rgba(88,92,128,.18)}
+.chip span{color:#5b3fd6}
+.tag{background:linear-gradient(180deg,#8f73ff,#6a4cf0)}
+
+/* perks strip */
+.perks-sec .perks{background:var(--g-panel);border-color:rgba(255,255,255,.85);box-shadow:var(--g-rim);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%)}
+.perks-sec .perks div{border-left-color:rgba(255,255,255,.85)}
+.perks-sec .perks b{color:var(--ink)}
+.perks-sec .perks .pi{background:linear-gradient(160deg,#fff,rgba(196,181,253,.55));color:#5b3fd6;box-shadow:0 0 0 1.5px #fff,0 6px 14px rgba(124,92,255,.16)}
+
+/* ---- shop by category ---- */
+.arr button{background:linear-gradient(160deg,#fff,rgba(255,255,255,.6));border-color:#fff;box-shadow:0 6px 14px rgba(88,92,128,.16)}
+.arr button:hover{background:linear-gradient(160deg,#fff,rgba(196,181,253,.5));color:#5b3fd6}
+.tc{background:linear-gradient(160deg,rgba(255,255,255,.85),rgba(255,255,255,.4)) padding-box,linear-gradient(135deg,#fff,rgba(255,255,255,.4) 38%,rgba(160,135,255,.5) 68%,#fff) border-box!important;box-shadow:inset 0 1px 0 #fff,0 12px 24px rgba(88,92,128,.18)!important}
+.tc:hover{box-shadow:inset 0 1px 0 #fff,0 18px 32px rgba(88,92,128,.28)!important}
+.tc0{--tb:#fbcfe8}.tc1{--tb:#d9ccff}.tc2{--tb:#a8f0e3}.tc3{--tb:#bfdcff}.tc4{--tb:#ffe0c2}.tc5{--tb:#c9f3d6}
+.ti{color:#5b3fd6}
+.ti.ph{background:rgba(255,255,255,.4)}
+.tl{background:rgba(255,255,255,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--ink);border-top:1px solid rgba(255,255,255,.9)}
+
+/* ---- gift for her / him ---- */
+section.gh .pb.her{background:radial-gradient(circle at 88% 18%,rgba(255,255,255,.95),transparent 42%),radial-gradient(circle at 8% 105%,rgba(250,140,200,.6),transparent 58%),linear-gradient(135deg,rgba(255,214,236,.95),rgba(255,200,232,.7) 58%,rgba(255,226,242,.95));box-shadow:0 20px 44px rgba(88,92,128,.22),inset 0 1px 0 rgba(255,255,255,.9)}
+section.gh .pb.him{background:radial-gradient(circle at 88% 18%,rgba(255,255,255,.95),transparent 42%),radial-gradient(circle at 8% 105%,rgba(60,220,198,.55),transparent 58%),linear-gradient(135deg,rgba(176,243,228,.95),rgba(168,240,226,.7) 58%,rgba(204,248,238,.95));box-shadow:0 20px 44px rgba(88,92,128,.22),inset 0 1px 0 rgba(255,255,255,.9)}
+.pb:hover{box-shadow:0 22px 44px rgba(88,92,128,.28)}
+.pb h3{color:var(--ink)}
+.pb-tag,section.gh .pb.him .pb-tag{color:#5b3fd6}
+section.gh .pb p{color:var(--muted)}
+section.gh .pb img{filter:drop-shadow(0 14px 16px rgba(60,60,100,.25))}
+
+/* ---- how it works ---- */
+.step,.pc{box-shadow:inset 0 1.5px 0 #fff,0 12px 28px rgba(88,92,128,.16)}
+.step::before{background:linear-gradient(180deg,#8f73ff,#6a4cf0)!important;box-shadow:inset 0 1.5px 0 rgba(255,255,255,.45),0 6px 14px rgba(124,92,255,.35)}
+.step .si{color:#5b3fd6;background:linear-gradient(160deg,rgba(255,255,255,.9),rgba(196,181,253,.6));box-shadow:inset 0 1px 0 #fff,0 6px 14px rgba(124,92,255,.16)}
+.sec .lead,.pr-h .lead{color:var(--muted)}
+.pr-k{color:#5b3fd6}
+
+/* ---- CTA ("Not sure what to gift?") ---- */
+section.cta{background:radial-gradient(60% 90% at 10% 0%,rgba(255,255,255,.75),transparent 62%),radial-gradient(55% 80% at 100% 100%,rgba(176,156,255,.55),transparent 62%),linear-gradient(135deg,#d9ccff,#fbcfe8 45%,#a8f0e3 75%,#bfdcff)!important;box-shadow:0 22px 50px rgba(88,92,128,.24)}
+section.cta::after{background:linear-gradient(90deg,transparent,rgba(124,92,255,.2) 40%,rgba(124,92,255,.06) 70%,transparent)}
+section.cta .ctat,section.cta .ps{box-shadow:inset 0 1px 0 #fff,0 22px 46px rgba(88,92,128,.24)}
+section.cta .ctat::before,section.cta .ps::before{background:linear-gradient(135deg,#fff,rgba(255,255,255,.4) 30%,rgba(160,135,255,.5) 62%,#fff)}
+section.cta h2{color:var(--ink)}
+section.cta p{color:var(--muted)}
+section.cta .g{background:var(--g-violet);border-color:rgba(255,255,255,.75);box-shadow:var(--g-btn-v);text-shadow:0 1px 3px rgba(0,0,0,.3)}
+section.cta .g:hover{background:var(--g-violet);filter:brightness(1.06)}
+section.cta .ps-t{box-shadow:0 0 0 1px rgba(255,255,255,.7),0 10px 22px rgba(88,92,128,.3)}
+section.cta .ps-s figcaption{color:var(--ink)}
+section.cta .ps-d button{background:rgba(124,92,255,.28)}
+section.cta .ps-d button.on{background:#6a4cf0}
+section.cta .ps-d{box-shadow:0 4px 12px rgba(88,92,128,.16)}
+
+/* ---- product cards (offers + best sellers + shop popup) ---- */
+.pc:nth-child(3n+1){background:linear-gradient(145deg,rgba(255,214,236,.72),rgba(255,255,255,.2))!important}
+.pc:nth-child(3n+2){background:linear-gradient(145deg,rgba(214,204,255,.72),rgba(255,255,255,.2))!important}
+.pc:nth-child(3n){background:linear-gradient(145deg,rgba(176,243,228,.72),rgba(255,255,255,.2))!important}
+.pc:hover{box-shadow:inset 0 1.5px 0 #fff,0 18px 36px rgba(88,92,128,.26)}
+.pc-i{color:#5b3fd6}
+.pc-o{color:#4a35b8}.pc-o i{color:#5b3fd6}
+.pc-ht{color:#6a4cf0}
+.pc-ht[aria-pressed=true]{background:linear-gradient(180deg,#8f73ff,#6a4cf0)!important;color:#fff}
+.pc-c{color:#5b3fd6}
+.pc-p,.sh-head h2{color:#4a35b8}
+.pc-bar{background:rgba(124,92,255,.14)}
+.pc-bar i{background:linear-gradient(90deg,#5fe0cc,#7c5cff)}
+.pc-s{border-top-color:rgba(124,92,255,.25)}
+
+#dmShop{background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(238,233,255,.9));box-shadow:0 0 0 1.5px rgba(255,255,255,.9),0 24px 70px rgba(60,60,100,.4)}
+#dmShop::backdrop{background:rgba(60,60,100,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.sh-x,.sh-cats button{background:linear-gradient(160deg,#fff,rgba(255,255,255,.6));border-color:#fff;box-shadow:0 4px 10px rgba(88,92,128,.14)}
+.sh-x:hover,.sh-cats button:hover{background:linear-gradient(160deg,#fff,rgba(196,181,253,.5));color:#5b3fd6;border-color:#fff}
+.sh-cats button[aria-pressed=true]{background:linear-gradient(180deg,#8f73ff,#6a4cf0);border-color:#fff;color:#fff}
+.sh-cats{border-bottom-color:rgba(255,255,255,.85)}
+
+/* ---- footer (same layout, glass material instead of the dark one) ---- */
+footer.ft{background:var(--g-panel);color:var(--muted);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border-top:1.5px solid rgba(255,255,255,.85);box-shadow:0 -10px 30px rgba(88,92,128,.1)}
+.ft-trust{background:rgba(255,255,255,.35);border-bottom:1px solid rgba(255,255,255,.75)}
+.ft-tg span{border-color:#7c5cff;color:#5b3fd6;background:linear-gradient(160deg,#fff,rgba(196,181,253,.4))}
+.ft-tg b{color:var(--ink)}.ft-tg small{color:var(--muted)}
+footer.ft .logo{color:var(--ink)}
+footer.ft .lt b{color:#4a35b8}
+.ft-tag{color:#5b3fd6}
+.ft-about,.ft-ct p{color:var(--muted)}
+.ft h3{color:var(--ink)}
+.ft nav a,.ft-ph{color:var(--muted)}
+.ft nav a:hover,.ft-ph:hover{color:#5b3fd6}
+.ft-wa{background:var(--g-teal);color:#fff;box-shadow:var(--g-btn-t);text-shadow:0 1px 3px rgba(0,0,0,.25)}
+.ft-wa:hover{background:var(--g-teal);filter:brightness(1.05)}
+.ft-bar{border-top-color:rgba(255,255,255,.75)}
+.ft-bar .ft-in{color:var(--muted)}
+footer.ft a:focus-visible{outline-color:#7c5cff}
+
+/* ---- floating WhatsApp button ---- */
+.wa{background:var(--g-teal);box-shadow:var(--g-btn-t)}
+
+/* ==========================================================================
+   CLEARER GLASS (v2): panels are see-through so the colours behind them show
+   and get blurred; every panel gets a bright edge + a light sheen, like real glass.
+   ========================================================================== */
+:host{
+  --glass-fill:linear-gradient(145deg,rgba(255,255,255,.3),rgba(255,255,255,.06) 55%,rgba(255,255,255,.2));
+  --glass-blur:blur(26px) saturate(210%) brightness(1.04);
+  --glass-edge:inset 0 2px 0 rgba(255,255,255,1),inset 2px 0 0 rgba(255,255,255,.7),inset 0 -2px 0 rgba(255,255,255,.4),inset 0 0 30px rgba(255,255,255,.22),0 0 0 1.5px rgba(255,255,255,.7);
+  --glass-drop:0 22px 46px rgba(70,60,140,.22),0 4px 10px rgba(70,60,140,.1);
+}
+/* coloured light behind the glass, all the way down the page (this is what makes the blur visible) */
+.xxroot::before{display:block!important;content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+   radial-gradient(460px 460px at 90% 360px,rgba(255,95,190,.7),transparent 70%),
+   radial-gradient(560px 560px at 4% 800px,rgba(40,225,200,.65),transparent 70%),
+   radial-gradient(560px 560px at 96% 1250px,rgba(110,90,255,.7),transparent 70%),
+   radial-gradient(520px 520px at 2% 1750px,rgba(255,120,200,.65),transparent 70%),
+   radial-gradient(560px 560px at 94% 2250px,rgba(40,215,195,.62),transparent 70%),
+   radial-gradient(560px 560px at 4% 2750px,rgba(120,100,255,.65),transparent 70%),
+   radial-gradient(560px 560px at 94% 3250px,rgba(255,120,190,.6),transparent 70%),
+   linear-gradient(180deg,rgba(214,200,255,.55),rgba(255,214,236,.45) 35%,rgba(190,245,235,.5) 65%,rgba(214,204,255,.5))}
+.xxroot{overflow:hidden}
+
+/* header, announcement, perks, footer */
+.top{background:var(--glass-fill);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),0 12px 30px rgba(70,60,140,.18)}
+.search{background:linear-gradient(160deg,rgba(255,255,255,.75),rgba(255,255,255,.3));box-shadow:inset 0 2px 5px rgba(88,92,128,.12),inset 0 1px 0 #fff,0 6px 16px rgba(88,92,128,.1)}
+.perks-sec .perks{background:var(--glass-fill);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),var(--glass-drop)}
+footer.ft{background:var(--glass-fill);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),0 -10px 30px rgba(70,60,140,.1)}
+.ft-trust{background:rgba(255,255,255,.12)}
+
+/* hero pictures + chips */
+.card{box-shadow:0 0 0 1.5px rgba(255,255,255,.9),0 0 0 6px rgba(255,255,255,.22),var(--glass-drop)}
+.chip{background:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.3));-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),0 8px 18px rgba(70,60,140,.2);border:0}
+.pill{background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(255,255,255,.28));-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),0 6px 14px rgba(124,92,255,.16);border:0}
+
+/* category tiles */
+.tc{background:linear-gradient(160deg,rgba(255,255,255,.42),rgba(255,255,255,.1)) padding-box,linear-gradient(135deg,#fff,rgba(255,255,255,.3) 40%,rgba(160,135,255,.5) 70%,#fff) border-box!important;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),var(--glass-drop)!important}
+.tl{background:linear-gradient(145deg,rgba(255,255,255,.7),rgba(255,255,255,.36));-webkit-backdrop-filter:blur(14px) saturate(200%);backdrop-filter:blur(14px) saturate(200%);box-shadow:inset 0 1px 0 rgba(255,255,255,.95)}
+
+/* Gift for Her / Him: tinted glass slabs with a clear inner panel */
+section.gh .pb.her{background:radial-gradient(circle at 90% 10%,rgba(255,255,255,.7),transparent 40%),radial-gradient(circle at 10% 110%,rgba(255,110,190,.55),transparent 60%),linear-gradient(135deg,rgba(255,190,225,.5),rgba(255,160,215,.28) 60%,rgba(255,215,238,.5));-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),var(--glass-drop)}
+section.gh .pb.him{background:radial-gradient(circle at 90% 10%,rgba(255,255,255,.7),transparent 40%),radial-gradient(circle at 10% 110%,rgba(40,215,190,.5),transparent 60%),linear-gradient(135deg,rgba(150,238,220,.5),rgba(130,232,214,.28) 60%,rgba(190,246,235,.5));-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),var(--glass-drop)}
+section.gh .pb-c{background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.16));-webkit-backdrop-filter:blur(20px) saturate(200%);backdrop-filter:blur(20px) saturate(200%);box-shadow:var(--glass-edge)}
+
+/* steps + product cards */
+.step,.pc{-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),var(--glass-drop)!important;border:0!important}
+.step{background:var(--glass-fill)!important}
+.pc:nth-child(3n+1){background:linear-gradient(145deg,rgba(255,170,215,.42),rgba(255,255,255,.12) 60%,rgba(255,255,255,.26))!important}
+.pc:nth-child(3n+2){background:linear-gradient(145deg,rgba(175,160,255,.42),rgba(255,255,255,.12) 60%,rgba(255,255,255,.26))!important}
+.pc:nth-child(3n){background:linear-gradient(145deg,rgba(110,230,208,.42),rgba(255,255,255,.12) 60%,rgba(255,255,255,.26))!important}
+.pc-o,.pc-ht{background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(255,255,255,.4))!important;-webkit-backdrop-filter:blur(14px) saturate(200%);backdrop-filter:blur(14px) saturate(200%);box-shadow:inset 0 1px 0 #fff,0 4px 10px rgba(70,60,140,.16)!important}
+.pc-ht[aria-pressed=true]{background:linear-gradient(180deg,#8f73ff,#6a4cf0)!important;color:#fff}
+
+/* "Not sure what to gift?" */
+section.cta .ctat,section.cta .ps{background:linear-gradient(145deg,rgba(255,255,255,.5),rgba(255,255,255,.12) 55%,rgba(255,255,255,.3))!important;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);box-shadow:var(--glass-edge),0 24px 50px rgba(70,60,140,.26)}
+
+/* shop / offers popup */
+#dmShop{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(236,230,255,.58));-webkit-backdrop-filter:blur(34px) saturate(210%);backdrop-filter:blur(34px) saturate(210%);box-shadow:var(--glass-edge),0 28px 80px rgba(50,40,120,.4)}
+.sh-x,.sh-cats button{background:linear-gradient(160deg,rgba(255,255,255,.8),rgba(255,255,255,.35));box-shadow:inset 0 1px 0 #fff,0 4px 10px rgba(70,60,140,.14)}
+.sh-cats button[aria-pressed=true]{background:linear-gradient(180deg,#8f73ff,#6a4cf0);color:#fff}
+
+/* ==========================================================================
+   CLEARER GLASS (v3): real glass needs something sharp BEHIND it to blur.
+   1) bold, crisp coloured orbs sit behind the panels - you see them sharp in the
+      gaps and softly blurred THROUGH every glass panel (that contrast is the effect)
+   2) thinner fill + stronger blur/saturation, so the orbs show through
+   3) lit edge: bright top-left rim, soft bottom-right rim, inner glow, diagonal sheen
+   ========================================================================== */
+:host{
+  --glass-fill:linear-gradient(112deg,rgba(255,255,255,0) 28%,rgba(255,255,255,.42) 40%,rgba(255,255,255,0) 52%),linear-gradient(135deg,rgba(255,255,255,.36) 0%,rgba(255,255,255,.1) 42%,rgba(255,255,255,.06) 62%,rgba(255,255,255,.26) 100%);
+  --glass-blur:blur(20px) saturate(250%) brightness(1.07);
+  --glass-edge:inset 1.5px 1.5px 0 rgba(255,255,255,1),inset -1.5px -1.5px 0 rgba(255,255,255,.5),inset 0 0 24px rgba(255,255,255,.38),inset 14px 14px 30px -16px rgba(255,255,255,.95),0 0 0 1px rgba(255,255,255,.6);
+  --glass-drop:0 28px 54px -12px rgba(70,50,170,.38),0 8px 18px rgba(70,50,170,.14);
+}
+.xxroot::before{
+  background:
+   radial-gradient(circle 150px at 86% 7%,#ff4fb0 0 96%,transparent 100%),
+   radial-gradient(circle 110px at 62% 17%,#27e0c4 0 96%,transparent 100%),
+   radial-gradient(circle 170px at 6% 21%,#7b5cff 0 96%,transparent 100%),
+   radial-gradient(circle 130px at 93% 31%,#27e0c4 0 96%,transparent 100%),
+   radial-gradient(circle 140px at -2% 41%,#ff4fb0 0 96%,transparent 100%),
+   radial-gradient(circle 120px at 90% 50%,#7b5cff 0 96%,transparent 100%),
+   radial-gradient(circle 150px at 8% 60%,#27e0c4 0 96%,transparent 100%),
+   radial-gradient(circle 130px at 94% 69%,#ff4fb0 0 96%,transparent 100%),
+   radial-gradient(circle 160px at 5% 78%,#7b5cff 0 96%,transparent 100%),
+   radial-gradient(circle 120px at 92% 87%,#27e0c4 0 96%,transparent 100%),
+   radial-gradient(circle 140px at 12% 95%,#ff4fb0 0 96%,transparent 100%),
+   linear-gradient(180deg,#e4d9ff,#ffe0f0 35%,#cdf7ee 65%,#e0d6ff)!important;
+}
+@media (max-width:700px){
+  .xxroot::before{
+    background:
+     radial-gradient(circle 90px at 84% 4%,#ff4fb0 0 96%,transparent 100%),
+     radial-gradient(circle 70px at -3% 13%,#27e0c4 0 96%,transparent 100%),
+     radial-gradient(circle 100px at 90% 17%,#7b5cff 0 96%,transparent 100%),
+     radial-gradient(circle 90px at 6% 27%,#ff4fb0 0 96%,transparent 100%),
+     radial-gradient(circle 100px at 92% 37%,#27e0c4 0 96%,transparent 100%),
+     radial-gradient(circle 90px at 8% 47%,#7b5cff 0 96%,transparent 100%),
+     radial-gradient(circle 100px at 90% 57%,#ff4fb0 0 96%,transparent 100%),
+     radial-gradient(circle 90px at 6% 67%,#27e0c4 0 96%,transparent 100%),
+     radial-gradient(circle 100px at 92% 77%,#7b5cff 0 96%,transparent 100%),
+     radial-gradient(circle 90px at 8% 87%,#ff4fb0 0 96%,transparent 100%),
+     radial-gradient(circle 90px at 90% 96%,#27e0c4 0 96%,transparent 100%),
+     linear-gradient(180deg,#e4d9ff,#ffe0f0 35%,#cdf7ee 65%,#e0d6ff)!important;
+  }
+}
+/* panels that had their own opaque-ish tint: let the orbs through */
+.hero{background:transparent!important}
+.hero::before,.hero::after{display:none}
+.pc:nth-child(3n+1){background:linear-gradient(145deg,rgba(255,110,190,.34),rgba(255,255,255,.08) 60%,rgba(255,255,255,.2))!important}
+.pc:nth-child(3n+2){background:linear-gradient(145deg,rgba(130,105,255,.34),rgba(255,255,255,.08) 60%,rgba(255,255,255,.2))!important}
+.pc:nth-child(3n){background:linear-gradient(145deg,rgba(40,215,190,.34),rgba(255,255,255,.08) 60%,rgba(255,255,255,.2))!important}
+.tc{background:linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,.06)) padding-box,linear-gradient(135deg,#fff,rgba(255,255,255,.3) 40%,rgba(160,135,255,.5) 70%,#fff) border-box!important}
+.tl{background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.22))}
+section.gh .pb-c{background:linear-gradient(145deg,rgba(255,255,255,.42),rgba(255,255,255,.1))}
+section.cta{background:transparent!important;box-shadow:none}
+/* light follows the finger / mouse over a glass card */
+@media (hover:hover){.pc,.tc,.pb{transition:transform .35s cubic-bezier(.2,.8,.2,1),box-shadow .35s}.pc:hover,.tc:hover{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.pc,.tc,.pb{transition:none}.pc:hover,.tc:hover{transform:none}}
+section.cta::after{display:none!important}
+/* the sideways-scrolling category strip clips its children, which drew a flat lighter box behind the tiles; the tiles are photos, so no blur there */
+.tc{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* shadows of tiles in the scrolling strip get cut off by the strip: keep them inside it */
+.tc{box-shadow:var(--glass-edge),0 5px 8px -3px rgba(70,50,170,.3)!important}
+.tc:hover{box-shadow:var(--glass-edge),0 7px 10px -3px rgba(70,50,170,.34)!important}
+.hero{overflow:visible!important}
+
+/* ==========================================================================
+   BUTTONS (v4): glossy glass pills - lit top edge, coloured glow, a moving shine on hover,
+   springy press. Used by Shop Now / Order on WhatsApp / CTA / footer WhatsApp.
+   ========================================================================== */
+.btn.p,.btn.wg,section.cta .g,.ft-wa{
+  position:relative;overflow:hidden;isolation:isolate;border-radius:16px;
+  border:1.5px solid rgba(255,255,255,.85)!important;font-weight:600;letter-spacing:.01em;
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1),box-shadow .28s,filter .28s;
+  -webkit-backdrop-filter:blur(10px) saturate(180%);backdrop-filter:blur(10px) saturate(180%)}
+.btn.p,section.cta .g{
+  background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 46%),linear-gradient(135deg,#9a7dff,#6a4cf0 60%,#5738d8)!important;
+  box-shadow:0 14px 28px -6px rgba(106,76,240,.6),0 3px 8px rgba(106,76,240,.3),inset 0 1.5px 0 rgba(255,255,255,.9),inset 0 -8px 14px rgba(40,20,140,.28)!important}
+.btn.wg,.ft-wa{
+  background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,0) 46%),linear-gradient(135deg,#4fe8cf,#1fc4aa 60%,#12a690)!important;
+  box-shadow:0 14px 28px -6px rgba(24,190,166,.6),0 3px 8px rgba(24,190,166,.3),inset 0 1.5px 0 rgba(255,255,255,.9),inset 0 -8px 14px rgba(0,90,80,.25)!important}
+/* shine that sweeps across on hover */
+.btn.p::after,.btn.wg::after,section.cta .g::after,.ft-wa::after{
+  content:"";position:absolute;top:0;bottom:0;left:-70%;width:45%;z-index:-1;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);transform:skewX(-18deg);transition:left .7s ease}
+@media (hover:hover){
+  .btn.p:hover,.btn.wg:hover,section.cta .g:hover,.ft-wa:hover{transform:translateY(-3px) scale(1.03);filter:brightness(1.06)}
+  .btn.p:hover::after,.btn.wg:hover::after,section.cta .g:hover::after,.ft-wa:hover::after{left:125%}
+}
+.btn.p:active,.btn.wg:active,section.cta .g:active,.ft-wa:active{transform:translateY(1px) scale(.96);transition-duration:.1s}
+.btn.p:focus-visible,.btn.wg:focus-visible{outline:3px solid rgba(255,255,255,.95);outline-offset:3px}
+@media (max-width:700px){.btns .btn{padding:14px 18px;font-size:14.5px;border-radius:15px}}
+@media (prefers-reduced-motion:reduce){.btn.p,.btn.wg,section.cta .g,.ft-wa{transition:none}.btn.p::after,.btn.wg::after,section.cta .g::after,.ft-wa::after{display:none}}
+
+/* BUTTONS (v5): corner shading - bright light caught in the top-left corner, deeper shadow pooling in the bottom-right,
+   soft shadow in the two other corners, like a thick bevelled glass pill */
+.btn.p,section.cta .g{
+  background:
+   radial-gradient(circle at 0% 0%,rgba(255,255,255,.75),transparent 38%),
+   radial-gradient(circle at 100% 100%,rgba(30,10,120,.5),transparent 48%),
+   radial-gradient(circle at 100% 0%,rgba(40,20,150,.18),transparent 30%),
+   radial-gradient(circle at 0% 100%,rgba(40,20,150,.22),transparent 34%),
+   linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,0) 46%),
+   linear-gradient(135deg,#9a7dff,#6a4cf0 60%,#5738d8)!important;
+  box-shadow:0 14px 28px -6px rgba(106,76,240,.6),0 3px 8px rgba(106,76,240,.3),
+   inset 2px 2px 3px rgba(255,255,255,.85),inset -3px -3px 7px rgba(30,10,120,.45),inset 0 -8px 14px rgba(40,20,140,.2)!important}
+.btn.wg,.ft-wa{
+  background:
+   radial-gradient(circle at 0% 0%,rgba(255,255,255,.75),transparent 38%),
+   radial-gradient(circle at 100% 100%,rgba(0,70,60,.5),transparent 48%),
+   radial-gradient(circle at 100% 0%,rgba(0,90,80,.16),transparent 30%),
+   radial-gradient(circle at 0% 100%,rgba(0,90,80,.22),transparent 34%),
+   linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,0) 46%),
+   linear-gradient(135deg,#4fe8cf,#1fc4aa 60%,#12a690)!important;
+  box-shadow:0 14px 28px -6px rgba(24,190,166,.6),0 3px 8px rgba(24,190,166,.3),
+   inset 2px 2px 3px rgba(255,255,255,.85),inset -3px -3px 7px rgba(0,70,60,.42),inset 0 -8px 14px rgba(0,90,80,.18)!important}
