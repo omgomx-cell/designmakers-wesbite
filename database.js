@@ -1065,7 +1065,7 @@ function ensureShape(database) {
     needsUpgrade = true;
   }
 
-  const VALID_THEMES = ["normal", "rakshabandhan", "deepawali", "dushera", "dhanteras", "chhath", "glass"];
+  const VALID_THEMES = ["normal", "rakshabandhan", "deepawali", "dushera", "dhanteras", "chhath", "glass", "xx"];
   if (!Object.prototype.hasOwnProperty.call(database.settings, "heroProductId")) {
     database.settings.heroProductId = null;
     needsUpgrade = true;
