@@ -5534,6 +5534,17 @@ require("./seo")(app, {
 // ADMIN DASHBOARD PAGE
 // ================================
 
+// "xx" homepage theme — the page fragment + its script. Only image files are
+// served by the static handler above, so these two are exposed explicitly.
+app.get("/xx/homepage.html", (req, res) => {
+  res.set("Cache-Control", "no-cache");
+  res.sendFile(path.join(__dirname, "xx", "homepage.html"));
+});
+app.get("/xx/xx.js", (req, res) => {
+  res.set("Cache-Control", "no-cache");
+  res.type("application/javascript").sendFile(path.join(__dirname, "xx", "xx.js"));
+});
+
 app.get("/admin", (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
@@ -5597,12 +5608,74 @@ app.get("/api/categories", (req, res) => {
   }
 });
 
+// Units sold per product: counted from real (non-cancelled) orders — all-time and the
+// last 30 days — unless the admin typed a manual number for that product
+// (product.manualSoldMonth / manualSoldTotal), which then wins.
+function computeSoldStatsAuto(database) {
+  const total = {}, month = {};
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  (database.orders || []).forEach((o) => {
+    if (!o || o.status === "Cancelled") return;
+    const recent = new Date(o.createdAt).getTime() >= cutoff;
+    (o.items || []).forEach((it) => {
+      const pid = Number(it.productId), q = Math.max(0, Number(it.qty) || 0);
+      if (!pid || !q) return;
+      total[pid] = (total[pid] || 0) + q;
+      if (recent) month[pid] = (month[pid] || 0) + q;
+    });
+  });
+  return { total, month };
+}
+function computeSoldStats(database) {
+  const auto = computeSoldStatsAuto(database);
+  const soldTotal = {}, soldMonth = {};
+  (database.products || []).forEach((p) => {
+    soldTotal[p.id] = Number.isFinite(p.manualSoldTotal) ? p.manualSoldTotal : (auto.total[p.id] || 0);
+    soldMonth[p.id] = Number.isFinite(p.manualSoldMonth) ? p.manualSoldMonth : (auto.month[p.id] || 0);
+  });
+  return { soldTotal, soldMonth };
+}
+
+// Admin: see the automatic numbers and type manual ones (blank = automatic).
+app.get("/api/admin/sold-stats", requireAdmin, requireArea("catalogue"), (req, res) => {
+  const database = readDatabase();
+  const auto = computeSoldStatsAuto(database);
+  const rows = (database.products || []).filter((p) => p.active).map((p) => ({
+    id: p.id, name: p.name, category: p.category || "",
+    autoMonth: auto.month[p.id] || 0, autoTotal: auto.total[p.id] || 0,
+    manualMonth: Number.isFinite(p.manualSoldMonth) ? p.manualSoldMonth : null,
+    manualTotal: Number.isFinite(p.manualSoldTotal) ? p.manualSoldTotal : null,
+  }));
+  res.json({ success: true, rows });
+});
+app.put("/api/admin/sold-stats", requireAdmin, requireArea("catalogue"), (req, res) => {
+  const stats = req.body && typeof req.body.stats === "object" && req.body.stats ? req.body.stats : {};
+  const database = readDatabase();
+  const clean = (v) => {
+    if (v === "" || v === null || v === undefined) return null;
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) && n >= 0 ? Math.min(n, 100000000) : null;
+  };
+  database.products.forEach((p) => {
+    if (!Object.prototype.hasOwnProperty.call(stats, p.id)) return;
+    const s = stats[p.id] || {};
+    const m = clean(s.month), t = clean(s.total);
+    if (m === null) delete p.manualSoldMonth; else p.manualSoldMonth = m;
+    if (t === null) delete p.manualSoldTotal; else p.manualSoldTotal = t;
+  });
+  writeDatabase(database);
+  res.json({ success: true });
+});
+
 app.get("/api/products", (req, res) => {
   try {
     const database = readDatabase();
     const { popular, trending } = computeHomepageRankings(database);
     const popularIds = new Set(popular.map((p) => p.id));
     const trendingIds = new Set(trending.map((p) => p.id));
+    // Units sold per product (real orders, or the admin's manual numbers) for the
+    // "xx" homepage's "Most sold this month" section.
+    const { soldTotal, soldMonth } = computeSoldStats(database);
     const bannedSellerIds = new Set(
       (database.sellers || []).filter((s) => s.banned).map((s) => s.id),
     );
@@ -5637,7 +5710,7 @@ app.get("/api/products", (req, res) => {
           return src;
         }).filter(Boolean);
 
-        const { productCode, sellerId, sellerWhatsappNumber, ...publicProduct } = product;
+        const { productCode, sellerId, sellerWhatsappNumber, manualSoldMonth, manualSoldTotal, ...publicProduct } = product;
         return {
           ...publicProduct,
           supportWhatsappUrl: buildWhatsAppUrl(
@@ -5657,6 +5730,8 @@ app.get("/api/products", (req, res) => {
           saleActive: isSaleActive(product),
           popular: popularIds.has(product.id),
           trending: trendingIds.has(product.id),
+          soldTotal: soldTotal[product.id] || 0,
+          soldMonth: soldMonth[product.id] || 0,
         };
       });
     res.json({ success: true, products });
@@ -6875,10 +6950,10 @@ app.put("/api/admin/settings/hero-product", requireAdmin, requireArea("storefron
   }
 });
 
-// Festival theme applied across the whole storefront (normal / rakshabandhan / deepawali / dushera / dhanteras / chhath).
+// Festival theme applied across the whole storefront (normal / rakshabandhan / deepawali / dushera / dhanteras / chhath / glass / xx).
 app.put("/api/admin/settings/theme", requireAdmin, requireBoss, (req, res) => {
   try {
-    const VALID_THEMES = ["normal", "rakshabandhan", "deepawali", "dushera", "dhanteras", "chhath", "glass"];
+    const VALID_THEMES = ["normal", "rakshabandhan", "deepawali", "dushera", "dhanteras", "chhath", "glass", "xx"];
     const { theme } = req.body || {};
     if (!VALID_THEMES.includes(theme)) {
       return res.status(400).json({ success: false, message: "Invalid theme." });
