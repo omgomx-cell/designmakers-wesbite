@@ -3310,8 +3310,19 @@ function dmApplyFestivalTheme(theme) {
 }
 /* DM-FESTIVAL-JS-END */
 </script>
-  </head>
+  <script>try{if(localStorage.getItem("dm_theme_xx")==="1")document.documentElement.classList.add("dm-xx")}catch(e){}</script>
+<style id="dm-xx-css">
+/* "xx" theme (admin-selectable). The new homepage lives in #dmXx (shadow DOM, files in /xx/).
+   While it is active the old homepage sections are hidden; popups, cart, account, sale banner stay. */
+#dmXx{display:none}
+html.dm-xx #dmXx{display:block}
+html.dm-xx:not(#dmNo) body>:is(.announce,.festival-strip-wrap,.site-header,.search-bar-panel,.hero,.gift-addon-banner,.promo-banner-wrap,.sale-section-wrap,.cat-cards-wrap,.prod-section-wrap,.hot-banner-wrap,.grid-wrap,.why-us-wrap,footer,.mobile-action-bar,.dm-pn,.dm-wafab):not(#dmNo){display:none!important}
+html.dm-xx .dm-dark-toggle-row{display:none!important}
+html.dm-xx body{padding-bottom:0!important}
+</style>
+</head>
   <body>
+    <div id="dmXx" aria-label="Design Makers homepage"></div>
     <div class="sale-banner" id="saleBanner" style="display:none;"></div>
     <div class="announce" id="announceBar">Custom-made just for you &nbsp;·&nbsp; Message us on WhatsApp for bulk orders</div>
     <div class="festival-strip-wrap" id="rakhiTopStripWrap"><img class="festival-strip-img" src="rakhi-top-strip.webp" alt="A bond that grows stronger every day. Happy Raksha Bandhan."></div>
@@ -8624,5 +8635,36 @@ addEventListener('scroll',sc,{passive:true});addEventListener('resize',place);ad
 })();
 </script>
 <!-- DM-HERO2-END -->
+<script id="dm-xx-js">
+/* Admin-selectable "xx" theme: swaps the homepage for the new design (xx/homepage.html + xx/xx.js). */
+(function(){
+var host=document.getElementById('dmXx'),H=document.documentElement,started=false,hidDark=false;
+function start(){
+  if(started||!host)return;started=true;
+  var f=document.createElement('link');f.rel='stylesheet';
+  f.href='https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@500;600&family=Cormorant+Garamond:ital,wght@500;600&display=swap';
+  document.head.appendChild(f);
+  fetch('/xx/homepage.html',{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(html){
+    var R=host.shadowRoot||host.attachShadow({mode:'open'});R.innerHTML=html;
+    var s=document.createElement('script');s.src='/xx/xx.js?v=1';document.body.appendChild(s);
+  }).catch(function(){started=false;sync(null)}); // if the new page can't load, show the normal homepage
+}
+function sync(theme){
+  var b=document.body;
+  if(theme==='xx'){
+    H.classList.add('dm-xx');b.classList.add('theme-xx');
+    try{localStorage.setItem('dm_theme_xx','1')}catch(e){}
+    if(b.classList.contains('dark-mode')){hidDark=true;try{applyDarkMode(false)}catch(e){}}
+    start();
+  }else{
+    H.classList.remove('dm-xx');b.classList.remove('theme-xx');
+    try{localStorage.removeItem('dm_theme_xx')}catch(e){}
+    if(hidDark){hidDark=false;var v=null;try{v=localStorage.getItem('dm_dark_mode')}catch(e){}try{applyDarkMode(v==='1')}catch(e){}}
+  }
+}
+if(H.classList.contains('dm-xx'))start(); // cached from a previous visit: no flash of the old page
+fetch('/api/settings').then(function(r){return r.json()}).then(function(d){sync(d&&d.success&&d.settings?d.settings.theme:null)}).catch(function(){});
+})();
+</script>
 </body>
 </html>
