@@ -1125,6 +1125,11 @@
                 <div style="font-weight:600; font-size:14px; color:var(--ink);">Liquid Glass</div>
                 <div style="font-size:12px; color:var(--muted);">Clear glass / Public site only</div>
               </div>
+              <div class="theme-card" data-theme="xx" style="flex:1; min-width:150px; padding:15px; border:2px solid var(--line); border-radius:8px; cursor:pointer; text-align:center; transition:0.3s; background:var(--field);">
+                <div style="height:40px; background:linear-gradient(to right,#8a1c42,#f8ecef,#d4af37); border-radius:4px; margin-bottom:10px;"></div>
+                <div style="font-weight:600; font-size:14px; color:var(--ink);">xx</div>
+                <div style="font-size:12px; color:var(--muted);">New homepage / Public site only</div>
+              </div>
             </div>
             <button class="btn small" id="applyThemeBtn" style="margin-top:14px; display:none;" onclick="applyTheme()">Apply Selected Theme</button>
             <div class="error" id="themeError"></div>
@@ -1336,6 +1341,15 @@
             <h3 style="margin:0 0 10px;color: var(--gold-soft);">🔥 Trending</h3>
             <div class="phone" style="margin:0 0 10px;">Most-viewed products in the last 7 days.</div>
             <div id="trendingPreview" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+
+          <div class="card" style="margin-bottom:16px;">
+            <h3 style="margin:0 0 6px;color: var(--gold-soft);">📈 Most sold (shown on the "xx" homepage)</h3>
+            <div class="phone" style="margin:0 0 10px;">Numbers come automatically from real orders (cancelled orders are not counted; "this month" = last 30 days). To show your own number, type it in the box — leave a box empty to keep the automatic number.</div>
+            <div id="soldStatsList" style="display:flex;flex-direction:column;gap:6px;"></div>
+            <button class="btn small" style="margin-top:10px;" onclick="saveSoldStats()">Save sold numbers</button>
+            <div class="error" id="soldStatsError"></div>
+            <div id="soldStatsSaved" style="display:none;color:var(--success);font-size:13px;margin-top:8px;">✓ Saved.</div>
           </div>
 
           <button class="btn" onclick="saveHomepageSections()">Save MOQ / Discount changes</button>
@@ -2872,6 +2886,7 @@
       let homepagePreview = { popular: [], trending: [] };
 
       async function loadHomepagePreview() {
+        loadSoldStats();
         const popularEl = document.getElementById("popularPreview");
         const trendingEl = document.getElementById("trendingPreview");
         popularEl.innerHTML = '<p class="empty-state" style="margin:0;">Loading…</p>';
@@ -2889,6 +2904,53 @@
           renderHomepagePreviewSection("trending");
         } catch (err) {
           popularEl.innerHTML = trendingEl.innerHTML = '<p class="empty-state" style="margin:0;">Network error. Try again.</p>';
+        }
+      }
+
+      // ---------- MOST SOLD (xx homepage): automatic from orders, optional manual override ----------
+      async function loadSoldStats() {
+        const el = document.getElementById("soldStatsList");
+        if (!el) return;
+        el.innerHTML = '<p class="empty-state" style="margin:0;">Loading…</p>';
+        try {
+          const res = await fetch("/api/admin/sold-stats", { headers: { Authorization: "Bearer " + token } });
+          const data = await res.json();
+          if (!data.success) { el.innerHTML = '<p class="empty-state" style="margin:0;">Could not load.</p>'; return; }
+          if (!data.rows.length) { el.innerHTML = '<p class="empty-state" style="margin:0;">No active products yet.</p>'; return; }
+          const box = 'style="width:78px;padding:4px;text-align:center;"';
+          el.innerHTML = data.rows.map((r) =>
+            '<div class="sold-row" data-id="' + r.id + '" style="display:flex;align-items:center;gap:10px;padding:6px 4px;border-bottom:1px solid var(--border);flex-wrap:wrap;">' +
+              '<span style="flex:1;min-width:160px;font-size:14px;">' + escapeHtml(r.name) + '<span style="color:var(--muted);font-size:12px;"> — ' + escapeHtml(r.category) + '</span></span>' +
+              '<label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;">This month <input type="number" min="0" class="sold-month" ' + box + ' value="' + (r.manualMonth === null ? "" : r.manualMonth) + '" placeholder="auto: ' + r.autoMonth + '" /></label>' +
+              '<label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;">Total <input type="number" min="0" class="sold-total" ' + box + ' value="' + (r.manualTotal === null ? "" : r.manualTotal) + '" placeholder="auto: ' + r.autoTotal + '" /></label>' +
+            '</div>'
+          ).join("");
+        } catch (err) {
+          el.innerHTML = '<p class="empty-state" style="margin:0;">Network error. Try again.</p>';
+        }
+      }
+
+      async function saveSoldStats() {
+        const errorEl = document.getElementById("soldStatsError");
+        const savedEl = document.getElementById("soldStatsSaved");
+        errorEl.textContent = "";
+        savedEl.style.display = "none";
+        const stats = {};
+        document.querySelectorAll("#soldStatsList .sold-row").forEach((row) => {
+          stats[row.dataset.id] = { month: row.querySelector(".sold-month").value, total: row.querySelector(".sold-total").value };
+        });
+        try {
+          const res = await fetch("/api/admin/sold-stats", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+            body: JSON.stringify({ stats }),
+          });
+          const data = await res.json();
+          if (!data.success) { errorEl.textContent = data.message || "Could not save."; return; }
+          savedEl.style.display = "block";
+          loadSoldStats();
+        } catch (err) {
+          errorEl.textContent = "Network error. Try again.";
         }
       }
 
