@@ -285,7 +285,7 @@
     }
     function show(k) { var n = N(); if (!n) return; t = (k % n + n) % n; paint(tA, dA, t); if (B) paint(tB, dB, (t + off()) % n); }
     function stop() { clearInterval(timer); timer = null; }
-    function play() { stop(); if (N() < 2 || reduced()) return; timer = setInterval(function () { show(t + 1); }, 3000); }
+    function play() { stop(); if (N() < 2) return; timer = setInterval(function () { show(t + 1); }, reduced() ? 4500 : 3000); }
     function dots(tr, d, shift) {
       d.innerHTML = '';
       [].forEach.call(sl(tr), function (e, k) {
