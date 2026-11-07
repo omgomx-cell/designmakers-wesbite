@@ -857,6 +857,23 @@
         padding: 16px;
       }
       .overlay.open { display: flex; }
+
+      /* ===== Address form: map picker ===== */
+      .dm-map-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+      .dm-map-actions button{flex:1;min-width:140px;border:1.5px solid var(--rosewood);background:transparent;color:var(--rosewood);border-radius:999px;padding:9px 12px;font-weight:800;font-size:.8rem;cursor:pointer;font-family:inherit;}
+      .dm-map-actions button:hover{background:var(--rosewood);color:#fff;}
+      .dm-map-actions button:disabled{opacity:.6;cursor:wait;}
+      #addressMapWrap{display:none;margin-bottom:10px;}
+      #addressMapWrap.open{display:block;}
+      .dm-map-search{display:flex;gap:6px;margin-bottom:8px;}
+      .dm-map-search input{flex:1;min-width:0;}
+      .dm-map-search button{border:0;background:var(--rosewood);color:#fff;border-radius:10px;padding:0 14px;font-weight:800;cursor:pointer;font-family:inherit;}
+      .dm-map-box{position:relative;z-index:0;isolation:isolate;height:240px;border-radius:12px;overflow:hidden;border:1px solid var(--blush-line);background:#eee;}
+      .dm-map-pin{font-size:30px;line-height:30px;text-align:center;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));}
+      .dm-map-result{margin-top:8px;font-size:.78rem;color:var(--muted);line-height:1.4;}
+      .dm-map-result b{color:var(--rosewood);}
+      .dm-map-result button{margin-top:6px;border:0;background:var(--rosewood);color:#fff;border-radius:999px;padding:7px 14px;font-weight:800;font-size:.76rem;cursor:pointer;font-family:inherit;}
+      .dm-map-hint{font-size:.72rem;color:var(--muted);margin-top:6px;}
       #addressFormOverlay,
       #changePasswordOverlay,
       #callbackRequestOverlay,
@@ -3321,6 +3338,7 @@ html.dm-xx .dm-dark-toggle-row{display:none!important}
 html.dm-xx body{padding-bottom:0!important}
 @media(max-width:640px){html.dm-xx body{padding-bottom:96px!important}}
 </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'">
 </head>
   <body>
     <div id="dmXx" aria-label="Design Makers homepage"></div>
@@ -3436,7 +3454,7 @@ html.dm-xx body{padding-bottom:0!important}
         <div class="seasonal-quote" id="seasonalQuote" aria-live="polite">Made with pride. Gifted with love.</div>
         <div class="hero-ctas">
           <button class="hero-btn primary" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})">Shop Now</button>
-          <button class="hero-btn secondary" onclick="window.open('https://wa.me/7004847813','_blank')">Chat on WhatsApp</button>
+          <button class="hero-btn secondary" onclick="window.open('https://wa.me/917004847813','_blank')">Chat on WhatsApp</button>
         </div>
         <div class="hero-trust">
           <span class="hero-trust-item">✓ Made to order</span>
@@ -3452,7 +3470,7 @@ html.dm-xx body{padding-bottom:0!important}
       <div class="festival-hero-wrap" id="rakhiHeroWrap">
         <img class="festival-hero-img" src="rakhi-hero-desktop.webp" alt="Happy Raksha Bandhan. Design Makers, celebrating the bond of love.">
         <button class="festival-hero-hit festival-hero-hit-shop" onclick="document.querySelector('.cat-cards-wrap').scrollIntoView({behavior:'smooth'})" aria-label="Shop Now"></button>
-        <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/7004847813','_blank')" aria-label="Chat on WhatsApp"></button>
+        <button class="festival-hero-hit festival-hero-hit-whatsapp" onclick="window.open('https://wa.me/917004847813','_blank')" aria-label="Chat on WhatsApp"></button>
         <svg class="rakhi-corner-flourish tl" viewBox="0 0 46 46" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 30 L4 10 Q4 4 10 4 L30 4" fill="none" stroke="#d4af37" stroke-width="1.6" stroke-linecap="round" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))"/>
           <circle cx="4" cy="34" r="2" fill="#d4af37"/>
@@ -3598,7 +3616,7 @@ html.dm-xx body{padding-bottom:0!important}
         </svg>
         Instagram
       </a> |
-      <a href="https://wa.me/7004847813" target="_blank" style="display:inline-flex;align-items:center;gap:4px;"><svg viewBox="0 0 32 32" width="14" height="14"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>WhatsApp</a> |
+      <a href="https://wa.me/917004847813" target="_blank" style="display:inline-flex;align-items:center;gap:4px;"><svg viewBox="0 0 32 32" width="14" height="14"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>WhatsApp</a> |
       <a href="https://youtube.com/@designmakershub" target="_blank" style="display:inline-flex;align-items:center;gap:4px;">
         <svg viewBox="0 0 32 32" width="18" height="18">
           <rect x="1" y="6" width="30" height="20" rx="6" fill="#FF0000"/>
@@ -3611,7 +3629,7 @@ html.dm-xx body{padding-bottom:0!important}
     </footer>
 
     <div class="mobile-action-bar">
-      <button class="wa-btn" onclick="window.open('https://wa.me/7004847813','_blank')"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>WhatsApp</button>
+      <button class="wa-btn" onclick="window.open('https://wa.me/917004847813','_blank')"><svg viewBox="0 0 32 32" width="16" height="16" style="vertical-align:middle;margin-right:4px;"><circle cx="16" cy="16" r="16" fill="#25D366"/><path fill="#fff" d="M16 6.5c-5.24 0-9.5 4.26-9.5 9.5 0 1.68.44 3.25 1.2 4.62L6.5 25.5l5.06-1.16A9.44 9.44 0 0 0 16 25.5c5.24 0 9.5-4.26 9.5-9.5S21.24 6.5 16 6.5zm0 17.2c-1.5 0-2.93-.4-4.17-1.1l-.3-.17-3 .69.72-2.93-.19-.3A7.7 7.7 0 0 1 8.3 16c0-4.24 3.46-7.7 7.7-7.7s7.7 3.46 7.7 7.7-3.46 7.7-7.7 7.7zm4.24-5.77c-.23-.12-1.37-.68-1.58-.76-.21-.08-.37-.12-.52.12-.15.23-.6.76-.73.92-.14.15-.27.17-.5.06-.23-.12-.98-.36-1.87-1.15-.69-.61-1.16-1.37-1.29-1.6-.14-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.11-.14.15-.23.23-.38.08-.15.04-.29-.02-.4-.06-.12-.52-1.25-.71-1.71-.19-.45-.38-.39-.52-.39-.14 0-.29-.02-.44-.02-.15 0-.4.06-.61.29-.21.23-.8.78-.8 1.9s.82 2.2.94 2.36c.11.15 1.62 2.48 3.94 3.47.55.24.98.38 1.31.49.55.17 1.05.15 1.44.09.44-.07 1.37-.56 1.56-1.1.19-.54.19-1 .13-1.1-.06-.1-.21-.15-.44-.27z"/></svg>WhatsApp</button>
       <button class="cart-btn" onclick="openCart()">🛍 Cart</button>
     </div>
 
@@ -3817,7 +3835,20 @@ html.dm-xx body{padding-bottom:0!important}
             <button type="button" class="account-section-tab" id="addressLabelOtherBtn" onclick="pickAddressLabel('Other')">Other</button>
           </div>
           <input type="text" id="addressLabelCustom" class="checkout-input" placeholder="Label (e.g. Sister's House)" style="width:100%;margin-bottom:10px;display:none;" />
-          <textarea id="addressFormText" class="checkout-input" maxlength="400" placeholder="House no., street, area, landmark, city, state, pincode" style="width:100%;min-height:120px;resize:vertical;margin-bottom:10px;"></textarea>
+          <div class="dm-map-actions">
+            <button type="button" id="addressGpsBtn" onclick="addressUseMyLocation()">📍 Use my current location</button>
+            <button type="button" id="addressMapToggleBtn" onclick="toggleAddressMap()">🗺️ Pick on map</button>
+          </div>
+          <div id="addressMapWrap">
+            <div class="dm-map-search">
+              <input type="text" id="addressMapSearch" class="checkout-input" placeholder="Search area, landmark or pincode" onkeydown="if(event.key==='Enter'){event.preventDefault();addressMapSearch();}" />
+              <button type="button" onclick="addressMapSearch()">Search</button>
+            </div>
+            <div class="dm-map-box" id="addressMapBox"></div>
+            <div class="dm-map-hint">Tap on the map or drag the pin to your exact spot.</div>
+            <div class="dm-map-result" id="addressMapResult"></div>
+          </div>
+          <textarea id="addressFormText" class="checkout-input" maxlength="300" placeholder="House no., street, area, landmark, city, state, pincode" oninput="dmAddrManualEdit()" style="width:100%;min-height:120px;resize:vertical;margin-bottom:10px;"></textarea>
           <div class="modal-error" id="addressFormError" style="display:none;"></div>
           <button class="add-cart-btn" id="addressFormBtn" onclick="submitAddressForm()">Save Address</button>
         </div>
@@ -3916,6 +3947,7 @@ html.dm-xx body{padding-bottom:0!important}
     <div class="overlay" id="changePasswordOverlay" onclick="closeChangePasswordModal(event)">
       <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="changePasswordTitle">
         <button class="modal-close" type="button" onclick="closeChangePasswordModal()">✕</button>
+        <div class="dm-cp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/><circle cx="12" cy="15.5" r="1.2"/></svg></div>
         <h2 class="modal-title" id="changePasswordTitle" style="margin-bottom:6px;">Change password</h2>
         <p class="modal-desc" id="changePasswordDesc" style="margin-bottom:18px;">Update the password used to log in with your mobile number.</p>
         <div id="currentPasswordRow" style="margin-bottom:10px;">
@@ -3925,6 +3957,7 @@ html.dm-xx body{padding-bottom:0!important}
         <input type="password" id="confirmNewPasswordInput" class="checkout-input" placeholder="Confirm new password" style="width:100%;margin-bottom:10px;" />
         <div class="modal-error" id="changePasswordError" style="display:none;"></div>
         <button class="add-cart-btn" id="changePasswordBtn" onclick="submitChangePassword()">Update password</button>
+        <p class="dm-cp-hint">Use at least 8 characters. You stay logged in after updating.</p>
       </div>
     </div>
 
@@ -4146,19 +4179,19 @@ html.dm-xx body{padding-bottom:0!important}
 
               <!-- SETTINGS -->
               <div id="accountSettingsView" style="display:none;">
-                <div class="dm-profile-section-head"><div><h3>⚙️ Settings</h3><p>Only the account controls you actually need.</p></div></div>
+                <div class="dm-profile-section-head"><div><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 14.5a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3h0a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5h0a1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8v0a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg>Settings</h3><p>Manage your account, password and support.</p></div></div>
                 <div class="dm-settings-card-grid">
-                  <button type="button" class="dm-settings-tile" onclick="showAccountSection('profile')"><span>👤</span><div><strong>Account Information</strong><small>View your saved account details</small></div><b>›</b></button>
-                  <button type="button" class="dm-settings-tile" onclick="openChangePasswordModal()"><span>🔐</span><div><strong>Change Password</strong><small>Update your account password</small></div><b>›</b></button>
-                  <button type="button" class="dm-settings-tile" onclick="openTermsModal()"><span>📄</span><div><strong>Terms &amp; Conditions</strong><small>Read the website terms</small></div><b>›</b></button>
-                  <button type="button" class="dm-settings-tile" onclick="openCallbackRequestModal()"><span>🎧</span><div><strong>Contact Support</strong><small>Request help from Design Makers</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="showAccountSection('profile')"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.6-4 3.6-6 7.5-6s6.9 2 7.5 6"/></svg></span><div><strong>Account Information</strong><small>View your saved account details</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openChangePasswordModal()"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><circle cx="12" cy="15.5" r="1.2"/></svg></span><div><strong>Change Password</strong><small>Update your account password</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openTermsModal()"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h7.5L19 8v12.5H7z"/><path d="M14 3.5V8h5M9.5 12.5h6M9.5 16h6"/></svg></span><div><strong>Terms &amp; Conditions</strong><small>Read the website terms</small></div><b>›</b></button>
+                  <button type="button" class="dm-settings-tile" onclick="openCallbackRequestModal()"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 13v-1a7.5 7.5 0 0 1 15 0v1"/><rect x="3.5" y="12.5" width="4" height="6" rx="1.6"/><rect x="16.5" y="12.5" width="4" height="6" rx="1.6"/><path d="M19 18.5c0 1.6-1.6 2.5-4 2.5h-1.5"/></svg></span><div><strong>Contact Support</strong><small>Request help from Design Makers</small></div><b>›</b></button>
                 </div>
               </div>
 
               <!-- NOTIFICATIONS -->
               <div id="accountNotificationsView" style="display:none;">
                 <div class="dm-profile-section-head">
-                  <div><h3>🔔 Notifications</h3><p>Order, offer and account updates.</p></div>
+                  <div><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>Notifications</h3><p>Order, offer and account updates.</p></div>
                   <button class="btn small secondary" onclick="markAllCustomerNotificationsRead()">✓ Mark all as read</button>
                 </div>
                 <div class="dm-notification-filters">
@@ -5752,6 +5785,172 @@ html.dm-xx body{padding-bottom:0!important}
         { passive: true },
       );
 
+      // ===== Smart product search (shared by the search bar dropdown and the shop popup) =====
+      // Finds products even when the customer spells it differently: "tshirt", "t shirt",
+      // "t-shirts", "tee", "tshrt" (typo), "cup" for mugs, "pillow" for cushions, etc.
+      window.dmSearch = (function () {
+        // Words that mean the same thing. Written compact (lowercase, no spaces/hyphens).
+        var GROUPS = [
+          ["tshirt", "tee", "teeshirt", "shirt"],
+          ["hoodie", "hoody", "sweatshirt", "sweater", "jacket"],
+          ["mug", "cup", "coffeemug", "coffeecup", "teacup"],
+          ["cushion", "pillow", "takia", "cushioncover", "pillowcover"],
+          ["frame", "photoframe", "pictureframe", "photoholder"],
+          ["keychain", "keyring", "keyholder", "keyfob"],
+          ["bottle", "sipper", "flask", "tumbler", "waterbottle"],
+          ["corporategift", "corporate", "companygift", "employeegift", "officegift", "bulk"],
+          ["homedecor", "decor", "decoration", "showpiece"],
+          ["rakhi", "rakshabandhan", "rakhee", "raksha"],
+          ["diwali", "deepawali", "deepavali"],
+          ["personalised", "personalized", "custom", "customised", "customized", "custommade"],
+          ["gift", "present", "upahar"],
+          ["birthday", "bday"],
+          ["couple", "pair", "lovers"]
+        ];
+        function compact(s) { return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, ""); }
+        function stem(w) {
+          if (w.length > 4 && /ies$/.test(w)) return w.slice(0, -3) + "y";
+          if (w.length > 4 && /(ches|shes|sses|xes)$/.test(w)) return w.slice(0, -2);
+          if (w.length > 3 && /s$/.test(w) && !/ss$/.test(w)) return w.slice(0, -1);
+          return w;
+        }
+        var SYN = {};
+        GROUPS.forEach(function (g) {
+          var st = g.map(function (w) { return stem(w); });
+          st.forEach(function (w) { SYN[w] = (SYN[w] || []).concat(st); });
+        });
+        // Filler words that shouldn't stop a match: "tshirt for men", "gift for her"
+        var STOP = { "for": 1, "the": 1, "and": 1, "with": 1, "of": 1, "in": 1, "to": 1, "my": 1, "me": 1, "a": 1, "an": 1, "best": 1, "buy": 1, "want": 1, "need": 1, "please": 1, "pls": 1, "her": 1, "him": 1, "his": 1, "hers": 1, "gf": 1, "bf": 1, "men": 1, "mens": 1, "man": 1, "women": 1, "womens": 1, "woman": 1, "ladies": 1, "boys": 1, "girls": 1, "kids": 1 };
+        function expand(w) {
+          var s = stem(w), syn = SYN[s];
+          if (!syn && s.length >= 4) { // typo of a known word ("pillo" -> pillow group)
+            for (var k in SYN) { if (k.length >= 4 && lev(s, k, 1) <= 1) { syn = SYN[k]; break; } }
+          }
+          return [s].concat(syn || []);
+        }
+        function lev(a, b, max) {
+          if (Math.abs(a.length - b.length) > max) return max + 1;
+          var prev = [], i, j;
+          for (j = 0; j <= b.length; j++) prev[j] = j;
+          for (i = 1; i <= a.length; i++) {
+            var cur = [i], best = i;
+            for (j = 1; j <= b.length; j++) {
+              cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+              if (cur[j] < best) best = cur[j];
+            }
+            if (best > max) return max + 1;
+            prev = cur;
+          }
+          return prev[b.length];
+        }
+        // Sound-alike key for Hinglish spellings: "tishart", "tshirt", "tisurt" all -> "tshrt"
+        function skel(w) {
+          w = String(w || "").toLowerCase().replace(/ph/g, "f").replace(/w/g, "v").replace(/z/g, "j").replace(/ck|q|k/g, "k").replace(/c(?![hk])/g, "k");
+          return w.charAt(0) + w.slice(1).replace(/[aeiouy]/g, "").replace(/(.)\1+/g, "$1");
+        }
+        function words(s) {
+          var w = String(s || "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(stem), out = w.slice();
+          for (var i = 0; i + 1 < w.length; i++) out.push(w[i] + w[i + 1]); // "t shirt" also counts as "tshirt"
+          return out;
+        }
+        // How well does ONE search word match this field? 0 = no match.
+        function fieldHit(cands, tok, fieldCompact, fieldWords) {
+          var best = 0;
+          for (var c = 0; c < cands.length; c++) {
+            var w = cands[c], isOrig = (c === 0);
+            if (w.length >= 4 && fieldCompact.indexOf(w) >= 0) best = Math.max(best, isOrig ? 3 : 2);
+            for (var k = 0; k < fieldWords.length; k++) {
+              var fw = fieldWords[k];
+              if (fw === w) best = Math.max(best, 3);
+              else if (w.length >= 2 && fw.indexOf(w) === 0) best = Math.max(best, 2);
+              else if (isOrig && tok.length >= 4) {
+                var max = tok.length >= 7 ? 2 : 1;
+                if (lev(w, fw, max) <= max) best = Math.max(best, 1);
+                else if (fw.length >= 4 && skel(w) === skel(fw)) best = Math.max(best, 1);
+              }
+            }
+          }
+          return best;
+        }
+        // Returns 0 when the product doesn't match; higher = better match.
+        function score(p, query, any) {
+          var q = String(query || "").trim().toLowerCase();
+          if (!q) return 1;
+          var name = p.name || "", cat = p.category || p.cat || "", desc = p.description || p.desc || "";
+          var F = [
+            { c: compact(name), w: words(name), wt: 6 },
+            { c: compact(cat), w: words(cat), wt: 4 },
+            { c: compact(desc), w: words(desc), wt: 1 }
+          ];
+          function tokenScore(tok) {
+            var cands = expand(tok), total = 0;
+            F.forEach(function (f) { total += fieldHit(cands, tok, f.c, f.w) * f.wt; });
+            return total;
+          }
+          // 1) whole phrase glued together: "t shirt" -> "tshirt", "photo frame" -> "photoframe"
+          var whole = compact(q), wholeScore = whole.length >= 3 ? tokenScore(whole) : 0;
+          // 2) every word must match somewhere (ignore 1-letter words like the "t" in "t shirt")
+          var toks = q.split(/[^a-z0-9]+/).filter(function (t) { return t.length >= 2; });
+          var sum = 0, ok = toks.length > 0;
+          for (var i = 0; i < toks.length; i++) {
+            var s = tokenScore(toks[i]);
+            if (!s) { if ((STOP[toks[i]] && toks.length > 1) || any) continue; ok = false; break; }
+            sum += s;
+          }
+          if (sum === 0) ok = false;
+          return Math.max(wholeScore, ok ? sum : 0);
+        }
+        function filter(list, query) {
+          return list.map(function (p) { return { p: p, s: score(p, query) }; })
+            .filter(function (x) { return x.s > 0; })
+            .sort(function (a, b) { return b.s - a.s; })
+            .map(function (x) { return x.p; });
+        }
+        function grams(s) { var g = {}, n = 0; s = "  " + s + " "; for (var i = 0; i + 3 <= s.length; i++) { g[s.substr(i, 3)] = 1; n++; } return { g: g, n: n }; }
+        function dice(a, b) {
+          var A = grams(a), B = grams(b), common = 0;
+          for (var k in A.g) if (B.g[k]) common++;
+          return A.n + B.n ? (2 * common) / (A.n + B.n) : 0;
+        }
+        // How close is this product to the query when nothing matches exactly? (0..1)
+        function closeness(p, query) {
+          var q = compact(query); if (!q) return 0;
+          var name = p.name || "", cat = p.category || p.cat || "", best = 0;
+          var cands = words(name).concat(words(cat), [compact(name), compact(cat)]);
+          var qs = skel(q);
+          cands.forEach(function (x) {
+            if (!x) return;
+            var s = dice(q, x);
+            var d = lev(q, x, 3); if (d <= 3) s = Math.max(s, 1 - d / Math.max(q.length, x.length));
+            if (x.length >= 3 && qs.length >= 3) { var ds = lev(qs, skel(x), 2); if (ds <= 2) s = Math.max(s, 0.85 - 0.2 * ds); }
+            if (s > best) best = s;
+          });
+          return best;
+        }
+        function popularity(p) { return (p.popular ? 3 : 0) + (p.trending ? 2 : 0) + Math.min(5, Math.log(1 + (Number(p.soldMonth || p.month) || 0)) + Math.log(1 + (Number(p.soldTotal || p.total) || 0)) / 2); }
+        // Anything the customer types gets an answer:
+        //   exact   = real matches, best first
+        //   related = nothing matched exactly, but these look/sound closest
+        //   popular = nothing is close at all, so show the shop's popular picks
+        function search(list, query, limit) {
+          limit = limit || 8;
+          var exact = filter(list, query);
+          if (exact.length) return { kind: "exact", items: exact.slice(0, limit) };
+          // not every word matched anywhere -> products matching at least one word, most words first
+          var part = list.map(function (p) { return { p: p, s: score(p, query, true) }; })
+            .filter(function (x) { return x.s > 0; })
+            .sort(function (a, b) { return b.s - a.s; });
+          if (part.length) return { kind: "related", items: part.slice(0, limit).map(function (x) { return x.p; }) };
+          var rel = list.map(function (p) { return { p: p, s: closeness(p, query) }; })
+            .filter(function (x) { return x.s >= 0.3; })
+            .sort(function (a, b) { return b.s - a.s; });
+          if (rel.length) return { kind: "related", items: rel.slice(0, limit).map(function (x) { return x.p; }) };
+          var pop = list.slice().sort(function (a, b) { return popularity(b) - popularity(a); });
+          return { kind: "popular", items: pop.slice(0, limit) };
+        }
+        return { score: score, filter: filter, search: search };
+      })();
+
       function onSearchInput() {
         const q = document.getElementById("searchInput").value.trim().toLowerCase();
         const resultsEl = document.getElementById("searchResults");
@@ -5763,13 +5962,8 @@ html.dm-xx body{padding-bottom:0!important}
           return;
         }
 
-        const matches = allProducts.filter((p) => {
-          return (
-            (p.name || "").toLowerCase().includes(q) ||
-            (p.category || "").toLowerCase().includes(q) ||
-            (p.description || "").toLowerCase().includes(q)
-          );
-        }).slice(0, 8);
+        const found = window.dmSearch.search(allProducts, q, 8);
+        const matches = found.items;
 
         resultsEl.style.display = "block";
         if (!matches.length) {
@@ -5777,8 +5971,11 @@ html.dm-xx body{padding-bottom:0!important}
           syncSearchPanelHeight();
           return;
         }
+        const noteHtml = found.kind === "exact" ? "" :
+          '<div class="search-empty" style="padding:8px 12px 4px;font-size:.78rem;">' +
+          (found.kind === "related" ? 'No exact match for "' + escapeHtml(q) + '" — closest picks:' : 'Nothing matched "' + escapeHtml(q) + '" — popular picks for you:') + "</div>";
 
-        resultsEl.innerHTML = matches
+        resultsEl.innerHTML = noteHtml + matches
           .map((p) => {
             const thumb = p.image
               ? '<img class="search-result-thumb" src="' + escapeHtml(p.image) + '" alt="' + escapeHtml(p.name) + '" loading="lazy" decoding="async" />'
@@ -7491,7 +7688,7 @@ html.dm-xx body{padding-bottom:0!important}
           saveCart();
           closeCart();
 
-          window.open("https://wa.me/7004847813?text=" + encodeURIComponent(message), "_blank");
+          window.open("https://wa.me/917004847813?text=" + encodeURIComponent(message), "_blank");
           await refreshStockAvailability();
         } catch (err) {
           errorEl.textContent = "Network error — please check your connection and try again.";
@@ -7823,6 +8020,146 @@ html.dm-xx body{padding-bottom:0!important}
       }
       function addSavedAddress(){ openAddressFormModal(null); }
       function editSavedAddress(i){ openAddressFormModal(i); }
+
+      // ===== Address form: map picker + current location (auto-fills the address) =====
+      let dmAddrMap = null, dmAddrMarker = null, dmAddrCoords = null, dmAddrLeafletPromise = null;
+      let dmAddrLastFilled = "", dmAddrPendingText = "", dmAddrGeoSeq = 0;
+      const DM_MAP_DEFAULT = [25.5941, 85.1376]; // Patna city centre (public, not the shop's location)
+      function dmAddrManualEdit(){ /* typing manually just stops auto-overwrite; see dmAddrOfferText */ }
+      function dmLoadLeaflet(){
+        if (window.L && window.L.map) return Promise.resolve();
+        if (dmAddrLeafletPromise) return dmAddrLeafletPromise;
+        dmAddrLeafletPromise = new Promise((resolve, reject) => {
+          if (!document.querySelector('link[href*="leaflet@1.9.4"]')) {
+            const l = document.createElement("link"); l.rel = "stylesheet";
+            l.href = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"; document.head.appendChild(l);
+          }
+          const s = document.createElement("script");
+          s.src = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";
+          s.onload = () => resolve(); s.onerror = () => { dmAddrLeafletPromise = null; reject(new Error("map load failed")); };
+          document.head.appendChild(s);
+        });
+        return dmAddrLeafletPromise;
+      }
+      function dmAddrErr(msg){ const e=document.getElementById("addressFormError"); if(!e)return; e.textContent=msg||""; e.style.display=msg?"block":"none"; }
+      function dmFormatNominatim(d){
+        const a = (d && d.address) || {};
+        const line1 = [a.house_number, a.road || a.pedestrian || a.footway].filter(Boolean).join(" ");
+        const parts = [
+          line1,
+          a.neighbourhood || a.residential || a.quarter,
+          a.suburb || a.city_district,
+          a.village || a.town || a.city || a.county,
+          a.state_district && a.state_district !== (a.city || a.town || a.village) ? a.state_district : "",
+          a.state,
+          a.postcode
+        ].filter(Boolean);
+        const seen = new Set(); const uniq = parts.filter(p => { const k=p.toLowerCase(); if(seen.has(k))return false; seen.add(k); return true; });
+        let out = uniq.join(", ");
+        if (!out && d && d.display_name) out = String(d.display_name).replace(/,\s*India\s*$/i,"");
+        return out.slice(0,300);
+      }
+      async function dmReverseGeocode(lat, lng){
+        const seq = ++dmAddrGeoSeq;
+        const box = document.getElementById("addressMapResult");
+        if (box) box.innerHTML = "Finding address…";
+        try {
+          const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=en&lat=" + encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lng);
+          const res = await fetch(url, { headers: { "Accept": "application/json" } });
+          const data = await res.json();
+          if (seq !== dmAddrGeoSeq) return;
+          const text = dmFormatNominatim(data);
+          if (!text) throw new Error("no address");
+          dmAddrOfferText(text);
+        } catch (e) {
+          if (seq !== dmAddrGeoSeq) return;
+          if (box) box.innerHTML = "Pin saved ✓ but the address could not be looked up. Please type the address below.";
+        }
+      }
+      // Fills the box automatically when it is empty (or still holds the last map-filled text).
+      // If the customer typed their own address, we only offer a one-tap "Use this address".
+      function dmAddrOfferText(text){
+        const ta = document.getElementById("addressFormText"), box = document.getElementById("addressMapResult");
+        const cur = String((ta && ta.value) || "").trim();
+        dmAddrPendingText = text;
+        if (ta && (!cur || cur === dmAddrLastFilled)) {
+          ta.value = text; dmAddrLastFilled = text;
+          if (box) box.innerHTML = "<b>Address filled ✓</b> Check it and add your house/flat no. or landmark.";
+        } else if (box) {
+          box.innerHTML = "<b>Found:</b> " + escapeHtml(text) + '<br><button type="button" onclick="dmAddrApplyPending()">Use this address</button>';
+        }
+      }
+      function dmAddrApplyPending(){
+        const ta = document.getElementById("addressFormText"), box = document.getElementById("addressMapResult");
+        if (ta && dmAddrPendingText) { ta.value = dmAddrPendingText; dmAddrLastFilled = dmAddrPendingText; }
+        if (box) box.innerHTML = "<b>Address filled ✓</b> Check it and add your house/flat no. or landmark.";
+      }
+      function dmAddrSetPoint(lat, lng, opts){
+        opts = opts || {};
+        dmAddrCoords = { lat: Number(lat), lng: Number(lng) };
+        if (dmAddrMap) {
+          if (!dmAddrMarker) {
+            dmAddrMarker = L.marker([lat, lng], { draggable: true, icon: L.divIcon({ className: "", html: '<div class="dm-map-pin">📍</div>', iconSize: [30, 30], iconAnchor: [15, 29] }) }).addTo(dmAddrMap);
+            dmAddrMarker.on("dragend", () => { const p = dmAddrMarker.getLatLng(); dmAddrSetPoint(p.lat, p.lng, { noMove: true }); });
+          } else dmAddrMarker.setLatLng([lat, lng]);
+          if (!opts.noMove) dmAddrMap.setView([lat, lng], Math.max(dmAddrMap.getZoom(), 17));
+        }
+        if (!opts.skipGeocode) dmReverseGeocode(lat, lng);
+      }
+      async function dmEnsureAddrMap(){
+        const wrap = document.getElementById("addressMapWrap"); wrap.classList.add("open");
+        const tbtn = document.getElementById("addressMapToggleBtn"); if (tbtn) tbtn.textContent = "🗺️ Hide map";
+        try { await dmLoadLeaflet(); } catch (e) { wrap.classList.remove("open"); if (tbtn) tbtn.textContent = "🗺️ Pick on map"; dmAddrErr("Map could not be loaded. Please check your internet or type the address."); return false; }
+        if (!dmAddrMap) {
+          dmAddrMap = L.map("addressMapBox", { zoomControl: true, attributionControl: true }).setView(dmAddrCoords ? [dmAddrCoords.lat, dmAddrCoords.lng] : DM_MAP_DEFAULT, dmAddrCoords ? 17 : 12);
+          L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(dmAddrMap);
+          dmAddrMap.on("click", (e) => dmAddrSetPoint(e.latlng.lat, e.latlng.lng, { noMove: true }));
+        }
+        setTimeout(() => { dmAddrMap.invalidateSize(); if (dmAddrCoords) { if (!dmAddrMarker) dmAddrSetPoint(dmAddrCoords.lat, dmAddrCoords.lng, { skipGeocode: true }); dmAddrMap.setView([dmAddrCoords.lat, dmAddrCoords.lng], 17); } }, 60);
+        return true;
+      }
+      async function toggleAddressMap(){
+        const wrap = document.getElementById("addressMapWrap");
+        if (wrap.classList.contains("open")) { wrap.classList.remove("open"); document.getElementById("addressMapToggleBtn").textContent = "🗺️ Pick on map"; return; }
+        dmAddrErr("");
+        await dmEnsureAddrMap();
+      }
+      function addressUseMyLocation(){
+        dmAddrErr("");
+        const btn = document.getElementById("addressGpsBtn");
+        if (!navigator.geolocation) { dmAddrErr("Location is not supported on this device. Use 'Pick on map' instead."); return; }
+        btn.disabled = true; btn.textContent = "Getting location…";
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          btn.disabled = false; btn.textContent = "📍 Use my current location";
+          const ok = await dmEnsureAddrMap();
+          if (ok) dmAddrSetPoint(pos.coords.latitude, pos.coords.longitude);
+          else dmReverseGeocode(pos.coords.latitude, pos.coords.longitude), dmAddrCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        }, () => {
+          btn.disabled = false; btn.textContent = "📍 Use my current location";
+          dmAddrErr("Location permission was not given. You can use 'Pick on map' or type the address.");
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+      }
+      async function addressMapSearch(){
+        const inp = document.getElementById("addressMapSearch"), q = String((inp && inp.value) || "").trim();
+        if (!q) return;
+        const box = document.getElementById("addressMapResult"); if (box) box.innerHTML = "Searching…";
+        try {
+          const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=in&accept-language=en&q=" + encodeURIComponent(q);
+          const res = await fetch(url, { headers: { "Accept": "application/json" } });
+          const arr = await res.json();
+          if (!arr || !arr.length) { if (box) box.innerHTML = "No place found. Try a nearby landmark or the pincode."; return; }
+          dmAddrSetPoint(Number(arr[0].lat), Number(arr[0].lon));
+        } catch (e) { if (box) box.innerHTML = "Search failed. Please tap on the map instead."; }
+      }
+      function dmAddrResetMapState(existing){
+        dmAddrCoords = (existing && Number.isFinite(Number(existing.lat)) && Number.isFinite(Number(existing.lng))) ? { lat: Number(existing.lat), lng: Number(existing.lng) } : null;
+        dmAddrLastFilled = ""; dmAddrPendingText = ""; dmAddrGeoSeq++;
+        if (dmAddrMarker && dmAddrMap) { dmAddrMap.removeLayer(dmAddrMarker); dmAddrMarker = null; }
+        const wrap = document.getElementById("addressMapWrap"); if (wrap) wrap.classList.remove("open");
+        const tbtn = document.getElementById("addressMapToggleBtn"); if (tbtn) tbtn.textContent = "🗺️ Pick on map";
+        const r = document.getElementById("addressMapResult"); if (r) r.innerHTML = existing && dmAddrCoords ? "Map pin saved for this address ✓" : "";
+        const s = document.getElementById("addressMapSearch"); if (s) s.value = "";
+      }
       let dmAddressFormEditIndex = null;
       let dmAddressFormLabel = "Home";
       function pickAddressLabel(label){
@@ -7849,6 +8186,7 @@ html.dm-xx body{padding-bottom:0!important}
           pickAddressLabel(label);
         }
         const errEl=document.getElementById("addressFormError"); if(errEl){ errEl.textContent=""; errEl.style.display="none"; }
+        dmAddrResetMapState(existing);
         const overlay=document.getElementById("addressFormOverlay"); if(overlay) overlay.classList.add("open");
       }
       function closeAddressFormModal(event){
@@ -7868,10 +8206,12 @@ html.dm-xx body{padding-bottom:0!important}
         const arr=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]);
         if(dmAddressFormEditIndex!=null && arr[dmAddressFormEditIndex]){
           arr[dmAddressFormEditIndex]={...arr[dmAddressFormEditIndex],text,label};
+          if(dmAddrCoords){ arr[dmAddressFormEditIndex].lat=dmAddrCoords.lat; arr[dmAddressFormEditIndex].lng=dmAddrCoords.lng; }
           dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr); syncExtrasToServer(); renderSavedAddresses();
           if(arr[dmAddressFormEditIndex].isDefault) syncDefaultAddressToCheckout(arr[dmAddressFormEditIndex]);
         } else {
           const next=arr.length?{label,text,isDefault:false}:{label,text,isDefault:true};
+          if(dmAddrCoords){ next.lat=dmAddrCoords.lat; next.lng=dmAddrCoords.lng; }
           arr.unshift(next);
           dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr.slice(0,10)); syncExtrasToServer(); renderSavedAddresses();
           if(next.isDefault) syncDefaultAddressToCheckout(next);
@@ -8080,6 +8420,16 @@ html.dm-xx body{padding-bottom:0!important}
         renderCustomerNotifications();
       }
 
+      function dmNotifIcon(n) {
+        const P = {
+          Orders: '<path d="M6 7h12l1 13H5L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/>',
+          Offers: '<rect x="3.5" y="9" width="17" height="11" rx="1.5"/><path d="M12 9v11M3.5 13h17M12 9S10 4 8 5.5 9 9 12 9Zm0 0s2-5 4-3.5S15 9 12 9Z"/>',
+          Updates: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+          Reminders: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'
+        };
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (P[n && n.type] || P.Updates) + "</svg>";
+      }
+
       function renderCustomerNotifications() {
         const box = document.getElementById("customerNotificationsList");
         if (!box) return;
@@ -8089,7 +8439,7 @@ html.dm-xx body{padding-bottom:0!important}
           const read = isCustomerNotificationRead(n.id);
           const time = n.time ? formatOrderDate(n.time, true) : "";
           return '<button type="button" class="dm-notification-card ' + (read ? "" : "unread") + '" onclick="openCustomerNotification(' + JSON.stringify(n.id).replace(/"/g, '&quot;') + ')">' +
-            '<span class="dm-notification-icon">' + n.icon + '</span>' +
+            '<span class="dm-notification-icon">' + dmNotifIcon(n) + '</span>' +
             '<span class="dm-notification-copy"><span class="dm-notification-title">' + escapeHtml(n.title) + '</span><span class="dm-notification-message">' + escapeHtml(n.message) + '</span><span class="dm-notification-time">' + escapeHtml(time || "Account update") + '</span></span>' +
             (read ? '' : '<span class="dm-notification-unread" aria-label="Unread"></span>') +
           '</button>';
@@ -8644,7 +8994,7 @@ body:not(.theme-rakshabandhan):not(.theme-deepawali):not(.theme-dushera):not(.th
 <script id="dm-hero2-js">
 (function(){
 var WA='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35M12.05 21.8a9.9 9.9 0 0 1-5.03-1.38l-.36-.22-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.89 9.88M20.46 3.5A11.8 11.8 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.9c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.9 11.9 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.9 0-3.18-1.24-6.17-3.49-8.41"/></svg>';
-var WAURL='https://wa.me/7004847813';
+var WAURL='https://wa.me/917004847813';
 var h=document.querySelector('.hero');
 if(h&&!document.getElementById('dm-hero2')){
   var d=document.createElement('div');d.id='dm-hero2';
@@ -8685,12 +9035,12 @@ function start(m){
   Promise.all([page,skin]).then(function(a){
     var R=host.shadowRoot||host.attachShadow({mode:'open'});R.innerHTML=a[0];
     if(a[1]){var st=document.createElement('style');st.id='xxSkin';st.textContent=a[1];R.appendChild(st)}
-    var s=document.createElement('script');s.src='/xx/xx.js?v=3';document.body.appendChild(s);
+    var s=document.createElement('script');s.src='/xx/xx.js?v=12';document.body.appendChild(s);
   }).catch(function(){started=false;failed=true;H.classList.remove('dm-xx');document.body.classList.remove('theme-xx')}); // new page can't load -> old homepage
 }
 function sync(theme){
   if(failed)return;
-  var b=document.body,want=valid(theme)?theme:'normal';
+  var b=document.body,want=valid(theme)?theme:'xx';
   // page was started from a cached choice that the admin has since changed -> reload once with the new one
   if(started&&mode&&mode!==want){remember(want);location.reload();return}
   H.classList.add('dm-xx');
@@ -8699,9 +9049,394 @@ function sync(theme){
   if(LIGHT[want]&&b.classList.contains('dark-mode')){hidDark=true;try{applyDarkMode(false)}catch(e){}}
   start(want);
 }
-if(H.classList.contains('dm-xx'))start(saved()||'normal'); // cached from a previous visit: no flash of the old page
+if(H.classList.contains('dm-xx'))start(saved()||'xx'); // cached from a previous visit: no flash of the old page
 fetch('/api/settings').then(function(r){return r.json()}).then(function(d){sync(d&&d.success&&d.settings?d.settings.theme:null)}).catch(function(){});
 })();
 </script>
+<!-- ===== DM profile popup (maroon/gold design) + cart as centered popup ===== -->
+<style id="dm-pf-css">
+/* ---- Cart: centered popup instead of right drawer ---- */
+.cart-overlay{background:rgba(40,8,22,.55);backdrop-filter:blur(3px)}
+.cart-drawer{top:50%!important;left:50%!important;right:auto!important;height:auto!important;max-height:90vh;width:min(560px,94vw)!important;border-radius:22px;overflow:hidden;box-shadow:0 30px 80px rgba(60,8,30,.35)!important;opacity:0;pointer-events:none;transform:translate(-50%,-46%) scale(.96)!important;transition:opacity .2s ease,transform .22s ease!important}
+.cart-drawer.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)!important}
+.cart-header{background:linear-gradient(135deg,#5a0f2a,#8a1c42);color:#fff;border:0}
+.cart-header h2{color:#fff!important;font-family:"Playfair Display",serif}
+.cart-header .modal-close{background:rgba(255,255,255,.18)!important;color:#fff!important;border:0!important}
+.cart-items{min-height:120px}
+
+/* ---- Profile popup ---- */
+.auth-modal.profile-mode{width:min(1120px,96vw);max-width:1120px;border-radius:24px;padding:0;background:linear-gradient(160deg,#fdf3ee,#f7e6e4)}
+.auth-modal.profile-mode .auth-form{padding:0}
+.auth-modal.profile-mode>.modal-close{z-index:5;background:rgba(255,255,255,.9);color:#6b1433}
+.auth-modal.profile-mode .dm-profile-layout{gap:0;align-items:stretch}
+.dm-pf-banner{height:120px;display:flex;flex-direction:column;justify-content:center;padding:0 32px 0 270px;background:linear-gradient(120deg,#4a0a22,#7d1a40 60%,#a3365c);color:#fff;border-radius:24px 24px 0 0}
+.dm-pf-banner b{font:600 2rem "Playfair Display",serif}
+.dm-pf-banner i{font:italic 1.05rem "Playfair Display",serif;color:#f1d48b}
+.auth-modal.profile-mode .dm-profile-layout{position:relative}
+.dm-profile-sidebar{flex:0 0 250px!important;margin:-70px 0 20px 18px;position:relative;z-index:2}
+.dm-pf-card{background:linear-gradient(180deg,#6b1433,#4a0a22);color:#fff;border-radius:20px 20px 0 0;text-align:center;padding:22px 14px 16px}
+.dm-pf-card>img,.dm-pf-card .ph{width:84px;height:84px;border-radius:50%;border:4px solid #fff;object-fit:cover;background:#f8ecef;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:2rem;color:#8a1c42}
+.dm-pf-card b{display:block;font:600 1.1rem "Playfair Display",serif}
+.dm-pf-card small{opacity:.85;word-break:break-all}
+.dm-profile-sidebar{background:#fffaf8;border-radius:20px;box-shadow:0 10px 30px rgba(107,20,51,.12);padding:0 0 10px;gap:2px}
+.dm-profile-sidebar .dm-profile-nav-item{margin:0 10px;position:relative;border-radius:12px}
+.dm-profile-sidebar .dm-profile-nav-item::after{content:"›";margin-left:auto;font-size:1.2rem;opacity:.6}
+.dm-profile-sidebar .dm-profile-nav-item.active{background:linear-gradient(135deg,#8a1c42,#6b1433)!important;color:#fff!important;border-color:transparent!important}.dm-profile-sidebar .dm-profile-nav-item.active .dm-nav-label,.dm-profile-sidebar .dm-profile-nav-item.active svg{color:#fff!important;stroke:#fff}
+.dm-pf-help{margin:10px 10px 0;padding:12px;border-radius:14px;background:#fbeee9;display:flex;gap:10px;align-items:center;font-size:.8rem;color:#6b1433}
+.dm-pf-help button{margin-top:4px;border:1px solid #8a1c42;background:#fff;color:#8a1c42;border-radius:99px;padding:3px 10px;font-weight:700;font-size:.75rem;cursor:pointer}
+.dm-profile-main{padding:22px 26px 26px 22px}
+#accountProfileView .dm-profile-hero{background:linear-gradient(120deg,#fff,#f8e6dc);border:1px solid #f0d9cf;border-radius:20px}
+.dm-profile-stat-card{border-radius:16px!important;background:#fffaf8!important;box-shadow:0 6px 18px rgba(107,20,51,.08)}
+.dm-pf-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin:16px 0}
+.dm-pf-box{background:#fffaf8;border-radius:18px;padding:16px;box-shadow:0 6px 18px rgba(107,20,51,.08)}
+.dm-pf-box h4{margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;color:#2a0b17}
+.dm-pf-box h4 a{font-size:.82rem;color:#8a1c42;font-weight:700;cursor:pointer}
+.dm-pf-ord{display:flex;gap:14px;align-items:center;padding:8px 0}
+.dm-pf-ord .th{width:64px;height:64px;border-radius:12px;background:#f8ecef;display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden}
+.dm-pf-ord .th img{width:100%;height:100%;object-fit:cover}
+.dm-pf-ord>div:nth-child(2){flex:1;font-size:.82rem;color:#7a6a70}
+.dm-pf-ord>div:nth-child(2) b{display:block;color:#2a0b17;font-size:.98rem}
+.dm-pf-ord button,.dm-pf-sub button{background:#8a1c42;color:#fff;border:0;border-radius:10px;padding:9px 14px;font-weight:700;cursor:pointer}
+.dm-pf-sub{background:linear-gradient(135deg,#5a0f2a,#8a1c42);color:#fff;border-radius:18px;padding:18px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.dm-pf-sub b{font:italic 1.5rem "Playfair Display",serif;color:#f1d48b}
+.dm-pf-sub button{background:#fff;color:#8a1c42;align-self:flex-start}
+@media(max-width:820px){.dm-pf-banner{padding:0 18px;height:90px}.dm-pf-banner b{font-size:1.4rem}.dm-profile-sidebar{margin:12px;flex:1 1 auto!important}.dm-pf-card{display:none}.dm-pf-grid{grid-template-columns:1fr}.cart-drawer{width:96vw!important}}
+</style>
+<style id="dm-cp-css">
+/* ---- Change Password popup: proper card (was missing .modal base, so it rendered transparent) ---- */
+#changePasswordOverlay .auth-modal{position:relative;display:block;width:min(440px,94vw);max-width:440px;max-height:92vh;overflow-y:auto;background:linear-gradient(160deg,#fffaf8,#fbeceb);border:1px solid #f0dcd4;border-radius:24px;padding:34px 30px 28px;box-shadow:0 30px 80px rgba(60,8,30,.38);text-align:center}
+#changePasswordOverlay .modal-close{top:14px;right:14px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;color:#6b1433;border:1px solid #f0dcd4;cursor:pointer;padding:0}
+#changePasswordOverlay .dm-cp-icon{width:58px;height:58px;margin:0 auto 14px;border-radius:50%;background:linear-gradient(135deg,#f8e6e9,#f3d3da);color:#8a1c42;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(138,28,66,.14)}
+#changePasswordOverlay .dm-cp-icon svg{width:28px;height:28px}
+#changePasswordOverlay .modal-title{font:700 1.65rem "Playfair Display",serif;color:#2a0b17;margin:0 0 6px}
+#changePasswordOverlay .modal-desc{font-size:.88rem;line-height:1.5;color:#7a6a70;margin:0 0 20px!important}
+#changePasswordOverlay .checkout-input{display:block;width:100%;box-sizing:border-box;margin:0 0 12px!important;padding:13px 15px;border:1px solid #ead3cc;border-radius:14px;background:#fff;font:500 .92rem Inter,sans-serif;color:#2a0b17;text-align:left;outline:none;transition:border-color .15s,box-shadow .15s}
+#changePasswordOverlay .checkout-input:focus{border-color:#8a1c42;box-shadow:0 0 0 3px rgba(138,28,66,.12)}
+#changePasswordOverlay #currentPasswordRow{margin:0!important}
+#changePasswordOverlay .modal-error{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:#fdecee;color:#a0203a;font-size:.82rem;text-align:left}
+#changePasswordOverlay .add-cart-btn{width:100%;margin-top:4px;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,#6b1433,#9c2650);color:#fff;font:700 .95rem Inter,sans-serif;cursor:pointer;box-shadow:0 8px 20px rgba(107,20,51,.28)}
+#changePasswordOverlay .add-cart-btn:disabled{opacity:.7;cursor:default}
+#changePasswordOverlay .dm-cp-hint{font-size:.74rem;color:#9a8a8f;margin:12px 0 0}
+</style>
+
+<style id="dm-pf-css2">
+.dm-pf-banner{background:radial-gradient(ellipse at 30% 0,#8c2147 0,transparent 55%),linear-gradient(110deg,#3d0719,#6b1433 55%,#4a0a22);position:relative;overflow:hidden;height:150px}
+.dm-pf-banner::after{content:"";position:absolute;right:0;top:0;height:100%;width:52%;background:url(/pf/banner-boxes.png) right center/cover no-repeat;-webkit-mask-image:linear-gradient(to right,transparent,#000 35%);mask-image:linear-gradient(to right,transparent,#000 35%)}
+.dm-pf-banner b{font:500 2.4rem "Playfair Display",serif;color:#fbeedd;position:relative;z-index:1}
+.dm-pf-banner i{font:italic 1.25rem "Playfair Display",serif;color:#f1d48b;position:relative;z-index:1}
+.dm-profile-sidebar{margin-top:-52px!important}
+.dm-pf-card{position:relative}
+.dm-pf-card .cam{position:absolute;left:calc(50% + 16px);top:84px;width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:#8a1c42;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;cursor:pointer;padding:0}
+.dm-pf-card img{object-fit:cover}
+.dm-pf-card img.lg{object-fit:contain;padding:8px;background:#fff}
+#accountProfileView .dm-profile-hero{position:relative;padding:20px 20px 16px 300px!important;min-height:200px;background:linear-gradient(110deg,#fbefe6,#f6e3d9 60%,#fbf1ea)!important;overflow:hidden}
+#accountProfileView .dm-profile-avatar-wrap{display:none!important}
+#accountProfileView .dm-profile-hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:270px;background:url(/pf/podium.png) center/cover no-repeat;-webkit-mask-image:linear-gradient(to right,#000 80%,transparent);mask-image:linear-gradient(to right,#000 80%,transparent)}
+#accountProfileView .dm-welcome-hi,#accountProfileView .dm-profile-active{display:none!important}
+#accountProfileView .dm-welcome-name{font:600 2rem "Playfair Display",serif!important;color:#4a0a22!important}
+#accountProfileView .dm-profile-inline-actions a:nth-child(2){display:none}
+#accountProfileView .dm-profile-inline-actions a:first-child{position:absolute;top:18px;right:18px;border:1.5px solid #8a1c42;border-radius:99px;padding:8px 18px;color:#8a1c42;background:#fff8;font-weight:700}
+.dm-pf-tag{margin-top:12px;padding-top:10px;border-top:1px solid #e8cfc6;font-size:.85rem;color:#4a2a35}
+.dm-profile-stat-card{position:relative;flex-direction:column!important;align-items:flex-start!important;gap:6px!important;padding:16px!important}
+.dm-profile-stat-card .dm-profile-stat-icon{background:none!important;width:auto!important;height:auto!important;padding:0}
+.dm-profile-stat-card .dm-profile-stat-icon svg{width:30px;height:30px;stroke:#8a1c42;fill:none;stroke-width:1.8}
+.dm-profile-stat-card .dm-profile-stat-value{font:700 1.7rem Inter,sans-serif!important;color:#2a0b17}
+.dm-profile-stat-card>span{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:1px solid #e8cfc6;display:flex;align-items:center;justify-content:center;color:#8a1c42}
+.dm-pf-sub{position:relative;overflow:hidden;min-height:190px;background:#5a0f2a url(/pf/stay-box.png) right center/auto 100% no-repeat}
+.dm-pf-sub::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#5a0f2a 40%,transparent)}
+.dm-pf-sub>*{position:relative}
+.dm-notification-card{width:100%;text-align:left;font:inherit;align-items:flex-start}.dm-notification-copy>span{display:block}.dm-notification-copy .dm-notification-title{font-size:.95rem;color:#2a0b17}
+.dm-oc{display:flex;gap:18px;padding:18px;margin-bottom:14px;border:1px solid #f0dcd4;border-radius:20px;background:#fffaf8;cursor:pointer;box-shadow:0 4px 14px rgba(107,20,51,.05)}
+.dm-oc-img{width:112px;height:128px;border-radius:12px;background:#f4e4dc;flex:0 0 112px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;overflow:hidden}
+.dm-oc-img img{width:100%;height:100%;object-fit:cover}
+.dm-oc-body{flex:1;min-width:0}
+.dm-oc-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.dm-oc-no{font:700 1.15rem Inter,sans-serif;color:#2a0b17}
+.dm-oc-sub{font-size:.85rem;color:#7a6a70}.dm-oc-items{font-size:.95rem;color:#2a0b17;margin-top:6px}
+.dm-oc-price{font:800 1.3rem Inter,sans-serif;color:#8a1c42;margin:2px 0 6px}
+.dm-oc-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;font-size:.82rem;font-weight:700;white-space:nowrap}
+.dm-oc-pill.done{background:#e3f6e8;color:#1c7a34}.dm-oc-pill.active{background:#ece9fb;color:#40308a}.dm-oc-pill.cancelled{background:#fdeceb;color:#b42318}
+.dm-oc-pill svg{width:16px;height:16px}
+.dm-oc-tl{display:flex;margin:8px 0 12px}
+.dm-oc-st{flex:1;text-align:center;font-size:.72rem;color:#9b8c92;position:relative}
+.dm-oc-st::before{content:"";position:absolute;top:10px;left:-50%;width:100%;height:2px;background:#e3d6da;z-index:0}
+.dm-oc-st:first-child::before{display:none}
+.dm-oc-st.on::before{background:#8a1c42}
+.dm-oc-dot{position:relative;z-index:1;width:22px;height:22px;border-radius:50%;margin:0 auto 5px;background:#e9e2ea;border:2px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem}
+.dm-oc-st.on .dm-oc-dot{background:#8a1c42}.dm-oc-st.on{color:#6a4a57}
+.dm-oc-st.cur .dm-oc-dot{background:#fff;border:2px solid #8a1c42}.dm-oc-st.cur .dm-oc-dot::after{content:"";width:8px;height:8px;border-radius:50%;background:#8a1c42}
+.dm-oc-st.cur{font-weight:800;color:#2a0b17}
+.dm-oc-btns{display:flex;gap:10px;flex-wrap:wrap}
+.dm-oc-btns button{display:inline-flex;align-items:center;gap:7px;border-radius:10px;padding:9px 16px;font-weight:700;font-size:.88rem;cursor:pointer;border:1.5px solid #6b1433}
+.dm-oc-btns .b1{background:#6b1433;color:#fff}.dm-oc-btns .b2{background:#fff;color:#6b1433;border-color:#e4c4cc}
+#accountOrdersView .dm-profile-section-head h3{font:600 1.9rem "Playfair Display",serif;color:#2a0b17;display:flex;align-items:center;gap:12px}
+#accountOrdersView .dm-profile-section-head h3 svg{width:34px;height:34px;stroke:#8a1c42;fill:none;stroke-width:1.8}
+#accountOrdersView .dm-profile-section-head .btn{border-radius:99px;padding:10px 20px;font-weight:700;background:#fff;border:1px solid #eadcd9;color:#2a0b17}
+#accountOrdersView .dm-order-filter{padding:11px 20px;font-size:.9rem;font-weight:600;background:#fff;border-color:#eadcd9;color:#2a0b17}
+#accountOrdersView .dm-order-filter.active{background:#6b1433!important;color:#fff!important;border-color:#6b1433!important}
+#accountOrdersView .dm-order-sort{border-radius:12px!important;padding:11px 14px!important;font-size:.9rem!important;background:#fff}
+@media(max-width:640px){.dm-oc{flex-direction:column}.dm-oc-img{width:100%;flex:none;height:150px}.dm-oc-st{font-size:.62rem}}
+#accountWishlistView .dm-profile-section-head h3,#accountWishlistView .dm-profile-subsection>h3{font:600 1.9rem "Playfair Display",serif;color:#2a0b17;display:flex;align-items:center;gap:12px}
+#accountWishlistView .dm-profile-subsection>h3{font-size:1.4rem;margin:26px 0 12px}
+#accountWishlistView .dm-profile-section-head h3 svg{width:34px;height:34px;stroke:#8a1c42;fill:none;stroke-width:1.8}
+#accountWishlistView .dm-customer-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.dm-wc{position:relative;background:#fffaf8;border:1px solid #f0dcd4;border-radius:20px;overflow:hidden;box-shadow:0 4px 14px rgba(107,20,51,.05);display:flex;flex-direction:column}
+.dm-wc-img{position:relative;height:170px;background:#f4e4dc;display:flex;align-items:center;justify-content:center;font-size:2.4rem;cursor:pointer}
+.dm-wc-img img{width:100%;height:100%;object-fit:cover}
+.dm-wc-heart{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:0;background:#fff;color:#c0264f;font-size:1.1rem;cursor:pointer;box-shadow:0 3px 10px rgba(107,20,51,.2);display:flex;align-items:center;justify-content:center;padding:0}
+.dm-wc-body{padding:14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.dm-wc-cat{font-size:.72rem;color:#9b8c92;text-transform:uppercase;letter-spacing:.06em}
+.dm-wc-name{font-weight:700;color:#2a0b17;font-size:.95rem;line-height:1.3}
+.dm-wc-price{font:800 1.15rem Inter,sans-serif;color:#8a1c42;margin:2px 0 8px}
+.dm-wc-price s{font:400 .8rem Inter,sans-serif;color:#a99;margin-left:6px}
+.dm-wc-btns{display:flex;gap:8px;margin-top:auto}
+.dm-wc-btns button{flex:1;border-radius:10px;padding:9px 6px;font-weight:700;font-size:.82rem;cursor:pointer;border:1.5px solid #6b1433;white-space:nowrap}
+.dm-wc-btns .b1{background:#6b1433;color:#fff}.dm-wc-btns .b2{background:#fff;color:#6b1433;border-color:#e4c4cc}
+#accountWishlistView .dm-mini-product{border-radius:20px!important;background:#fffaf8!important;border:1px solid #f0dcd4!important;overflow:hidden}
+#accountWishlistView .dm-mini-actions button{background:#6b1433!important;color:#fff!important;border-radius:10px!important;border:0!important;font-weight:700}
+#recentlyViewedList .dm-mini-product>img,#recentlyViewedList .dm-mini-product>div:first-child:not(.dm-mini-product-body){height:150px!important;width:100%;object-fit:cover}
+.dm-wl-empty{grid-column:1/-1;text-align:center;padding:40px 20px;color:#7a6a70;background:#fffaf8;border:1px dashed #e4c4cc;border-radius:20px}
+.dm-wl-empty b{display:block;font:600 1.3rem "Playfair Display",serif;color:#4a0a22;margin-bottom:6px}
+#accountAddressesView .dm-profile-section-head h3{font:600 1.9rem "Playfair Display",serif;color:#2a0b17;display:flex;align-items:center;gap:12px}
+#accountAddressesView .dm-profile-section-head h3 svg{width:34px;height:34px;stroke:#8a1c42;fill:none;stroke-width:1.8}
+#accountAddressesView .dm-profile-section-head .add-cart-btn{background:linear-gradient(135deg,#8a1c42,#6b1433);border-radius:99px;padding:11px 22px;font-weight:700;box-shadow:0 6px 16px rgba(107,20,51,.25)}
+#savedAddressesList{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:6px}
+.dm-ac{position:relative;background:#fffaf8;border:1px solid #f0dcd4;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 4px 14px rgba(107,20,51,.05)}
+.dm-ac.def{border-color:#8a1c42;box-shadow:0 6px 20px rgba(107,20,51,.14)}
+.dm-ac-top{display:flex;align-items:center;gap:12px}
+.dm-ac-ico{width:42px;height:42px;border-radius:12px;background:#f8e6e9;display:flex;align-items:center;justify-content:center;flex:0 0 42px}
+.dm-ac-ico svg{width:22px;height:22px;stroke:#8a1c42;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dm-ac-lab{font:700 1.05rem Inter,sans-serif;color:#2a0b17}
+.dm-ac-def{margin-left:auto;background:#e3f6e8;color:#1c7a34;border-radius:99px;padding:4px 12px;font-size:.74rem;font-weight:800}
+.dm-ac-txt{font-size:.9rem;line-height:1.5;color:#5a4a50;white-space:pre-line;flex:1}
+.dm-ac-btns{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid #f0dcd4;padding-top:12px}
+.dm-ac-btns button{border-radius:10px;padding:8px 14px;font-weight:700;font-size:.82rem;cursor:pointer;border:1.5px solid #e4c4cc;background:#fff;color:#6b1433}
+.dm-ac-btns .del{color:#b42318;border-color:#f3cfcb;margin-left:auto}
+.dm-ac-add{min-height:150px;border:2px dashed #e4c4cc;border-radius:20px;background:transparent;color:#8a1c42;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.dm-ac-add span{width:40px;height:40px;border-radius:50%;background:#f8e6e9;font-size:1.5rem;display:flex;align-items:center;justify-content:center}
+
+/* ---- Settings + Notifications tabs (same look as Orders / Wishlist / Addresses) ---- */
+#accountSettingsView .dm-profile-section-head h3,#accountNotificationsView .dm-profile-section-head h3{font:600 1.9rem "Playfair Display",serif;color:#2a0b17;display:flex;align-items:center;gap:12px}
+#accountSettingsView .dm-profile-section-head h3 svg,#accountNotificationsView .dm-profile-section-head h3 svg{width:34px;height:34px;stroke:#8a1c42;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dm-settings-card-grid{gap:16px!important}
+.dm-settings-tile{background:#fffaf8!important;border:1px solid #f0dcd4!important;border-radius:20px!important;padding:18px!important;box-shadow:0 4px 14px rgba(107,20,51,.05)!important;transition:border-color .18s,box-shadow .18s,transform .18s}
+.dm-settings-tile:hover{border-color:#8a1c42!important;box-shadow:0 6px 20px rgba(107,20,51,.14)!important;transform:translateY(-1px)}
+.dm-settings-tile>span{width:42px!important;height:42px!important;flex:0 0 42px!important;border-radius:12px!important;background:#f8e6e9!important;display:flex!important;align-items:center;justify-content:center;font-size:0!important;color:#8a1c42}
+.dm-settings-tile>span svg{width:22px;height:22px}
+.dm-settings-tile strong{font:700 1.02rem Inter,sans-serif!important;color:#2a0b17!important}
+.dm-settings-tile small{color:#7a6a70!important;font-size:.82rem!important}
+.dm-settings-tile>b{color:#8a1c42!important}
+#accountNotificationsView .dm-notification-filter{padding:11px 20px;font-size:.9rem;font-weight:600;background:#fff;border-color:#eadcd9;color:#2a0b17}
+#accountNotificationsView .dm-notification-filter.active{background:#6b1433!important;color:#fff!important;border-color:#6b1433!important}
+#accountNotificationsView .dm-profile-section-head .btn{border-radius:99px!important;border:1.5px solid #e4c4cc!important;background:#fff!important;color:#6b1433!important;font-weight:700;padding:10px 18px!important}
+#customerNotificationsList{display:grid;gap:12px}
+#customerNotificationsList .dm-notification-card{margin:0!important;background:#fffaf8!important;border:1px solid #f0dcd4!important;border-radius:20px!important;padding:16px 18px!important;align-items:center;text-align:left;gap:14px;box-shadow:0 4px 14px rgba(107,20,51,.05);transition:border-color .18s,box-shadow .18s}
+#customerNotificationsList .dm-notification-card:hover{border-color:#8a1c42!important}
+#customerNotificationsList .dm-notification-card.unread{background:#fff!important;border-color:#e4a9b8!important;box-shadow:0 6px 18px rgba(107,20,51,.10)}
+#customerNotificationsList .dm-notification-icon{width:44px!important;height:44px!important;flex:0 0 44px!important;border-radius:12px!important;background:#f8e6e9!important;color:#8a1c42;font-size:0}
+#customerNotificationsList .dm-notification-icon svg{width:22px;height:22px}
+#customerNotificationsList .dm-notification-title{font-size:.98rem!important;color:#2a0b17}
+#customerNotificationsList .dm-notification-message{font-size:.84rem!important;color:#6a5a60}
+#customerNotificationsList .dm-notification-time{font-size:.74rem!important}
+#customerNotificationsList .modal-desc{text-align:center;padding:40px 12px;color:#7a6a70}
+/* ---- Mobile polish for the account popup ---- */
+@media(max-width:820px){
+  /* bottom tab bar: all 7 fit, no stray chevrons, short labels */
+  .dm-profile-sidebar .dm-profile-nav-item::after,.dm-profile-sidebar .dm-profile-nav-item.active::after{content:none!important;display:none!important}
+  .dm-pf-help{display:none!important}
+  .dm-profile-sidebar{gap:2px!important;padding:5px 4px!important;margin:12px 0 0!important;border-radius:16px!important}
+  .dm-profile-sidebar .dm-profile-nav-item{flex:1 1 0!important;width:auto!important;min-width:0!important;margin:0!important;padding:6px 1px!important;justify-content:center}
+  .dm-profile-sidebar .dm-nav-label{font-size:0!important;max-width:none!important;overflow:visible!important}
+  .dm-profile-sidebar .dm-nav-label::after{font-size:8.5px;font-weight:750;letter-spacing:0;white-space:nowrap}
+  #accountProfileTab .dm-nav-label::after{content:"Profile"}
+  #accountOrdersTab .dm-nav-label::after{content:"Orders"}
+  #accountWishlistTab .dm-nav-label::after{content:"Wishlist"}
+  #accountAddressesTab .dm-nav-label::after{content:"Addresses"}
+  #accountSettingsTab .dm-nav-label::after{content:"Settings"}
+  #accountNotificationsTab .dm-nav-label::after{content:"Alerts"}
+  #accountLogoutTab .dm-nav-label::after{content:"Logout"}
+  .dm-profile-sidebar .dm-profile-nav-item:last-child{margin-left:0!important;border-left:0!important}
+  .dm-profile-sidebar .dm-profile-badge{right:6px!important}
+}
+@media(max-width:640px){
+  /* profile hero: photo on top, text below (was cut off at the side) */
+  #accountProfileView .dm-profile-hero{padding:150px 16px 16px!important;min-height:0!important}
+  #accountProfileView .dm-profile-hero::before{width:100%;height:140px;bottom:auto;-webkit-mask-image:linear-gradient(to bottom,#000 75%,transparent);mask-image:linear-gradient(to bottom,#000 75%,transparent)}
+  #accountProfileView .dm-welcome-name{font-size:1.5rem!important;word-break:break-word}
+  #accountProfileView .dm-profile-inline-actions a:first-child{top:12px;right:12px;padding:6px 14px;font-size:.82rem}
+  /* section headers: compact buttons that don't wrap into big blobs */
+  #accountAddressesView .dm-profile-section-head,#accountNotificationsView .dm-profile-section-head,#accountOrdersView .dm-profile-section-head{flex-wrap:wrap;gap:10px}
+  #accountAddressesView .dm-profile-section-head .add-cart-btn{padding:9px 16px!important;font-size:.8rem!important;white-space:nowrap;width:auto!important;box-shadow:0 4px 12px rgba(107,20,51,.22)}
+  #accountAddressesView .dm-profile-section-head h3{font-size:1.5rem}
+  #accountAddressesView .dm-profile-section-head h3 svg{width:28px;height:28px}
+  #accountNotificationsView .dm-profile-section-head .btn{padding:8px 13px!important;font-size:.76rem;white-space:nowrap}
+}
+
+@media(max-width:760px){#accountSettingsView .dm-profile-section-head h3,#accountNotificationsView .dm-profile-section-head h3{font-size:1.5rem}#accountSettingsView .dm-profile-section-head h3 svg,#accountNotificationsView .dm-profile-section-head h3 svg{width:28px;height:28px}#accountNotificationsView .dm-notification-filter{padding:9px 15px;font-size:.84rem}}
+</style>
+<script id="dm-pf-js">
+(function(){
+  function $(i){return document.getElementById(i)}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  var labels={accountProfileTab:'My Profile',accountOrdersTab:'My Orders',accountWishlistTab:'My Wishlist'};
+  function decorate(){
+    var c=(typeof currentCustomer!=='undefined'?currentCustomer:null), layout=document.querySelector('#accountSignedIn .dm-profile-layout');
+    if(!c||!layout)return;
+    Object.keys(labels).forEach(function(id){var l=document.querySelector('#'+id+' .dm-nav-label');if(l)l.textContent=labels[id]});
+    var side=layout.querySelector('.dm-profile-sidebar');
+    if(!document.querySelector('#accountSignedIn .dm-pf-banner')){
+      var b=document.createElement('div');b.className='dm-pf-banner';
+      b.innerHTML='<b>My Account</b><i>Because you deserve the best &hearts;</i>';
+      layout.parentNode.insertBefore(b,layout);
+      var card=document.createElement('div');card.className='dm-pf-card';card.id='dmPfCard';side.insertBefore(card,side.firstChild);
+      var help=document.createElement('div');help.className='dm-pf-help';
+      help.innerHTML='<span style="font-size:1.8rem">&#127911;</span><div><b>Need Help?</b><br>We\'re here for you!<br><button type="button" onclick="openCallbackRequestModal()">Contact Us &rarr;</button></div>';
+      side.appendChild(help);
+    }
+    var pic=(c.picture?'<img src="'+esc(c.picture)+'" alt="">':'<img class="lg" src="Logo.png" alt="">')+'<button type="button" class="cam" aria-label="Change photo" onclick="document.getElementById(\'profilePicInput\').click()">&#128247;</button>';
+    $('dmPfCard').innerHTML=pic+'<b>'+esc(c.name||'Customer')+'</b><small>'+esc(c.email||c.mobile||'')+'</small>';
+    var ic=document.querySelectorAll('.dm-profile-stat-icon'),sv=['<path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>','<path d="M12 20.5s-7.6-4.6-10-9.3C.5 8 1.7 4.6 5 3.6c2.1-.6 4.2.3 5.5 2 .5.6.7.9 1.5.9s1-.3 1.5-.9c1.3-1.7 3.4-2.6 5.5-2 3.3 1 4.5 4.4 3 7.6-2.4 4.7-10 9.3-10 9.3Z"/>','<path d="M12 21.5s7-6.3 7-12A7 7 0 0 0 5 9.5c0 5.7 7 12 7 12Z"/><circle cx="12" cy="9.5" r="2.4"/>','<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z"/>'];
+    ic.forEach(function(e,i){if(sv[i])e.innerHTML='<svg viewBox="0 0 24 24">'+sv[i]+'</svg>'});
+    var hc=document.querySelector('#accountProfileView .dm-profile-hero-copy');
+    if(hc&&!hc.querySelector('.dm-pf-tag')){var t=document.createElement('div');t.className='dm-pf-tag';t.innerHTML='Spreading Happiness with Thoughtful Gifts &#9825;';hc.appendChild(t)}
+    recent();
+  }
+  function recent(){
+    var view=$('accountProfileView'),c=(typeof currentCustomer!=='undefined'?currentCustomer:null);if(!view||!c)return;
+    var grid=$('dmPfGrid');
+    if(!grid){
+      grid=document.createElement('div');grid.id='dmPfGrid';grid.className='dm-pf-grid';
+      var stats=view.querySelector('.dm-profile-stat-grid');stats.parentNode.insertBefore(grid,stats.nextSibling);
+    }
+    var o=(Array.isArray(c.orders)?c.orders:[]).slice().sort(function(a,b){return new Date(b.createdAt||0)-new Date(a.createdAt||0)})[0], h;
+    if(o){
+      var it=(o.items||[])[0]||{}, st=o.fulfilmentStage||o.status||'Order Received';
+      var d=''; try{d=formatOrderDate(o.createdAt,false)}catch(e){}
+      h='<div class="dm-pf-ord"><div class="th">'+(it.image?'<img src="'+esc(it.image)+'" alt="">':'&#127873;')+'</div><div><b>Order '+esc(o.orderNumber||'')+'</b>'+esc(d)+' &bull; &#8377;'+esc(Math.round(o.total||0).toLocaleString('en-IN'))+'<br><span class="dm-order-status-pill '+(window.dmOrderPillClass?dmOrderPillClass(st):'')+'">'+esc(st)+'</span></div><button type="button" onclick="showAccountSection(\'orders\')">Track Order &rarr;</button></div>';
+    } else h='<div class="modal-desc">No orders yet. Your first order will show up here.</div>';
+    grid.innerHTML='<div class="dm-pf-box"><h4>&#128230; Recent Orders <a onclick="showAccountSection(\'orders\')">View All Orders &rarr;</a></h4>'+h+'</div><div class="dm-pf-sub"><b>Stay Connected</b><span>for exclusive offers &amp; updates</span><button type="button" onclick="toggleMarketingPreference()">&#128276; Subscribe Now</button></div>';
+  }
+
+  /* ---- Orders tab: new card (photo, 5-step timeline without "Processing", Buy Again + View Details) ---- */
+  var ST=['Order Received','Ready to Ship','Shipped','Out for Delivery','Delivered'];
+  function stIdx(st){var x=String(st||'').toLowerCase();if(x.indexOf('deliver')>=0&&x.indexOf('out')<0)return 4;if(x.indexOf('out for')>=0)return 3;if(x.indexOf('ship')>=0&&x.indexOf('ready')<0)return 2;if(x.indexOf('ready')>=0||x.indexOf('process')>=0||x.indexOf('production')>=0)return 1;return 0}
+  function itemImg(it){if(it.image)return it.image;try{var p=(allProducts||[]).filter(function(a){return Number(a.id)===Number(it.productId)})[0];return p&&p.image||''}catch(e){return ''}}
+  var CHK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="m5 12 5 5 9-10"/></svg>';
+  window.renderCustomerStageTimeline=function(stage){
+    var cur=stIdx(stage),dn=String(stage||'').toLowerCase().indexOf('deliver')>=0&&String(stage).toLowerCase().indexOf('out')<0;
+    return '<div class="dm-oc-tl">'+ST.map(function(n,i){var done=dn||i<cur,on=done||i===cur;
+      return '<div class="dm-oc-st'+(on?' on':'')+(!dn&&i===cur?' cur':'')+'"><div class="dm-oc-dot">'+(done?CHK:'')+'</div>'+n+'</div>'}).join('')+'</div>';
+  };
+  window.renderCustomerOrderCard=function(o){
+    var items=Array.isArray(o.items)?o.items:[],stage=o.fulfilmentStage||o.status||'Order Received',cls=dmOrderPillClass(stage),img=items.length?itemImg(items[0]):'';
+    var ico=cls==='done'?'<svg viewBox="0 0 24 24" fill="#1c7a34"><circle cx="12" cy="12" r="10"/><path d="m7 12 3.5 3.5L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+    var id=Number(o.id);
+    return '<div class="dm-oc" onclick="openCustomerOrderDetail('+id+')"><div class="dm-oc-img">'+(img?'<img src="'+esc(img)+'" alt="">':'&#127873;')+'</div><div class="dm-oc-body">'+
+      '<div class="dm-oc-top"><div><div class="dm-oc-no">'+esc(o.orderNumber||'')+'</div><div class="dm-oc-sub">'+esc(formatOrderDate(o.createdAt,false))+'</div></div><span class="dm-oc-pill '+cls+'">'+ico+esc(stage)+'</span></div>'+
+      '<div class="dm-oc-items">'+esc(items.map(function(i){return (i.name||'Product')+(i.size?' - '+i.size:'')+' \u00d7 '+Number(i.qty||0)}).join(' \u2022 '))+'</div>'+
+      '<div class="dm-oc-price">&#8377;'+fmtINR(Number(o.total||0))+'</div>'+window.renderCustomerStageTimeline(stage)+
+      '<div class="dm-oc-btns"><button type="button" class="b1" onclick="event.stopPropagation();buyAgainOrder('+id+')">&#128722; Buy Again</button><button type="button" class="b2" onclick="event.stopPropagation();openCustomerOrderDetail('+id+')">View Details &rarr;</button></div></div></div>';
+  };
+  var oh=document.querySelector('#accountOrdersView .dm-profile-section-head h3');
+  if(oh)oh.innerHTML='<svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>My Orders';
+
+  /* ---- Wishlist tab: new product cards ---- */
+  window.wishlistProductCard=function(p){
+    if(!p)return '';var img=p.image||((p.images||[])[0])||'',id=Number(p.id),sale=0;
+    try{sale=getSalePrice(p)||0}catch(e){}
+    var price=sale||p.price||0,old=sale&&p.price>sale?'<s>&#8377;'+fmtINR(p.price)+'</s>':'';
+    return '<div class="dm-wc"><div class="dm-wc-img" onclick="openProductModal('+id+')">'+(img?'<img src="'+esc(img)+'" alt="'+esc(p.name||'')+'" loading="lazy">':'&#127873;')+
+      '<button type="button" class="dm-wc-heart" aria-label="Remove from wishlist" onclick="event.stopPropagation();toggleWishlistById('+id+')">&#10084;</button></div>'+
+      '<div class="dm-wc-body"><div class="dm-wc-cat">'+esc(p.category||'')+'</div><div class="dm-wc-name">'+esc(p.name||'Product')+'</div>'+
+      '<div class="dm-wc-price">&#8377;'+fmtINR(price)+old+'</div><div class="dm-wc-btns"><button type="button" class="b1" onclick="quickAddProduct('+id+')">&#128722; Add to Cart</button><button type="button" class="b2" onclick="openProductModal('+id+')">View</button></div></div></div>';
+  };
+  var wh=document.querySelector('#accountWishlistView .dm-profile-section-head h3');
+  if(wh)wh.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.6-4.6-10-9.3C.5 8 1.7 4.6 5 3.6c2.1-.6 4.2.3 5.5 2 .5.6.7.9 1.5.9s1-.3 1.5-.9c1.3-1.7 3.4-2.6 5.5-2 3.3 1 4.5 4.4 3 7.6-2.4 4.7-10 9.3-10 9.3Z"/></svg>My Wishlist';
+  var rh=document.querySelector('#accountWishlistView .dm-profile-subsection>h3');if(rh)rh.textContent='Recently Viewed';
+  new MutationObserver(function(){var b=$('wishlistList');if(b&&b.firstElementChild&&b.firstElementChild.classList.contains('modal-desc'))b.innerHTML='<div class="dm-wl-empty"><b>Your wishlist is empty</b>Tap the &#9825; on any gift to save it here.</div>'}).observe($('wishlistList')||document.body,{childList:true});
+
+  /* ---- Addresses tab: new cards (same data + same actions as before) ---- */
+  var ADI={Home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/>',Office:'<rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h2M14 8h2M8 12h2M14 12h2M10 20.5v-4h4v4"/>',Other:'<path d="M12 21.5s7-6.3 7-12A7 7 0 0 0 5 9.5c0 5.7 7 12 7 12Z"/><circle cx="12" cy="9.5" r="2.4"/>'};
+  window.renderSavedAddresses=function(){
+    var box=$('savedAddressesList');if(!box)return;
+    var raw=dmRead(dmScopedKey(DM_ADDRESS_KEY),[]),arr=raw;
+    if(arr.length&&!arr.some(function(a){return a.isDefault})){arr=arr.map(function(a,i){return Object.assign({},a,{isDefault:i===0})});dmWrite(dmScopedKey(DM_ADDRESS_KEY),arr);try{syncExtrasToServer();syncDefaultAddressToCheckout(arr[0])}catch(e){}raw=arr}
+    var sorted=arr.slice().sort(function(a,b){return Number(!!b.isDefault)-Number(!!a.isDefault)});
+    box.innerHTML=sorted.map(function(a){
+      var ix=raw.findIndex(function(x){return x.text===a.text&&x.label===a.label}),l=String(a.label||'Address'),k=/home/i.test(l)?'Home':(/office|work/i.test(l)?'Office':'Other');
+      return '<div class="dm-ac'+(a.isDefault?' def':'')+'"><div class="dm-ac-top"><div class="dm-ac-ico"><svg viewBox="0 0 24 24">'+ADI[k]+'</svg></div><div class="dm-ac-lab">'+esc(l)+'</div>'+(a.isDefault?'<span class="dm-ac-def">Default</span>':'')+'</div>'+
+        '<div class="dm-ac-txt">'+esc(a.text||'')+'</div><div class="dm-ac-btns">'+(a.isDefault?'':'<button type="button" onclick="setDefaultSavedAddress('+ix+')">Set Default</button>')+
+        '<button type="button" onclick="editSavedAddress('+ix+')">Edit</button><button type="button" class="del" onclick="removeSavedAddress('+ix+')">Delete</button></div></div>';
+    }).join('')+'<button type="button" class="dm-ac-add" onclick="addSavedAddress()"><span>+</span>Add New Address</button>';
+    var c=$('profileAddressesCount');if(c)c.textContent=arr.length;
+  };
+  var ah=document.querySelector('#accountAddressesView .dm-profile-section-head h3');
+  if(ah)ah.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 21.5s7-6.3 7-12A7 7 0 0 0 5 9.5c0 5.7 7 12 7 12Z"/><circle cx="12" cy="9.5" r="2.4"/></svg>My Addresses';
+  ['renderAccountState','showAccountSection'].forEach(function(n){
+    var f=window[n];if(typeof f!=='function')return;
+    window[n]=function(){var r=f.apply(this,arguments);try{decorate()}catch(e){console.error(e)}return r};
+  });
+})();
+</script>
+
+<style id="dm-mobile-fit">
+/* ---- Mobile fit: account popup was oversized on phones ---- */
+@media(max-width:640px){
+  .auth-modal.profile-mode{max-height:calc(100dvh - 20px)!important;overflow:hidden!important;border-radius:20px!important}
+  .dm-pf-banner{height:70px!important;padding:0 14px!important}
+  .dm-pf-banner b{font-size:1.3rem!important}
+  .dm-pf-banner i{font-size:.82rem!important}
+  .dm-profile-layout{height:calc(100dvh - 112px)!important;max-height:none!important}
+  .dm-profile-main{padding:10px 12px 6px!important;min-height:0!important}
+  .dm-profile-sidebar{flex:0 0 auto!important;width:auto!important;min-height:50px;margin:6px 10px 10px!important;overflow:visible!important}
+  .dm-profile-sidebar .dm-profile-nav-item{padding:5px 1px!important}
+  .dm-profile-sidebar .dm-nav-icon{width:20px!important;height:20px!important}
+  .dm-profile-sidebar .dm-nav-icon svg{width:18px!important;height:18px!important}
+  .dm-profile-section-head{margin-bottom:8px!important}
+  .dm-profile-section-head h3,#accountSettingsView .dm-profile-section-head h3,#accountNotificationsView .dm-profile-section-head h3,#accountAddressesView .dm-profile-section-head h3{font-size:1.2rem!important}
+  .dm-profile-section-head h3 svg,#accountSettingsView .dm-profile-section-head h3 svg,#accountNotificationsView .dm-profile-section-head h3 svg,#accountAddressesView .dm-profile-section-head h3 svg{width:20px!important;height:20px!important}
+  .dm-profile-section-head p{font-size:.76rem!important;margin:2px 0 0!important}
+  #accountProfileView .dm-profile-hero{padding:70px 14px 10px!important;border-radius:16px!important}
+  #accountProfileView .dm-profile-hero::before{height:64px!important}
+  #accountProfileView .dm-welcome-name{font-size:1.2rem!important}
+  .dm-profile-stat-grid{gap:8px!important}
+  .dm-profile-stat-card{padding:9px 10px!important;min-height:0!important;gap:6px!important;border-radius:12px!important}
+  .dm-profile-stat-card{flex-direction:row!important;align-items:center!important;height:auto!important}
+  .dm-profile-stat-card svg{width:17px!important;height:17px!important}
+  .dm-profile-stat-icon{width:auto!important;height:auto!important;flex:0 0 auto}
+  .dm-profile-stat-card>span{position:static!important;margin-left:auto!important;width:20px!important;height:20px!important;font-size:.9rem!important;flex:0 0 20px}
+  .dm-profile-stat-value{font-size:1.1rem!important}
+  .dm-profile-stat-label{font-size:.68rem!important}
+  .dm-pf-grid{gap:10px!important;margin:10px 0!important}
+  .dm-pf-box{padding:11px!important;border-radius:14px!important}
+  .dm-pf-sub{padding:12px!important;border-radius:14px!important}
+  .dm-pf-sub b{font-size:1.15rem!important}
+  .dm-profile-info-card{padding:12px!important}
+  .dm-order-filter,.dm-notification-filter,#accountNotificationsView .dm-notification-filter{padding:5px 11px!important;font-size:.74rem!important}
+  .dm-order-sort,#customerOrderSort{padding:6px 8px!important;font-size:.76rem!important;height:auto!important}
+  .dm-oc-img{height:52px!important;font-size:1.5rem!important}
+  .dm-oc-body{padding:10px 12px!important}
+  .dm-oc{border-radius:14px!important;margin-bottom:10px!important}
+  .dm-customer-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  .dm-wc{border-radius:14px!important}
+  .dm-wc-img,.dm-wc-img img{height:100px!important}
+  .dm-wc-body{padding:8px!important}
+  .dm-wc-btns{display:flex!important;flex-direction:column!important;gap:5px!important}
+  .dm-wc-btns button{width:100%!important;padding:7px 6px!important;font-size:.74rem!important}
+  .dm-wc-name{font-size:.84rem!important}
+  .dm-mini-product{border-radius:12px!important}
+  .dm-mini-product img{height:86px!important}
+  .dm-mini-product-body{padding:8px!important}
+  .dm-ac{padding:11px 12px!important;border-radius:14px!important}
+  .dm-ac-add{padding:14px 10px!important}
+  .dm-profile-footnote{padding:8px 10px!important;font-size:.72rem!important}
+  #customerNotificationsList{gap:8px!important}
+  #customerNotificationsList .dm-notification-card{padding:10px 12px!important;border-radius:14px!important;gap:10px!important}
+  #customerNotificationsList .dm-notification-icon{width:34px!important;height:34px!important;flex:0 0 34px!important}
+  #customerNotificationsList .dm-notification-title{font-size:.88rem!important}
+  #customerNotificationsList .dm-notification-message{font-size:.78rem!important}
+  .dm-settings-tile{padding:11px 12px!important}
+}
+</style>
 </body>
 </html>

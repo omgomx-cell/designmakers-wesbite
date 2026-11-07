@@ -9,7 +9,7 @@
   if (!R || R.__xxInit) return;
   R.__xxInit = true;
 
-  var WA = 'https://wa.me/7004847813';
+  var WA = 'https://wa.me/917004847813';
   function $(id) { return R.getElementById(id); }
   function g(name) { return typeof window[name] === 'function' ? window[name] : null; }
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -26,7 +26,7 @@
     var cat = p.category || 'Other';
     return {
       id: p.id, name: p.name || '', cat: cat, price: sale || price, old: sale ? price : 0,
-      moq: p.moq || 1, img: p.image || tileImg(cat),
+      desc: p.description || '', moq: p.moq || 1, img: p.image || tileImg(cat), own: !!p.image,
       pct: Number(p.buyBadgePercent) > 0 ? Number(p.buyBadgePercent) : 10,
       badge: Number(p.buyBadgePercent) > 0, popular: !!p.popular, trending: !!p.trending,
       month: Number(p.soldMonth) || 0, total: Number(p.soldTotal) || 0
@@ -97,7 +97,10 @@
   var cur = 'All', query = '';
   function matches(p) {
     if (cur !== 'All' && p.cat !== cur) return false;
-    if (query) { var q = query.toLowerCase(); if ((p.name + ' ' + p.cat).toLowerCase().indexOf(q) < 0) return false; }
+    if (query) {
+      if (window.dmSearch) return window.dmSearch.score(p, query) > 0;
+      var q = query.toLowerCase(); if ((p.name + ' ' + p.cat).toLowerCase().indexOf(q) < 0) return false;
+    }
     return true;
   }
   function drawCats() {
@@ -105,8 +108,15 @@
     cats.innerHTML = list.map(function (c) { return '<button type="button" data-c="' + esc(c) + '" aria-pressed="' + (c === cur) + '">' + esc(c) + '</button>'; }).join('');
   }
   function drawGrid() {
-    var a = all.filter(matches);
-    ttl.textContent = query ? 'Results for “' + query + '”' : 'All gifts';
+    var a, note = '';
+    if (query && window.dmSearch) {
+      var pool = all.filter(function (p) { return cur === 'All' || p.cat === cur; });
+      var res = window.dmSearch.search(pool, query, 24); // best match first; never empty if the shop has products
+      a = res.items;
+      if (res.kind === 'related') note = 'No exact match for “' + query + '” — closest picks';
+      else if (res.kind === 'popular') note = 'Nothing matched “' + query + '” — popular picks for you';
+    } else a = all.filter(matches);
+    ttl.textContent = note || (query ? 'Results for “' + query + '”' : 'All gifts');
     cnt.textContent = a.length + (a.length === 1 ? ' product' : ' products');
     if (!a.length) { grid.innerHTML = '<div class="sh-msg">' + (query ? 'No gifts match your search. Try another word, or ' : 'No products here yet. ') + '<a href="' + WA + '" target="_blank" rel="noopener" style="color:var(--rose);font-weight:600">ask us on WhatsApp</a>.</div>'; return; }
     grid.innerHTML = a.map(function (p) {
@@ -201,6 +211,17 @@
     }
     var gd = t.closest('[data-gender]');
     if (gd) { e.preventDefault(); openGender(gd.dataset.gender); return; }
+    var fc = t.closest('a.card');
+    if (fc && window.matchMedia && matchMedia('(hover:none)').matches) {
+      /* touch screens: 1st tap flips the card, the button on the back opens the category */
+      if (!fc.classList.contains('flipped')) {
+        e.preventDefault();
+        [].forEach.call(R.querySelectorAll('a.card.flipped'), function (x) { x.classList.remove('flipped'); });
+        fc.classList.add('flipped'); return;
+      }
+      if (!t.closest('.bk i')) { e.preventDefault(); fc.classList.remove('flipped'); return; }
+    }
+    if (fc && fc.dataset.pid) { e.preventDefault(); openProduct(fc.dataset.pid); return; }
     var ct = t.closest('[data-cat]');
     if (ct) { e.preventDefault(); openCat(ct.dataset.cat); return; }
 
@@ -245,7 +266,7 @@
     words.sort(function () { return .5 - Math.random(); });
     var sp = words.map(function (w, k) { var e = document.createElement('span'); e.textContent = w; if (k === 0) e.className = 'cur'; roll.appendChild(e); return e; }), i = 0, t = null;
     function step() { var prev = sp[i]; prev.className = 'out'; i = (i + 1) % sp.length; sp[i].className = 'cur'; setTimeout(function () { prev.style.transition = 'none'; prev.className = ''; void prev.offsetWidth; prev.style.transition = ''; }, 560); }
-    function play() { clearInterval(t); if (sp.length > 1 && !reduced()) t = setInterval(step, 2300); }
+    function play() { clearInterval(t); if (sp.length > 1) t = setInterval(step, reduced() ? 3000 : 2300); } // still rotates with 'reduce motion' on (plain fade, no slide)
     document.addEventListener('visibilitychange', function () { document.hidden ? clearInterval(t) : play(); });
     play();
   }
@@ -308,12 +329,84 @@
     upd();
   })();
 
+  /* the card's back gets a soft blurred copy of its photo as texture */
+  function setBg(c) {
+    var img = c.querySelector('.fr img'), bk = c.querySelector('.bk');
+    if (img && bk && img.src) bk.style.setProperty('--bg', 'url("' + img.src + '")');
+  }
+  /* the card's back shows the details of the product whose photo is on the front */
+  function fillBack(c, p, rank) {
+    var bk = c.querySelector('.bk'); if (!bk) return;
+    var bulk = Math.round(p.price * 10 * (100 - p.pct) / 100);
+    var off = p.old ? Math.round((1 - p.price / p.old) * 100) : 0;
+    var tagTxt = p.month > 0 ? '&#9733; Best seller' : (p.popular ? '&#9733; Popular' : (p.trending ? '&#9650; Trending' : ''));
+    var chips = ['<li>MOQ ' + esc(p.moq) + '</li>'];
+    if (p.badge) chips.push('<li class="hot">Buy 10 @ &#8377;' + inr(bulk) + ' &middot; ' + p.pct + '% off</li>');
+    if (p.month > 0) chips.push('<li>' + inr(p.month) + ' sold this month</li>');
+    bk.innerHTML =
+      (tagTxt ? '<em class="bk-r">' + tagTxt + '</em>' : '') +
+      '<small class="bk-k">' + esc(p.cat) + '</small>' +
+      '<b>' + esc(p.name) + '</b>' +
+      '<span class="bk-p"><strong>&#8377;' + inr(p.price) + '</strong>' + (p.old ? '<s>&#8377;' + inr(p.old) + '</s><u>' + off + '% OFF</u>' : '') + '</span>' +
+      '<ul class="bk-m">' + chips.join('') + '</ul>' +
+      '<i>View product</i>';
+    bk.classList.add('pd');
+    var ch = c.querySelector('.fr .chip'), cb = ch && ch.querySelector('b'), cs = ch && ch.querySelector('span');
+    if (cb) cb.textContent = p.name;
+    if (cs) cs.textContent = p.cat;
+    c.dataset.pid = p.id;
+    c.setAttribute('aria-label', p.name + ', Rs. ' + inr(p.price));
+  }
+  /* ---------- category cards: show the best-selling product's photo (falls back to the built-in photo) ---------- */
+  var heroIds = [null, null, null];
+  function paintCategoryCards(a) {
+    var ranked = a.filter(function (p) { return p.own; }).sort(function (x, y) {
+      return (y.month - x.month) || (y.total - x.total) || ((y.popular ? 1 : 0) - (x.popular ? 1 : 0)) || ((y.trending ? 1 : 0) - (x.trending ? 1 : 0));
+    });
+    var used = {}, forced = [];
+    /* admin picks (slot 1 = big card, 2 = top right, 3 = bottom right) win; empty slots fall back to best sellers */
+    for (var k = 0; k < 3; k++) {
+      var hp = heroIds[k] == null ? null : a.filter(function (p) { return Number(p.id) === Number(heroIds[k]) && p.own; })[0];
+      forced[k] = hp || null;
+      if (hp) used[hp.id] = 1;
+    }
+    var slotNo = 0;
+    Array.prototype.forEach.call(R.querySelectorAll('.card[data-cat]'), function (c) {
+      var slotIdx = slotNo++;
+      var cat = c.getAttribute('data-cat'), img = c.querySelector('.fr img'); if (!img) return;
+      var pick = forced[slotIdx];
+      if (pick) {
+        fillBack(c, pick, ranked.indexOf(pick));
+        var pre0 = new Image();
+        pre0.onload = function () { img.src = pre0.src; img.alt = pick.name; setBg(c); };
+        pre0.src = pick.img;
+        return;
+      }
+      for (var i = 0; i < ranked.length; i++) {
+        var p = ranked[i];
+        if (!used[p.id] && (cat === 'All' || p.cat === cat)) { pick = p; break; }
+      }
+      if (!pick) return;
+      used[pick.id] = 1;
+      fillBack(c, pick, ranked.indexOf(pick));
+      var pre = new Image();
+      pre.onload = function () { img.src = pre.src; img.alt = pick.name; setBg(c); };
+      pre.src = pick.img;
+    });
+  }
+
   /* ---------- data-driven parts ---------- */
   var painted = false;
   function renderIfReady() { if (all && all.length) { renderSections(); } }
-  load().then(function (a) {
+  var heroLoad = fetch('/api/settings', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (d) {
+    var st = d && d.success && d.settings ? d.settings : {}, ids = Array.isArray(st.heroProductIds) ? st.heroProductIds.slice(0, 3) : [];
+    if (ids[0] == null && st.heroProductId != null) ids[0] = st.heroProductId;
+    heroIds = [ids[0] == null ? null : ids[0], ids[1] == null ? null : ids[1], ids[2] == null ? null : ids[2]];
+  }).catch(function () {});
+  load().then(function (a) { return heroLoad.then(function () { return a; }); }).then(function (a) {
     // category tiles may carry the product photo for custom products later; sections are built from live data only
-    renderSections(); painted = true;
+    renderSections(); painted = true; paintCategoryCards(a);
+    Array.prototype.forEach.call(R.querySelectorAll('.card[data-cat]'), setBg);
     startRoller(a.map(function (p) { return p.name; }).filter(function (n, i, s) { return s.indexOf(n) === i; }));
   });
 

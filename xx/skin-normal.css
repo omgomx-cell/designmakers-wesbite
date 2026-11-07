@@ -45,3 +45,6 @@ section.cta .ps-d button.on,.ps-d button.on{background:#8a1c42}
 footer.ft{background:#1d1512}
 .ft-wa{background:#b8863f}
 .ft-tg span,.ft-tag{border-color:#e3c25a;color:#e3c25a}
+
+/* flip card back */
+.card .bk{background:linear-gradient(150deg,#9a2049,#6b1433)!important}.bk i{color:#8a1c42}

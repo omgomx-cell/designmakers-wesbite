@@ -789,8 +789,9 @@ const defaultDatabase = {
       enabled: false,
       text: "",
     },
-    theme: "normal",
+    theme: "xx",
     heroProductId: null,
+    heroProductIds: [null, null, null],
   },
 };
 
@@ -1070,8 +1071,24 @@ function ensureShape(database) {
     database.settings.heroProductId = null;
     needsUpgrade = true;
   }
+  if (!Array.isArray(database.settings.heroProductIds) || database.settings.heroProductIds.length !== 3) {
+    const old = Array.isArray(database.settings.heroProductIds) ? database.settings.heroProductIds : [];
+    database.settings.heroProductIds = [
+      old[0] != null ? old[0] : (database.settings.heroProductId != null ? database.settings.heroProductId : null),
+      old[1] != null ? old[1] : null,
+      old[2] != null ? old[2] : null,
+    ];
+    needsUpgrade = true;
+  }
   if (!VALID_THEMES.includes(database.settings.theme)) {
-    database.settings.theme = "normal";
+    database.settings.theme = "xx";
+    needsUpgrade = true;
+  }
+  // One-time: "xx" becomes the default theme. Sites still on the old default ("normal",
+  // now shown as "xx-old" in admin) move to "xx" once; festival/glass choices are left alone.
+  if (!database.settings.xxDefaultApplied) {
+    if (database.settings.theme === "normal") database.settings.theme = "xx";
+    database.settings.xxDefaultApplied = true;
     needsUpgrade = true;
   }
 

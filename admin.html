@@ -1207,7 +1207,7 @@
             <div id="themeGrid" style="display:flex; gap:15px; flex-wrap:wrap;">
               <div class="theme-card" data-theme="normal" style="flex:1; min-width:150px; padding:15px; border:2px solid var(--line); border-radius:8px; cursor:pointer; text-align:center; transition:0.3s; background:var(--field);">
                 <div style="height:40px; background:linear-gradient(to right, #8a1c42, #f8ecef); border-radius:4px; margin-bottom:10px;"></div>
-                <div style="font-weight:600; font-size:14px; color:var(--ink);">Normal</div>
+                <div style="font-weight:600; font-size:14px; color:var(--ink);">xx-old</div>
                 <div style="font-size:12px; color:var(--muted);">Design Makers</div>
               </div>
               <div class="theme-card" data-theme="rakshabandhan" style="flex:1; min-width:150px; padding:15px; border:2px solid var(--line); border-radius:8px; cursor:pointer; text-align:center; transition:0.3s; background:var(--field);">
@@ -1242,7 +1242,7 @@
               </div>
               <div class="theme-card" data-theme="xx" style="flex:1; min-width:150px; padding:15px; border:2px solid var(--line); border-radius:8px; cursor:pointer; text-align:center; transition:0.3s; background:var(--field);">
                 <div style="height:40px; background:linear-gradient(to right,#8a1c42,#f8ecef,#d4af37); border-radius:4px; margin-bottom:10px;"></div>
-                <div style="font-weight:600; font-size:14px; color:var(--ink);">xx</div>
+                <div style="font-weight:600; font-size:14px; color:var(--ink);">xx <span style="font-size:11px; color:var(--gold-soft);">(Default)</span></div>
                 <div style="font-size:12px; color:var(--muted);">New homepage / Public site only</div>
               </div>
             </div>
@@ -1430,9 +1430,14 @@
           <div class="dm-hero-admin-grid">
             <div>
               <div style="color:#e8b84b;font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:800;margin-bottom:6px;">Homepage Hero Product</div>
-              <h3 style="margin:0 0 6px;font-size:19px;">Choose the product customers see first.</h3>
-              <p class="phone" style="margin:0 0 12px;">Select any active product. The storefront will automatically use it as the single hero product.</p>
-              <select id="heroProductSelect" onchange="saveHeroProduct()"><option value="">No hero product selected</option></select>
+              <h3 style="margin:0 0 6px;font-size:19px;">Choose the 3 products on the homepage cards.</h3>
+              <p class="phone" style="margin:0 0 12px;">Pick the 3 products shown on the homepage cards. Leave a slot empty and the best seller fills it automatically.</p>
+              <label style="display:block;font-size:12px;font-weight:700;margin:0 0 4px;">1 · Main card (big)</label>
+              <select id="heroProductSelect" onchange="saveHeroProduct(1)"><option value="">Auto (best seller)</option></select>
+              <label style="display:block;font-size:12px;font-weight:700;margin:12px 0 4px;">2 · Second card (top right)</label>
+              <select id="heroProductSelect2" onchange="saveHeroProduct(2)"><option value="">Auto (best seller)</option></select>
+              <label style="display:block;font-size:12px;font-weight:700;margin:12px 0 4px;">3 · Third card (bottom right)</label>
+              <select id="heroProductSelect3" onchange="saveHeroProduct(3)"><option value="">Auto (best seller)</option></select>
               <div id="heroProductStatus" style="font-size:12px;margin-top:8px;min-height:18px;"></div>
             </div>
             <div class="dm-hero-admin-preview" id="heroProductPreview"><span style="color:var(--muted);font-size:12px;">Select a product to preview</span></div>
@@ -2945,9 +2950,9 @@
         legend.innerHTML = segments.map((s) => `<div class="dm-legend-row"><span class="dm-legend-dot" style="background:${s.color}"></span><span class="dm-legend-label">${escapeHtml(s.label)}</span><span class="dm-legend-value">${s.value}</span></div>`).join("");
       }
 
+      const HERO_SLOT_IDS = ["heroProductSelect", "heroProductSelect2", "heroProductSelect3"];
       async function loadHeroProductSettings() {
-        const select = document.getElementById("heroProductSelect");
-        if (!select) return;
+        if (!document.getElementById("heroProductSelect")) return;
         try {
           const [settingsRes, productsRes] = await Promise.all([
             fetch("/api/settings"),
@@ -2956,38 +2961,50 @@
           const settingsData = await settingsRes.json();
           const productsData = await productsRes.json();
           const ps = productsData.success ? (productsData.products || []).filter(p => p.active !== false && p.approved !== false) : [];
-          const heroId = settingsData.success ? settingsData.settings.heroProductId : null;
-          select.innerHTML = '<option value="">No hero product selected</option>' + ps.map(p => '<option value="'+p.id+'">'+escapeHtml(p.name || "Unnamed product")+' · ₹'+fmtINR(p.price || 0)+'</option>').join("");
-          select.value = heroId == null ? "" : String(heroId);
+          const st = settingsData.success ? settingsData.settings : {};
+          const ids = Array.isArray(st.heroProductIds) ? st.heroProductIds.slice() : [];
+          if (ids[0] == null && st.heroProductId != null) ids[0] = st.heroProductId;
+          const opts = '<option value="">Auto (best seller)</option>' + ps.map(p => '<option value="'+p.id+'">'+escapeHtml(p.name || "Unnamed product")+' · ₹'+fmtINR(p.price || 0)+'</option>').join("");
+          HERO_SLOT_IDS.forEach((sid, k) => {
+            const select = document.getElementById(sid);
+            if (!select) return;
+            select.innerHTML = opts;
+            select.value = ids[k] == null ? "" : String(ids[k]);
+          });
           updateHeroProductPreview();
         } catch (e) {
-          select.innerHTML = '<option value="">Could not load products</option>';
+          HERO_SLOT_IDS.forEach(sid => { const s = document.getElementById(sid); if (s) s.innerHTML = '<option value="">Could not load products</option>'; });
         }
       }
 
       function updateHeroProductPreview() {
-        const select = document.getElementById("heroProductSelect");
         const preview = document.getElementById("heroProductPreview");
-        if (!select || !preview) return;
-        const id = Number(select.value);
-        const product = products.find(p => Number(p.id) === id);
-        if (product && product.image) preview.innerHTML = '<img src="'+escapeHtml(product.image)+'" alt="'+escapeHtml(product.name || "Hero product")+'">';
-        else preview.innerHTML = '<span style="color:var(--muted);font-size:12px;">Select a product to preview</span>';
+        if (!preview) return;
+        const cells = HERO_SLOT_IDS.map((sid, k) => {
+          const select = document.getElementById(sid);
+          const product = select && select.value ? products.find(p => Number(p.id) === Number(select.value)) : null;
+          const inner = product && product.image
+            ? '<img src="'+escapeHtml(product.image)+'" alt="'+escapeHtml(product.name || "Hero product")+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">'
+            : '<span style="color:var(--muted);font-size:11px;">Auto</span>';
+          return '<div style="flex:1;min-width:0;"><div style="font-size:11px;font-weight:700;margin-bottom:4px;">'+(k+1)+'</div><div style="aspect-ratio:1;display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;">'+inner+'</div></div>';
+        });
+        preview.innerHTML = '<div style="display:flex;gap:8px;width:100%;">'+cells.join("")+'</div>';
       }
 
-      async function saveHeroProduct() {
-        const select = document.getElementById("heroProductSelect");
+      async function saveHeroProduct(slot) {
+        slot = slot || 1;
+        const select = document.getElementById(HERO_SLOT_IDS[slot - 1]);
         const status = document.getElementById("heroProductStatus");
         const productId = select.value ? Number(select.value) : null;
         updateHeroProductPreview();
         status.style.color = "#e8b84b";
         status.textContent = "Saving…";
         try {
-          const res = await fetch("/api/admin/settings/hero-product", { method:"PUT", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body:JSON.stringify({productId}) });
+          const res = await fetch("/api/admin/settings/hero-product", { method:"PUT", headers:{"Content-Type":"application/json", Authorization:"Bearer "+token}, body:JSON.stringify({slot, productId}) });
           const data = await res.json();
           if (!data.success) throw new Error(data.message || "Unable to save");
           status.style.color = "#63e6b1";
-          status.textContent = "✓ Hero product updated. Changes are live on the storefront.";
+          status.textContent = "✓ Card " + slot + " updated. Changes are live on the storefront.";
         } catch (e) {
           status.style.color = "#ff8f9a";
           status.textContent = e.message || "Unable to save hero product.";
@@ -6165,14 +6182,14 @@
 
       // ---------- THEME SWITCHER ----------
 
-      let savedTheme = "normal"; // what's actually live on the site right now
-      let selectedTheme = "normal"; // what admin has clicked, not yet applied
+      let savedTheme = "xx"; // what's actually live on the site right now
+      let selectedTheme = "xx"; // what admin has clicked, not yet applied
 
       async function loadTheme() {
         try {
           const res = await fetch("/api/settings");
           const data = await res.json();
-          savedTheme = (data.success && data.settings.theme) || "normal";
+          savedTheme = (data.success && data.settings.theme) || "xx";
           selectedTheme = savedTheme;
           updateThemeSelection();
         } catch (err) {

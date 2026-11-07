@@ -132,3 +132,6 @@ footer.ft .lt b{color:var(--fx-s)}
 /* remove the bright diagonal sweep behind the text on dark backgrounds */
 section.cta .cwash{display:none!important}
 section.cta::before{opacity:.25!important}
+
+/* flip card back */
+.card .bk{background:var(--fx-p)!important;color:var(--fx-ctatext)}.bk i{background:var(--fx-ctatext);color:var(--fx-p)}

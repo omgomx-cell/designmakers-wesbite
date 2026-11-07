@@ -333,3 +333,9 @@ section.cta::after{display:none!important}
    linear-gradient(135deg,#4fe8cf,#1fc4aa 60%,#12a690)!important;
   box-shadow:0 14px 28px -6px rgba(24,190,166,.6),0 3px 8px rgba(24,190,166,.3),
    inset 2px 2px 3px rgba(255,255,255,.85),inset -3px -3px 7px rgba(0,70,60,.42),inset 0 -8px 14px rgba(0,90,80,.18)!important}
+
+/* flip card back */
+.card .bk{background:linear-gradient(150deg,#8f73ff,#5b3fd6)!important}.bk i{color:#5b3fd6}
+
+/* base-theme button bevel overlay is not needed here (glass has its own corner shading) */
+.btn.p::before,.btn.wg::before,section.cta .g::before{display:none}

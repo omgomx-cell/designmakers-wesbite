@@ -140,13 +140,14 @@ app.use(
           "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/",
           "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/",
           "https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/",
+          "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/",
         ],
         scriptSrcAttr: ["'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com/gsi/style"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com/gsi/style", "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/"],
         fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
         imgSrc: ["'self'", "data:", "blob:", "https:"],
         mediaSrc: ["'self'", "data:", "blob:"],
-        connectSrc: ["'self'", "https://accounts.google.com/gsi/"],
+        connectSrc: ["'self'", "https://accounts.google.com/gsi/", "https://nominatim.openstreetmap.org"],
         frameSrc: ["https://accounts.google.com/gsi/"],
         workerSrc: ["'self'", "blob:"],
         objectSrc: ["'none'"],
@@ -687,6 +688,11 @@ app.use((req, res, next) => {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate");
     res.set("Pragma", "no-cache");
     res.set("Expires", "0");
+  } else if (!/\.(png|jpe?g|webp|gif|svg|ico|avif|mp4|webm|woff2?|ttf|otf|webmanifest)$/i.test(req.path)) {
+    // Every page / script / stylesheet (home, /admin, /seller, /xx/*.js, /xx/*.css ...):
+    // the browser may keep a copy but must re-check with the server before using it,
+    // so a new deploy shows up on the very next page load (no hard-refresh needed).
+    res.set("Cache-Control", "no-cache, must-revalidate");
   }
   next();
 });
@@ -718,8 +724,9 @@ const staticAssets = express.static(__dirname, {
   etag: true,
   lastModified: true,
   dotfiles: "ignore",
-  // Static assets rarely change day-to-day; cache them for a day.
-  setHeaders: (res) => { res.set("Cache-Control", "public, max-age=86400"); },
+  // Images/fonts: always re-check with the server (cheap 304 via ETag when unchanged),
+  // so replacing a file with the same name (Logo.png, banners) shows up immediately.
+  setHeaders: (res) => { res.set("Cache-Control", "no-cache, must-revalidate"); },
 });
 app.use((req, res, next) => (PUBLIC_ASSET_EXT.test(req.path) ? staticAssets(req, res, next) : next()));
 
@@ -2038,11 +2045,22 @@ app.put("/api/customer/extras", requireCustomer, (req, res) => {
     }
     customer.addresses = addresses
       .slice(0, 10)
-      .map((a) => ({
-        label: String((a && a.label) || "Address").slice(0, 40),
-        text: String((a && a.text) || "").slice(0, 300),
-        isDefault: !!(a && a.isDefault),
-      }))
+      .map((a) => {
+        const out = {
+          label: String((a && a.label) || "Address").slice(0, 40),
+          text: String((a && a.text) || "").slice(0, 300),
+          isDefault: !!(a && a.isDefault),
+        };
+        // Optional map-picked coordinates (only kept if they are real numbers
+        // inside valid latitude/longitude ranges).
+        const lat = a && a.lat != null ? Number(a.lat) : NaN;
+        const lng = a && a.lng != null ? Number(a.lng) : NaN;
+        if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+          out.lat = Math.round(lat * 1e6) / 1e6;
+          out.lng = Math.round(lng * 1e6) / 1e6;
+        }
+        return out;
+      })
       .filter((a) => a.text);
   }
 
@@ -6946,6 +6964,11 @@ app.put("/api/admin/settings/hero-product", requireAdmin, requireArea("storefron
   try {
     const rawId = req.body ? req.body.productId : null;
     const productId = rawId === null || rawId === "" || rawId === undefined ? null : Number(rawId);
+    // slot 1 = main (big) card, 2 = second card, 3 = third card. No slot = slot 1 (older admin page).
+    const slot = req.body && req.body.slot != null ? Number(req.body.slot) : 1;
+    if (![1, 2, 3].includes(slot)) {
+      return res.status(400).json({ success: false, message: "Invalid hero slot." });
+    }
     const database = readDatabase();
     if (productId !== null && !Number.isFinite(productId)) {
       return res.status(400).json({ success: false, message: "Invalid hero product." });
@@ -6954,9 +6977,13 @@ app.put("/api/admin/settings/hero-product", requireAdmin, requireArea("storefron
       const product = (database.products || []).find(p => Number(p.id) === productId && p.approved !== false && p.active !== false);
       if (!product) return res.status(404).json({ success: false, message: "Hero product not found or inactive." });
     }
-    database.settings.heroProductId = productId;
+    const ids = Array.isArray(database.settings.heroProductIds) ? database.settings.heroProductIds.slice(0, 3) : [];
+    while (ids.length < 3) ids.push(null);
+    ids[slot - 1] = productId;
+    database.settings.heroProductIds = ids;
+    database.settings.heroProductId = ids[0]; // the old single hero product = slot 1
     writeDatabase(database);
-    res.json({ success: true, heroProductId: productId });
+    res.json({ success: true, heroProductId: ids[0], heroProductIds: ids });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Unable to update the hero product." });
